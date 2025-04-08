@@ -78,8 +78,8 @@ const Faucet = () => {
     onSuccess: (data) => {
       console.log("Claim successful:", data);
       toast({
-        title: "Tokens claimed successfully!",
-        description: "100 PRIOR tokens have been sent to your wallet.",
+        title: "Token claimed successfully!",
+        description: "1 PRIOR token has been sent to your wallet.",
       });
       if (address) {
         queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
@@ -87,9 +87,14 @@ const Faucet = () => {
     },
     onError: (error: any) => {
       console.error("Claim error:", error);
+      // Check for specific error message from the Prior smart contract
+      const errorMessage = error.reason?.includes("Wait 24 hours between claims") 
+        ? "You must wait 24 hours between claims. The Prior smart contract enforces this limit." 
+        : error.message || "An error occurred. There might be a network issue or insufficient gas.";
+        
       toast({
-        title: "Failed to claim tokens",
-        description: error.message || "An error occurred. You may have already claimed today, or there might be a network issue.",
+        title: "Failed to claim token",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -240,7 +245,7 @@ const Faucet = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-space font-bold mb-4">Prior Token Faucet</h2>
           <p className="text-[#A0AEC0] max-w-2xl mx-auto">
-            Claim testnet PRIOR tokens daily to interact with the protocol. Use these tokens to test swapping, governance, and other protocol features.
+            Claim 1 PRIOR token every 24 hours to interact with the protocol. These testnet tokens are limited by design - use them wisely to test swapping, governance, and other protocol features.
           </p>
         </div>
         
@@ -263,7 +268,7 @@ const Faucet = () => {
                   <div className="text-sm text-[#A0AEC0]">Base Sepolia Testnet</div>
                 </div>
               </div>
-              <div className="text-xl font-bold font-space">100 PRIOR</div>
+              <div className="text-xl font-bold font-space">1 PRIOR</div>
             </div>
           </div>
           
@@ -297,7 +302,7 @@ const Faucet = () => {
               : claimMutation.isPending 
               ? "Claiming..." 
               : canClaimTokens 
-              ? "Claim 100 PRIOR Tokens" 
+              ? "Claim 1 PRIOR Token" 
               : "Already Claimed Today"}
           </button>
           
