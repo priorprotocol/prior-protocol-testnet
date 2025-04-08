@@ -1,0 +1,626 @@
+import React, { useState, useEffect } from "react";
+import { ethers } from "ethers";
+import { FiCopy, FiLogOut, FiChevronDown } from "react-icons/fi";
+
+// Contract addresses
+const PRIOR_SWAP_ADDRESS = "0x0f1DADEcc263eB79AE3e4db0d57c49a8b6178B0B";
+const PRIOR_TOKEN_ADDRESS = "0xc19Ec2EEBB009b2422514C51F9118026f1cD89ba";
+const USDC_TOKEN_ADDRESS = "0x109694D75363A75317A8136D80f50F871E81044e";
+const USDT_TOKEN_ADDRESS = "0x014397DaEa96CaC46DbEdcbce50A42D5e0152B2E";
+
+// Minimal ABIs
+const PRIOR_SWAP_ABI = [
+  "function swapPriorForUSDC(uint256 priorAmount)",
+  "function swapPriorForUSDT(uint256 priorAmount)",
+  "function PRIOR_TO_USDC_RATE() view returns (uint256)",
+  "function PRIOR_TO_USDT_RATE() view returns (uint256)"
+];
+
+const ERC20_MINIMAL_ABI = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)"
+];
+
+// Token options
+const TOKENS = {
+  PRIOR: {
+    address: PRIOR_TOKEN_ADDRESS,
+    symbol: "PRIOR",
+    decimals: 18,
+    color: "from-[#00df9a] to-emerald-500"
+  },
+  USDC: {
+    address: USDC_TOKEN_ADDRESS,
+    symbol: "USDC",
+    decimals: 6,
+    color: "from-blue-500 to-blue-400"
+  },
+  USDT: {
+    address: USDT_TOKEN_ADDRESS,
+    symbol: "USDT",
+    decimals: 6,
+    color: "from-green-500 to-emerald-400"
+  }
+};
+
+// Fixed exchange rates (as per contract)
+const FIXED_RATES = {
+  PRIOR_USDC: 0.2,      // 1 PRIOR = 0.2 USDC
+  PRIOR_USDT: 0.2       // 1 PRIOR = 0.2 USDT
+};
+
+const Swap = () => {
+  // State variables
+  const [account, setAccount] = useState(null);
+  const [ethBalance, setEthBalance] = useState("0.0");
+  const [balances, setBalances] = useState({
+    PRIOR: "0.0",
+    USDC: "0.0",
+    USDT: "0.0"
+  });
+  const [fromAmount, setFromAmount] = useState("");
+  const [toAmount, setToAmount] = useState("0");
+  const [notification, setNotification] = useState(null);
+  const [isCopied, setIsCopied] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isSwapping, setIsSwapping] = useState(false);
+  const [chainId, setChainId] = useState(null);
+  const [toToken, setToToken] = useState("USDC");
+  const [isLoading, setIsLoading] = useState(false);
+  const [tokenData, setTokenData] = useState(TOKENS);
+  const [hasAllowance, setHasAllowance] = useState(true);
+  const [showToDropdown, setShowToDropdown] = useState(false);
+
+  // Notification system
+  const showNotification = (message, isSuccess = true) => {
+    setNotification({ message, isSuccess });
+    setTimeout(() => setNotification(null), 5000);
+  };
+
+  // Network switching function
+  const switchToBaseSepolia = async () => {
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x14A34' }], // Base Sepolia chain ID
+      });
+      return true;
+    } catch (switchError) {
+      if (switchError.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: '0x14A34',
+                chainName: 'Base Sepolia',
+                nativeCurrency: {
+                  name: 'Ethereum',
+                  symbol: 'ETH',
+                  decimals: 18
+                },
+                rpcUrls: ['https://sepolia.base.org'],
+                blockExplorerUrls: ['https://sepolia-explorer.base.org']
+              }
+            ]
+          });
+          return true;
+        } catch (addError) {
+          console.error("Error adding Base Sepolia:", addError);
+          showNotification("Failed to add Base Sepolia network", false);
+          return false;
+        }
+      }
+      console.error("Error switching to Base Sepolia:", switchError);
+      showNotification("Failed to switch to Base Sepolia", false);
+      return false;
+    }
+  };
+
+  // Network checking
+  const checkNetwork = async (provider) => {
+    try {
+      const network = await provider.getNetwork();
+      setChainId(Number(network.chainId));
+      return Number(network.chainId) === 84532; // Base Sepolia
+    } catch (error) {
+      console.error("Network error:", error);
+      return false;
+    }
+  };
+
+  // Wallet connection
+  const connectWallet = async () => {
+    if (!window.ethereum) {
+      showNotification("Please install MetaMask!", false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      
+      // Check/switch network
+      if (!await checkNetwork(provider)) {
+        await switchToBaseSepolia();
+      }
+
+      const accounts = await provider.send("eth_requestAccounts", []);
+      setAccount(accounts[0]);
+      
+      // Load all data
+      await Promise.all([
+        loadTokenData(provider),
+        loadBalances(accounts[0]),
+        checkAllowanceSupport(provider, accounts[0])
+      ]);
+
+    } catch (error) {
+      console.error("Connection error:", error);
+      showNotification(error.message, false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Check if token supports allowance
+  const checkAllowanceSupport = async (provider, walletAddress) => {
+    try {
+      const tokenContract = new ethers.Contract(
+        TOKENS.PRIOR.address, 
+        ERC20_MINIMAL_ABI, 
+        provider
+      );
+      await tokenContract.allowance(walletAddress, PRIOR_SWAP_ADDRESS);
+      setHasAllowance(true);
+    } catch {
+      console.log("Token doesn't support standard allowance");
+      setHasAllowance(false);
+    }
+  };
+
+  // Load token metadata
+  const loadTokenData = async (provider) => {
+    try {
+      const priorContract = new ethers.Contract(PRIOR_TOKEN_ADDRESS, ERC20_MINIMAL_ABI, provider);
+      const usdcContract = new ethers.Contract(USDC_TOKEN_ADDRESS, ERC20_MINIMAL_ABI, provider);
+      const usdtContract = new ethers.Contract(USDT_TOKEN_ADDRESS, ERC20_MINIMAL_ABI, provider);
+
+      const [priorSymbol, usdcSymbol, usdtSymbol] = await Promise.all([
+        priorContract.symbol(),
+        usdcContract.symbol(),
+        usdtContract.symbol()
+      ]);
+
+      setTokenData({
+        PRIOR: { ...TOKENS.PRIOR, symbol: priorSymbol },
+        USDC: { ...TOKENS.USDC, symbol: usdcSymbol },
+        USDT: { ...TOKENS.USDT, symbol: usdtSymbol }
+      });
+    } catch (error) {
+      console.error("Token data error:", error);
+    }
+  };
+
+  // Load balances
+  const loadBalances = async (walletAddress) => {
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      
+      // ETH balance
+      const ethBal = await provider.getBalance(walletAddress);
+      setEthBalance(ethers.formatEther(ethBal));
+      
+      // Token balances
+      const priorContract = new ethers.Contract(PRIOR_TOKEN_ADDRESS, ERC20_MINIMAL_ABI, provider);
+      const usdcContract = new ethers.Contract(USDC_TOKEN_ADDRESS, ERC20_MINIMAL_ABI, provider);
+      const usdtContract = new ethers.Contract(USDT_TOKEN_ADDRESS, ERC20_MINIMAL_ABI, provider);
+
+      const [priorBal, usdcBal, usdtBal] = await Promise.all([
+        priorContract.balanceOf(walletAddress),
+        usdcContract.balanceOf(walletAddress),
+        usdtContract.balanceOf(walletAddress)
+      ]);
+
+      setBalances({
+        PRIOR: ethers.formatUnits(priorBal, tokenData.PRIOR.decimals),
+        USDC: ethers.formatUnits(usdcBal, tokenData.USDC.decimals),
+        USDT: ethers.formatUnits(usdtBal, tokenData.USDT.decimals)
+      });
+    } catch (error) {
+      console.error("Balance error:", error);
+    }
+  };
+
+  // Approve tokens
+  const approveTokens = async () => {
+    if (!account || !fromAmount) return;
+    
+    setIsApproving(true);
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      
+      const tokenContract = new ethers.Contract(
+        TOKENS.PRIOR.address, 
+        ERC20_MINIMAL_ABI, 
+        signer
+      );
+      
+      const amount = ethers.parseUnits(fromAmount, TOKENS.PRIOR.decimals);
+      const tx = await tokenContract.approve(PRIOR_SWAP_ADDRESS, amount);
+      await tx.wait();
+      
+      showNotification("Approval successful!", true);
+      return true;
+    } catch (error) {
+      console.error("Approval error:", error);
+      showNotification(`Approval failed: ${error.message}`, false);
+      return false;
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  // Execute swap
+  const executeSwap = async () => {
+    if (!account || !fromAmount) return;
+    
+    setIsSwapping(true);
+    
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const swapContract = new ethers.Contract(PRIOR_SWAP_ADDRESS, PRIOR_SWAP_ABI, signer);
+      
+      const amount = ethers.parseUnits(fromAmount, TOKENS.PRIOR.decimals);
+      console.log(`Attempting to swap ${fromAmount} PRIOR to ${toToken} (${amount.toString()} wei)`);
+
+      // Check allowance if needed
+      if (hasAllowance) {
+        const tokenContract = new ethers.Contract(
+          TOKENS.PRIOR.address, 
+          ERC20_MINIMAL_ABI, 
+          provider
+        );
+        
+        const allowance = await tokenContract.allowance(account, PRIOR_SWAP_ADDRESS);
+        console.log(`Current allowance: ${ethers.formatUnits(allowance, TOKENS.PRIOR.decimals)} PRIOR`);
+        
+        if (allowance < amount) {
+          showNotification("Approval needed first", false);
+          const approved = await approveTokens();
+          if (!approved) return;
+        }
+      }
+      
+      // Execute swap with higher gas limit
+      let tx;
+      const gasOptions = { gasLimit: 500000 };
+      
+      if (toToken === "USDC") {
+        tx = await swapContract.swapPriorForUSDC(amount, gasOptions);
+      } else {
+        tx = await swapContract.swapPriorForUSDT(amount, gasOptions);
+      }
+      
+      console.log("Transaction sent, waiting for confirmation...");
+      await tx.wait();
+      showNotification("Swap successful!", true);
+      loadBalances(account);
+      setFromAmount("");
+      
+    } catch (error) {
+      console.error("Full error object:", error);
+      
+      let errorMsg = "Swap failed";
+      if (error.data?.message) {
+        errorMsg += `: ${error.data.message}`;
+      } else if (error.reason) {
+        errorMsg += `: ${error.reason}`;
+      } else if (error.message) {
+        errorMsg += `: ${error.message}`;
+      } else {
+        errorMsg += `: ${JSON.stringify(error)}`;
+      }
+      
+      showNotification(errorMsg, false);
+    } finally {
+      setIsSwapping(false);
+    }
+  };
+
+  // Calculate expected output amount
+  useEffect(() => {
+    if (!fromAmount || isNaN(parseFloat(fromAmount))) {
+      setToAmount("0");
+      return;
+    }
+
+    try {
+      const amount = parseFloat(fromAmount);
+      const rate = toToken === "USDC" ? FIXED_RATES.PRIOR_USDC : FIXED_RATES.PRIOR_USDT;
+      const result = amount * rate;
+      
+      setToAmount(result.toFixed(6));
+    } catch (error) {
+      console.error("Calculation error:", error);
+      setToAmount("0");
+    }
+  }, [fromAmount, toToken]);
+
+  // Handle token selection
+  const handleToTokenSelect = (token) => {
+    setToToken(token);
+    setShowToDropdown(false);
+  };
+
+  // Disconnect wallet
+  const disconnectWallet = () => {
+    setAccount(null);
+    setEthBalance("0.0");
+    setBalances({
+      PRIOR: "0.0",
+      USDC: "0.0",
+      USDT: "0.0"
+    });
+    setFromAmount("");
+    setToAmount("0");
+    setChainId(null);
+  };
+
+  // Format balance
+  const formatBalance = (balance) => {
+    return parseFloat(balance).toFixed(6);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
+      {notification && (
+        <div className={`fixed top-5 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-xl shadow-lg ${notification.isSuccess ? "bg-green-600/90" : "bg-red-600/90"} text-white text-center max-w-md w-full backdrop-blur-sm border border-gray-700/50`}>
+          {notification.message}
+        </div>
+      )}
+
+      <div className="max-w-md mx-auto space-y-6">
+        {/* Header Card */}
+        <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700/50 shadow-xl hover:shadow-[#00df9a]/10 transition-all duration-300">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00df9a] to-blue-400 mb-2">
+              PRIOR SWAP
+            </h1>
+            <p className="text-gray-300 mb-6">Swap PRIOR to USDC or USDT on Base Sepolia</p>
+            
+            {!account ? (
+              <button 
+                onClick={connectWallet} 
+                className="w-full bg-gradient-to-r from-[#00df9a] to-blue-500 hover:from-[#00c78a] hover:to-blue-400 text-black font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                Connect Wallet
+              </button>
+            ) : (
+              <div className="flex flex-col items-center space-y-3">
+                {chainId !== 84532 && (
+                  <button 
+                    onClick={switchToBaseSepolia}
+                    className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-yellow-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300"
+                  >
+                    Switch to Base Sepolia
+                  </button>
+                )}
+                <button 
+                  onClick={disconnectWallet}
+                  className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-medium py-2 px-6 rounded-xl transition-all duration-300"
+                >
+                  <FiLogOut /> Disconnect
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {account && (
+          <>
+            {/* Wallet Info Card */}
+            <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-700/50 shadow-xl hover:shadow-[#00df9a]/10 transition-all duration-300">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00df9a] to-blue-400">
+                  Wallet Information
+                </h2>
+                <div className="w-12 h-1 bg-gradient-to-r from-[#00df9a] to-blue-400 mt-2 rounded-full"></div>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <p className="text-gray-400 mb-2">Wallet Address</p>
+                  <div className="flex items-center justify-between bg-gray-700/50 p-3 rounded-xl border border-gray-700/30">
+                    <span className="text-white truncate">{account}</span>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(account);
+                        setIsCopied(true);
+                        setTimeout(() => setIsCopied(false), 2000);
+                      }}
+                      className="text-gray-400 hover:text-[#00df9a] transition-all duration-200 ml-2 p-1 rounded-lg hover:bg-gray-600/50"
+                      title="Copy to clipboard"
+                    >
+                      <FiCopy />
+                    </button>
+                  </div>
+                  {isCopied && <p className="text-green-400 text-sm mt-1">Address copied!</p>}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: "ETH Balance", value: `${parseFloat(ethBalance).toFixed(4)} ETH`, color: "from-purple-500 to-blue-500" },
+                    { label: `${tokenData.PRIOR.symbol} Balance`, value: `${parseFloat(balances.PRIOR).toFixed(2)} ${tokenData.PRIOR.symbol}`, color: "from-[#00df9a] to-emerald-500" },
+                    { label: `${tokenData.USDC.symbol} Balance`, value: `${parseFloat(balances.USDC).toFixed(2)} ${tokenData.USDC.symbol}`, color: "from-blue-500 to-blue-400" },
+                    { label: `${tokenData.USDT.symbol} Balance`, value: `${parseFloat(balances.USDT).toFixed(2)} ${tokenData.USDT.symbol}`, color: "from-green-500 to-emerald-400" }
+                  ].map((item, index) => (
+                    <div key={index} className={`bg-gradient-to-br ${item.color}/20 p-3 rounded-xl border border-gray-700/30`}>
+                      <p className="text-gray-400 text-xs">{item.label}</p>
+                      <p className="text-white font-medium">{isLoading ? "Loading..." : item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Swap Card */}
+            <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-700/50 shadow-xl hover:shadow-[#00df9a]/10 transition-all duration-300">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00df9a] to-blue-400">
+                  Swap Tokens
+                </h2>
+                <div className="w-12 h-1 bg-gradient-to-r from-[#00df9a] to-blue-400 mt-2 rounded-full"></div>
+              </div>
+
+              <div className="space-y-4">
+                {/* From Token (Fixed as PRIOR) */}
+                <div className="bg-gray-700/50 p-4 rounded-xl border border-gray-700/30">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-400">You pay</span>
+                    <span className="text-gray-400 text-sm">
+                      Balance: {formatBalance(balances.PRIOR)} {tokenData.PRIOR.symbol}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      value={fromAmount}
+                      onChange={(e) => setFromAmount(e.target.value)}
+                      placeholder="0.0"
+                      className="bg-transparent text-white text-xl w-full outline-none"
+                    />
+                    <span className={`bg-gradient-to-r ${tokenData.PRIOR.color} bg-clip-text text-transparent font-medium ml-2`}>
+                      {tokenData.PRIOR.symbol}
+                    </span>
+                  </div>
+                </div>
+
+                {/* To Token (Selectable USDC/USDT) */}
+                <div className="bg-gray-700/50 p-4 rounded-xl border border-gray-700/30">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-400">You receive</span>
+                    <span className="text-gray-400 text-sm">
+                      Balance: {formatBalance(balances[toToken])} {tokenData[toToken].symbol}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="text"
+                      value={toAmount}
+                      readOnly
+                      className="bg-transparent text-white text-xl w-full outline-none"
+                    />
+                    <div className="relative">
+                      <button 
+                        onClick={() => setShowToDropdown(!showToDropdown)}
+                        className="flex items-center gap-1 bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded-lg ml-2 transition-all duration-200"
+                      >
+                        <span className={`bg-gradient-to-r ${tokenData[toToken].color} bg-clip-text text-transparent font-medium`}>
+                          {tokenData[toToken].symbol}
+                        </span>
+                        <FiChevronDown className="text-gray-300" />
+                      </button>
+                      {showToDropdown && (
+                        <div className="absolute right-0 mt-2 w-32 bg-gray-700 rounded-lg shadow-lg z-10 border border-gray-600">
+                          {["USDC", "USDT"].map(token => (
+                            <button
+                              key={token}
+                              onClick={() => handleToTokenSelect(token)}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-600 rounded-lg flex items-center gap-2"
+                            >
+                              <span className={`bg-gradient-to-r ${tokenData[token].color} bg-clip-text text-transparent`}>
+                                {tokenData[token].symbol}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Swap Button */}
+                <div className="pt-2">
+                  {chainId !== 84532 ? (
+                    <button 
+                      onClick={switchToBaseSepolia}
+                      className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-yellow-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300"
+                    >
+                      Switch to Base Sepolia to Swap
+                    </button>
+                  ) : parseFloat(fromAmount) > parseFloat(balances.PRIOR) ? (
+                    <button 
+                      disabled
+                      className="w-full bg-gray-700/50 text-gray-400 font-bold py-3 px-6 rounded-xl border border-gray-700/30"
+                    >
+                      Insufficient PRIOR Balance
+                    </button>
+                  ) : (
+                    <>
+                      {hasAllowance && (
+                        <button 
+                          onClick={approveTokens}
+                          disabled={isApproving || !fromAmount}
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-xl mb-3 transition-all duration-300"
+                        >
+                          {isApproving ? "Approving..." : "Approve"}
+                        </button>
+                      )}
+                      <button
+                        onClick={executeSwap}
+                        disabled={isSwapping || !fromAmount}
+                        className={`w-full ${isSwapping ? 'bg-gray-600' : 'bg-gradient-to-r from-[#00df9a] to-blue-500 hover:from-[#00c78a] hover:to-blue-400'} text-black font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02]`}
+                      >
+                        {isSwapping ? "Swapping..." : `Swap to ${tokenData[toToken].symbol}`}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Rate Info Card */}
+            <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-700/50 shadow-xl hover:shadow-[#00df9a]/10 transition-all duration-300">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00df9a] to-blue-400">
+                  Exchange Information
+                </h2>
+                <div className="w-12 h-1 bg-gradient-to-r from-[#00df9a] to-blue-400 mt-2 rounded-full"></div>
+              </div>
+              
+              <div className="space-y-3">
+                {[
+                  { 
+                    label: "Rate", 
+                    value: `1 PRIOR = ${FIXED_RATES[`PRIOR_${toToken}`].toFixed(6)} ${tokenData[toToken].symbol}`
+                  },
+                  { 
+                    label: "Network", 
+                    value: `Base Sepolia ${chainId === 84532 ? "(Connected)" : ""}`
+                  },
+                  { 
+                    label: "Direction", 
+                    value: `PRIOR → ${tokenData[toToken].symbol}`
+                  }
+                ].map((item, index) => (
+                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-700/30 last:border-0">
+                    <span className="text-gray-400">{item.label}:</span>
+                    <span className="text-white font-medium">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Swap;

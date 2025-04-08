@@ -280,10 +280,94 @@ export default function Swap() {
   }, [fromToken, toToken]);
   
   // Handle swap
+  // Direct connect function similar to what we have in Faucet.tsx
+  const directConnectWallet = useCallback(async () => {
+    try {
+      if (!window.ethereum) {
+        toast({
+          title: "MetaMask Not Found",
+          description: "Please install MetaMask to connect your wallet.",
+          variant: "destructive"
+        });
+        window.open('https://metamask.io/download.html', '_blank');
+        return null;
+      }
+      
+      console.log("Requesting accounts directly from Swap component...");
+      const { requestAccounts } = await import('@/lib/web3');
+      const account = await requestAccounts();
+      
+      if (!account) {
+        toast({
+          title: "No Account Found",
+          description: "Please connect an account in your MetaMask wallet.",
+          variant: "destructive"
+        });
+        return null;
+      }
+      
+      console.log("Account connected:", account);
+      
+      // Try to update the wallet address via global debug methods
+      try {
+        // @ts-ignore
+        if (window.__setWalletAddress) {
+          // @ts-ignore
+          const debugUpdate = window.__setWalletAddress(account);
+          console.log("Global wallet update result:", debugUpdate);
+        }
+      } catch (error) {
+        console.error("Error updating wallet address globally:", error);
+      }
+      
+      // Also try the standard connectWallet method
+      try {
+        await connectWallet();
+      } catch (error) {
+        console.error("Error with standard wallet connection:", error);
+      }
+      
+      // Switch to Base Sepolia
+      try {
+        const { switchToBaseSepoliaNetwork } = await import('@/lib/web3');
+        await switchToBaseSepoliaNetwork();
+      } catch (error) {
+        console.error("Failed to switch network:", error);
+      }
+      
+      toast({
+        title: "Wallet Connected",
+        description: `Connected to ${account.substring(0, 6)}...${account.substring(account.length - 4)}`,
+      });
+      
+      return account;
+    } catch (error) {
+      console.error("Error in direct connect:", error);
+      toast({
+        title: "Connection Failed",
+        description: "Failed to connect to MetaMask. Please try again.",
+        variant: "destructive"
+      });
+      return null;
+    }
+  }, [connectWallet, toast]);
+
   const handleSwap = useCallback(async () => {
     if (!isConnected) {
-      connectWallet();
-      return;
+      try {
+        console.log("Trying direct wallet connection from Swap...");
+        const account = await directConnectWallet();
+        if (!account) {
+          return;
+        }
+        return;
+      } catch (error) {
+        console.error("Failed direct wallet connection:", error);
+        
+        // Fallback to standard connect
+        connectWallet();
+        return;
+      }
     }
     
     if (!fromToken || !toToken) {
@@ -353,7 +437,7 @@ export default function Swap() {
       setIsSwapping(false);
     }
   }, [
-    isConnected, connectWallet, fromToken, toToken, 
+    isConnected, connectWallet, directConnectWallet, fromToken, toToken, 
     fromAmount, toAmount, fromBalance, slippage,
     sendSwapTransaction, toast
   ]);
