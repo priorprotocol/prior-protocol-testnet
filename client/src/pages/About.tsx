@@ -1,7 +1,8 @@
 import React from 'react';
 import { SiDiscord, SiMedium } from 'react-icons/si';
-import { FaTwitter, FaBook } from 'react-icons/fa';
+import { FaTwitter, FaBook, FaKey } from 'react-icons/fa';
 import priorLogo from '@/assets/images/prior-protocol-logo.png';
+import priorPioneerNft from '@/assets/images/prior-pioneer-nft.jpg';
 
 const About = () => {
   return (
