@@ -146,28 +146,7 @@ const Faucet = () => {
       }
       
       console.log("Requesting accounts directly...");
-      let account;
-      
-      try {
-        // First try the standard requestAccounts method
-        account = await requestAccounts();
-      } catch (requestError) {
-        console.error("Error requesting accounts:", requestError);
-        // If that fails, try a direct call to ethereum.request
-        try {
-          const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-          account = accounts[0];
-        } catch (directError) {
-          console.error("Error with direct ethereum.request:", directError);
-          toast({
-            title: "Wallet Connection Failed",
-            description: "Please unlock your MetaMask and try again.",
-            variant: "destructive"
-          });
-          return null;
-        }
-      }
-      
+      const account = await requestAccounts();
       if (!account) {
         toast({
           title: "No Account Found",
@@ -182,12 +161,11 @@ const Faucet = () => {
       // Set our local state first
       setLocalWalletAddress(account);
       
-      // Update our wallet context in multiple ways to ensure one works
-      // 1. Try the global update method
+      // Try to update the wallet address via our global methods
       const updated = updateWalletAddressGlobally(account);
       console.log("Global wallet update result:", updated);
       
-      // 2. Also try the debug method as a backup
+      // Also try the debug method as a backup
       try {
         // @ts-ignore
         if (window.__setWalletAddress) {
@@ -199,24 +177,15 @@ const Faucet = () => {
         console.error("Error in debug wallet update:", error);
       }
       
-      // 3. Try to force a context update through state changes
-      wallet.connectWallet().catch(e => console.error("Error in wallet.connectWallet:", e));
-      
       // Switch to Base Sepolia
       try {
         await switchToBaseSepoliaNetwork();
       } catch (error) {
         console.error("Failed to switch network:", error);
-        // Still continue as they might already be on the right network
       }
       
       // Update token balances
-      try {
-        await updateLocalBalances(account);
-      } catch (error) {
-        console.error("Error updating token balances:", error);
-        // Don't block for balance errors
-      }
+      await updateLocalBalances(account);
       
       toast({
         title: "Wallet Connected",
@@ -236,22 +205,13 @@ const Faucet = () => {
   };
 
   const handleClaimTokens = async () => {
-    if (!wallet.isConnected) {
+    if (!isConnected) {
       try {
         console.log("Trying direct wallet connection...");
         const account = await directConnectWallet();
         if (!account) {
           return;
         }
-        // Wait a moment for the connection to fully process
-        setTimeout(() => {
-          if (wallet.isConnected || address) {
-            console.log("Connection established, attempting to claim...");
-            claimMutation.mutate();
-          } else {
-            console.log("Still not connected after timeout");
-          }
-        }, 1000);
         return;
       } catch (error) {
         console.error("Failed to connect wallet:", error);
@@ -269,8 +229,8 @@ const Faucet = () => {
   };
   
   const handleCopyAddress = () => {
-    if (wallet.address) {
-      wallet.copyToClipboard(wallet.address);
+    if (address) {
+      copyToClipboard(address);
       setIsCopied(true);
       
       setTimeout(() => {
@@ -313,22 +273,12 @@ const Faucet = () => {
           </div>
           
           <div className="mb-6">
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-[#A0AEC0] text-sm font-medium">Your Wallet Address</label>
-              {wallet.isConnected && (
-                <button
-                  onClick={() => wallet.disconnectWallet()}
-                  className="text-xs text-[#FF4C4C] hover:text-[#FF6B6B] transition-colors"
-                >
-                  Disconnect
-                </button>
-              )}
-            </div>
+            <label className="block text-[#A0AEC0] text-sm font-medium mb-2">Your Wallet Address</label>
             <div className="flex">
               <input 
                 type="text" 
                 readOnly 
-                value={wallet.address ? `${wallet.address.substring(0, 6)}...${wallet.address.substring(wallet.address.length - 4)}` : "0x0000...0000"}
+                value={address || "0x0000...0000"}
                 placeholder="0x0000...0000" 
                 className="w-full bg-[#0B1118] border border-[#2D3748] rounded-l-lg px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-[#1A5CFF]"
               />
@@ -344,10 +294,10 @@ const Faucet = () => {
           
           <button 
             onClick={handleClaimTokens}
-            disabled={wallet.isConnected && !canClaimTokens || claimMutation.isPending}
-            className={`w-full rounded-lg ${wallet.isConnected && !canClaimTokens ? 'bg-[#A0AEC0] cursor-not-allowed' : 'bg-[#1A5CFF] hover:bg-opacity-90'} transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide`}
+            disabled={isConnected && !canClaimTokens || claimMutation.isPending}
+            className={`w-full rounded-lg ${isConnected && !canClaimTokens ? 'bg-[#A0AEC0] cursor-not-allowed' : 'bg-[#1A5CFF] hover:bg-opacity-90'} transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide`}
           >
-            {!wallet.isConnected 
+            {!isConnected 
               ? "Connect Wallet" 
               : claimMutation.isPending 
               ? "Claiming..." 

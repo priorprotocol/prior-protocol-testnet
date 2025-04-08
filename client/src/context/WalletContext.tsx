@@ -19,7 +19,6 @@ import {
   checkPriorPioneerNFT
 } from "@/lib/contracts";
 
-// Interface for the wallet context
 interface WalletContextType {
   address: string | null;
   isConnected: boolean;
@@ -40,19 +39,6 @@ interface WalletContextType {
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
-
-// Global function reference that can be accessed from anywhere
-export let globalSetAddress: ((address: string) => void) | null = null;
-
-export const updateWalletAddressGlobally = (address: string) => {
-  if (globalSetAddress) {
-    console.log("Updating wallet address globally:", address);
-    globalSetAddress(address);
-    return true;
-  }
-  console.log("No wallet update callback available");
-  return false;
-};
 
 export const useWallet = () => {
   const context = useContext(WalletContext);
@@ -85,6 +71,22 @@ interface WalletProviderProps {
   children: ReactNode;
 }
 
+// Create a global event listener for wallet changes
+// We'll use this to update the wallet state from outside the context
+type WalletUpdateCallback = (address: string) => void;
+let globalWalletUpdateCallback: WalletUpdateCallback | null = null;
+
+// Function to set the wallet address from anywhere in the app
+export const updateWalletAddressGlobally = (address: string) => {
+  if (globalWalletUpdateCallback) {
+    console.log("Updating wallet address globally:", address);
+    globalWalletUpdateCallback(address);
+    return true;
+  }
+  console.log("No wallet update callback available");
+  return false;
+};
+
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [address, setAddress] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
@@ -92,22 +94,21 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [tokenBalances, setTokenBalances] = useState<Record<string, string>>({});
   const { toast } = useToast();
   
-  // Store the address setter in the global variable for external access
+  // Register the global wallet update callback
   useEffect(() => {
-    globalSetAddress = (newAddress: string) => {
-      console.log("Global address setter called with:", newAddress);
+    globalWalletUpdateCallback = (newAddress: string) => {
+      console.log("Global wallet callback triggered with address:", newAddress);
       setAddress(newAddress);
     };
     
     return () => {
-      globalSetAddress = null;
+      globalWalletUpdateCallback = null;
     };
   }, []);
   
   // Get tokens from the API
   const { data: tokens = [] } = useQuery<TokenInfo[]>({
     queryKey: ['/api/tokens'],
-    staleTime: 60 * 1000, // Cache for 1 minute
   });
   
   // Get user data when address is available
@@ -120,7 +121,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   
   const isConnected = !!address;
   
-  // Initialize wallet connection on load - only once
+  // Initialize wallet connection on load
   useEffect(() => {
     let mounted = true;
     
@@ -140,7 +141,6 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         if (!mounted) return;
         
         if (accounts && accounts.length > 0) {
-          console.log("Auto-connected to account:", accounts[0]);
           setAddress(accounts[0]);
           
           try {
@@ -148,10 +148,13 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             const provider = getProvider();
             if (provider) {
               const network = await provider.getNetwork();
-              setChainId(network.chainId);
+              const chainId = network.chainId;
               
-              // Check if we're on Base Sepolia
-              if (network.chainId !== 84532) {
+              if (!mounted) return;
+              
+              setChainId(chainId);
+              
+              if (chainId !== 84532) {
                 toast({
                   title: "Wrong Network",
                   description: "Please switch to Base Sepolia Testnet",
@@ -160,86 +163,100 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
               }
             }
           } catch (error) {
-            console.error("Error getting network:", error);
+            console.error("Error getting chain ID:", error);
           }
-        } else {
-          console.log("No connected accounts found on init");
         }
       } catch (error) {
         console.error("Error initializing wallet:", error);
       }
     };
     
-    initWallet();
+    // Setup event listeners for wallet
+    const setupListeners = () => {
+      // Check if ethereum provider is available
+      if (typeof window === 'undefined' || !window.ethereum) return;
+      
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (!mounted) return;
+        
+        if (accounts.length === 0) {
+          setAddress(null);
+          setChainId(null);
+          setTokenBalances({});
+          queryClient.clear();
+        } else {
+          setAddress(accounts[0]);
+        }
+      };
+      
+      const handleChainChanged = (chainIdHex: string) => {
+        if (!mounted) return;
+        
+        try {
+          const newChainId = parseInt(chainIdHex, 16);
+          setChainId(newChainId);
+          
+          if (newChainId !== 84532) {
+            toast({
+              title: "Wrong Network",
+              description: "Please switch to Base Sepolia Testnet",
+              variant: "destructive"
+            });
+          }
+        } catch (error) {
+          console.error("Error handling chain change:", error);
+        }
+      };
+      
+      try {
+        window.ethereum.on('accountsChanged', handleAccountsChanged);
+        window.ethereum.on('chainChanged', handleChainChanged);
+      } catch (error) {
+        console.error("Error setting up ethereum listeners:", error);
+      }
+      
+      return () => {
+        if (window.ethereum) {
+          try {
+            window.ethereum.removeAllListeners('accountsChanged');
+            window.ethereum.removeAllListeners('chainChanged');
+          } catch (error) {
+            console.error("Error removing ethereum listeners:", error);
+          }
+        }
+      };
+    };
+    
+    // Initialize wallet state
+    setTimeout(() => {
+      initWallet();
+      const cleanup = setupListeners();
+      
+      return () => {
+        mounted = false;
+        if (cleanup) cleanup();
+      };
+    }, 100); // Small delay to ensure DOM is ready
     
     return () => {
       mounted = false;
     };
-  }, []); // Empty dependency array means this runs once
+  }, [toast]);
   
-  // Setup event listeners for wallet - separate effect to avoid recreating
+  // Create user when address changes
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      console.log("No ethereum provider available for event setup");
-      return;
-    }
-    
-    const handleAccountsChanged = (accounts: string[]) => {
-      console.log("Accounts changed:", accounts);
-      if (accounts.length === 0) {
-        setAddress(null);
-        setChainId(null);
-        setTokenBalances({});
-        queryClient.clear();
-      } else {
-        setAddress(accounts[0]);
-      }
-    };
-    
-    const handleChainChanged = (chainIdHex: string) => {
-      try {
-        const newChainId = parseInt(chainIdHex, 16);
-        console.log("Chain changed:", newChainId);
-        setChainId(newChainId);
-        
-        if (newChainId !== 84532) {
-          toast({
-            title: "Wrong Network",
-            description: "Please switch to Base Sepolia Testnet",
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        console.error("Error handling chain change:", error);
-      }
-    };
-    
-    try {
-      // Remove any existing listeners first to avoid duplicates
-      window.ethereum.removeAllListeners('accountsChanged');
-      window.ethereum.removeAllListeners('chainChanged');
-      
-      // Add new listeners
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
-      
-      console.log("Ethereum event listeners set up");
-    } catch (error) {
-      console.error("Error setting up ethereum listeners:", error);
-    }
-    
-    return () => {
-      if (window.ethereum) {
+    const createUserIfNeeded = async () => {
+      if (address) {
         try {
-          window.ethereum.removeAllListeners('accountsChanged');
-          window.ethereum.removeAllListeners('chainChanged');
-          console.log("Ethereum event listeners removed");
+          await apiRequest('POST', '/api/users', { address });
         } catch (error) {
-          console.error("Error removing ethereum listeners:", error);
+          console.error("Error creating user:", error);
         }
       }
     };
-  }, [toast]); // Only depends on toast since it's used in the handler
+    
+    createUserIfNeeded();
+  }, [address]);
   
   // Allow direct access to set address for debugging
   useEffect(() => {
@@ -258,15 +275,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   
   // Update token balances when address or tokens change
   useEffect(() => {
-    let isMounted = true;
-    
     const fetchBalances = async () => {
       if (!address || !tokens || tokens.length === 0) {
         return;
       }
       
       try {
-        console.log("Fetching token balances for address:", address);
         const balances: Record<string, string> = {};
         
         for (const token of tokens) {
@@ -279,19 +293,13 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
           }
         }
         
-        if (isMounted) {
-          setTokenBalances(balances);
-        }
+        setTokenBalances(balances);
       } catch (error) {
         console.error("Error fetching token balances:", error);
       }
     };
     
     fetchBalances();
-    
-    return () => {
-      isMounted = false;
-    };
   }, [address, tokens]);
   
   // Check for Prior Pioneer NFT ownership
@@ -303,43 +311,61 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       
       try {
         const hasNFT = await checkPriorPioneerNFT(address);
+        
         if (!isMounted) return;
         
-        if (hasNFT) {
-          try {
-            // Notify backend that user has the Prior Pioneer NFT
-            interface NFTBadgeResponse {
-              awarded: boolean;
-            }
-            
-            const response = await apiRequest<NFTBadgeResponse>('POST', `/api/users/${userId}/check-nft-badge`, {});
-            
-            if (response.ok && response.json && (await response.json()).awarded) {
-              toast({
-                title: "Pioneer Badge Awarded!",
-                description: "You've received the Prior Pioneer badge for being an NFT holder!"
-              });
-            }
-          } catch (error) {
-            console.error("Error with NFT badge API:", error);
+        try {
+          // Define a proper response type
+          interface NFTBadgeResponse {
+            awarded: boolean;
           }
+          
+          const response = await apiRequest<NFTBadgeResponse>(
+            'POST', 
+            `/api/users/${userId}/check-nft-badge`, 
+            { hasNFT }
+          );
+          
+          if (!isMounted) return;
+          
+          if (hasNFT && response?.awarded) {
+            toast({
+              title: "🎉 Prior Pioneer NFT Badge Unlocked!",
+              description: "Congratulations! You've been awarded the Prior Pioneer badge for owning the NFT.",
+              duration: 6000
+            });
+          }
+        } catch (error) {
+          console.error("Error with NFT badge API:", error);
         }
       } catch (error) {
         console.error("Error checking for Prior Pioneer NFT:", error);
       }
     };
     
-    checkForNFT();
+    if (address && userId) {
+      checkForNFT();
+    }
     
     return () => {
       isMounted = false;
     };
-  }, [address, userId, toast]);
+  }, [address, userId]);
   
   const connectWallet = async () => {
     try {
-      console.log("Connecting wallet...");
-      
+      // Just call connectWithMetaMask directly for now
+      // This ensures the wallet connection works even if the modal has issues
+      await connectWithMetaMask();
+    } catch (error) {
+      console.error("Error in connectWallet:", error);
+      // Fallback to opening the modal if direct connection fails
+      setIsWalletModalOpen(true);
+    }
+  };
+  
+  const connectWithMetaMask = async () => {
+    try {
       if (!window.ethereum) {
         window.open('https://metamask.io/download.html', '_blank');
         toast({
@@ -353,16 +379,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       const account = await requestAccounts();
       if (!account) throw new Error("No account found");
       
-      console.log("Connected to account:", account);
       setAddress(account);
       
-      try {
-        await switchToBaseSepoliaNetwork();
-        const currentChainId = await getChainId();
-        setChainId(currentChainId);
-      } catch (error) {
-        console.error("Error switching networks:", error);
-      }
+      await switchToBaseSepoliaNetwork();
+      
+      const currentChainId = await getChainId();
+      setChainId(currentChainId);
       
       closeWalletModal();
       
@@ -378,10 +400,6 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         variant: "destructive"
       });
     }
-  };
-  
-  const connectWithMetaMask = async () => {
-    await connectWallet();
   };
   
   const connectWithCoinbaseWallet = async () => {
@@ -480,23 +498,31 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       
       if (address) {
         try {
-          // Try to refresh balances after swap
-          const fromResult = await getTokenBalanceFromContract(fromTokenAddress, address);
-          const toResult = await getTokenBalanceFromContract(toTokenAddress, address);
+          const fromTokenContract = await getTokenBalanceFromContract(fromTokenAddress, address);
+          const toTokenContract = await getTokenBalanceFromContract(toTokenAddress, address);
           
-          updatedBalances[fromToken.symbol] = formatTokenAmount(fromResult.balance.toString(), fromResult.decimals);
-          updatedBalances[toToken.symbol] = formatTokenAmount(toResult.balance.toString(), toResult.decimals);
+          updatedBalances[fromToken.symbol] = formatTokenAmount(
+            fromTokenContract.balance.toString(), 
+            fromTokenContract.decimals
+          );
+          
+          updatedBalances[toToken.symbol] = formatTokenAmount(
+            toTokenContract.balance.toString(), 
+            toTokenContract.decimals
+          );
           
           setTokenBalances(updatedBalances);
+        } catch (error) {
+          console.error("Error refreshing balances:", error);
+        }
+      }
+      
+      if (userId) {
+        try {
+          await apiRequest('POST', `/api/users/${userId}/swap`, { address });
           
-          // Record the swap on our backend for achievement tracking if user has signed in
-          const swapQuestId = 2; // ID for the first swap quest
-          if (userId) {
-            await apiRequest('POST', `/api/quests/${swapQuestId}/complete`, { userId });
-          } else {
-            console.log("User not signed in, skipping quest update");
-          }
-          
+          const swapQuestId = 1;
+          await apiRequest('POST', `/api/quests/${swapQuestId}/complete`, { userId });
         } catch (error) {
           console.error("Error recording swap:", error);
         }
