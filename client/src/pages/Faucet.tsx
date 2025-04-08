@@ -239,6 +239,31 @@ const Faucet = () => {
     }
   };
   
+  const handleDisconnectWallet = () => {
+    try {
+      console.log("Disconnecting wallet...");
+      
+      // First, clear local state
+      setLocalWalletAddress(null);
+      setLocalBalances({});
+      
+      // Then call the global disconnect method from wallet context
+      wallet.disconnectWallet();
+      
+      toast({
+        title: "Wallet Disconnected",
+        description: "Your wallet has been disconnected successfully.",
+      });
+    } catch (error) {
+      console.error("Error disconnecting wallet:", error);
+      toast({
+        title: "Disconnect Failed",
+        description: "Failed to disconnect wallet. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   return (
     <section id="faucet" className="py-16">
       <div className="container mx-auto px-4">
@@ -277,7 +302,7 @@ const Faucet = () => {
               <label className="text-[#A0AEC0] text-sm font-medium">Your Wallet Address</label>
               {isConnected && (
                 <button 
-                  onClick={wallet.disconnectWallet}
+                  onClick={handleDisconnectWallet}
                   className="text-xs text-[#FF5757] hover:text-red-400 transition-colors flex items-center gap-1"
                 >
                   <i className="fas fa-sign-out-alt"></i> Disconnect
