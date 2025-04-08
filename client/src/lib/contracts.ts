@@ -304,18 +304,18 @@ const swapAbi = [
 
 // New contract addresses
 // Updated Prior Pioneer NFT contract address
-export const PRIOR_PIONEER_NFT_ADDRESS = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
+export const PRIOR_PIONEER_NFT_ADDRESS = "0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59";
 
 export const contractAddresses = {
-  // Updated Prior Protocol token and swap contract addresses
-  priorToken: "0x5FbDB2315678afecb367f032d93F642f64180aa3", // Updated Prior Token
-  priorSwap: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", // Updated Prior Swap router
+  // Real token addresses on Base Sepolia testnet
+  priorToken: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // PRIOR token
+  priorSwap: "0x1e09f076824fFD47eC47E94C0dB8F5702Fd5ef9e", // PriorSwap
   mockTokens: {
-    // Updated mock token addresses
-    USDC: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0", // Updated mUSDC 
-    USDT: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9", // Updated mUSDT
-    DAI: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",  // Updated mDAI
-    WETH: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"  // Updated mWETH
+    // Mock token addresses on Base Sepolia
+    USDC: "0x0C6BAA4B8092B29F6B370e06BdfE67434680E062", // mUSDC with 6 decimals
+    USDT: "0xdaDcC45A00fe893df95488622fA2B64BfFc5E0bf", // mUSDT with 6 decimals
+    DAI: "0x72f30eb1cE25523Ea2Fa63eDe9797481634E496B",  // mDAI with 6 decimals
+    WETH: "0xc413B81c5fb4798b8e4c6053AADd383C4Dc3703B"  // mWETH with 18 decimals
   }
 };
 

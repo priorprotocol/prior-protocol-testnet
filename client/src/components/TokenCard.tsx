@@ -18,7 +18,8 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
     console.log("Wallet context not available yet in TokenCard component");
   }
   
-  const balance = getTokenBalance(token.symbol);
+  // Use the token's balance if provided, otherwise get it from the wallet context
+  const balance = token.balance || getTokenBalance(token.symbol);
 
   return (
     <div className="gradient-border bg-[#141D29] p-4 shadow-lg">

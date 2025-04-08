@@ -5,20 +5,26 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import TokenCard from "@/components/TokenCard";
 import { TokenInfo } from "@/types";
-import { claimFromFaucet, getFaucetInfo } from "@/lib/contracts";
-import { requestAccounts, switchToBaseSepoliaNetwork } from "@/lib/web3";
+import { claimFromFaucet, getFaucetInfo, getTokenBalance } from "@/lib/contracts";
+import { requestAccounts, switchToBaseSepoliaNetwork, formatTokenAmount } from "@/lib/web3";
 
 const Faucet = () => {
+  const wallet = useWallet();
   const { 
-    address, 
-    isConnected, 
-    connectWallet, 
     tokens,
     copyToClipboard
-  } = useWallet();
+  } = wallet;
+  
+  // Create a local wallet state that will be used if the global one fails
+  const [localWalletAddress, setLocalWalletAddress] = useState<string | null>(null);
+  
+  // Use either the global wallet address or the local one
+  const address = wallet.address || localWalletAddress;
+  const isConnected = !!address;
   
   const { toast } = useToast();
   const [isCopied, setIsCopied] = useState(false);
+  const [localBalances, setLocalBalances] = useState<Record<string, string>>({});
   
   // Get user data
   const { data: userData } = useQuery<{id?: number, address: string, lastClaim: string | null}>({
@@ -89,6 +95,39 @@ const Faucet = () => {
     }
   });
   
+  // Add a function to update local balances
+  const updateLocalBalances = async (userAddress: string) => {
+    if (!tokens || tokens.length === 0) return;
+    
+    try {
+      const balances: Record<string, string> = {};
+      
+      for (const token of tokens) {
+        try {
+          console.log(`Getting balance for ${token.symbol} at address ${token.address}`);
+          const result = await getTokenBalance(token.address, userAddress);
+          const formattedBalance = formatTokenAmount(result.balance.toString(), result.decimals);
+          console.log(`Balance for ${token.symbol}: ${formattedBalance}`);
+          balances[token.symbol] = formattedBalance;
+        } catch (error) {
+          console.error(`Error fetching balance for ${token.symbol}:`, error);
+          balances[token.symbol] = "0.00";
+        }
+      }
+      
+      setLocalBalances(balances);
+    } catch (error) {
+      console.error("Error updating local balances:", error);
+    }
+  };
+  
+  // Update local balances when tokens or address changes
+  useEffect(() => {
+    if (address && tokens.length > 0) {
+      updateLocalBalances(address);
+    }
+  }, [address, tokens]);
+  
   const directConnectWallet = async () => {
     try {
       if (!window.ethereum) {
@@ -114,6 +153,9 @@ const Faucet = () => {
       
       console.log("Account connected:", account);
       
+      // Set our local state first
+      setLocalWalletAddress(account);
+      
       // Try to update the wallet address via our global methods
       const updated = updateWalletAddressGlobally(account);
       console.log("Global wallet update result:", updated);
@@ -136,6 +178,14 @@ const Faucet = () => {
       } catch (error) {
         console.error("Failed to switch network:", error);
       }
+      
+      // Update token balances
+      await updateLocalBalances(account);
+      
+      toast({
+        title: "Wallet Connected",
+        description: `Connected to ${account.substring(0, 6)}...${account.substring(account.length - 4)}`,
+      });
       
       return account;
     } catch (error) {
@@ -259,9 +309,14 @@ const Faucet = () => {
         <div className="mt-12 max-w-4xl mx-auto">
           <h3 className="text-xl font-space font-bold mb-4 text-center">Testnet Tokens</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {tokens.map(token => (
-              <TokenCard key={token.symbol} token={token} />
-            ))}
+            {tokens.map(token => {
+              // Override the token with local balance if available
+              const tokenWithLocalBalance = {
+                ...token,
+                balance: localBalances[token.symbol] || wallet.getTokenBalance(token.symbol) || "0.00"
+              };
+              return <TokenCard key={token.symbol} token={tokenWithLocalBalance} />;
+            })}
           </div>
         </div>
       </div>
