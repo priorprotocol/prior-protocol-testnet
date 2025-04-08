@@ -205,7 +205,7 @@ const Faucet = () => {
   };
 
   const handleClaimTokens = async () => {
-    if (!isConnected) {
+    if (!wallet.isConnected) {
       try {
         console.log("Trying direct wallet connection...");
         const account = await directConnectWallet();
@@ -229,8 +229,8 @@ const Faucet = () => {
   };
   
   const handleCopyAddress = () => {
-    if (address) {
-      copyToClipboard(address);
+    if (wallet.address) {
+      wallet.copyToClipboard(wallet.address);
       setIsCopied(true);
       
       setTimeout(() => {
@@ -273,12 +273,22 @@ const Faucet = () => {
           </div>
           
           <div className="mb-6">
-            <label className="block text-[#A0AEC0] text-sm font-medium mb-2">Your Wallet Address</label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-[#A0AEC0] text-sm font-medium">Your Wallet Address</label>
+              {wallet.isConnected && (
+                <button
+                  onClick={() => wallet.disconnectWallet()}
+                  className="text-xs text-[#FF4C4C] hover:text-[#FF6B6B] transition-colors"
+                >
+                  Disconnect
+                </button>
+              )}
+            </div>
             <div className="flex">
               <input 
                 type="text" 
                 readOnly 
-                value={address || "0x0000...0000"}
+                value={wallet.address ? `${wallet.address.substring(0, 6)}...${wallet.address.substring(wallet.address.length - 4)}` : "0x0000...0000"}
                 placeholder="0x0000...0000" 
                 className="w-full bg-[#0B1118] border border-[#2D3748] rounded-l-lg px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-[#1A5CFF]"
               />
@@ -294,10 +304,10 @@ const Faucet = () => {
           
           <button 
             onClick={handleClaimTokens}
-            disabled={isConnected && !canClaimTokens || claimMutation.isPending}
-            className={`w-full rounded-lg ${isConnected && !canClaimTokens ? 'bg-[#A0AEC0] cursor-not-allowed' : 'bg-[#1A5CFF] hover:bg-opacity-90'} transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide`}
+            disabled={wallet.isConnected && !canClaimTokens || claimMutation.isPending}
+            className={`w-full rounded-lg ${wallet.isConnected && !canClaimTokens ? 'bg-[#A0AEC0] cursor-not-allowed' : 'bg-[#1A5CFF] hover:bg-opacity-90'} transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide`}
           >
-            {!isConnected 
+            {!wallet.isConnected 
               ? "Connect Wallet" 
               : claimMutation.isPending 
               ? "Claiming..." 
