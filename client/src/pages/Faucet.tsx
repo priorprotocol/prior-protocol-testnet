@@ -4,15 +4,35 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import TokenCard from "@/components/TokenCard";
+import { TokenInfo } from "@/types";
 
 const Faucet = () => {
+  // Initialize default values for wallet context
+  const defaultWalletContext = {
+    address: null,
+    isConnected: false,
+    connectWallet: async () => {},
+    tokens: [] as TokenInfo[],
+    copyToClipboard: (text: string) => {},
+  };
+  
+  // Use try-catch to handle the case where context isn't available yet
+  let walletContext;
+  try {
+    walletContext = useWallet();
+  } catch (error) {
+    console.log("Wallet context not available yet");
+    walletContext = defaultWalletContext;
+  }
+  
   const { 
     address, 
     isConnected, 
     connectWallet, 
     tokens,
     copyToClipboard
-  } = useWallet();
+  } = walletContext;
+  
   const { toast } = useToast();
   const [isCopied, setIsCopied] = useState(false);
   
@@ -46,6 +66,7 @@ const Faucet = () => {
   // Handle token claim
   const claimMutation = useMutation({
     mutationFn: async () => {
+      if (!address) throw new Error("Wallet not connected");
       const response = await apiRequest('POST', '/api/claim', { address });
       return response.json();
     },
@@ -54,12 +75,14 @@ const Faucet = () => {
         title: "Tokens claimed successfully!",
         description: "100 PRIOR tokens have been sent to your wallet.",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
+      if (address) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
+      }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Failed to claim tokens",
-        description: error.message,
+        description: error.message || "An error occurred",
         variant: "destructive"
       });
     }

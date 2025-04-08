@@ -6,6 +6,15 @@ import Swap from "@/pages/Swap";
 import Quest from "@/pages/Quest";
 import Governance from "@/pages/Governance";
 import NotFound from "@/pages/not-found";
+import { WalletProvider } from "./context/WalletContext";
+
+// Create page components that are wrapped with WalletProvider 
+// This avoids the circular dependency
+const WrappedHome = () => <Home />;
+const WrappedFaucet = () => <Faucet />;
+const WrappedSwap = () => <Swap />;
+const WrappedQuest = () => <Quest />;
+const WrappedGovernance = () => <Governance />;
 
 function App() {
   const [location] = useLocation();
@@ -13,11 +22,11 @@ function App() {
   return (
     <Layout>
       <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/faucet" component={Faucet} />
-        <Route path="/swap" component={Swap} />
-        <Route path="/quest" component={Quest} />
-        <Route path="/governance" component={Governance} />
+        <Route path="/" component={WrappedHome} />
+        <Route path="/faucet" component={WrappedFaucet} />
+        <Route path="/swap" component={WrappedSwap} />
+        <Route path="/quest" component={WrappedQuest} />
+        <Route path="/governance" component={WrappedGovernance} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
