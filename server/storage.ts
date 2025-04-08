@@ -95,40 +95,40 @@ export class MemStorage implements IStorage {
   }
   
   private initializeTokens() {
-    // Initial tokens setup with contract addresses (these are placeholders, should be replaced with actual contract addresses)
+    // Update tokens setup with actual contract addresses from Base Sepolia testnet
     const initialTokens: InsertToken[] = [
       {
         symbol: "PRIOR",
         name: "Prior Protocol Token",
-        address: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
+        address: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // Real PRIOR token address
         decimals: 18,
         logoColor: "#1A5CFF"
       },
       {
         symbol: "USDC",
         name: "Mock USD Coin",
-        address: "0x2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b",
+        address: "0x0C6BAA4B8092B29F6B370e06BdfE67434680E062", // Real mUSDC address
         decimals: 6,
         logoColor: "#2775CA"
       },
       {
         symbol: "USDT",
         name: "Mock Tether",
-        address: "0x3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+        address: "0xdaDcC45A00fe893df95488622fA2B64BfFc5E0bf", // Real mUSDT address
         decimals: 6,
         logoColor: "#26A17B"
       },
       {
         symbol: "DAI",
         name: "Mock Dai",
-        address: "0x4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b",
-        decimals: 18,
+        address: "0x72f30eb1cE25523Ea2Fa63eDe9797481634E496B", // Real mDAI address
+        decimals: 6, // Note: Actual decimals is 6, not 18
         logoColor: "#F5AC37"
       },
       {
         symbol: "WETH",
         name: "Mock Wrapped ETH",
-        address: "0x5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b",
+        address: "0xc413B81c5fb4798b8e4c6053AADd383C4Dc3703B", // Real mWETH address
         decimals: 18,
         logoColor: "#627EEA"
       }
@@ -207,7 +207,13 @@ export class MemStorage implements IStorage {
   
   async createUser(user: InsertUser): Promise<User> {
     const id = this.userId++;
-    const newUser: User = { ...user, id };
+    const newUser: User = { 
+      ...user, 
+      id,
+      lastClaim: user.lastClaim || null, // Ensure lastClaim is always defined
+      badges: [],
+      totalSwaps: 0
+    };
     
     this.users.set(id, newUser);
     this.usersByAddress.set(user.address, newUser);
@@ -346,7 +352,11 @@ export class MemStorage implements IStorage {
   
   async createQuest(quest: InsertQuest): Promise<Quest> {
     const id = this.questId++;
-    const newQuest: Quest = { ...quest, id };
+    const newQuest: Quest = { 
+      ...quest, 
+      id,
+      status: quest.status || 'active' // Ensure status is always defined
+    };
     
     this.quests.set(id, newQuest);
     
@@ -360,7 +370,12 @@ export class MemStorage implements IStorage {
   
   async createUserQuest(userQuest: InsertUserQuest): Promise<UserQuest> {
     const id = this.userQuestId++;
-    const newUserQuest: UserQuest = { ...userQuest, id, completedAt: null };
+    const newUserQuest: UserQuest = { 
+      ...userQuest, 
+      id, 
+      status: userQuest.status || 'pending', // Ensure status is always defined
+      completedAt: null 
+    };
     
     this.userQuests.set(id, newUserQuest);
     
@@ -396,6 +411,7 @@ export class MemStorage implements IStorage {
     const newProposal: Proposal = { 
       ...proposal, 
       id,
+      status: proposal.status || 'active', // Ensure status is always defined
       yesVotes: 0,
       noVotes: 0
     };
@@ -465,6 +481,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Export the DatabaseStorage implementation instead of MemStorage
-import { DatabaseStorage } from "./database-storage";
-export const storage = new DatabaseStorage();
+// Export the MemStorage implementation
+export const storage = new MemStorage();
