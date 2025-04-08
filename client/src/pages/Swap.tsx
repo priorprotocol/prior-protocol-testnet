@@ -492,31 +492,17 @@ const SwapContent = ({
 
 // Wrapper component that safely accesses the wallet context
 const Swap = () => {
-  try {
-    const wallet = useWallet();
-    return (
-      <SwapContent 
-        isConnected={wallet.isConnected}
-        connectWallet={wallet.connectWallet}
-        tokens={wallet.tokens}
-        getTokenBalance={wallet.getTokenBalance}
-        sendSwapTransaction={wallet.sendSwapTransaction}
-      />
-    );
-  } catch (error) {
-    console.log("Wallet context not available yet");
-    // Return a loading fallback
-    return (
-      <section className="py-16 bg-[#0B1118] bg-opacity-40">
-        <div className="container mx-auto px-4 text-center">
-          <div className="text-3xl md:text-4xl font-space font-bold mb-4">Token Swap</div>
-          <div className="max-w-lg mx-auto gradient-border gradient-border-orange bg-[#141D29] p-6 md:p-8 shadow-lg">
-            <p className="text-[#A0AEC0] py-12">Loading wallet integration...</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const wallet = useWallet();
+  
+  return (
+    <SwapContent 
+      isConnected={wallet.isConnected}
+      connectWallet={wallet.connectWallet}
+      tokens={wallet.tokens}
+      getTokenBalance={wallet.getTokenBalance}
+      sendSwapTransaction={wallet.sendSwapTransaction}
+    />
+  );
 };
 
 export default Swap;

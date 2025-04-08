@@ -8,31 +8,13 @@ import { TokenInfo } from "@/types";
 import { claimFromFaucet, getFaucetInfo } from "@/lib/contracts";
 
 const Faucet = () => {
-  // Initialize default values for wallet context
-  const defaultWalletContext = {
-    address: null,
-    isConnected: false,
-    connectWallet: async () => {},
-    tokens: [] as TokenInfo[],
-    copyToClipboard: (text: string) => {},
-  };
-  
-  // Use try-catch to handle the case where context isn't available yet
-  let walletContext;
-  try {
-    walletContext = useWallet();
-  } catch (error) {
-    console.log("Wallet context not available yet");
-    walletContext = defaultWalletContext;
-  }
-  
   const { 
     address, 
     isConnected, 
     connectWallet, 
     tokens,
     copyToClipboard
-  } = walletContext;
+  } = useWallet();
   
   const { toast } = useToast();
   const [isCopied, setIsCopied] = useState(false);

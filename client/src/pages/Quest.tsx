@@ -3,26 +3,35 @@ import { useWallet } from "@/context/WalletContext";
 import QuestCard from "@/components/QuestCard";
 
 const Quest = () => {
-  // Initialize with default values
-  let isConnected = false;
-  let address: string | null = null;
+  // Use the wallet context
+  const wallet = useWallet();
+  const { isConnected, address } = wallet;
   
-  // Only use the wallet context if it's available
-  try {
-    const wallet = useWallet();
-    isConnected = wallet.isConnected;
-    address = wallet.address;
-  } catch (error) {
-    console.log("Wallet context not available yet in Quest component");
+  // Define types for quests and user quests
+  interface Quest {
+    id: number;
+    title: string;
+    description: string;
+    reward: number;
+    difficulty: string;
+    status: string;
+    icon: string;
+  }
+  
+  interface UserQuest {
+    id: number;
+    questId: number;
+    status: string;
+    completedAt: string | null;
   }
   
   // Get all quests
-  const { data: quests, isLoading: questsLoading } = useQuery({
+  const { data: quests = [], isLoading: questsLoading } = useQuery<Quest[]>({
     queryKey: [`/api/quests`],
   });
   
   // Get user quests if connected
-  const { data: userQuests, isLoading: userQuestsLoading } = useQuery({
+  const { data: userQuests = [], isLoading: userQuestsLoading } = useQuery<UserQuest[]>({
     queryKey: [`/api/users/${address}/quests`],
     enabled: isConnected && !!address,
   });
@@ -46,8 +55,8 @@ const Quest = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {quests?.map(quest => {
-              const userQuest = userQuests?.find(uq => uq.questId === quest.id);
+            {quests.map((quest: Quest) => {
+              const userQuest = userQuests.find((uq: UserQuest) => uq.questId === quest.id);
               return (
                 <QuestCard 
                   key={quest.id} 

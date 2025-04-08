@@ -44,7 +44,25 @@ export const useWallet = () => {
   const context = useContext(WalletContext);
   if (context === undefined) {
     console.log("Wallet context not available yet");
-    throw new Error("useWallet must be used within a WalletProvider");
+    // Return a default context with empty functions instead of throwing an error
+    return {
+      address: null,
+      isConnected: false,
+      isWalletModalOpen: false,
+      chainId: null,
+      connectWallet: async () => {},
+      connectWithMetaMask: async () => {},
+      connectWithCoinbaseWallet: async () => {},
+      connectWithWalletConnect: async () => {},
+      disconnectWallet: () => {},
+      openWalletModal: () => {},
+      closeWalletModal: () => {},
+      tokens: [],
+      getTokenBalance: (symbol: string) => "0",
+      copyToClipboard: (text: string) => {},
+      userId: undefined,
+      sendSwapTransaction: async () => false,
+    } as WalletContextType;
   }
   return context;
 };

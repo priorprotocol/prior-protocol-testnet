@@ -10,20 +10,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 const Governance = () => {
-  // Initialize with default values
-  let isConnected = false;
-  let address: string | null = null;
-  let getTokenBalance = (_symbol: string) => "0.00";
-  
-  // Only use the wallet context if it's available
-  try {
-    const wallet = useWallet();
-    isConnected = wallet.isConnected;
-    address = wallet.address;
-    getTokenBalance = wallet.getTokenBalance;
-  } catch (error) {
-    console.log("Wallet context not available yet in Governance component");
-  }
+  // Use the wallet context
+  const wallet = useWallet();
+  const { isConnected, address, getTokenBalance } = wallet;
   
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -32,7 +21,17 @@ const Governance = () => {
   const [daysToVote, setDaysToVote] = useState(5);
   
   // Get all proposals
-  const { data: proposals, isLoading: proposalsLoading } = useQuery({
+  interface Proposal {
+    id: number;
+    title: string;
+    description: string;
+    status: string;
+    endTime: string;
+    yesVotes: number;
+    noVotes: number;
+  }
+  
+  const { data: proposals = [], isLoading: proposalsLoading } = useQuery<Proposal[]>({
     queryKey: [`/api/proposals`],
   });
   
@@ -62,9 +61,9 @@ const Governance = () => {
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
               <div className="flex items-center space-x-4">
                 <h3 className="font-space font-semibold text-xl">Active Proposals</h3>
-                {proposals && proposals.length > 0 && (
+                {proposals.length > 0 && (
                   <div className="px-3 py-1 bg-green-500 bg-opacity-20 text-green-500 rounded-full text-xs font-medium">
-                    {proposals.filter(p => p.status === 'active').length} Active
+                    {proposals.filter((p: Proposal) => p.status === 'active').length} Active
                   </div>
                 )}
               </div>
@@ -129,9 +128,9 @@ const Governance = () => {
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1A5CFF]"></div>
                 <p className="mt-2 text-[#A0AEC0]">Loading proposals...</p>
               </div>
-            ) : proposals && proposals.length > 0 ? (
+            ) : proposals.length > 0 ? (
               <div className="space-y-4">
-                {proposals.map(proposal => (
+                {proposals.map((proposal: Proposal) => (
                   <ProposalCard key={proposal.id} proposal={proposal} />
                 ))}
               </div>
