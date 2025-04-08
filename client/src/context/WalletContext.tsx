@@ -72,15 +72,21 @@ interface WalletProviderProps {
 }
 
 // Create a global event listener for wallet changes
-// We'll use this to update the wallet state from outside the context
-type WalletUpdateCallback = (address: string) => void;
-let globalWalletUpdateCallback: WalletUpdateCallback | null = null;
+// Create a global variable to store the callback function
+interface WalletUpdateCallbacks {
+  setAddress: ((address: string) => void) | null;
+}
+
+// Use a stable object to avoid reference changes
+const globalWalletCallbacks: WalletUpdateCallbacks = {
+  setAddress: null
+};
 
 // Function to set the wallet address from anywhere in the app
-export const updateWalletAddressGlobally = (address: string) => {
-  if (globalWalletUpdateCallback) {
+export function updateWalletAddressGlobally(address: string): boolean {
+  if (globalWalletCallbacks.setAddress) {
     console.log("Updating wallet address globally:", address);
-    globalWalletUpdateCallback(address);
+    globalWalletCallbacks.setAddress(address);
     return true;
   }
   console.log("No wallet update callback available");
@@ -96,13 +102,15 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   
   // Register the global wallet update callback
   useEffect(() => {
-    globalWalletUpdateCallback = (newAddress: string) => {
+    // Set the callback once
+    globalWalletCallbacks.setAddress = (newAddress: string) => {
       console.log("Global wallet callback triggered with address:", newAddress);
       setAddress(newAddress);
     };
     
     return () => {
-      globalWalletUpdateCallback = null;
+      // Clean up on unmount
+      globalWalletCallbacks.setAddress = null;
     };
   }, []);
   
@@ -275,31 +283,61 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   
   // Update token balances when address or tokens change
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchBalances = async () => {
+      if (!isMounted) return;
+      
       if (!address || !tokens || tokens.length === 0) {
+        if (isMounted) {
+          setTokenBalances({}); // Clear balances when disconnected
+        }
         return;
       }
       
       try {
+        console.log("Fetching token balances for address:", address);
         const balances: Record<string, string> = {};
         
         for (const token of tokens) {
+          if (!isMounted) return;
+          
           try {
             const result = await getTokenBalanceFromContract(token.address, address);
-            balances[token.symbol] = formatTokenAmount(result.balance.toString(), result.decimals);
+            const formattedBalance = formatTokenAmount(result.balance.toString(), result.decimals);
+            balances[token.symbol] = formattedBalance;
+            console.log(`${token.symbol} balance: ${formattedBalance}`);
           } catch (error) {
             console.error(`Error fetching balance for ${token.symbol}:`, error);
             balances[token.symbol] = "0.00";
           }
         }
         
-        setTokenBalances(balances);
+        if (isMounted) {
+          setTokenBalances(balances);
+        }
       } catch (error) {
         console.error("Error fetching token balances:", error);
       }
     };
     
+    // Run once immediately
     fetchBalances();
+    
+    // Don't setup interval on first render if address isn't available yet
+    let intervalId: number | null = null;
+    
+    // Only setup interval if we have an address
+    if (address) {
+      intervalId = window.setInterval(fetchBalances, 30000);
+    }
+    
+    return () => {
+      isMounted = false;
+      if (intervalId !== null) {
+        window.clearInterval(intervalId);
+      }
+    };
   }, [address, tokens]);
   
   // Check for Prior Pioneer NFT ownership

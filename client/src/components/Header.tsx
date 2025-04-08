@@ -8,14 +8,24 @@ const Header = () => {
   
   // Safely use the wallet context if available
   let address: string | null = null;
+  let isConnected = false;
   let connectWallet: () => Promise<void> = async () => {
+    console.log("Wallet provider not available");
+  };
+  let disconnectWallet: () => void = () => {
+    console.log("Wallet provider not available");
+  };
+  let copyToClipboard: (text: string) => void = () => {
     console.log("Wallet provider not available");
   };
   
   try {
     const wallet = useWallet();
     address = wallet.address;
+    isConnected = wallet.isConnected;
     connectWallet = wallet.connectWallet;
+    disconnectWallet = wallet.disconnectWallet;
+    copyToClipboard = wallet.copyToClipboard;
   } catch (error) {
     // If wallet context is not available, we'll use the defaults
   }
@@ -62,13 +72,30 @@ const Header = () => {
           ))}
         </nav>
         
-        {/* Connect Wallet Button */}
-        <button 
-          onClick={() => connectWallet()}
-          className="hidden md:flex items-center rounded-full bg-[#1A5CFF] px-6 py-2 hover:bg-opacity-90 transition-all font-bold text-sm"
-        >
-          <span>{address ? formatAddress(address) : "Connect Wallet"}</span>
-        </button>
+        {/* Connect Wallet Button or Wallet Info */}
+        {isConnected && address ? (
+          <div className="hidden md:flex items-center space-x-2">
+            <button
+              onClick={() => address && copyToClipboard(address)}
+              className="flex items-center rounded-full bg-[#1E293B] px-4 py-2 hover:bg-opacity-90 transition-all font-bold text-sm"
+            >
+              <span className="text-[#A0AEC0]">{formatAddress(address)}</span>
+            </button>
+            <button
+              onClick={disconnectWallet}
+              className="flex items-center rounded-full bg-[#1A5CFF] px-4 py-2 hover:bg-opacity-90 transition-all font-bold text-sm"
+            >
+              <span>Disconnect</span>
+            </button>
+          </div>
+        ) : (
+          <button 
+            onClick={() => connectWallet()}
+            className="hidden md:flex items-center rounded-full bg-[#1A5CFF] px-6 py-2 hover:bg-opacity-90 transition-all font-bold text-sm"
+          >
+            <span>Connect Wallet</span>
+          </button>
+        )}
         
         {/* Mobile menu button */}
         <button 
@@ -93,15 +120,36 @@ const Header = () => {
                 {link.name}
               </Link>
             ))}
-            <button 
-              onClick={() => {
-                connectWallet();
-                setIsMobileMenuOpen(false);
-              }}
-              className="flex items-center justify-center rounded-full bg-[#1A5CFF] px-6 py-3 hover:bg-opacity-90 transition-all font-bold text-sm mt-4"
-            >
-              <span>{address ? formatAddress(address) : "Connect Wallet"}</span>
-            </button>
+            
+            {isConnected && address ? (
+              <div className="flex flex-col space-y-2 mt-4">
+                <button
+                  onClick={() => address && copyToClipboard(address)}
+                  className="flex items-center justify-center rounded-full bg-[#1E293B] px-4 py-3 hover:bg-opacity-90 transition-all font-bold text-sm"
+                >
+                  <span className="text-[#A0AEC0]">{formatAddress(address)}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    disconnectWallet();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex items-center justify-center rounded-full bg-[#1A5CFF] px-4 py-3 hover:bg-opacity-90 transition-all font-bold text-sm"
+                >
+                  <span>Disconnect</span>
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => {
+                  connectWallet();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center justify-center rounded-full bg-[#1A5CFF] px-6 py-3 hover:bg-opacity-90 transition-all font-bold text-sm mt-4"
+              >
+                <span>Connect Wallet</span>
+              </button>
+            )}
           </nav>
         </div>
       </div>
