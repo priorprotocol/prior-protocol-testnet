@@ -64,17 +64,25 @@ const Faucet = () => {
   const canClaimTokens = !userData?.lastClaim || 
     new Date().getTime() - new Date(userData.lastClaim).getTime() >= 24 * 60 * 60 * 1000;
   
-  // Handle token claim
+  // Handle token claim using blockchain contract directly
   const claimMutation = useMutation({
     mutationFn: async () => {
       if (!address) throw new Error("Wallet not connected");
+      
+      // Call the PRIOR token contract's claimFromFaucet function
+      const txReceipt = await claimFromFaucet();
+      
+      // Also update our backend to track the claim
       const response = await apiRequest('POST', '/api/claim', { address });
-      return response.json();
+      return {
+        txReceipt,
+        apiResponse: await response.json()
+      };
     },
     onSuccess: (data) => {
       toast({
         title: "Tokens claimed successfully!",
-        description: "100 PRIOR tokens have been sent to your wallet.",
+        description: "PRIOR tokens have been sent to your wallet.",
       });
       if (address) {
         queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
@@ -83,7 +91,7 @@ const Faucet = () => {
     onError: (error: any) => {
       toast({
         title: "Failed to claim tokens",
-        description: error.message || "An error occurred",
+        description: error.message || "An error occurred. You may have already claimed today, or there might be a network issue.",
         variant: "destructive"
       });
     }

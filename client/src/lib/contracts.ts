@@ -181,18 +181,132 @@ const tokenAbi = [
   "function approve(address spender, uint256 amount) returns (bool)"
 ];
 
-// Define swap contract ABI - this would be the actual PriorSwap contract ABI
+// Define PriorSwap contract ABI - full ABI for the actual PriorSwap contract
 const swapAbi = [
-  "function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) returns (uint[] memory amounts)",
-  "function getAmountsOut(uint amountIn, address[] calldata path) view returns (uint[] memory amounts)",
-  "function getAmountsIn(uint amountOut, address[] calldata path) view returns (uint[] memory amounts)"
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "priorAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "swapPriorForUSDC",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "priorAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "swapPriorForUSDT",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "priorAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "swapPriorForDAI",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "priorAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "swapPriorForWETH",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PRIOR_TO_USDC_RATE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PRIOR_TO_USDT_RATE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PRIOR_TO_DAI_RATE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PRIOR_TO_WETH_RATE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "FEE_BASIS_POINTS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
 ];
 
 // Base Sepolia testnet contract addresses
 export const contractAddresses = {
   // Prior Protocol token and swap contract addresses
   priorToken: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // Prior Token
-  priorSwap: "0x7B1F06B1a10ec2CA699D69FC488b5CD2A45F4f43", // Prior Swap router (to be updated)
+  priorSwap: "0x1e09f076824fFD47eC47E94C0dB8F5702Fd5ef9e", // Prior Swap router
   mockTokens: {
     // Using actual Base Sepolia testnet token addresses
     USDC: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // USDC on Base Sepolia
@@ -263,36 +377,31 @@ export const swapTokens = async (
   slippageTolerance: string
 ) => {
   try {
+    // Only PRIOR token can be swapped in this contract
+    if (fromTokenAddress.toLowerCase() !== contractAddresses.priorToken.toLowerCase()) {
+      throw new Error("Only PRIOR token can be swapped in this contract");
+    }
+    
     // First approve the tokens
     await approveTokens(fromTokenAddress, amountIn);
     
-    // Then perform the swap
+    // Get swap contract with signer
     const swapContract = await getSwapContractWithSigner();
-    const path = [fromTokenAddress, toTokenAddress];
     
-    // Get the amounts out
-    const amountsOut = await swapContract.getAmountsOut(amountIn, path);
+    // Determine which swap function to call based on the destination token
+    let tx;
     
-    // Calculate minimum amount out with slippage
-    const slippagePercent = parseFloat(slippageTolerance) / 100;
-    const minAmountOut = amountsOut[1].mul(
-      ethers.parseUnits((1 - slippagePercent).toString(), 18)
-    ).div(ethers.parseUnits("1", 18));
-    
-    // Deadline 20 minutes from now
-    const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
-    
-    // Execute the swap
-    const signer = await getSigner();
-    const address = await signer.getAddress();
-    
-    const tx = await swapContract.swapExactTokensForTokens(
-      amountIn,
-      minAmountOut,
-      path,
-      address,
-      deadline
-    );
+    if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+      tx = await swapContract.swapPriorForUSDC(amountIn);
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+      tx = await swapContract.swapPriorForUSDT(amountIn);
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+      tx = await swapContract.swapPriorForDAI(amountIn);
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+      tx = await swapContract.swapPriorForWETH(amountIn);
+    } else {
+      throw new Error("Unsupported token pair for swap");
+    }
     
     return await tx.wait();
   } catch (error) {
@@ -321,6 +430,110 @@ export const getFaucetInfo = async (address: string) => {
     return { lastClaim, totalClaimed };
   } catch (error) {
     console.error("Error getting faucet info:", error);
+    throw error;
+  }
+};
+
+// Function to get swap rate for PRIOR to USDC
+export const getPriorToUSDCRate = async () => {
+  try {
+    const swapContract = await getSwapContract();
+    const rate = await swapContract.PRIOR_TO_USDC_RATE();
+    return rate;
+  } catch (error) {
+    console.error("Error getting PRIOR to USDC rate:", error);
+    throw error;
+  }
+};
+
+// Function to get swap rate for PRIOR to USDT
+export const getPriorToUSDTRate = async () => {
+  try {
+    const swapContract = await getSwapContract();
+    const rate = await swapContract.PRIOR_TO_USDT_RATE();
+    return rate;
+  } catch (error) {
+    console.error("Error getting PRIOR to USDT rate:", error);
+    throw error;
+  }
+};
+
+// Function to get swap rate for PRIOR to DAI
+export const getPriorToDAIRate = async () => {
+  try {
+    const swapContract = await getSwapContract();
+    const rate = await swapContract.PRIOR_TO_DAI_RATE();
+    return rate;
+  } catch (error) {
+    console.error("Error getting PRIOR to DAI rate:", error);
+    throw error;
+  }
+};
+
+// Function to get swap rate for PRIOR to WETH
+export const getPriorToWETHRate = async () => {
+  try {
+    const swapContract = await getSwapContract();
+    const rate = await swapContract.PRIOR_TO_WETH_RATE();
+    return rate;
+  } catch (error) {
+    console.error("Error getting PRIOR to WETH rate:", error);
+    throw error;
+  }
+};
+
+// Function to get swap fee
+export const getSwapFee = async () => {
+  try {
+    const swapContract = await getSwapContract();
+    const feeBasisPoints = await swapContract.FEE_BASIS_POINTS();
+    return feeBasisPoints;
+  } catch (error) {
+    console.error("Error getting swap fee:", error);
+    throw error;
+  }
+};
+
+// Helper function to calculate output amounts for swap
+export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddress: string, amountIn: string) => {
+  try {
+    if (fromTokenAddress.toLowerCase() !== contractAddresses.priorToken.toLowerCase()) {
+      throw new Error("Only PRIOR token can be swapped in this contract");
+    }
+    
+    let rate;
+    if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+      rate = await getPriorToUSDCRate();
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+      rate = await getPriorToUSDTRate();
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+      rate = await getPriorToDAIRate();
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+      rate = await getPriorToWETHRate();
+    } else {
+      throw new Error("Unsupported token pair for swap");
+    }
+    
+    const feeBasisPoints = await getSwapFee();
+    
+    // Convert amount to BigNumber for calculations
+    const amountBigNumber = ethers.parseUnits(amountIn, 18);
+    
+    // Calculate raw amount (PRIOR / rate)
+    const rawAmount = amountBigNumber.div(rate);
+    
+    // Apply fee (amount - (amount * fee / 10000))
+    const feeAmount = rawAmount.mul(feeBasisPoints).div(10000);
+    const amountOut = rawAmount.sub(feeAmount);
+    
+    return {
+      amountIn: amountBigNumber,
+      amountOut,
+      rate,
+      fee: feeBasisPoints
+    };
+  } catch (error) {
+    console.error("Error calculating swap output:", error);
     throw error;
   }
 };
