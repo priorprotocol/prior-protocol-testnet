@@ -273,12 +273,25 @@ const Faucet = () => {
           </div>
           
           <div className="mb-6">
-            <label className="block text-[#A0AEC0] text-sm font-medium mb-2">Your Wallet Address</label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-[#A0AEC0] text-sm font-medium">Your Wallet Address</label>
+              {isConnected && (
+                <button 
+                  onClick={wallet.disconnectWallet}
+                  className="text-xs text-[#FF5757] hover:text-red-400 transition-colors flex items-center gap-1"
+                >
+                  <i className="fas fa-sign-out-alt"></i> Disconnect
+                </button>
+              )}
+            </div>
             <div className="flex">
               <input 
                 type="text" 
                 readOnly 
-                value={address || "0x0000...0000"}
+                value={address 
+                  ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` 
+                  : "0x0000...0000"
+                }
                 placeholder="0x0000...0000" 
                 className="w-full bg-[#0B1118] border border-[#2D3748] rounded-l-lg px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-[#1A5CFF]"
               />
