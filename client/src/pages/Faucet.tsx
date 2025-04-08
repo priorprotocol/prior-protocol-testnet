@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useWallet, updateWalletAddressGlobally } from "@/context/WalletContext";
+import { useWallet } from "@/context/WalletContext";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -163,20 +163,16 @@ const Faucet = () => {
       // Set our local state first
       setLocalWalletAddress(account);
       
-      // Try to update the wallet address via our global methods
-      const updated = updateWalletAddressGlobally(account);
-      console.log("Global wallet update result:", updated);
-      
-      // Also try the debug method as a backup
+      // Try to update the wallet address via global debug methods
       try {
         // @ts-ignore
         if (window.__setWalletAddress) {
           // @ts-ignore
           const debugUpdate = window.__setWalletAddress(account);
-          console.log("Debug wallet update result:", debugUpdate);
+          console.log("Global wallet update result:", debugUpdate);
         }
       } catch (error) {
-        console.error("Error in debug wallet update:", error);
+        console.error("Error updating wallet address globally:", error);
       }
       
       // Switch to Base Sepolia

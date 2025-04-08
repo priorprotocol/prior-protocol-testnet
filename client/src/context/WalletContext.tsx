@@ -19,6 +19,22 @@ import {
   checkPriorPioneerNFT
 } from "@/lib/contracts";
 
+// Global wallet update function for compatibility with older code
+export function updateWalletAddressGlobally(address: string): boolean {
+  try {
+    // @ts-ignore - Access global debug function to update wallet address
+    if (window.__setWalletAddress) {
+      // @ts-ignore
+      return window.__setWalletAddress(address);
+    }
+    return false;
+  } catch (error) {
+    console.error("Error updating wallet address globally:", error);
+    return false;
+  }
+}
+
+// Define the shape of our context
 interface WalletContextType {
   address: string | null;
   isConnected: boolean;
@@ -38,81 +54,44 @@ interface WalletContextType {
   sendSwapTransaction: (fromTokenAddress: string, toTokenAddress: string, fromAmount: string, toAmount: string, slippage: string) => Promise<boolean>;
 }
 
-const WalletContext = createContext<WalletContextType | undefined>(undefined);
-
-export const useWallet = () => {
-  const context = useContext(WalletContext);
-  if (context === undefined) {
-    console.log("Wallet context not available yet");
-    // Return a default context with empty functions instead of throwing an error
-    return {
-      address: null,
-      isConnected: false,
-      isWalletModalOpen: false,
-      chainId: null,
-      connectWallet: async () => {},
-      connectWithMetaMask: async () => {},
-      connectWithCoinbaseWallet: async () => {},
-      connectWithWalletConnect: async () => {},
-      disconnectWallet: () => {},
-      openWalletModal: () => {},
-      closeWalletModal: () => {},
-      tokens: [],
-      getTokenBalance: (symbol: string) => "0",
-      copyToClipboard: (text: string) => {},
-      userId: undefined,
-      sendSwapTransaction: async () => false,
-    } as WalletContextType;
-  }
-  return context;
+// Create the context with a default value
+const defaultContextValue: WalletContextType = {
+  address: null,
+  isConnected: false,
+  isWalletModalOpen: false,
+  chainId: null,
+  connectWallet: async () => {},
+  connectWithMetaMask: async () => {},
+  connectWithCoinbaseWallet: async () => {},
+  connectWithWalletConnect: async () => {},
+  disconnectWallet: () => {},
+  openWalletModal: () => {},
+  closeWalletModal: () => {},
+  tokens: [],
+  getTokenBalance: () => "0.00",
+  copyToClipboard: () => {},
+  userId: undefined,
+  sendSwapTransaction: async () => false,
 };
 
+// Create the context
+const WalletContext = createContext<WalletContextType>(defaultContextValue);
+
+// Hook to use the wallet context
+export const useWallet = () => useContext(WalletContext);
+
+// Props interface for the provider
 interface WalletProviderProps {
   children: ReactNode;
 }
 
-// Create a global event listener for wallet changes
-// Create a global variable to store the callback function
-interface WalletUpdateCallbacks {
-  setAddress: ((address: string) => void) | null;
-}
-
-// Use a stable object to avoid reference changes
-const globalWalletCallbacks: WalletUpdateCallbacks = {
-  setAddress: null
-};
-
-// Function to set the wallet address from anywhere in the app
-export function updateWalletAddressGlobally(address: string): boolean {
-  if (globalWalletCallbacks.setAddress) {
-    console.log("Updating wallet address globally:", address);
-    globalWalletCallbacks.setAddress(address);
-    return true;
-  }
-  console.log("No wallet update callback available");
-  return false;
-};
-
+// The actual provider component
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [address, setAddress] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [tokenBalances, setTokenBalances] = useState<Record<string, string>>({});
   const { toast } = useToast();
-  
-  // Register the global wallet update callback
-  useEffect(() => {
-    // Set the callback once
-    globalWalletCallbacks.setAddress = (newAddress: string) => {
-      console.log("Global wallet callback triggered with address:", newAddress);
-      setAddress(newAddress);
-    };
-    
-    return () => {
-      // Clean up on unmount
-      globalWalletCallbacks.setAddress = null;
-    };
-  }, []);
   
   // Get tokens from the API
   const { data: tokens = [] } = useQuery<TokenInfo[]>({
@@ -353,7 +332,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     return () => {
       isMounted = false;
     };
-  }, [address, tokens.length, tokens.map(t => t.address).join(',')]);
+  }, [address, tokens, tokenBalances]);
   
   // Check for Prior Pioneer NFT ownership
   useEffect(() => {
@@ -403,7 +382,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     return () => {
       isMounted = false;
     };
-  }, [address, userId]);
+  }, [address, userId, toast]);
   
   const connectWallet = async () => {
     try {
@@ -600,7 +579,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   };
   
-  const value = {
+  const contextValue: WalletContextType = {
     address,
     isConnected,
     isWalletModalOpen,
@@ -620,7 +599,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   };
   
   return (
-    <WalletContext.Provider value={value}>
+    <WalletContext.Provider value={contextValue}>
       {children}
     </WalletContext.Provider>
   );
