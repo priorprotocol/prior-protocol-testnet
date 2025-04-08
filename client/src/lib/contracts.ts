@@ -302,20 +302,20 @@ const swapAbi = [
   }
 ];
 
-// Base Sepolia testnet contract addresses
-// Prior Pioneer NFT contract address
-export const PRIOR_PIONEER_NFT_ADDRESS = "0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59";
+// New contract addresses
+// Updated Prior Pioneer NFT contract address
+export const PRIOR_PIONEER_NFT_ADDRESS = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
 
 export const contractAddresses = {
-  // Prior Protocol token and swap contract addresses
-  priorToken: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // Prior Token
-  priorSwap: "0x1e09f076824fFD47eC47E94C0dB8F5702Fd5ef9e", // Prior Swap router
+  // Updated Prior Protocol token and swap contract addresses
+  priorToken: "0x5FbDB2315678afecb367f032d93F642f64180aa3", // Updated Prior Token
+  priorSwap: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", // Updated Prior Swap router
   mockTokens: {
-    // Actual mock token addresses on Base Sepolia testnet
-    USDC: "0x0C6BAA4B8092B29F6B370e06BdfE67434680E062", // mUSDC on Base Sepolia
-    USDT: "0xdaDcC45A00fe893df95488622fA2B64BfFc5E0bf", // mUSDT on Base Sepolia
-    DAI: "0x72f30eb1cE25523Ea2Fa63eDe9797481634E496B",  // mDAI on Base Sepolia
-    WETH: "0xc413B81c5fb4798b8e4c6053AADd383C4Dc3703B"  // mWETH on Base Sepolia
+    // Updated mock token addresses
+    USDC: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0", // Updated mUSDC 
+    USDT: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9", // Updated mUSDT
+    DAI: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",  // Updated mDAI
+    WETH: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"  // Updated mWETH
   }
 };
 
@@ -339,6 +339,8 @@ export const tokenSymbols = {
 // Function to get token contract instance
 export const getTokenContract = async (tokenAddress: string) => {
   const provider = getProvider();
+  if (!provider) throw new Error("Provider not available");
+  
   // Use the PRIOR token ABI for the PRIOR token, otherwise use the standard ERC20 ABI
   const abi = tokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase() ? priorTokenAbi : tokenAbi;
   return new ethers.Contract(tokenAddress, abi, provider);
@@ -347,6 +349,8 @@ export const getTokenContract = async (tokenAddress: string) => {
 // Function to get token contract with signer
 export const getTokenContractWithSigner = async (tokenAddress: string) => {
   const signer = await getSigner();
+  if (!signer) throw new Error("Signer not available - connect wallet first");
+  
   // Use the PRIOR token ABI for the PRIOR token, otherwise use the standard ERC20 ABI
   const abi = tokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase() ? priorTokenAbi : tokenAbi;
   return new ethers.Contract(tokenAddress, abi, signer);
@@ -355,12 +359,16 @@ export const getTokenContractWithSigner = async (tokenAddress: string) => {
 // Function to get swap contract instance
 export const getSwapContract = async () => {
   const provider = getProvider();
+  if (!provider) throw new Error("Provider not available");
+  
   return new ethers.Contract(contractAddresses.priorSwap, swapAbi, provider);
 };
 
 // Function to get swap contract with signer
 export const getSwapContractWithSigner = async () => {
   const signer = await getSigner();
+  if (!signer) throw new Error("Signer not available - connect wallet first");
+  
   return new ethers.Contract(contractAddresses.priorSwap, swapAbi, signer);
 };
 
@@ -568,6 +576,8 @@ export const checkPriorPioneerNFT = async (address: string): Promise<boolean> =>
     ];
     
     const provider = getProvider();
+    if (!provider) throw new Error("Provider not available");
+    
     const nftContract = new ethers.Contract(PRIOR_PIONEER_NFT_ADDRESS, nftAbi, provider);
     
     // Check NFT balance
@@ -612,16 +622,22 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
       toTokenDecimals = tokenDecimals.WETH;
     }
     
-    // Convert amount to BigInt for calculations using PRIOR token decimals (18)
+    // Convert amount to proper format for calculations using PRIOR token decimals (18)
     const amountBigNumber = ethers.utils.parseUnits(amountIn, tokenDecimals.PRIOR);
     
-    // Calculate raw amount (PRIOR / rate)
-    // With ethers v6, we need to handle BigInt operations
-    const rawAmount = amountBigNumber * BigInt(1000000) / rate;
+    // For ethers v5.x, we need to handle BigNumber (not BigInt) operations
+    // Convert rate to ethers.BigNumber for compatibility
+    const rateAsBigNumber = ethers.BigNumber.from(rate.toString());
+    const million = ethers.BigNumber.from(1000000);
+    
+    // Calculate raw amount (PRIOR * 1000000 / rate)
+    const rawAmount = amountBigNumber.mul(million).div(rateAsBigNumber);
     
     // Apply fee (amount - (amount * fee / 10000))
-    const feeAmount = (rawAmount * BigInt(feeBasisPoints)) / BigInt(10000);
-    const amountOut = rawAmount - feeAmount;
+    const feeBasisPointsBN = ethers.BigNumber.from(feeBasisPoints.toString());
+    const tenThousand = ethers.BigNumber.from(10000);
+    const feeAmount = rawAmount.mul(feeBasisPointsBN).div(tenThousand);
+    const amountOut = rawAmount.sub(feeAmount);
     
     return {
       amountIn: amountBigNumber,

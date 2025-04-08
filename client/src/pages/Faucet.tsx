@@ -51,26 +51,35 @@ const Faucet = () => {
     mutationFn: async () => {
       if (!address) throw new Error("Wallet not connected");
       
-      // Call the PRIOR token contract's claimFromFaucet function
-      const txReceipt = await claimFromFaucet();
-      
-      // Also update our backend to track the claim
-      const response = await apiRequest('POST', '/api/claim', { address });
-      return {
-        txReceipt,
-        apiResponse: await response.json()
-      };
+      try {
+        // Call the PRIOR token contract's claimFromFaucet function
+        console.log("Calling claimFromFaucet with address:", address);
+        const txReceipt = await claimFromFaucet();
+        console.log("Claim transaction receipt:", txReceipt);
+        
+        // Also update our backend to track the claim
+        const response = await apiRequest('POST', '/api/claim', { address });
+        return {
+          txReceipt,
+          apiResponse: await response.json()
+        };
+      } catch (error) {
+        console.error("Error in claim mutation:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log("Claim successful:", data);
       toast({
         title: "Tokens claimed successfully!",
-        description: "PRIOR tokens have been sent to your wallet.",
+        description: "100 PRIOR tokens have been sent to your wallet.",
       });
       if (address) {
         queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
       }
     },
     onError: (error: any) => {
+      console.error("Claim error:", error);
       toast({
         title: "Failed to claim tokens",
         description: error.message || "An error occurred. You may have already claimed today, or there might be a network issue.",
