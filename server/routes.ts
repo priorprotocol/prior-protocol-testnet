@@ -262,6 +262,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(badges);
   });
   
+  // Check for Prior Pioneer NFT ownership and award badge if needed
+  app.post(`${apiPrefix}/users/:address/check-nft-badge`, async (req, res) => {
+    const { address } = req.params;
+    const { hasNFT } = req.body;
+    
+    if (typeof hasNFT !== 'boolean') {
+      return res.status(400).json({ message: "Invalid input, expected 'hasNFT' boolean" });
+    }
+    
+    const user = await storage.getUser(address);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Get current badges to check if user already has the NFT badge
+    const currentBadges = await storage.getUserBadges(user.id);
+    const hasNftBadge = currentBadges.includes('prior_pioneer');
+    
+    // If user has NFT but not the badge, add it
+    if (hasNFT && !hasNftBadge) {
+      const updatedBadges = await storage.addUserBadge(user.id, 'prior_pioneer');
+      return res.json({ 
+        awarded: true,
+        badges: updatedBadges
+      });
+    }
+    
+    // If user already has the badge or doesn't have NFT
+    return res.json({ 
+      awarded: false,
+      badges: currentBadges
+    });
+  });
+  
   // Get user's stats
   app.get(`${apiPrefix}/users/:address/stats`, async (req, res) => {
     const { address } = req.params;

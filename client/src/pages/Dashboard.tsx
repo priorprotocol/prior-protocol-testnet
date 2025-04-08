@@ -1,10 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useWallet } from "@/context/WalletContext";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { BadgeCard } from "@/components/BadgeCard";
+import { PioneerBadgeCard } from "@/components/PioneerBadgeCard";
+import { getBadgeInfo } from "@/lib/badges";
+import { FaTrophy, FaLock } from "react-icons/fa";
 import { UserStats } from "@/types";
 
 const Dashboard = () => {
@@ -25,6 +30,12 @@ const Dashboard = () => {
     enabled: !!userId,
   });
 
+  // Total badges the user could potentially earn
+  const allPossibleBadges = 8; // This should match the total number of badges in badges.ts
+  
+  // Calculate badge progress
+  const badgeProgress = userBadges ? Math.round((userBadges.length / allPossibleBadges) * 100) : 0;
+
   if (!address) {
     return (
       <div className="container mx-auto px-4 py-10">
@@ -35,6 +46,11 @@ const Dashboard = () => {
       </div>
     );
   }
+  
+  // Placeholder badges that the user hasn't earned yet
+  const unlockedBadges = userBadges || [];
+  const lockedBadges = ['token_claimed', 'swap_completed', 'governance_vote', 'quest_completed', 'active_voter', 'all_quests', 'early_adopter', 'prior_pioneer']
+    .filter(badgeId => !unlockedBadges.includes(badgeId));
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -123,18 +139,41 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div>
-                    <div className="text-2xl font-bold mb-2">{userBadges?.length || 0}</div>
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-2xl font-bold">{userBadges?.length || 0}</span>
+                      <span className="text-sm text-[#A0AEC0]">of {allPossibleBadges}</span>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <Progress value={badgeProgress} className="h-2 bg-[#2D3748]" />
+                      <p className="text-xs text-[#A0AEC0] mt-1 text-right">{badgeProgress}% completed</p>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 mt-3">
                       {userBadges && userBadges.length > 0 ? (
-                        userBadges.slice(0, 3).map((badge, index) => (
-                          <Badge key={index} variant="secondary" className="bg-[#1A5CFF] bg-opacity-20 text-[#1A5CFF] border border-[#1A5CFF] border-opacity-50">
-                            {badge}
-                          </Badge>
-                        ))
+                        userBadges.slice(0, 3).map((badge, index) => {
+                          const badgeInfo = getBadgeInfo(badge);
+                          return (
+                            <Badge 
+                              key={index} 
+                              variant="outline" 
+                              className="flex items-center gap-1 px-2 py-1"
+                              style={{ 
+                                borderColor: badgeInfo.color,
+                                color: badgeInfo.color,
+                                backgroundColor: `${badgeInfo.color}15`
+                              }}
+                            >
+                              <FaTrophy className="text-xs" />
+                              {badgeInfo.name}
+                            </Badge>
+                          );
+                        })
                       ) : (
                         <p className="text-sm text-[#A0AEC0]">No badges earned yet</p>
                       )}
                     </div>
+                    
                     {userBadges && userBadges.length > 3 && (
                       <p className="text-sm text-[#A0AEC0] mt-2">+ {userBadges.length - 3} more badges</p>
                     )}
@@ -157,33 +196,75 @@ const Dashboard = () => {
           <Card className="bg-[#111827] border-[#2D3748]">
             <CardHeader>
               <CardTitle>Your Achievement Badges</CardTitle>
-              <CardDescription>Badges earned through your activity on the testnet</CardDescription>
+              <CardDescription>
+                Badges earned through your activity on the Prior Protocol testnet. Earn badges by interacting with the protocol's features.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {badgesLoading ? (
-                <div className="h-20 flex items-center justify-center">
+                <div className="h-40 flex items-center justify-center">
                   <div className="animate-pulse h-4 bg-[#2D3748] rounded w-3/4 mb-2"></div>
                   <div className="animate-pulse h-4 bg-[#2D3748] rounded w-1/2"></div>
                 </div>
-              ) : userBadges && userBadges.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {userBadges.map((badge, index) => (
-                    <div key={index} className="bg-[#1E2A3B] p-4 rounded-md border border-[#2D3748]">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#1A5CFF] bg-opacity-20">
-                          <span className="text-[#1A5CFF] text-xl">🏆</span>
-                        </div>
-                        <div>
-                          <h4 className="font-bold">{badge}</h4>
-                          <p className="text-sm text-[#A0AEC0]">Earned on Prior Protocol testnet</p>
+              ) : (
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-4 flex items-center">
+                      <FaTrophy className="mr-2 text-[#1A5CFF]" /> 
+                      Earned Badges ({unlockedBadges.length})
+                    </h3>
+                    
+                    {unlockedBadges.length > 0 ? (
+                      <div className="space-y-6">
+                        {/* Show special Pioneer NFT badge card if user has it */}
+                        {unlockedBadges.includes('prior_pioneer') && (
+                          <div className="mb-6">
+                            <PioneerBadgeCard />
+                          </div>
+                        )}
+                        
+                        {/* Show all other badges */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {unlockedBadges
+                            .filter(badgeId => badgeId !== 'prior_pioneer')
+                            .map((badgeId, index) => (
+                              <BadgeCard key={index} badgeId={badgeId} />
+                            ))
+                          }
                         </div>
                       </div>
+                    ) : (
+                      <div className="bg-[#1E2A3B] p-6 rounded-md border border-[#2D3748] text-center">
+                        <p className="text-[#A0AEC0]">
+                          You haven't earned any badges yet. 
+                          Interact with the protocol to earn achievements!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-medium mb-4 flex items-center">
+                      <FaLock className="mr-2 text-[#A0AEC0]" /> 
+                      Locked Badges ({lockedBadges.length})
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {lockedBadges.map((badgeId, index) => (
+                        <Card key={index} className="bg-[#1E2A3B] border border-[#2D3748] opacity-70">
+                          <CardContent className="p-4 flex items-center space-x-4">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#2D3748]">
+                              <FaLock className="text-[#A0AEC0]" />
+                            </div>
+                            <div>
+                              <h4 className="font-bold">{getBadgeInfo(badgeId).name}</h4>
+                              <p className="text-sm text-[#A0AEC0]">{getBadgeInfo(badgeId).description}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-[#A0AEC0]">You haven't earned any badges yet. Interact with the protocol to earn achievements!</p>
+                  </div>
                 </div>
               )}
             </CardContent>

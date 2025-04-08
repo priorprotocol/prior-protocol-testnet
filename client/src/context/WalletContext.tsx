@@ -15,7 +15,8 @@ import {
 import { 
   getTokenBalance as getTokenBalanceFromContract, 
   swapTokens, 
-  contractAddresses 
+  contractAddresses,
+  checkPriorPioneerNFT
 } from "@/lib/contracts";
 
 interface WalletContextType {
@@ -182,6 +183,38 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     
     fetchBalances();
   }, [address, tokens]);
+  
+  // Check for Prior Pioneer NFT ownership
+  useEffect(() => {
+    const checkForNFT = async () => {
+      if (!address || !userId) return;
+      
+      try {
+        // Check if the user owns a Prior Pioneer NFT
+        const hasNFT = await checkPriorPioneerNFT(address);
+        
+        // Call API to award the badge if needed
+        const response = await apiRequest<{ awarded: boolean, badges: string[] }>('POST', `/api/users/${address}/check-nft-badge`, { hasNFT });
+        
+        if (hasNFT) {
+          console.log("Prior Pioneer NFT detected in wallet");
+          
+          // If this is the first time they're getting the badge, show a congratulations toast
+          if (response && response.awarded) {
+            toast({
+              title: "🎉 Prior Pioneer NFT Badge Unlocked!",
+              description: "Congratulations! You've been awarded the Prior Pioneer badge for owning the NFT.",
+              duration: 6000
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error checking for Prior Pioneer NFT:", error);
+      }
+    };
+    
+    checkForNFT();
+  }, [address, userId]);
   
   const connectWallet = async () => {
     setIsWalletModalOpen(true);

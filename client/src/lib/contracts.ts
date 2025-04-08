@@ -303,6 +303,9 @@ const swapAbi = [
 ];
 
 // Base Sepolia testnet contract addresses
+// Prior Pioneer NFT contract address
+export const PRIOR_PIONEER_NFT_ADDRESS = "0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59";
+
 export const contractAddresses = {
   // Prior Protocol token and swap contract addresses
   priorToken: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // Prior Token
@@ -556,6 +559,26 @@ export const getSwapFee = async () => {
 };
 
 // Helper function to calculate output amounts for swap
+// Function to check if a wallet address owns a Prior Pioneer NFT
+export const checkPriorPioneerNFT = async (address: string): Promise<boolean> => {
+  try {
+    const nftAbi = [
+      "function balanceOf(address owner) view returns (uint256)",
+      "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)"
+    ];
+    
+    const provider = getProvider();
+    const nftContract = new ethers.Contract(PRIOR_PIONEER_NFT_ADDRESS, nftAbi, provider);
+    
+    // Check NFT balance
+    const balance = await nftContract.balanceOf(address);
+    return balance > 0;
+  } catch (error) {
+    console.error("Error checking Prior Pioneer NFT ownership:", error);
+    return false;
+  }
+};
+
 export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddress: string, amountIn: string) => {
   try {
     if (fromTokenAddress.toLowerCase() !== contractAddresses.priorToken.toLowerCase()) {
