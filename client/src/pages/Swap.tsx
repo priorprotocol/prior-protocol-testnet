@@ -438,7 +438,7 @@ const Swap = () => {
             <div className="flex justify-between items-center mb-2">
               <span className="text-[#A0AEC0]">Rate</span>
               <span className="font-medium">
-                1 {fromToken?.symbol || "-"} = {getExchangeRate()} {toToken?.symbol || "-"}
+                1 {fromToken?.symbol || "-"} = {exchangeRate} {toToken?.symbol || "-"}
               </span>
             </div>
             <div className="flex justify-between items-center mb-2">
