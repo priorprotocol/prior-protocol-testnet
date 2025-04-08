@@ -35,9 +35,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { address } = addressSchema.parse(req.body);
       let user = await storage.getUser(address);
+      let isNewUser = false;
       
       if (!user) {
         user = await storage.createUser({ address, lastClaim: null });
+        isNewUser = true;
+      }
+      
+      // Add the wallet_connected badge for new users
+      if (isNewUser) {
+        await storage.addUserBadge(user.id, "wallet_connected");
       }
       
       res.json(user);
@@ -77,6 +84,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update last claim time
       const updatedUser = await storage.updateUserLastClaim(address);
+      
+      // Add the token_claimed badge if user exists
+      if (updatedUser) {
+        await storage.addUserBadge(updatedUser.id, "token_claimed");
+      }
       
       res.json({
         message: "Tokens claimed successfully",
@@ -190,6 +202,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Complete the quest
       const updatedUserQuest = await storage.updateUserQuestStatus(existingQuest.id, 'completed');
       
+      // Add the quest_completed badge
+      await storage.addUserBadge(user.id, "quest_completed");
+      
+      // Check if all quests are completed
+      const allUserQuests = await storage.getUserQuests(user.id);
+      const allQuests = await storage.getAllQuests();
+      
+      const completedQuests = allUserQuests.filter(uq => uq.status === 'completed');
+      if (completedQuests.length === allQuests.length) {
+        // User has completed all quests, add the all_quests badge
+        await storage.addUserBadge(user.id, "all_quests");
+      }
+      
       res.json({
         message: `Quest completed successfully! You earned ${quest.reward} PRIOR tokens.`,
         userQuest: updatedUserQuest,
@@ -204,6 +229,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(`${apiPrefix}/proposals`, async (req, res) => {
     const proposals = await storage.getAllProposals();
     res.json(proposals);
+  });
+  
+  // Get user's badges
+  app.get(`${apiPrefix}/users/:address/badges`, async (req, res) => {
+    const { address } = req.params;
+    
+    const user = await storage.getUser(address);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const badges = await storage.getUserBadges(user.id);
+    res.json(badges);
+  });
+  
+  // Add a badge to a user
+  app.post(`${apiPrefix}/users/:address/badges`, async (req, res) => {
+    const { address } = req.params;
+    const { badgeId } = req.body;
+    
+    if (!badgeId || typeof badgeId !== 'string') {
+      return res.status(400).json({ message: "Invalid badge ID" });
+    }
+    
+    const user = await storage.getUser(address);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const badges = await storage.addUserBadge(user.id, badgeId);
+    res.json(badges);
+  });
+  
+  // Get user's stats
+  app.get(`${apiPrefix}/users/:address/stats`, async (req, res) => {
+    const { address } = req.params;
+    
+    const user = await storage.getUser(address);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const stats = await storage.getUserStats(user.id);
+    res.json(stats);
+  });
+  
+  // Record a swap for a user
+  app.post(`${apiPrefix}/users/:address/swaps`, async (req, res) => {
+    const { address } = req.params;
+    
+    const user = await storage.getUser(address);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Increment the swap count
+    const newCount = await storage.incrementUserSwapCount(user.id);
+    
+    // If this is their first swap, add the swap_completed badge
+    if (newCount === 1) {
+      await storage.addUserBadge(user.id, "swap_completed");
+    }
+    
+    res.json({ 
+      message: "Swap recorded successfully",
+      totalSwaps: newCount 
+    });
   });
   
   // Get user's vote on a proposal
@@ -252,6 +344,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         proposalId,
         vote: payload.vote
       });
+      
+      // Add the governance_vote badge
+      await storage.addUserBadge(payload.userId, "governance_vote");
+      
+      // Check how many votes this user has cast to award active_voter badge
+      const userStats = await storage.getUserStats(payload.userId);
+      if (userStats.proposalsVoted >= 5) {
+        await storage.addUserBadge(payload.userId, "active_voter");
+      }
       
       // Get updated proposal
       const updatedProposal = await storage.getProposal(proposalId);

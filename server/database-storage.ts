@@ -7,7 +7,7 @@ import {
   tokens, Token, InsertToken
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, count, sql } from "drizzle-orm";
 import { IStorage } from "./storage";
 
 // Database implementation of storage
@@ -30,6 +30,117 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.address, address))
       .returning();
     return updatedUser;
+  }
+  
+  async getUserBadges(userId: number): Promise<string[]> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) return [];
+    
+    return (user.badges as string[]) || [];
+  }
+  
+  async addUserBadge(userId: number, badgeId: string): Promise<string[]> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) return [];
+    
+    const currentBadges = (user.badges as string[]) || [];
+    
+    // If the badge is already in the list, just return the current badges
+    if (currentBadges.includes(badgeId)) {
+      return currentBadges;
+    }
+    
+    // Add the new badge
+    const newBadges = [...currentBadges, badgeId];
+    
+    // Update the user with the new badges
+    const [updatedUser] = await db
+      .update(users)
+      .set({ badges: newBadges })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return (updatedUser.badges as string[]) || [];
+  }
+  
+  async incrementUserSwapCount(userId: number): Promise<number> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) return 0;
+    
+    const currentSwaps = user.totalSwaps || 0;
+    const newSwapCount = currentSwaps + 1;
+    
+    // Update the user with the new swap count
+    const [updatedUser] = await db
+      .update(users)
+      .set({ totalSwaps: newSwapCount })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser.totalSwaps || 0;
+  }
+  
+  async getUserStats(userId: number): Promise<{
+    totalFaucetClaims: number;
+    totalSwaps: number;
+    completedQuests: number;
+    totalQuests: number;
+    proposalsVoted: number;
+    proposalsCreated: number;
+  }> {
+    // Get user
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) {
+      return {
+        totalFaucetClaims: 0,
+        totalSwaps: 0,
+        completedQuests: 0,
+        totalQuests: 0,
+        proposalsVoted: 0,
+        proposalsCreated: 0
+      };
+    }
+    
+    // Count of faucet claims is 1 if lastClaim exists, 0 otherwise
+    const totalFaucetClaims = user.lastClaim ? 1 : 0;
+    
+    // Get total swaps from user object
+    const totalSwaps = user.totalSwaps || 0;
+    
+    // Count completed quests for this user
+    const [completedQuestsResult] = await db
+      .select({ count: count() })
+      .from(userQuests)
+      .where(and(
+        eq(userQuests.userId, userId),
+        eq(userQuests.status, 'completed')
+      ));
+    const completedQuests = completedQuestsResult?.count || 0;
+    
+    // Get total number of quests
+    const [totalQuestsResult] = await db
+      .select({ count: count() })
+      .from(quests);
+    const totalQuests = totalQuestsResult?.count || 0;
+    
+    // Count proposals voted on by this user
+    const [proposalsVotedResult] = await db
+      .select({ count: count() })
+      .from(votes)
+      .where(eq(votes.userId, userId));
+    const proposalsVoted = proposalsVotedResult?.count || 0;
+    
+    // For now, we're not tracking who created proposals, so it's 0
+    const proposalsCreated = 0;
+    
+    return {
+      totalFaucetClaims,
+      totalSwaps,
+      completedQuests,
+      totalQuests,
+      proposalsVoted,
+      proposalsCreated
+    };
   }
   
   // Quest operations

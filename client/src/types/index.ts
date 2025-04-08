@@ -5,6 +5,7 @@ export interface TokenInfo {
   address: string;
   decimals: number;
   logoColor: string;
+  balance?: string;
 }
 
 export interface UserState {
@@ -52,4 +53,13 @@ export interface Vote {
   proposalId: number;
   vote: string;
   votedAt: string;
+}
+
+export interface UserStats {
+  totalFaucetClaims: number;
+  totalSwaps: number;
+  completedQuests: number;
+  totalQuests: number;
+  proposalsVoted: number;
+  proposalsCreated: number;
 }

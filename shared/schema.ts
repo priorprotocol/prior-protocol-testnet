@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -7,10 +7,14 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   address: text("address").notNull().unique(),
   lastClaim: timestamp("last_claim"),
+  badges: jsonb("badges").default([]).notNull(),  // Array of badge IDs
+  totalSwaps: integer("total_swaps").default(0).notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
+  badges: true,
+  totalSwaps: true,
 });
 
 // Quests table

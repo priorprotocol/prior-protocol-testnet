@@ -172,13 +172,16 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             
             // Instead, for the testnet demo, we'll use mock balances
             // This avoids needing real contract integrations for the demo
+            let balance = "0.00";
             if (token.symbol === "PRIOR") {
-              balances[token.symbol] = "100.00";
+              balance = "100.00";
             } else if (token.symbol === "USDC" || token.symbol === "USDT" || token.symbol === "DAI") {
-              balances[token.symbol] = "1000.00";
+              balance = "1000.00";
             } else if (token.symbol === "WETH") {
-              balances[token.symbol] = "5.00";
+              balance = "5.00";
             }
+            
+            balances[token.symbol] = balance;
           } catch (error) {
             console.error(`Error fetching balance for ${token.symbol}:`, error);
             balances[token.symbol] = "0.00";
@@ -192,7 +195,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     };
     
     fetchBalances();
-  }, [address]);
+  }, [address, tokens]);
   
   const connectWallet = async () => {
     setIsWalletModalOpen(true);

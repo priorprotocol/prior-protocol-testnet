@@ -13,6 +13,17 @@ export interface IStorage {
   getUser(address: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserLastClaim(address: string): Promise<User | undefined>;
+  getUserBadges(userId: number): Promise<string[]>; 
+  addUserBadge(userId: number, badgeId: string): Promise<string[]>;
+  incrementUserSwapCount(userId: number): Promise<number>;
+  getUserStats(userId: number): Promise<{
+    totalFaucetClaims: number;
+    totalSwaps: number;
+    completedQuests: number;
+    totalQuests: number;
+    proposalsVoted: number;
+    proposalsCreated: number;
+  }>;
   
   // Quest operations
   getAllQuests(): Promise<Quest[]>;
@@ -208,12 +219,120 @@ export class MemStorage implements IStorage {
     const user = this.usersByAddress.get(address);
     if (!user) return undefined;
     
-    const updatedUser: User = { ...user, lastClaim: new Date() };
+    const updatedUser: User = { 
+      ...user, 
+      lastClaim: new Date() 
+    };
     
     this.users.set(user.id, updatedUser);
     this.usersByAddress.set(address, updatedUser);
     
     return updatedUser;
+  }
+  
+  async getUserBadges(userId: number): Promise<string[]> {
+    const user = this.users.get(userId);
+    if (!user) return [];
+    
+    return (user.badges as string[]) || [];
+  }
+  
+  async addUserBadge(userId: number, badgeId: string): Promise<string[]> {
+    const user = this.users.get(userId);
+    if (!user) return [];
+    
+    const currentBadges = (user.badges as string[]) || [];
+    
+    // If the badge is already in the list, just return the current badges
+    if (currentBadges.includes(badgeId)) {
+      return currentBadges;
+    }
+    
+    // Add the new badge
+    const newBadges = [...currentBadges, badgeId];
+    
+    // Update the user with the new badges
+    const updatedUser: User = {
+      ...user,
+      badges: newBadges
+    };
+    
+    this.users.set(userId, updatedUser);
+    this.usersByAddress.set(user.address, updatedUser);
+    
+    return newBadges;
+  }
+  
+  async incrementUserSwapCount(userId: number): Promise<number> {
+    const user = this.users.get(userId);
+    if (!user) return 0;
+    
+    const currentSwaps = user.totalSwaps || 0;
+    const newSwapCount = currentSwaps + 1;
+    
+    // Update the user with the new swap count
+    const updatedUser: User = {
+      ...user,
+      totalSwaps: newSwapCount
+    };
+    
+    this.users.set(userId, updatedUser);
+    this.usersByAddress.set(user.address, updatedUser);
+    
+    return newSwapCount;
+  }
+  
+  async getUserStats(userId: number): Promise<{
+    totalFaucetClaims: number;
+    totalSwaps: number;
+    completedQuests: number;
+    totalQuests: number;
+    proposalsVoted: number;
+    proposalsCreated: number;
+  }> {
+    const user = this.users.get(userId);
+    if (!user) {
+      return {
+        totalFaucetClaims: 0,
+        totalSwaps: 0,
+        completedQuests: 0,
+        totalQuests: 0,
+        proposalsVoted: 0,
+        proposalsCreated: 0,
+      };
+    }
+    
+    // Count of faucet claims is 1 if lastClaim exists, 0 otherwise
+    const totalFaucetClaims = user.lastClaim ? 1 : 0;
+    
+    // Get total swaps from user object
+    const totalSwaps = user.totalSwaps || 0;
+    
+    // Count completed quests for this user
+    const userQuests = Array.from(this.userQuests.values()).filter(
+      uq => uq.userId === userId
+    );
+    const completedQuests = userQuests.filter(uq => uq.status === 'completed').length;
+    
+    // Get total number of quests
+    const totalQuests = this.quests.size;
+    
+    // Count proposals voted on by this user
+    const proposalsVoted = Array.from(this.votes.values()).filter(
+      v => v.userId === userId
+    ).length;
+    
+    // For this example, we're not tracking who created proposals, so it's 0
+    const proposalsCreated = 0;
+    
+    return {
+      totalFaucetClaims,
+      totalSwaps,
+      completedQuests,
+      totalQuests,
+      proposalsVoted,
+      proposalsCreated,
+    };
   }
   
   // Quest operations

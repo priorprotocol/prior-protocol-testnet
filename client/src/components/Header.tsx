@@ -29,7 +29,8 @@ const Header = () => {
     { name: "Faucet", path: "/faucet" },
     { name: "Swap", path: "/swap" },
     { name: "Quest", path: "/quest" },
-    { name: "Governance", path: "/governance" }
+    { name: "Governance", path: "/governance" },
+    { name: "Dashboard", path: "/dashboard" }
   ];
   
   const formatAddress = (address: string) => {
