@@ -10,7 +10,21 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 const Governance = () => {
-  const { isConnected, address, getTokenBalance } = useWallet();
+  // Initialize with default values
+  let isConnected = false;
+  let address: string | null = null;
+  let getTokenBalance = (_symbol: string) => "0.00";
+  
+  // Only use the wallet context if it's available
+  try {
+    const wallet = useWallet();
+    isConnected = wallet.isConnected;
+    address = wallet.address;
+    getTokenBalance = wallet.getTokenBalance;
+  } catch (error) {
+    console.log("Wallet context not available yet in Governance component");
+  }
+  
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [proposalTitle, setProposalTitle] = useState("");

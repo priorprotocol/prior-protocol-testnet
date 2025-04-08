@@ -3,7 +3,18 @@ import { useWallet } from "@/context/WalletContext";
 import QuestCard from "@/components/QuestCard";
 
 const Quest = () => {
-  const { isConnected, address } = useWallet();
+  // Initialize with default values
+  let isConnected = false;
+  let address: string | null = null;
+  
+  // Only use the wallet context if it's available
+  try {
+    const wallet = useWallet();
+    isConnected = wallet.isConnected;
+    address = wallet.address;
+  } catch (error) {
+    console.log("Wallet context not available yet in Quest component");
+  }
   
   // Get all quests
   const { data: quests, isLoading: questsLoading } = useQuery({

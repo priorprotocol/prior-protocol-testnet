@@ -22,7 +22,19 @@ interface QuestCardProps {
 }
 
 const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
-  const { address, isConnected } = useWallet();
+  // Initialize with default values
+  let address: string | null = null;
+  let isConnected = false;
+  
+  // Only use the wallet context if it's available
+  try {
+    const wallet = useWallet();
+    address = wallet.address;
+    isConnected = wallet.isConnected;
+  } catch (error) {
+    console.log("Wallet context not available yet in QuestCard component");
+  }
+  
   const { toast } = useToast();
   
   const startQuestMutation = useMutation({

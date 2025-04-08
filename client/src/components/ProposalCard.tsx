@@ -17,7 +17,21 @@ interface ProposalCardProps {
 }
 
 const ProposalCard: React.FC<ProposalCardProps> = ({ proposal }) => {
-  const { address, isConnected, userId } = useWallet();
+  // Initialize with default values
+  let address: string | null = null;
+  let isConnected = false;
+  let userId: number | undefined = undefined;
+  
+  // Only use the wallet context if it's available
+  try {
+    const wallet = useWallet();
+    address = wallet.address;
+    isConnected = wallet.isConnected;
+    userId = wallet.userId;
+  } catch (error) {
+    console.log("Wallet context not available yet in ProposalCard component");
+  }
+  
   const { toast } = useToast();
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   

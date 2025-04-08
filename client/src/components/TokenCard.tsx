@@ -7,7 +7,17 @@ interface TokenCardProps {
 }
 
 const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
-  const { getTokenBalance } = useWallet();
+  // Initialize with default values
+  let getTokenBalance = (_symbol: string) => "0.00";
+  
+  // Only use the wallet context if it's available
+  try {
+    const wallet = useWallet();
+    getTokenBalance = wallet.getTokenBalance;
+  } catch (error) {
+    console.log("Wallet context not available yet in TokenCard component");
+  }
+  
   const balance = getTokenBalance(token.symbol);
 
   return (
