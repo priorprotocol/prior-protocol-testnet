@@ -13,7 +13,7 @@ import {
   parseTokenAmount
 } from "@/lib/web3";
 import { 
-  getTokenBalance, 
+  getTokenBalance as getTokenBalanceFromContract, 
   swapTokens, 
   contractAddresses 
 } from "@/lib/contracts";
@@ -165,23 +165,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         
         for (const token of tokens) {
           try {
-            // In a real app, we'd fetch actual balances from the blockchain
-            // For demo purposes, we'll generate mock balances
-            // const result = await getTokenBalance(token.address, address);
-            // balances[token.symbol] = formatTokenAmount(result.balance.toString(), result.decimals);
-            
-            // Instead, for the testnet demo, we'll use mock balances
-            // This avoids needing real contract integrations for the demo
-            let balance = "0.00";
-            if (token.symbol === "PRIOR") {
-              balance = "100.00";
-            } else if (token.symbol === "USDC" || token.symbol === "USDT" || token.symbol === "DAI") {
-              balance = "1000.00";
-            } else if (token.symbol === "WETH") {
-              balance = "5.00";
-            }
-            
-            balances[token.symbol] = balance;
+            // Fetch actual balances from the blockchain
+            const result = await getTokenBalanceFromContract(token.address, address);
+            balances[token.symbol] = formatTokenAmount(result.balance.toString(), result.decimals);
           } catch (error) {
             console.error(`Error fetching balance for ${token.symbol}:`, error);
             balances[token.symbol] = "0.00";
@@ -322,48 +308,87 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
     
     try {
-      // In a real app, we'd call the actual swap function on the blockchain
-      // For demo purposes, we'll simulate a successful swap
-      // await swapTokens(fromTokenAddress, toTokenAddress, parseTokenAmount(fromAmount, 18), slippage);
+      // Parse decimals from token addresses
+      const fromToken = tokens.find(t => t.address.toLowerCase() === fromTokenAddress.toLowerCase());
+      const toToken = tokens.find(t => t.address.toLowerCase() === toTokenAddress.toLowerCase());
       
-      // Instead, let's simulate a waiting period to mimic a blockchain transaction
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Update balances after "successful" swap
-      const updatedBalances = {...tokenBalances};
-      
-      // Find the token symbols from addresses
-      const fromToken = tokens.find(t => t.address === fromTokenAddress);
-      const toToken = tokens.find(t => t.address === toTokenAddress);
-      
-      if (fromToken && toToken) {
-        // Deduct the from token amount
-        const currentFromBalance = parseFloat(updatedBalances[fromToken.symbol] || "0");
-        updatedBalances[fromToken.symbol] = (currentFromBalance - parseFloat(fromAmount)).toFixed(2);
-        if (parseFloat(updatedBalances[fromToken.symbol]) < 0) updatedBalances[fromToken.symbol] = "0.00";
-        
-        // Add the to token amount
-        const currentToBalance = parseFloat(updatedBalances[toToken.symbol] || "0");
-        updatedBalances[toToken.symbol] = (currentToBalance + parseFloat(toAmount)).toFixed(2);
+      if (!fromToken || !toToken) {
+        throw new Error("Invalid token selection");
       }
       
-      setTokenBalances(updatedBalances);
+      // Get decimals for each token
+      const fromDecimals = fromToken.address.toLowerCase() === contractAddresses.priorToken.toLowerCase() 
+        ? 18 : fromToken.decimals;
+        
+      // Parse the amount with the correct decimals
+      const parsedAmount = parseTokenAmount(fromAmount, fromDecimals);
+      
+      // Execute the swap on the blockchain
+      toast({
+        title: "Processing Swap",
+        description: `Swapping ${fromAmount} ${fromToken.symbol} to ${toToken.symbol}...`,
+      });
+      
+      // Execute the actual swap
+      await swapTokens(fromTokenAddress, toTokenAddress, parsedAmount, slippage);
+      
+      // Force refresh balances
+      const updatedBalances = {...tokenBalances};
+      
+      // Refresh the token balances from the blockchain
+      if (address) {
+        try {
+          // We're using our imported contract function to get balances
+          const fromTokenContract = await getTokenBalanceFromContract(fromTokenAddress, address);
+          const toTokenContract = await getTokenBalanceFromContract(toTokenAddress, address);
+          
+          updatedBalances[fromToken.symbol] = formatTokenAmount(
+            fromTokenContract.balance.toString(), 
+            fromTokenContract.decimals
+          );
+          
+          updatedBalances[toToken.symbol] = formatTokenAmount(
+            toTokenContract.balance.toString(), 
+            toTokenContract.decimals
+          );
+        } catch (error) {
+          console.error("Error refreshing balances:", error);
+        }
+        
+        setTokenBalances(updatedBalances);
+      }
       
       // Try to trigger a quest completion
       if (userId) {
         try {
+          // Record the swap with the backend
+          await apiRequest('POST', `/api/users/${userId}/swap`, { address });
+          
           // The first quest is a swap quest
           const swapQuestId = 1;
-          await apiRequest('POST', `/api/quests/${swapQuestId}/complete`, { address });
+          await apiRequest('POST', `/api/quests/${swapQuestId}/complete`, { userId });
         } catch (error) {
           // Ignore errors here, it might just mean they haven't started the quest
           // or already completed it
+          console.error("Error recording swap:", error);
         }
       }
+      
+      toast({
+        title: "Swap Successful",
+        description: `Successfully swapped ${fromAmount} ${fromToken.symbol} to ${toToken.symbol}`,
+      });
       
       return true;
     } catch (error: any) {
       console.error("Error swapping tokens:", error);
+      
+      toast({
+        title: "Swap Failed",
+        description: error.message || "Failed to swap tokens",
+        variant: "destructive"
+      });
+      
       throw error;
     }
   };

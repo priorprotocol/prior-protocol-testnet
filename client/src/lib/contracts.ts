@@ -308,12 +308,29 @@ export const contractAddresses = {
   priorToken: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // Prior Token
   priorSwap: "0x1e09f076824fFD47eC47E94C0dB8F5702Fd5ef9e", // Prior Swap router
   mockTokens: {
-    // Using actual Base Sepolia testnet token addresses
-    USDC: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // USDC on Base Sepolia
-    USDT: "0x708374D87A11B3740610Dd1eCB1e6Ce38DeA0a98", // USDT on Base Sepolia
-    DAI: "0x6Bb6F022104caF36F3a84900Cd46D32A1D6D2DF1", // DAI on Base Sepolia
-    WETH: "0x4200000000000000000000000000000000000006"  // WETH on Base Sepolia
+    // Actual mock token addresses on Base Sepolia testnet
+    USDC: "0x0C6BAA4B8092B29F6B370e06BdfE67434680E062", // mUSDC on Base Sepolia
+    USDT: "0xdaDcC45A00fe893df95488622fA2B64BfFc5E0bf", // mUSDT on Base Sepolia
+    DAI: "0x72f30eb1cE25523Ea2Fa63eDe9797481634E496B",  // mDAI on Base Sepolia
+    WETH: "0xc413B81c5fb4798b8e4c6053AADd383C4Dc3703B"  // mWETH on Base Sepolia
   }
+};
+
+// Token decimals
+export const tokenDecimals = {
+  PRIOR: 18,
+  USDC: 6,
+  USDT: 6,
+  DAI: 6,
+  WETH: 18
+};
+
+// Token symbols as they appear on-chain
+export const tokenSymbols = {
+  USDC: "mUSDC",
+  USDT: "mUSDT",
+  DAI: "mDAI",
+  WETH: "mWETH"
 };
 
 // Function to get token contract instance
@@ -344,12 +361,56 @@ export const getSwapContractWithSigner = async () => {
   return new ethers.Contract(contractAddresses.priorSwap, swapAbi, signer);
 };
 
+// Helper function to get token symbol
+export const getTokenSymbol = (tokenAddress: string): string => {
+  if (tokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+    return "PRIOR";
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+    return tokenSymbols.USDC;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+    return tokenSymbols.USDT;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+    return tokenSymbols.DAI;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+    return tokenSymbols.WETH;
+  }
+  return "UNKNOWN";
+};
+
+// Helper function to get token decimals
+export const getTokenDecimalsFromAddress = (tokenAddress: string): number => {
+  if (tokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+    return tokenDecimals.PRIOR;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+    return tokenDecimals.USDC;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+    return tokenDecimals.USDT;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+    return tokenDecimals.DAI;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+    return tokenDecimals.WETH;
+  }
+  return 18; // Default for unknown tokens
+};
+
 // Function to get token balance
 export const getTokenBalance = async (tokenAddress: string, address: string) => {
   try {
     const tokenContract = await getTokenContract(tokenAddress);
     const balance = await tokenContract.balanceOf(address);
-    const decimals = await tokenContract.decimals();
+    
+    // Get token decimals using the helper function
+    let decimals = getTokenDecimalsFromAddress(tokenAddress);
+    
+    // If it's an unknown token, try to get decimals from the contract
+    if (decimals === 18 && getTokenSymbol(tokenAddress) === "UNKNOWN") {
+      try {
+        decimals = await tokenContract.decimals();
+      } catch (error) {
+        console.error("Error getting token decimals:", error);
+      }
+    }
+    
     return { balance, decimals };
   } catch (error) {
     console.error("Error getting token balance:", error);
@@ -516,21 +577,36 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
     
     const feeBasisPoints = await getSwapFee();
     
-    // Convert amount to BigNumber for calculations
-    const amountBigNumber = ethers.parseUnits(amountIn, 18);
+    // Determine the destination token decimals
+    let toTokenDecimals = 18;
+    if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+      toTokenDecimals = tokenDecimals.USDC;
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+      toTokenDecimals = tokenDecimals.USDT;
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+      toTokenDecimals = tokenDecimals.DAI;
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+      toTokenDecimals = tokenDecimals.WETH;
+    }
+    
+    // Convert amount to BigInt for calculations using PRIOR token decimals (18)
+    const amountBigNumber = ethers.parseUnits(amountIn, tokenDecimals.PRIOR);
     
     // Calculate raw amount (PRIOR / rate)
-    const rawAmount = amountBigNumber.div(rate);
+    // With ethers v6, we need to handle BigInt operations
+    const rawAmount = amountBigNumber * BigInt(1000000) / rate;
     
     // Apply fee (amount - (amount * fee / 10000))
-    const feeAmount = rawAmount.mul(feeBasisPoints).div(10000);
-    const amountOut = rawAmount.sub(feeAmount);
+    const feeAmount = (rawAmount * BigInt(feeBasisPoints)) / BigInt(10000);
+    const amountOut = rawAmount - feeAmount;
     
     return {
       amountIn: amountBigNumber,
       amountOut,
       rate,
-      fee: feeBasisPoints
+      fee: feeBasisPoints,
+      fromDecimals: tokenDecimals.PRIOR,
+      toDecimals: toTokenDecimals
     };
   } catch (error) {
     console.error("Error calculating swap output:", error);
