@@ -77,21 +77,23 @@ export default function Swap() {
     return mockRates[from]?.[to] || "0";
   }, []);
   
-  // Initialize token selection when tokens are loaded
+  // Update the token initialization effect
   useEffect(() => {
     if (tokens.length > 0) {
+      console.log("Tokens loaded:", tokens);
       const priorToken = tokens.find(t => t.symbol === "PRIOR");
       const usdcToken = tokens.find(t => t.symbol === "USDC");
       
-      if (priorToken && !fromToken) {
+      if (priorToken && (!fromToken || !tokens.includes(fromToken))) {
         setFromToken(priorToken);
       }
       
-      if (usdcToken && !toToken) {
+      if (usdcToken && (!toToken || !tokens.includes(toToken))) {
         setToToken(usdcToken);
       } else if (!toToken && tokens.length > 1) {
-        // If no USDC, select the second token by default
-        setToToken(tokens[1]);
+        // Select first token that's not PRIOR if USDC not available
+        const nonPriorToken = tokens.find(t => t.symbol !== "PRIOR") || tokens[1];
+        setToToken(nonPriorToken);
       }
     }
   }, [tokens, fromToken, toToken]);
@@ -107,11 +109,11 @@ export default function Swap() {
       const rate = getMockRate(fromToken.symbol, toToken.symbol);
       
       // For PRIOR token pairs, we'll optionally try to get the rate from the contract
-      if ((fromToken.symbol === "PRIOR" || toToken.symbol === "PRIOR") && false) { // disabled for now
+      if (fromToken && toToken && (fromToken.symbol === "PRIOR" || toToken.symbol === "PRIOR") && false) { // disabled for now
         try {
           const { calculateSwapOutput } = await import('@/lib/contracts');
           
-          if (fromToken.symbol === "PRIOR") {
+          if (fromToken && toToken && fromToken.symbol === "PRIOR") {
             const result = await calculateSwapOutput(
               fromToken.address,
               toToken.address,
@@ -124,7 +126,7 @@ export default function Swap() {
               setIsLoadingRate(false);
               return formattedAmount;
             }
-          } else if (toToken.symbol === "PRIOR") {
+          } else if (fromToken && toToken && toToken.symbol === "PRIOR") {
             const result = await calculateSwapOutput(
               toToken.address, 
               fromToken.address,
@@ -169,17 +171,19 @@ export default function Swap() {
   // Monitor wallet connection status
   const { address } = useWallet();
   
+  // Update the wallet connection monitoring effect
   useEffect(() => {
-    // When the wallet is connected or the address changes, update UI state
-    if (address && isConnected) {
-      console.log("Wallet connection detected in UI effect, updating UI...");
-      
-      // Update token balances and rates
+    // This effect should handle both initial connection and subsequent changes
+    if (address) {
+      console.log("Wallet connected with address:", address);
+      // Force UI update by checking token balances and rates
       if (fromToken && toToken) {
         getExchangeRate();
       }
+    } else {
+      console.log("Wallet disconnected or no address");
     }
-  }, [address, isConnected, fromToken, toToken, getExchangeRate]);
+  }, [address, fromToken, toToken, getExchangeRate]);
   
   // Format numbers for display
   const formatDisplayNumber = (value: string): string => {
@@ -295,7 +299,7 @@ export default function Swap() {
   }, [fromToken, toToken]);
   
   // Handle swap
-  // Direct connect function using the approach from the shared code
+  // Direct connect function - improved with better error handling
   const directConnectWallet = useCallback(async () => {
     try {
       if (!window.ethereum) {
@@ -308,9 +312,7 @@ export default function Swap() {
         return null;
       }
       
-      console.log("Requesting accounts directly from Swap component...");
-      
-      // Get the accounts from MetaMask
+      console.log("Requesting accounts directly...");
       const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
       const account = accounts[0];
       
@@ -325,30 +327,33 @@ export default function Swap() {
       
       console.log("Account connected:", account);
       
-      // Ensure we're on the Base Sepolia network
+      // Force network switch
       try {
         const { switchToBaseSepoliaNetwork } = await import('@/lib/web3');
         await switchToBaseSepoliaNetwork();
       } catch (error) {
-        console.error("Failed to switch network:", error);
+        console.error("Network switch error:", error);
+        toast({
+          title: "Network Error",
+          description: "Please switch to Base Sepolia network manually",
+          variant: "destructive"
+        });
       }
       
-      // Update global wallet state
+      // Force state update in multiple ways
       try {
-        // Force WalletContext update through the exported function
-        const { updateWalletAddressGlobally } = await import('@/context/WalletContext');
-        const updated = updateWalletAddressGlobally(account);
-        console.log("Setting wallet address manually:", account);
-        console.log("Global wallet update result:", updated);
-      } catch (error) {
-        console.error("Error updating wallet address globally:", error);
-      }
-      
-      // Try the standard connect method as backup
-      try {
+        // Update through standard connect
         await connectWallet();
+        
+        // Additional direct update if needed
+        const { updateWalletAddressGlobally } = await import('@/context/WalletContext');
+        updateWalletAddressGlobally(account);
+        
+        // Force a re-render by resetting token selections
+        setFromToken(null);
+        setToToken(null);
       } catch (error) {
-        console.error("Error with standard wallet connection:", error);
+        console.error("State update error:", error);
       }
       
       toast({
@@ -356,13 +361,12 @@ export default function Swap() {
         description: `Connected to ${account.substring(0, 6)}...${account.substring(account.length - 4)}`,
       });
       
-      // Return the address for other uses
       return account;
     } catch (error) {
-      console.error("Error in direct connect:", error);
+      console.error("Connection error:", error);
       toast({
         title: "Connection Failed",
-        description: "Failed to connect to MetaMask. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to connect",
         variant: "destructive"
       });
       return null;
@@ -664,9 +668,9 @@ export default function Swap() {
             onClick={handleSwap}
             disabled={isSwapping}
             className={`w-full py-3 px-4 rounded-lg font-semibold flex items-center justify-center transition-colors ${
-              isConnected 
-                ? "bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF5500] hover:to-[#FF8800] text-white" 
-                : "bg-[#FF6B00] hover:bg-[#FF5500] text-white"
+              !isConnected || !address
+                ? "bg-[#FF6B00] hover:bg-[#FF5500] text-white"
+                : "bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF5500] hover:to-[#FF8800] text-white"
             } ${isSwapping ? "opacity-70 cursor-not-allowed" : ""}`}
           >
             {isSwapping ? (
@@ -674,7 +678,7 @@ export default function Swap() {
                 <i className="fas fa-spinner fa-spin mr-2"></i>
                 Swapping...
               </>
-            ) : !isConnected ? (
+            ) : !isConnected || !address ? (
               "Connect Wallet"
             ) : !fromAmount || parseFloat(fromAmount) <= 0 ? (
               "Enter an amount"
