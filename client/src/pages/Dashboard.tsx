@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserStats } from "@/types";
 
 const Dashboard = () => {
-  const { address, userId, tokens } = useWallet();
+  const { address, userId, tokens, getTokenBalance } = useWallet();
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch user stats
