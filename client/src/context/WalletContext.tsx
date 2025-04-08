@@ -95,22 +95,44 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   
   // Initialize wallet connection on load
   useEffect(() => {
+    let mounted = true;
+    
     const initWallet = async () => {
+      if (!mounted) return;
+      
+      // Check if window.ethereum exists safely
+      if (typeof window === 'undefined' || !window.ethereum) {
+        console.log("No ethereum provider detected");
+        return;
+      }
+      
       try {
-        const savedAddress = await getAccount();
-        if (savedAddress) {
-          setAddress(savedAddress);
+        // Get already connected accounts
+        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        
+        if (!mounted) return;
+        
+        if (accounts && accounts.length > 0) {
+          setAddress(accounts[0]);
           
           try {
-            const currentChainId = await getChainId();
-            setChainId(currentChainId);
-            
-            if (currentChainId !== 84532) {
-              toast({
-                title: "Wrong Network",
-                description: "Please switch to Base Sepolia Testnet",
-                variant: "destructive"
-              });
+            // Get the chain ID
+            const provider = getProvider();
+            if (provider) {
+              const network = await provider.getNetwork();
+              const chainId = network.chainId;
+              
+              if (!mounted) return;
+              
+              setChainId(chainId);
+              
+              if (chainId !== 84532) {
+                toast({
+                  title: "Wrong Network",
+                  description: "Please switch to Base Sepolia Testnet",
+                  variant: "destructive"
+                });
+              }
             }
           } catch (error) {
             console.error("Error getting chain ID:", error);
@@ -123,9 +145,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     
     // Setup event listeners for wallet
     const setupListeners = () => {
-      if (!window.ethereum) return;
+      // Check if ethereum provider is available
+      if (typeof window === 'undefined' || !window.ethereum) return;
       
       const handleAccountsChanged = (accounts: string[]) => {
+        if (!mounted) return;
+        
         if (accounts.length === 0) {
           setAddress(null);
           setChainId(null);
@@ -137,36 +162,58 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       };
       
       const handleChainChanged = (chainIdHex: string) => {
-        const newChainId = parseInt(chainIdHex, 16);
-        setChainId(newChainId);
+        if (!mounted) return;
         
-        if (newChainId !== 84532) {
-          toast({
-            title: "Wrong Network",
-            description: "Please switch to Base Sepolia Testnet",
-            variant: "destructive"
-          });
+        try {
+          const newChainId = parseInt(chainIdHex, 16);
+          setChainId(newChainId);
+          
+          if (newChainId !== 84532) {
+            toast({
+              title: "Wrong Network",
+              description: "Please switch to Base Sepolia Testnet",
+              variant: "destructive"
+            });
+          }
+        } catch (error) {
+          console.error("Error handling chain change:", error);
         }
       };
       
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
+      try {
+        window.ethereum.on('accountsChanged', handleAccountsChanged);
+        window.ethereum.on('chainChanged', handleChainChanged);
+      } catch (error) {
+        console.error("Error setting up ethereum listeners:", error);
+      }
       
       return () => {
         if (window.ethereum) {
-          window.ethereum.removeAllListeners('accountsChanged');
-          window.ethereum.removeAllListeners('chainChanged');
+          try {
+            window.ethereum.removeAllListeners('accountsChanged');
+            window.ethereum.removeAllListeners('chainChanged');
+          } catch (error) {
+            console.error("Error removing ethereum listeners:", error);
+          }
         }
       };
     };
     
-    initWallet();
-    const cleanup = setupListeners();
+    // Initialize wallet state
+    setTimeout(() => {
+      initWallet();
+      const cleanup = setupListeners();
+      
+      return () => {
+        mounted = false;
+        if (cleanup) cleanup();
+      };
+    }, 100); // Small delay to ensure DOM is ready
     
     return () => {
-      if (cleanup) cleanup();
+      mounted = false;
     };
-  }, []);
+  }, [toast]);
   
   // Create user when address changes
   useEffect(() => {

@@ -15,19 +15,49 @@ export const baseSepolia = {
 
 // Function to setup web3 provider
 export const getProvider = () => {
-  // Check if window.ethereum is available
-  if (window.ethereum) {
-    return new ethers.providers.Web3Provider(window.ethereum);
+  try {
+    // Check if we're in a browser environment
+    if (typeof window === 'undefined') {
+      console.log("Not in browser environment");
+      return null;
+    }
+    
+    // Check if window.ethereum is available
+    if (window.ethereum) {
+      try {
+        return new ethers.providers.Web3Provider(window.ethereum);
+      } catch (error) {
+        console.error("Error creating Web3Provider:", error);
+      }
+    }
+    
+    // Fallback to RPC provider
+    try {
+      return new ethers.providers.JsonRpcProvider(baseSepolia.rpcUrls[0]);
+    } catch (error) {
+      console.error("Error creating JsonRpcProvider:", error);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error in getProvider:", error);
+    return null;
   }
-  
-  // Fallback to RPC provider
-  return new ethers.providers.JsonRpcProvider(baseSepolia.rpcUrls[0]);
 };
 
 // Function to get signer
 export const getSigner = async () => {
   const provider = getProvider();
-  return provider.getSigner();
+  if (!provider) {
+    console.error("Provider not available");
+    return null;
+  }
+  try {
+    return provider.getSigner();
+  } catch (error) {
+    console.error("Error getting signer:", error);
+    return null;
+  }
 };
 
 // Function to switch to Base Sepolia network
@@ -91,9 +121,18 @@ export const parseTokenAmount = (amount: string, decimals: number): string => {
 
 // Function to get chain ID
 export const getChainId = async (): Promise<number> => {
-  const provider = getProvider();
-  const network = await provider.getNetwork();
-  return network.chainId;
+  try {
+    const provider = getProvider();
+    if (!provider) {
+      console.error("Provider not available");
+      return 0;
+    }
+    const network = await provider.getNetwork();
+    return network.chainId;
+  } catch (error) {
+    console.error("Error getting chain ID:", error);
+    return 0;
+  }
 };
 
 // Function to get account
