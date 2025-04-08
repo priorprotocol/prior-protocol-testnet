@@ -3,7 +3,6 @@ import Layout from "@/components/Layout";
 import Home from "@/pages/Home";
 import Faucet from "@/pages/Faucet";
 import Swap from "@/pages/Swap";
-import NewSwap from "@/pages/NewSwap";
 import Quest from "@/pages/Quest";
 import Governance from "@/pages/Governance";
 import Dashboard from "@/pages/Dashboard";
@@ -16,7 +15,6 @@ import NotFound from "@/pages/not-found";
 const WrappedHome = () => <Home />;
 const WrappedFaucet = () => <Faucet />;
 const WrappedSwap = () => <Swap />;
-const WrappedNewSwap = () => <NewSwap />;
 const WrappedQuest = () => <Quest />;
 const WrappedGovernance = () => <Governance />;
 const WrappedDashboard = () => <Dashboard />;
@@ -32,7 +30,6 @@ function App() {
         <Route path="/" component={WrappedHome} />
         <Route path="/faucet" component={WrappedFaucet} />
         <Route path="/swap" component={WrappedSwap} />
-        <Route path="/newswap" component={WrappedNewSwap} />
         <Route path="/quest" component={WrappedQuest} />
         <Route path="/governance" component={WrappedGovernance} />
         <Route path="/dashboard" component={WrappedDashboard} />
