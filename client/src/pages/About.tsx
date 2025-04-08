@@ -70,6 +70,56 @@ const About = () => {
           </div>
         </div>
         
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold mb-6 text-center">Prior Pioneer NFT</h2>
+          <div className="flex flex-col md:flex-row gap-8 items-center bg-[#1A202C] p-6 rounded-lg">
+            <div className="md:w-1/3">
+              <img 
+                src={priorPioneerNft} 
+                alt="Prior Pioneer NFT" 
+                className="w-full max-w-[240px] mx-auto rounded-lg" 
+              />
+              <div className="text-center mt-4">
+                <p className="text-xs text-[#A0AEC0]">Contract Address:</p>
+                <p className="text-xs text-[#1A5CFF] break-all">0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59</p>
+              </div>
+            </div>
+            <div className="md:w-2/3">
+              <p className="text-[#A0AEC0] mb-4">
+                This exclusive NFT represents the fusion of AI and decentralized finance, embodying the future of intelligent, autonomous trading. 
+                Powered by cutting-edge machine learning and blockchain technology, this digital asset grants access to PRIOR! 
+                The Next-Gen protocol where DeFi meets AI-driven precision. Own a piece of innovation and be part of the evolution of smart, decentralized finance.
+              </p>
+              <p className="text-white font-medium mb-4">
+                Prior NFTs aren't just ordinary PFPs: they're NFTs that have real utilities.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div className="flex items-start gap-2">
+                  <FaKey className="text-[#1A5CFF] mt-1" />
+                  <div>
+                    <p className="text-white font-medium">Vote on upgrades</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <FaKey className="text-[#1A5CFF] mt-1" />
+                  <div>
+                    <p className="text-white font-medium">Access exclusive pools</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <FaKey className="text-[#1A5CFF] mt-1" />
+                  <div>
+                    <p className="text-white font-medium">Unlock future rewards</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-[#1A5CFF] font-medium mt-6 text-center md:text-left">
+                Governance meets benefits. Holders are called PIONEERS.
+              </p>
+            </div>
+          </div>
+        </div>
+        
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6 text-center">Connect With Us</h2>
           <div className="flex flex-wrap justify-center gap-8">
