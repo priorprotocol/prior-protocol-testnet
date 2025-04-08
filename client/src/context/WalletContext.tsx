@@ -310,7 +310,15 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   }, [address, userId]);
   
   const connectWallet = async () => {
-    setIsWalletModalOpen(true);
+    try {
+      // Just call connectWithMetaMask directly for now
+      // This ensures the wallet connection works even if the modal has issues
+      await connectWithMetaMask();
+    } catch (error) {
+      console.error("Error in connectWallet:", error);
+      // Fallback to opening the modal if direct connection fails
+      setIsWalletModalOpen(true);
+    }
   };
   
   const connectWithMetaMask = async () => {

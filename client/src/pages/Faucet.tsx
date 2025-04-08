@@ -6,6 +6,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import TokenCard from "@/components/TokenCard";
 import { TokenInfo } from "@/types";
 import { claimFromFaucet, getFaucetInfo } from "@/lib/contracts";
+import { requestAccounts, switchToBaseSepoliaNetwork } from "@/lib/web3";
 
 const Faucet = () => {
   const { 
@@ -88,12 +89,73 @@ const Faucet = () => {
     }
   });
   
-  const handleClaimTokens = () => {
+  const directConnectWallet = async () => {
+    try {
+      if (!window.ethereum) {
+        toast({
+          title: "MetaMask Not Found",
+          description: "Please install MetaMask to connect your wallet.",
+          variant: "destructive"
+        });
+        window.open('https://metamask.io/download.html', '_blank');
+        return null;
+      }
+      
+      console.log("Requesting accounts directly...");
+      const account = await requestAccounts();
+      if (!account) {
+        toast({
+          title: "No Account Found",
+          description: "Please connect an account in your MetaMask wallet.",
+          variant: "destructive"
+        });
+        return null;
+      }
+      
+      console.log("Account connected:", account);
+      
+      // Switch to Base Sepolia
+      try {
+        await switchToBaseSepoliaNetwork();
+      } catch (error) {
+        console.error("Failed to switch network:", error);
+      }
+      
+      // Reload the page to update the wallet state
+      window.location.reload();
+      return account;
+    } catch (error) {
+      console.error("Error in direct connect:", error);
+      toast({
+        title: "Connection Failed",
+        description: "Failed to connect to MetaMask. Please try again.",
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const handleClaimTokens = async () => {
     if (!isConnected) {
-      connectWallet();
-      return;
+      try {
+        console.log("Trying direct wallet connection...");
+        const account = await directConnectWallet();
+        if (!account) {
+          return;
+        }
+        return;
+      } catch (error) {
+        console.error("Failed to connect wallet:", error);
+        toast({
+          title: "Wallet Connection Failed",
+          description: "Please make sure MetaMask is installed and try again.",
+          variant: "destructive"
+        });
+        return;
+      }
     }
     
+    console.log("Claiming tokens...");
     claimMutation.mutate();
   };
   

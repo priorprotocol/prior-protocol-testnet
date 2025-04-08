@@ -1,6 +1,9 @@
 import { useWallet } from "@/context/WalletContext";
+import { useToast } from "@/hooks/use-toast";
 
 const WalletModal = () => {
+  const { toast } = useToast();
+  
   try {
     const { 
       isWalletModalOpen, 
@@ -9,6 +12,21 @@ const WalletModal = () => {
       connectWithWalletConnect,
       connectWithCoinbaseWallet
     } = useWallet();
+    
+    // Add a direct connection handler for debugging
+    const handleMetaMaskConnect = async () => {
+      try {
+        console.log("Attempting direct MetaMask connection...");
+        await connectWithMetaMask();
+      } catch (error) {
+        console.error("MetaMask connection error:", error);
+        toast({
+          title: "Connection Error",
+          description: "Failed to connect to MetaMask. Please make sure it's installed and try again.",
+          variant: "destructive"
+        });
+      }
+    };
     
     if (!isWalletModalOpen) return null;
     
@@ -31,7 +49,7 @@ const WalletModal = () => {
           
           <div className="space-y-4 mb-6">
             <button 
-              onClick={connectWithMetaMask}
+              onClick={handleMetaMaskConnect}
               className="w-full flex items-center justify-between bg-[#111827] hover:bg-opacity-80 transition-colors p-4 rounded-lg"
             >
               <div className="flex items-center">
