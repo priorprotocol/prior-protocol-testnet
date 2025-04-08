@@ -4,44 +4,43 @@ import { useToast } from "@/hooks/use-toast";
 import { TokenInfo } from "@/types";
 import { ethers } from "ethers";
 
-const Swap = () => {
-  // Initialize with default values
-  let isConnected = false;
-  let connectWallet = async () => {};
-  let tokens: TokenInfo[] = [];
-  let getTokenBalance = (_symbol: string) => "0.00";
-  let sendSwapTransaction = async (
-    fromTokenAddress: string,
-    toTokenAddress: string,
-    fromAmount: string,
-    toAmount: string,
+// Main implementation
+const SwapContent = ({ 
+  isConnected,
+  connectWallet,
+  tokens,
+  getTokenBalance,
+  sendSwapTransaction
+}: {
+  isConnected: boolean,
+  connectWallet: () => Promise<void>,
+  tokens: TokenInfo[],
+  getTokenBalance: (symbol: string) => string,
+  sendSwapTransaction: (
+    fromTokenAddress: string, 
+    toTokenAddress: string, 
+    fromAmount: string, 
+    toAmount: string, 
     slippage: string
-  ): Promise<boolean> => {
-    console.error("Wallet not connected");
-    return false;
-  };
-  
-  // Only use the wallet context if it's available
-  try {
-    const wallet = useWallet();
-    isConnected = wallet.isConnected;
-    connectWallet = wallet.connectWallet;
-    tokens = wallet.tokens;
-    getTokenBalance = wallet.getTokenBalance;
-    sendSwapTransaction = wallet.sendSwapTransaction;
-  } catch (error) {
-    console.log("Wallet context not available yet");
-  }
-  
+  ) => Promise<boolean>
+}) => {
   const { toast } = useToast();
   
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
-  const [fromToken, setFromToken] = useState<TokenInfo | null>(tokens.find(t => t.symbol === "PRIOR") || null);
-  const [toToken, setToToken] = useState<TokenInfo | null>(tokens.find(t => t.symbol === "USDC") || null);
+  const [fromToken, setFromToken] = useState<TokenInfo | null>(null);
+  const [toToken, setToToken] = useState<TokenInfo | null>(null);
   const [isFromDropdownOpen, setIsFromDropdownOpen] = useState(false);
   const [isToDropdownOpen, setIsToDropdownOpen] = useState(false);
   const [slippage, setSlippage] = useState("0.5");
+  
+  // Initialize token selection when tokens are loaded
+  useEffect(() => {
+    if (tokens.length > 0) {
+      setFromToken(tokens.find(t => t.symbol === "PRIOR") || tokens[0]);
+      setToToken(tokens.find(t => t.symbol === "USDC") || (tokens.length > 1 ? tokens[1] : tokens[0]));
+    }
+  }, [tokens]);
   
   const fromBalance = fromToken ? getTokenBalance(fromToken.symbol) : "0.00";
   const toBalance = toToken ? getTokenBalance(toToken.symbol) : "0.00";
@@ -105,21 +104,21 @@ const Swap = () => {
       // Default rates as fallback
       const defaultRates: Record<string, Record<string, string>> = {
         "PRIOR": {
-          "mUSDC": "0.05",
-          "mUSDT": "0.05",
-          "mDAI": "0.05",
-          "mWETH": "0.00003"
+          "USDC": "0.05",
+          "USDT": "0.05",
+          "DAI": "0.05",
+          "WETH": "0.00003"
         },
-        "mUSDC": {
+        "USDC": {
           "PRIOR": "20"
         },
-        "mUSDT": {
+        "USDT": {
           "PRIOR": "20"
         },
-        "mDAI": {
+        "DAI": {
           "PRIOR": "20"
         },
-        "mWETH": {
+        "WETH": {
           "PRIOR": "30000"
         }
       };
@@ -489,6 +488,35 @@ const Swap = () => {
       </div>
     </section>
   );
+};
+
+// Wrapper component that safely accesses the wallet context
+const Swap = () => {
+  try {
+    const wallet = useWallet();
+    return (
+      <SwapContent 
+        isConnected={wallet.isConnected}
+        connectWallet={wallet.connectWallet}
+        tokens={wallet.tokens}
+        getTokenBalance={wallet.getTokenBalance}
+        sendSwapTransaction={wallet.sendSwapTransaction}
+      />
+    );
+  } catch (error) {
+    console.log("Wallet context not available yet");
+    // Return a loading fallback
+    return (
+      <section className="py-16 bg-[#0B1118] bg-opacity-40">
+        <div className="container mx-auto px-4 text-center">
+          <div className="text-3xl md:text-4xl font-space font-bold mb-4">Token Swap</div>
+          <div className="max-w-lg mx-auto gradient-border gradient-border-orange bg-[#141D29] p-6 md:p-8 shadow-lg">
+            <p className="text-[#A0AEC0] py-12">Loading wallet integration...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 };
 
 export default Swap;

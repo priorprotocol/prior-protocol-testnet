@@ -1,4 +1,6 @@
 import { Link } from "wouter";
+import { ExternalLink } from "lucide-react";
+import { getExternalLink } from "@/lib/externalLinks";
 
 const Footer = () => {
   return (
@@ -22,38 +24,34 @@ const Footer = () => {
             >
               About
             </Link>
-            <a 
-              href="https://priorprotocol.gitbook.io/whitepaper" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-[#A0AEC0] hover:text-white transition-colors"
+            <Link 
+              href={getExternalLink('whitepaper')} 
+              className="text-[#A0AEC0] hover:text-white transition-colors flex items-center gap-1"
             >
               Whitepaper
-            </a>
-            <a 
-              href="https://medium.com/@priorprotocol_12054" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-[#A0AEC0] hover:text-white transition-colors"
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+            <Link 
+              href={getExternalLink('medium')} 
+              className="text-[#A0AEC0] hover:text-white transition-colors flex items-center gap-1"
             >
               Medium
-            </a>
-            <a 
-              href="https://discord.com/invite/priorprotocol" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-[#A0AEC0] hover:text-white transition-colors"
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+            <Link 
+              href={getExternalLink('discord')} 
+              className="text-[#A0AEC0] hover:text-white transition-colors flex items-center gap-1"
             >
               Discord
-            </a>
-            <a 
-              href="https://x.com/priorprotocol" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-[#A0AEC0] hover:text-white transition-colors"
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+            <Link 
+              href={getExternalLink('twitter')} 
+              className="text-[#A0AEC0] hover:text-white transition-colors flex items-center gap-1"
             >
               Twitter
-            </a>
+              <ExternalLink className="h-3 w-3" />
+            </Link>
           </div>
         </div>
         
