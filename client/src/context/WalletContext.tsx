@@ -285,6 +285,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   useEffect(() => {
     let isMounted = true;
     
+    // Memoize the token addresses to prevent re-runs if objects are recreated
+    // but values are the same
+    const tokenAddresses = tokens.map(t => t.address).join(',');
+    
     const fetchBalances = async () => {
       if (!isMounted) return;
       
@@ -297,7 +301,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       
       try {
         console.log("Fetching token balances for address:", address);
-        const balances: Record<string, string> = {};
+        // Create a copy of the balances to avoid direct state mutations
+        const newBalances: Record<string, string> = {...tokenBalances};
+        let hasChanges = false;
         
         for (const token of tokens) {
           if (!isMounted) return;
@@ -305,40 +311,49 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
           try {
             const result = await getTokenBalanceFromContract(token.address, address);
             const formattedBalance = formatTokenAmount(result.balance.toString(), result.decimals);
-            balances[token.symbol] = formattedBalance;
-            console.log(`${token.symbol} balance: ${formattedBalance}`);
+            
+            // Only update if the balance has actually changed to avoid re-renders
+            if (newBalances[token.symbol] !== formattedBalance) {
+              newBalances[token.symbol] = formattedBalance;
+              hasChanges = true;
+              console.log(`${token.symbol} balance updated: ${formattedBalance}`);
+            }
           } catch (error) {
             console.error(`Error fetching balance for ${token.symbol}:`, error);
-            balances[token.symbol] = "0.00";
+            if (newBalances[token.symbol] !== "0.00") {
+              newBalances[token.symbol] = "0.00";
+              hasChanges = true;
+            }
           }
         }
         
-        if (isMounted) {
-          setTokenBalances(balances);
+        // Only update state if balances actually changed
+        if (isMounted && hasChanges) {
+          setTokenBalances({...newBalances});
         }
       } catch (error) {
         console.error("Error fetching token balances:", error);
       }
     };
     
-    // Run once immediately
-    fetchBalances();
-    
-    // Don't setup interval on first render if address isn't available yet
-    let intervalId: number | null = null;
-    
-    // Only setup interval if we have an address
-    if (address) {
-      intervalId = window.setInterval(fetchBalances, 30000);
+    // Only run the effect if we have an address and tokens
+    if (address && tokens.length > 0) {
+      // Run once immediately
+      fetchBalances();
+      
+      // Setup interval to update balances periodically
+      const intervalId = window.setInterval(fetchBalances, 30000);
+      
+      return () => {
+        isMounted = false;
+        window.clearInterval(intervalId);
+      };
     }
     
     return () => {
       isMounted = false;
-      if (intervalId !== null) {
-        window.clearInterval(intervalId);
-      }
     };
-  }, [address, tokens]);
+  }, [address, tokens.length, tokens.map(t => t.address).join(',')]);
   
   // Check for Prior Pioneer NFT ownership
   useEffect(() => {

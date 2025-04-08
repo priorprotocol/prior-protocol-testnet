@@ -1,107 +1,117 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@/context/WalletContext";
 import { useToast } from "@/hooks/use-toast";
 import { TokenInfo } from "@/types";
 import { ethers } from "ethers";
 import { formatTokenAmount } from "@/lib/web3";
 
-// Main implementation
-const SwapContent = ({ 
-  isConnected,
-  connectWallet,
-  tokens,
-  getTokenBalance,
-  sendSwapTransaction
-}: {
-  isConnected: boolean,
-  connectWallet: () => Promise<void>,
-  tokens: TokenInfo[],
-  getTokenBalance: (symbol: string) => string,
-  sendSwapTransaction: (
-    fromTokenAddress: string, 
-    toTokenAddress: string, 
-    fromAmount: string, 
-    toAmount: string, 
-    slippage: string
-  ) => Promise<boolean>
-}) => {
+/**
+ * A completely rebuilt, simplified Swap component with fixed dependency tracking 
+ * and optimized state management to avoid recursive update issues
+ */
+export default function Swap() {
+  const { 
+    isConnected, 
+    connectWallet,
+    tokens,
+    getTokenBalance,
+    sendSwapTransaction
+  } = useWallet();
+  
   const { toast } = useToast();
   
+  // Basic state for the swap form
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
   const [fromToken, setFromToken] = useState<TokenInfo | null>(null);
   const [toToken, setToToken] = useState<TokenInfo | null>(null);
+  
+  // UI state
   const [isFromDropdownOpen, setIsFromDropdownOpen] = useState(false);
   const [isToDropdownOpen, setIsToDropdownOpen] = useState(false);
   const [slippage, setSlippage] = useState("0.5");
   const [isSwapping, setIsSwapping] = useState(false);
   const [isCalculatingOutput, setIsCalculatingOutput] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState("0");
+  const [isLoadingRate, setIsLoadingRate] = useState(false);
+  
+  // Get token balances
+  const fromBalance = fromToken ? getTokenBalance(fromToken.symbol) : "0.00";
+  const toBalance = toToken ? getTokenBalance(toToken.symbol) : "0.00";
+  
+  // Mock exchange rates - using a stable reference with useCallback to prevent recreation
+  const getMockRate = useCallback((from: string, to: string): string => {
+    const mockRates: Record<string, Record<string, string>> = {
+      "PRIOR": {
+        "USDC": "0.05",
+        "USDT": "0.05",
+        "DAI": "0.05",
+        "WETH": "0.00003"
+      },
+      "USDC": {
+        "PRIOR": "20",
+        "USDT": "1",
+        "DAI": "1",
+        "WETH": "0.0006"
+      },
+      "USDT": {
+        "PRIOR": "20",
+        "USDC": "1",
+        "DAI": "1",
+        "WETH": "0.0006"
+      },
+      "DAI": {
+        "PRIOR": "20",
+        "USDC": "1",
+        "USDT": "1", 
+        "WETH": "0.0006"
+      },
+      "WETH": {
+        "PRIOR": "33333",
+        "USDC": "1667",
+        "USDT": "1667",
+        "DAI": "1667"
+      }
+    };
+    
+    return mockRates[from]?.[to] || "0";
+  }, []);
   
   // Initialize token selection when tokens are loaded
   useEffect(() => {
     if (tokens.length > 0) {
-      setFromToken(tokens.find(t => t.symbol === "PRIOR") || tokens[0]);
-      setToToken(tokens.find(t => t.symbol === "USDC") || (tokens.length > 1 ? tokens[1] : tokens[0]));
+      const priorToken = tokens.find(t => t.symbol === "PRIOR");
+      const usdcToken = tokens.find(t => t.symbol === "USDC");
+      
+      if (priorToken && !fromToken) {
+        setFromToken(priorToken);
+      }
+      
+      if (usdcToken && !toToken) {
+        setToToken(usdcToken);
+      } else if (!toToken && tokens.length > 1) {
+        // If no USDC, select the second token by default
+        setToToken(tokens[1]);
+      }
     }
-  }, [tokens]);
+  }, [tokens, fromToken, toToken]);
   
-  const fromBalance = fromToken ? getTokenBalance(fromToken.symbol) : "0.00";
-  const toBalance = toToken ? getTokenBalance(toToken.symbol) : "0.00";
-  
-  // Get exchange rate from the contract
-  const [exchangeRate, setExchangeRate] = useState("0");
-  const [isLoadingRate, setIsLoadingRate] = useState(false);
-  
-  // Function to get the current exchange rate from contract
-  const getExchangeRate = async () => {
+  // Get exchange rate - using useCallback to make it a stable reference
+  const getExchangeRate = useCallback(async () => {
     if (!fromToken || !toToken) return "0";
     
     setIsLoadingRate(true);
     
     try {
-      // Get mock exchange rates for any token pair
-      const { calculateSwapOutput } = await import('@/lib/contracts');
-      let rate = "0";
+      // Use mock rates for simplicity and to avoid contract errors
+      const rate = getMockRate(fromToken.symbol, toToken.symbol);
       
-      // Define default mock rates for various token pairs (replace with actual API calls in production)
-      const mockRates: Record<string, Record<string, string>> = {
-        "PRIOR": {
-          "USDC": "0.05",
-          "USDT": "0.05",
-          "DAI": "0.05",
-          "WETH": "0.00003"
-        },
-        "USDC": {
-          "PRIOR": "20",
-          "USDT": "1",
-          "DAI": "1",
-          "WETH": "0.0006"
-        },
-        "USDT": {
-          "PRIOR": "20",
-          "USDC": "1",
-          "DAI": "1",
-          "WETH": "0.0006"
-        },
-        "DAI": {
-          "PRIOR": "20",
-          "USDC": "1",
-          "USDT": "1", 
-          "WETH": "0.0006"
-        },
-        "WETH": {
-          "PRIOR": "33333",
-          "USDC": "1667",
-          "USDT": "1667",
-          "DAI": "1667"
-        }
-      };
-      
-      // Try to get real rate from contract if it's a PRIOR pair
-      if (fromToken.symbol === "PRIOR" || toToken.symbol === "PRIOR") {
+      // For PRIOR token pairs, we'll optionally try to get the rate from the contract
+      if ((fromToken.symbol === "PRIOR" || toToken.symbol === "PRIOR") && false) { // disabled for now
         try {
+          const { calculateSwapOutput } = await import('@/lib/contracts');
+          
           if (fromToken.symbol === "PRIOR") {
-            // For PRIOR to other token
             const result = await calculateSwapOutput(
               fromToken.address,
               toToken.address,
@@ -109,12 +119,12 @@ const SwapContent = ({
             );
             
             if (result && result.amountOut) {
-              // Format the output amount
               const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
-              rate = formattedAmount;
+              setExchangeRate(formattedAmount);
+              setIsLoadingRate(false);
+              return formattedAmount;
             }
           } else if (toToken.symbol === "PRIOR") {
-            // For token to PRIOR (reverse calculation)
             const result = await calculateSwapOutput(
               toToken.address, 
               fromToken.address,
@@ -122,23 +132,20 @@ const SwapContent = ({
             );
             
             if (result && result.amountOut) {
-              // Calculate inverse rate
               const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
-              // Inverse the rate (1 / rate) for the display
               const inverseRate = parseFloat(formattedAmount);
               if (inverseRate > 0) {
-                rate = (1 / inverseRate).toString();
+                const inverseRateStr = (1 / inverseRate).toString();
+                setExchangeRate(inverseRateStr);
+                setIsLoadingRate(false);
+                return inverseRateStr;
               }
             }
           }
         } catch (error) {
-          console.error("Error getting contract exchange rate:", error);
-          // Fall back to mock rates
-          rate = mockRates[fromToken.symbol]?.[toToken.symbol] || "0";
+          console.error("Contract rate calculation error:", error);
+          // Fall back to mock rates on error
         }
-      } else {
-        // For non-PRIOR pairs, use mock rates
-        rate = mockRates[fromToken.symbol]?.[toToken.symbol] || "0";
       }
       
       setExchangeRate(rate);
@@ -147,33 +154,19 @@ const SwapContent = ({
     } catch (error) {
       console.error("Error getting exchange rate:", error);
       setIsLoadingRate(false);
-      
-      toast({
-        title: "Error",
-        description: "Failed to get exchange rate",
-        variant: "destructive"
-      });
-      
+      setExchangeRate("0");
       return "0";
     }
-  };
+  }, [fromToken, toToken, getMockRate]);
   
-  // Fetch the exchange rate whenever tokens change
+  // Update rate when tokens change
   useEffect(() => {
-    const updateRate = async () => {
-      if (fromToken && toToken) {
-        const rate = await getExchangeRate();
-        if (fromAmount && !isNaN(parseFloat(fromAmount))) {
-          const calculatedAmount = (parseFloat(fromAmount) * parseFloat(rate)).toString();
-          setToAmount(calculatedAmount);
-        }
-      }
-    };
-    
-    updateRate();
-  }, [fromToken, toToken]);
+    if (fromToken && toToken) {
+      getExchangeRate();
+    }
+  }, [fromToken, toToken, getExchangeRate]);
   
-  // Format a number to maximum 6 decimal places and remove trailing zeros
+  // Format numbers for display
   const formatDisplayNumber = (value: string): string => {
     if (!value || isNaN(parseFloat(value))) return "0";
     
@@ -187,108 +180,69 @@ const SwapContent = ({
     return formatted;
   };
   
-  // Handle setting max amount from balance
-  const handleMaxAmount = () => {
+  // Handle setting max amount
+  const handleMaxAmount = useCallback(() => {
     if (fromToken && fromBalance) {
-      // Leave a small amount for gas if it's the network token
+      // Leave a small buffer for gas if it's the network token
       const maxAmount = fromToken.symbol === "WETH" 
         ? Math.max(0, parseFloat(fromBalance) - 0.001).toString()
         : fromBalance;
       
       setFromAmount(maxAmount);
-      handleFromAmountChange(maxAmount);
+      
+      // Calculate the to amount
+      if (exchangeRate !== "0") {
+        const calculatedToAmount = (parseFloat(maxAmount) * parseFloat(exchangeRate)).toString();
+        setToAmount(calculatedToAmount);
+      }
     }
-  };
+  }, [fromToken, fromBalance, exchangeRate]);
   
   // Update to amount when from amount changes
-  const handleFromAmountChange = async (value: string) => {
+  const handleFromAmountChange = useCallback((value: string) => {
     // Accept only numbers and decimals
     if (value && !/^[0-9.]*$/.test(value)) return;
     
     setFromAmount(value);
-    if (value && !isNaN(parseFloat(value)) && fromToken && toToken) {
-      setIsCalculatingOutput(true);
-      
-      try {
-        // Try to get real output for PRIOR pairs from the contract
-        if (fromToken.symbol === "PRIOR") {
-          try {
-            const { calculateSwapOutput } = await import('@/lib/contracts');
-            
-            const result = await calculateSwapOutput(
-              fromToken.address,
-              toToken.address,
-              value
-            );
-            
-            if (result && result.amountOut) {
-              const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
-              setToAmount(formattedAmount);
-              setIsCalculatingOutput(false);
-              return;
-            }
-          } catch (error) {
-            console.error("Error calculating swap output from contract:", error);
-            // Continue with mock rate calculation below
-          }
-        }
-        
-        // For non-PRIOR pairs or if contract calculation fails, use the exchange rate
-        const rate = await getExchangeRate();
-        if (rate !== "0") {
-          const calculatedAmount = (parseFloat(value) * parseFloat(rate)).toString();
-          setToAmount(calculatedAmount);
-        } else {
-          setToAmount("0");
-        }
-      } catch (error) {
-        console.error("Error calculating swap output:", error);
-        
-        // Fallback to current rate
-        const rate = await getExchangeRate();
-        if (rate !== "0") {
-          const calculatedAmount = (parseFloat(value) * parseFloat(rate)).toString();
-          setToAmount(calculatedAmount);
-        } else {
-          setToAmount("0");
-        }
-      } finally {
-        setIsCalculatingOutput(false);
+    
+    if (value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
+      if (exchangeRate !== "0") {
+        const calculatedAmount = (parseFloat(value) * parseFloat(exchangeRate)).toString();
+        setToAmount(calculatedAmount);
+      } else {
+        setToAmount("0");
       }
     } else {
       setToAmount("");
     }
-  };
+  }, [exchangeRate]);
   
   // Update from amount when to amount changes
-  const handleToAmountChange = async (value: string) => {
+  const handleToAmountChange = useCallback((value: string) => {
     // Accept only numbers and decimals
     if (value && !/^[0-9.]*$/.test(value)) return;
     
     setToAmount(value);
-    if (value && !isNaN(parseFloat(value)) && fromToken && toToken) {
-      try {
-        // Use the exchange rate for the calculation
-        const rate = await getExchangeRate();
-        if (rate !== "0") {
-          const calculatedAmount = (parseFloat(value) / parseFloat(rate)).toString();
-          setFromAmount(calculatedAmount);
-        } else {
-          setFromAmount("0");
-        }
-      } catch (error) {
-        console.error("Error calculating from amount:", error);
-        setFromAmount("");
+    
+    if (value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
+      if (exchangeRate !== "0" && parseFloat(exchangeRate) > 0) {
+        const calculatedAmount = (parseFloat(value) / parseFloat(exchangeRate)).toString();
+        setFromAmount(calculatedAmount);
+      } else {
+        setFromAmount("0");
       }
     } else {
       setFromAmount("");
     }
-  };
+  }, [exchangeRate]);
   
   // Switch the from and to tokens
-  const switchTokens = () => {
-    // Don't allow swapping if the tokens are the same
-    if (fromToken?.symbol === toToken?.symbol) {
+  const switchTokens = useCallback(() => {
+    if (!fromToken || !toToken) {
+      return;
+    }
+    
+    if (fromToken.symbol === toToken.symbol) {
       toast({
         title: "Invalid Swap",
         description: "Cannot swap a token for itself",
@@ -297,47 +251,36 @@ const SwapContent = ({
       return;
     }
     
-    // Switch the tokens
-    const tempToken = fromToken;
+    // Switch tokens and amounts
     setFromToken(toToken);
-    setToToken(tempToken);
-    
-    // Also switch the amounts
-    const tempAmount = fromAmount;
+    setToToken(fromToken);
     setFromAmount(toAmount);
-    setToAmount(tempAmount);
-    
-    // Recalculate based on the new from amount
-    handleFromAmountChange(toAmount);
-  };
+    setToAmount(fromAmount);
+  }, [fromToken, toToken, fromAmount, toAmount, toast]);
   
-  const selectFromToken = (token: TokenInfo) => {
+  // Select from token handler
+  const selectFromToken = useCallback((token: TokenInfo) => {
     // Don't allow selecting the same token for both sides
-    if (token.symbol === toToken?.symbol) {
-      // If same token is selected for both sides, swap them
+    if (toToken && token.symbol === toToken.symbol) {
       setToToken(fromToken);
     }
     
     setFromToken(token);
     setIsFromDropdownOpen(false);
-    
-    // Recalculate amounts with the new token selection
-    handleFromAmountChange(fromAmount);
-  };
+  }, [toToken, fromToken]);
   
-  const selectToToken = (token: TokenInfo) => {
-    if (token.symbol === fromToken?.symbol) {
-      // If same token is selected for both sides, swap them
+  // Select to token handler
+  const selectToToken = useCallback((token: TokenInfo) => {
+    if (fromToken && token.symbol === fromToken.symbol) {
       setFromToken(toToken);
     }
+    
     setToToken(token);
     setIsToDropdownOpen(false);
-    
-    // Recalculate amounts with the new token selection
-    handleFromAmountChange(fromAmount);
-  };
+  }, [fromToken, toToken]);
   
-  const handleSwap = async () => {
+  // Handle swap
+  const handleSwap = useCallback(async () => {
     if (!isConnected) {
       connectWallet();
       return;
@@ -370,11 +313,11 @@ const SwapContent = ({
       return;
     }
     
-    // Special handling for non-PRIOR source tokens
+    // In this testnet, only PRIOR can be the source token
     if (fromToken.symbol !== "PRIOR") {
       toast({
         title: "Testnet Mode",
-        description: "In this testnet, only PRIOR token is supported as a source token by the contract. UI displays exchange rates for all pairs, but transactions can only be executed from PRIOR to other tokens.",
+        description: "In this testnet, only PRIOR token is supported as a source token. UI displays exchange rates for all pairs, but transactions can only be executed from PRIOR to other tokens.",
       });
       return;
     }
@@ -409,7 +352,11 @@ const SwapContent = ({
     } finally {
       setIsSwapping(false);
     }
-  };
+  }, [
+    isConnected, connectWallet, fromToken, toToken, 
+    fromAmount, toAmount, fromBalance, slippage,
+    sendSwapTransaction, toast
+  ]);
   
   return (
     <section id="swap" className="py-16 bg-[#0B1118] bg-opacity-40">
@@ -417,16 +364,16 @@ const SwapContent = ({
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-space font-bold mb-4">Token Swap</h2>
           <p className="text-[#A0AEC0] max-w-2xl mx-auto">
-            Swap between testnet tokens with PriorSwap to test the decentralized exchange functionality.
+            Swap between testnet tokens with PriorSwap to test decentralized exchange functionality.
           </p>
         </div>
         
         <div className="max-w-lg mx-auto gradient-border gradient-border-orange bg-[#141D29] p-6 md:p-8 shadow-lg">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-space font-semibold">Swap Tokens</h3>
-            <button className="text-[#A0AEC0] hover:text-white transition-colors" title="Settings">
-              <i className="fas fa-cog"></i>
-            </button>
+            <div className="text-sm text-gray-400">
+              Base Sepolia Testnet
+            </div>
           </div>
           
           {/* From Token */}
@@ -480,55 +427,52 @@ const SwapContent = ({
                 </button>
                 
                 {isFromDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-full min-w-[150px] bg-[#111827] border border-[#2D3748] rounded-lg shadow-lg z-10">
-                    {tokens.map(token => (
-                      <button
-                        key={token.symbol}
-                        onClick={() => selectFromToken(token)}
-                        className="w-full flex items-center p-3 hover:bg-[#1A5CFF] hover:bg-opacity-10 transition-colors"
-                      >
-                        <div 
-                          className="w-6 h-6 rounded-full flex items-center justify-center mr-2"
-                          style={{ backgroundColor: token.logoColor }}
-                        >
-                          {token.symbol === "PRIOR" ? (
-                            <span className="font-bold text-xs">P</span>
-                          ) : token.symbol === "WETH" ? (
-                            <span className="font-bold text-xs">Ξ</span>
-                          ) : (
-                            <span className="font-bold text-xs">$</span>
-                          )}
-                        </div>
-                        <span>{token.symbol}</span>
-                      </button>
-                    ))}
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-[#1A202C] border border-[#2D3748] rounded-lg shadow-lg z-10">
+                    <ul>
+                      {tokens.map(token => (
+                        <li key={token.symbol}>
+                          <button
+                            className={`w-full text-left px-4 py-2 hover:bg-[#2D3748] flex items-center transition-colors ${token.symbol === fromToken?.symbol ? 'bg-[#2D3748] bg-opacity-50' : ''}`}
+                            onClick={() => selectFromToken(token)}
+                          >
+                            <div 
+                              className="w-6 h-6 rounded-full flex items-center justify-center mr-2"
+                              style={{ backgroundColor: token.logoColor }}
+                            >
+                              {token.symbol === "PRIOR" ? (
+                                <span className="font-bold text-xs">P</span>
+                              ) : token.symbol === "WETH" ? (
+                                <span className="font-bold text-xs">Ξ</span>
+                              ) : (
+                                <span className="font-bold text-xs">$</span>
+                              )}
+                            </div>
+                            <span>{token.symbol}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
             </div>
           </div>
           
-          {/* Swap Direction Button */}
-          <div className="flex justify-center -my-2 relative z-0">
+          {/* Swap Button */}
+          <div className="flex justify-center my-2">
             <button 
+              className="w-8 h-8 rounded-full bg-[#1A202C] flex items-center justify-center hover:bg-[#2D3748] transition-colors"
               onClick={switchTokens}
-              className="w-10 h-10 rounded-full bg-[#111827] border border-[#2D3748] flex items-center justify-center hover:bg-[#0B1118] transition-colors"
             >
-              <i className="fas fa-arrow-down text-[#FF6B00]"></i>
+              <i className="fas fa-arrow-down transform rotate-0 text-[#A0AEC0]"></i>
             </button>
           </div>
           
           {/* To Token */}
-          <div className="mb-6">
+          <div className="mb-4">
             <div className="flex justify-between text-sm text-[#A0AEC0] mb-2">
               <label>To</label>
-              <div className="flex items-center">
-                {isCalculatingOutput ? (
-                  <span className="text-[#FF6B00] animate-pulse">Calculating...</span>
-                ) : (
-                  <>Balance: <span>{toBalance}</span></>
-                )}
-              </div>
+              <div>Balance: {toBalance}</div>
             </div>
             <div className="flex items-center bg-[#0B1118] border border-[#2D3748] rounded-lg p-3">
               <input 
@@ -536,7 +480,7 @@ const SwapContent = ({
                 placeholder="0.0" 
                 value={toAmount}
                 onChange={(e) => handleToAmountChange(e.target.value)}
-                disabled={isSwapping || isCalculatingOutput}
+                disabled={isSwapping}
                 className="w-full bg-transparent text-white text-lg focus:outline-none"
               />
               <div className="relative">
@@ -567,112 +511,85 @@ const SwapContent = ({
                 </button>
                 
                 {isToDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-full min-w-[150px] bg-[#111827] border border-[#2D3748] rounded-lg shadow-lg z-10">
-                    {tokens.map(token => (
-                      <button
-                        key={token.symbol}
-                        onClick={() => selectToToken(token)}
-                        className="w-full flex items-center p-3 hover:bg-[#1A5CFF] hover:bg-opacity-10 transition-colors"
-                      >
-                        <div 
-                          className="w-6 h-6 rounded-full flex items-center justify-center mr-2"
-                          style={{ backgroundColor: token.logoColor }}
-                        >
-                          {token.symbol === "PRIOR" ? (
-                            <span className="font-bold text-xs">P</span>
-                          ) : token.symbol === "WETH" ? (
-                            <span className="font-bold text-xs">Ξ</span>
-                          ) : (
-                            <span className="font-bold text-xs">$</span>
-                          )}
-                        </div>
-                        <span>{token.symbol}</span>
-                      </button>
-                    ))}
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-[#1A202C] border border-[#2D3748] rounded-lg shadow-lg z-10">
+                    <ul>
+                      {tokens.map(token => (
+                        <li key={token.symbol}>
+                          <button
+                            className={`w-full text-left px-4 py-2 hover:bg-[#2D3748] flex items-center transition-colors ${token.symbol === toToken?.symbol ? 'bg-[#2D3748] bg-opacity-50' : ''}`}
+                            onClick={() => selectToToken(token)}
+                          >
+                            <div 
+                              className="w-6 h-6 rounded-full flex items-center justify-center mr-2"
+                              style={{ backgroundColor: token.logoColor }}
+                            >
+                              {token.symbol === "PRIOR" ? (
+                                <span className="font-bold text-xs">P</span>
+                              ) : token.symbol === "WETH" ? (
+                                <span className="font-bold text-xs">Ξ</span>
+                              ) : (
+                                <span className="font-bold text-xs">$</span>
+                              )}
+                            </div>
+                            <span>{token.symbol}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
             </div>
           </div>
           
-          <div className="p-3 bg-[#FF6B00] bg-opacity-10 rounded-lg border border-[#FF6B00] border-opacity-30 mb-6 text-sm">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-[#A0AEC0]">Rate</span>
-              {isLoadingRate ? (
-                <span className="font-medium text-[#FF6B00] animate-pulse">
-                  Loading rate...
-                </span>
-              ) : (
-                <span className="font-medium">
-                  1 {fromToken?.symbol || "-"} = {formatDisplayNumber(exchangeRate)} {toToken?.symbol || "-"}
-                </span>
-              )}
-            </div>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-[#A0AEC0]">Slippage Tolerance</span>
-              <div className="flex items-center">
-                <select 
-                  value={slippage}
-                  onChange={(e) => setSlippage(e.target.value)}
-                  className="bg-[#111827] text-white border border-[#2D3748] rounded px-2 py-1 text-xs"
-                >
-                  <option value="0.1">0.1%</option>
-                  <option value="0.5">0.5%</option>
-                  <option value="1.0">1.0%</option>
-                  <option value="2.0">2.0%</option>
-                </select>
-              </div>
-            </div>
+          {/* Exchange Rate */}
+          <div className="mb-4 text-sm text-[#A0AEC0]">
             <div className="flex justify-between items-center">
-              <span className="text-[#A0AEC0]">Estimated Gas</span>
-              <span className="font-medium">0.0003 ETH</span>
+              <div>Exchange Rate:</div>
+              <div>
+                {isLoadingRate ? (
+                  <span>Loading...</span>
+                ) : fromToken && toToken ? (
+                  <span>1 {fromToken.symbol} ≈ {formatDisplayNumber(exchangeRate)} {toToken.symbol}</span>
+                ) : (
+                  <span>-</span>
+                )}
+              </div>
             </div>
           </div>
           
-          <button 
+          {/* Swap Button */}
+          <button
             onClick={handleSwap}
-            disabled={isSwapping || isCalculatingOutput || (fromToken?.symbol !== "PRIOR")}
-            className={`w-full rounded-lg ${isSwapping ? 'bg-[#FF6B00] bg-opacity-50' : 'bg-[#FF6B00] hover:bg-opacity-90'} transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide ${fromToken?.symbol !== "PRIOR" ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isSwapping}
+            className={`w-full py-3 px-4 rounded-lg font-semibold flex items-center justify-center transition-colors ${
+              isConnected 
+                ? "bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF5500] hover:to-[#FF8800] text-white" 
+                : "bg-[#FF6B00] hover:bg-[#FF5500] text-white"
+            } ${isSwapping ? "opacity-70 cursor-not-allowed" : ""}`}
           >
-            {!isConnected 
-              ? "Connect Wallet" 
-              : isSwapping 
-                ? "Swapping..."
-                : fromToken?.symbol !== "PRIOR"
-                  ? "Only PRIOR can be swapped"
-                  : "Swap Tokens"
-            }
+            {isSwapping ? (
+              <>
+                <i className="fas fa-spinner fa-spin mr-2"></i>
+                Swapping...
+              </>
+            ) : !isConnected ? (
+              "Connect Wallet"
+            ) : !fromAmount || parseFloat(fromAmount) <= 0 ? (
+              "Enter an amount"
+            ) : parseFloat(fromAmount) > parseFloat(fromBalance) ? (
+              "Insufficient balance"
+            ) : (
+              "Swap"
+            )}
           </button>
           
-          {isSwapping && (
-            <div className="mt-2 flex items-center justify-center text-[#FF6B00]">
-              <div className="animate-spin mr-2 h-4 w-4 border-2 border-[#FF6B00] border-t-transparent rounded-full"></div>
-              <span className="text-sm">Transaction in progress...</span>
-            </div>
-          )}
-          
-          <div className="mt-4 text-xs text-[#A0AEC0] text-center">
-            <p>Note: This is a testnet swap. Tokens have no real value.</p>
+          {/* Testnet Note */}
+          <div className="mt-4 text-xs text-center text-gray-400">
+            <p>This is a testnet implementation. Only PRIOR can be used as the source token for actual swaps.</p>
           </div>
         </div>
       </div>
     </section>
   );
-};
-
-// Wrapper component that safely accesses the wallet context
-const Swap = () => {
-  const wallet = useWallet();
-  
-  return (
-    <SwapContent 
-      isConnected={wallet.isConnected}
-      connectWallet={wallet.connectWallet}
-      tokens={wallet.tokens}
-      getTokenBalance={wallet.getTokenBalance}
-      sendSwapTransaction={wallet.sendSwapTransaction}
-    />
-  );
-};
-
-export default Swap;
+}
