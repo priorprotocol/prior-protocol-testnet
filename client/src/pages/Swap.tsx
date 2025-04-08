@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWallet } from "@/context/WalletContext";
 import { useToast } from "@/hooks/use-toast";
 import { TokenInfo } from "@/types";
+import { ethers } from "ethers";
 
 const Swap = () => {
   // Initialize with default values
@@ -36,66 +37,154 @@ const Swap = () => {
   const fromBalance = fromToken ? getTokenBalance(fromToken.symbol) : "0.00";
   const toBalance = toToken ? getTokenBalance(toToken.symbol) : "0.00";
   
-  // Mock exchange rate - in production this would come from the contract or an oracle
-  const getExchangeRate = () => {
+  // Get exchange rate from the contract
+  const [exchangeRate, setExchangeRate] = useState("0");
+  const [isLoadingRate, setIsLoadingRate] = useState(false);
+  
+  // Function to get the current exchange rate from contract
+  const getExchangeRate = async () => {
     if (!fromToken || !toToken) return "0";
     
-    // Simple mock rates
-    const rates: Record<string, Record<string, string>> = {
-      "PRIOR": {
-        "USDC": "0.05",
-        "USDT": "0.05",
-        "DAI": "0.05",
-        "WETH": "0.00003"
-      },
-      "USDC": {
-        "PRIOR": "20",
-        "USDT": "1",
-        "DAI": "1",
-        "WETH": "0.0005"
-      },
-      "USDT": {
-        "PRIOR": "20",
-        "USDC": "1",
-        "DAI": "1",
-        "WETH": "0.0005"
-      },
-      "DAI": {
-        "PRIOR": "20",
-        "USDC": "1",
-        "USDT": "1",
-        "WETH": "0.0005"
-      },
-      "WETH": {
-        "PRIOR": "30000",
-        "USDC": "2000",
-        "USDT": "2000",
-        "DAI": "2000"
+    // Only PRIOR token pairs are supported by the contract
+    if (fromToken.symbol !== "PRIOR" && toToken.symbol !== "PRIOR") {
+      return "1"; // Default for unsupported pairs
+    }
+    
+    setIsLoadingRate(true);
+    
+    try {
+      const { calculateSwapOutput } = await import('@/lib/contracts');
+      let rate = "0";
+      
+      // Calculate based on which direction we're swapping
+      if (fromToken.symbol === "PRIOR") {
+        // For PRIOR to other token, calculate swap output for 1 PRIOR
+        const result = await calculateSwapOutput(
+          fromToken.address,
+          toToken.address,
+          "1"
+        );
+        
+        if (result && result.amountOut) {
+          // Format the output amount
+          const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
+          rate = formattedAmount;
+        }
+      } else if (toToken.symbol === "PRIOR") {
+        // For token to PRIOR, we need to get the reverse rate
+        const result = await calculateSwapOutput(
+          toToken.address,
+          fromToken.address,
+          "1"
+        );
+        
+        if (result && result.amountOut) {
+          // Calculate the inverse rate
+          const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
+          // Inverse the rate (1 / rate)
+          rate = (1 / parseFloat(formattedAmount)).toString();
+        }
+      }
+      
+      setExchangeRate(rate);
+      setIsLoadingRate(false);
+      return rate;
+    } catch (error) {
+      console.error("Error getting exchange rate:", error);
+      setIsLoadingRate(false);
+      
+      // Default rates as fallback
+      const defaultRates: Record<string, Record<string, string>> = {
+        "PRIOR": {
+          "mUSDC": "0.05",
+          "mUSDT": "0.05",
+          "mDAI": "0.05",
+          "mWETH": "0.00003"
+        },
+        "mUSDC": {
+          "PRIOR": "20"
+        },
+        "mUSDT": {
+          "PRIOR": "20"
+        },
+        "mDAI": {
+          "PRIOR": "20"
+        },
+        "mWETH": {
+          "PRIOR": "30000"
+        }
+      };
+      
+      return defaultRates[fromToken.symbol]?.[toToken.symbol] || "1";
+    }
+  };
+  
+  // Fetch the exchange rate whenever tokens change
+  useEffect(() => {
+    const updateRate = async () => {
+      if (fromToken && toToken) {
+        const rate = await getExchangeRate();
+        if (fromAmount && !isNaN(parseFloat(fromAmount))) {
+          const calculatedAmount = (parseFloat(fromAmount) * parseFloat(rate)).toString();
+          setToAmount(calculatedAmount);
+        }
       }
     };
     
-    return rates[fromToken.symbol]?.[toToken.symbol] || "1";
-  };
+    updateRate();
+  }, [fromToken, toToken]);
   
   // Update to amount when from amount changes
-  const handleFromAmountChange = (value: string) => {
+  const handleFromAmountChange = async (value: string) => {
     setFromAmount(value);
-    if (value && !isNaN(parseFloat(value))) {
-      const rate = getExchangeRate();
-      const calculatedAmount = (parseFloat(value) * parseFloat(rate)).toString();
-      setToAmount(calculatedAmount);
+    if (value && !isNaN(parseFloat(value)) && fromToken && toToken) {
+      try {
+        // For small amounts, use the current exchange rate
+        if (parseFloat(value) <= 1) {
+          const rate = await getExchangeRate();
+          const calculatedAmount = (parseFloat(value) * parseFloat(rate)).toString();
+          setToAmount(calculatedAmount);
+        } else {
+          // For larger amounts, get the actual output from the contract
+          const { calculateSwapOutput } = await import('@/lib/contracts');
+          const result = await calculateSwapOutput(
+            fromToken.address,
+            toToken.address,
+            value
+          );
+          
+          if (result && result.amountOut) {
+            const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
+            setToAmount(formattedAmount);
+          }
+        }
+      } catch (error) {
+        console.error("Error calculating swap output:", error);
+        // Fallback to current rate
+        const rate = await getExchangeRate();
+        const calculatedAmount = (parseFloat(value) * parseFloat(rate)).toString();
+        setToAmount(calculatedAmount);
+      }
     } else {
       setToAmount("");
     }
   };
   
   // Update from amount when to amount changes
-  const handleToAmountChange = (value: string) => {
+  const handleToAmountChange = async (value: string) => {
     setToAmount(value);
-    if (value && !isNaN(parseFloat(value))) {
-      const rate = getExchangeRate();
-      const calculatedAmount = (parseFloat(value) / parseFloat(rate)).toString();
-      setFromAmount(calculatedAmount);
+    if (value && !isNaN(parseFloat(value)) && fromToken && toToken) {
+      try {
+        // For now, just use the exchange rate for the calculation
+        // This is an approximation since calculating the exact input amount
+        // would require solving for the input given the output
+        const rate = await getExchangeRate();
+        const calculatedAmount = (parseFloat(value) / parseFloat(rate)).toString();
+        setFromAmount(calculatedAmount);
+      } catch (error) {
+        console.error("Error calculating from amount:", error);
+        setFromAmount("");
+      }
     } else {
       setFromAmount("");
     }

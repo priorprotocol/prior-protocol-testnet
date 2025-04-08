@@ -417,7 +417,7 @@ export const getTokenBalance = async (tokenAddress: string, address: string) => 
     return { balance, decimals };
   } catch (error) {
     console.error("Error getting token balance:", error);
-    return { balance: ethers.parseUnits("0", 18), decimals: 18 };
+    return { balance: ethers.utils.parseUnits("0", 18), decimals: 18 };
   }
 };
 
@@ -613,7 +613,7 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
     }
     
     // Convert amount to BigInt for calculations using PRIOR token decimals (18)
-    const amountBigNumber = ethers.parseUnits(amountIn, tokenDecimals.PRIOR);
+    const amountBigNumber = ethers.utils.parseUnits(amountIn, tokenDecimals.PRIOR);
     
     // Calculate raw amount (PRIOR / rate)
     // With ethers v6, we need to handle BigInt operations
