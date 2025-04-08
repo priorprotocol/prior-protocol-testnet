@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useWallet } from "@/context/WalletContext";
+import { useWallet, updateWalletAddressGlobally } from "@/context/WalletContext";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -114,6 +114,22 @@ const Faucet = () => {
       
       console.log("Account connected:", account);
       
+      // Try to update the wallet address via our global methods
+      const updated = updateWalletAddressGlobally(account);
+      console.log("Global wallet update result:", updated);
+      
+      // Also try the debug method as a backup
+      try {
+        // @ts-ignore
+        if (window.__setWalletAddress) {
+          // @ts-ignore
+          const debugUpdate = window.__setWalletAddress(account);
+          console.log("Debug wallet update result:", debugUpdate);
+        }
+      } catch (error) {
+        console.error("Error in debug wallet update:", error);
+      }
+      
       // Switch to Base Sepolia
       try {
         await switchToBaseSepoliaNetwork();
@@ -121,8 +137,6 @@ const Faucet = () => {
         console.error("Failed to switch network:", error);
       }
       
-      // Reload the page to update the wallet state
-      window.location.reload();
       return account;
     } catch (error) {
       console.error("Error in direct connect:", error);

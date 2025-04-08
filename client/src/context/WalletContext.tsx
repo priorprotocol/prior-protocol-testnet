@@ -71,12 +71,40 @@ interface WalletProviderProps {
   children: ReactNode;
 }
 
+// Create a global event listener for wallet changes
+// We'll use this to update the wallet state from outside the context
+type WalletUpdateCallback = (address: string) => void;
+let globalWalletUpdateCallback: WalletUpdateCallback | null = null;
+
+// Function to set the wallet address from anywhere in the app
+export const updateWalletAddressGlobally = (address: string) => {
+  if (globalWalletUpdateCallback) {
+    console.log("Updating wallet address globally:", address);
+    globalWalletUpdateCallback(address);
+    return true;
+  }
+  console.log("No wallet update callback available");
+  return false;
+};
+
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [address, setAddress] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [tokenBalances, setTokenBalances] = useState<Record<string, string>>({});
   const { toast } = useToast();
+  
+  // Register the global wallet update callback
+  useEffect(() => {
+    globalWalletUpdateCallback = (newAddress: string) => {
+      console.log("Global wallet callback triggered with address:", newAddress);
+      setAddress(newAddress);
+    };
+    
+    return () => {
+      globalWalletUpdateCallback = null;
+    };
+  }, []);
   
   // Get tokens from the API
   const { data: tokens = [] } = useQuery<TokenInfo[]>({
@@ -229,6 +257,21 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     
     createUserIfNeeded();
   }, [address]);
+  
+  // Allow direct access to set address for debugging
+  useEffect(() => {
+    // @ts-ignore
+    window.__setWalletAddress = (addr: string) => {
+      console.log("Setting wallet address manually:", addr);
+      setAddress(addr);
+      return true;
+    };
+    
+    return () => {
+      // @ts-ignore
+      delete window.__setWalletAddress;
+    };
+  }, []);
   
   // Update token balances when address or tokens change
   useEffect(() => {
