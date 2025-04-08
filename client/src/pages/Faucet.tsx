@@ -146,7 +146,28 @@ const Faucet = () => {
       }
       
       console.log("Requesting accounts directly...");
-      const account = await requestAccounts();
+      let account;
+      
+      try {
+        // First try the standard requestAccounts method
+        account = await requestAccounts();
+      } catch (requestError) {
+        console.error("Error requesting accounts:", requestError);
+        // If that fails, try a direct call to ethereum.request
+        try {
+          const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+          account = accounts[0];
+        } catch (directError) {
+          console.error("Error with direct ethereum.request:", directError);
+          toast({
+            title: "Wallet Connection Failed",
+            description: "Please unlock your MetaMask and try again.",
+            variant: "destructive"
+          });
+          return null;
+        }
+      }
+      
       if (!account) {
         toast({
           title: "No Account Found",
@@ -161,11 +182,12 @@ const Faucet = () => {
       // Set our local state first
       setLocalWalletAddress(account);
       
-      // Try to update the wallet address via our global methods
+      // Update our wallet context in multiple ways to ensure one works
+      // 1. Try the global update method
       const updated = updateWalletAddressGlobally(account);
       console.log("Global wallet update result:", updated);
       
-      // Also try the debug method as a backup
+      // 2. Also try the debug method as a backup
       try {
         // @ts-ignore
         if (window.__setWalletAddress) {
@@ -177,15 +199,24 @@ const Faucet = () => {
         console.error("Error in debug wallet update:", error);
       }
       
+      // 3. Try to force a context update through state changes
+      wallet.connectWallet().catch(e => console.error("Error in wallet.connectWallet:", e));
+      
       // Switch to Base Sepolia
       try {
         await switchToBaseSepoliaNetwork();
       } catch (error) {
         console.error("Failed to switch network:", error);
+        // Still continue as they might already be on the right network
       }
       
       // Update token balances
-      await updateLocalBalances(account);
+      try {
+        await updateLocalBalances(account);
+      } catch (error) {
+        console.error("Error updating token balances:", error);
+        // Don't block for balance errors
+      }
       
       toast({
         title: "Wallet Connected",
@@ -212,6 +243,15 @@ const Faucet = () => {
         if (!account) {
           return;
         }
+        // Wait a moment for the connection to fully process
+        setTimeout(() => {
+          if (wallet.isConnected || address) {
+            console.log("Connection established, attempting to claim...");
+            claimMutation.mutate();
+          } else {
+            console.log("Still not connected after timeout");
+          }
+        }, 1000);
         return;
       } catch (error) {
         console.error("Failed to connect wallet:", error);
