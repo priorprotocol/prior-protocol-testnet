@@ -6,6 +6,7 @@ import Swap from "@/pages/Swap";
 import Quest from "@/pages/Quest";
 import Governance from "@/pages/Governance";
 import Dashboard from "@/pages/Dashboard";
+import About from "@/pages/About";
 import NotFound from "@/pages/not-found";
 
 // Create page components that are wrapped with WalletProvider 
@@ -16,6 +17,7 @@ const WrappedSwap = () => <Swap />;
 const WrappedQuest = () => <Quest />;
 const WrappedGovernance = () => <Governance />;
 const WrappedDashboard = () => <Dashboard />;
+const WrappedAbout = () => <About />;
 
 function App() {
   const [location] = useLocation();
@@ -29,6 +31,7 @@ function App() {
         <Route path="/quest" component={WrappedQuest} />
         <Route path="/governance" component={WrappedGovernance} />
         <Route path="/dashboard" component={WrappedDashboard} />
+        <Route path="/about" component={WrappedAbout} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

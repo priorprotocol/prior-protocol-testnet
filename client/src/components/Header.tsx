@@ -30,7 +30,8 @@ const Header = () => {
     { name: "Swap", path: "/swap" },
     { name: "Quest", path: "/quest" },
     { name: "Governance", path: "/governance" },
-    { name: "Dashboard", path: "/dashboard" }
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "About", path: "/about" }
   ];
   
   const formatAddress = (address: string) => {

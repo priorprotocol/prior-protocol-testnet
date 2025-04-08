@@ -16,6 +16,12 @@ const Footer = () => {
           </div>
           
           <div className="flex flex-wrap justify-center gap-6">
+            <Link
+              href="/about"
+              className="text-[#A0AEC0] hover:text-white transition-colors"
+            >
+              About
+            </Link>
             <a 
               href="https://priorprotocol.gitbook.io/whitepaper" 
               target="_blank" 
