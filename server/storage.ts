@@ -181,11 +181,11 @@ export class MemStorage implements IStorage {
       }
     ];
     
-    initialProposals.forEach(proposal => {
-      const createdProposal = this.createProposal(proposal);
+    initialProposals.forEach(async proposal => {
+      const createdProposal = await this.createProposal(proposal);
       // Add some initial votes
-      this.updateProposalVotes(createdProposal.id, 'yes', 65);
-      this.updateProposalVotes(createdProposal.id, 'no', 35);
+      await this.updateProposalVotes(createdProposal.id, 'yes', 65);
+      await this.updateProposalVotes(createdProposal.id, 'no', 35);
     });
   }
   

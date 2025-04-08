@@ -18,16 +18,17 @@ const swapAbi = [
   "function getAmountsIn(uint amountOut, address[] calldata path) view returns (uint[] memory amounts)"
 ];
 
-// Dummy contract addresses (replace with actual contract addresses)
+// Base Sepolia testnet contract addresses
 export const contractAddresses = {
-  // Replace these with actual contract addresses when available
-  priorToken: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
-  priorSwap: "0x9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b",
+  // Prior Protocol token and swap contract addresses
+  priorToken: "0xD4d41fd29d1557566B1e3729d63559DC9DA32C79", // Prior Token
+  priorSwap: "0x7B1F06B1a10ec2CA699D69FC488b5CD2A45F4f43", // Prior Swap router
   mockTokens: {
-    USDC: "0x2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b",
-    USDT: "0x3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
-    DAI: "0x4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b",
-    WETH: "0x5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b"
+    // Using actual Base Sepolia testnet token addresses
+    USDC: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // USDC on Base Sepolia
+    USDT: "0x708374D87A11B3740610Dd1eCB1e6Ce38DeA0a98", // USDT on Base Sepolia
+    DAI: "0x6Bb6F022104caF36F3a84900Cd46D32A1D6D2DF1", // DAI on Base Sepolia
+    WETH: "0x4200000000000000000000000000000000000006"  // WETH on Base Sepolia
   }
 };
 

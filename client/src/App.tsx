@@ -6,7 +6,6 @@ import Swap from "@/pages/Swap";
 import Quest from "@/pages/Quest";
 import Governance from "@/pages/Governance";
 import NotFound from "@/pages/not-found";
-import { WalletProvider } from "./context/WalletContext";
 
 // Create page components that are wrapped with WalletProvider 
 // This avoids the circular dependency

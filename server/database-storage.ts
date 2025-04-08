@@ -161,40 +161,40 @@ export class DatabaseStorage implements IStorage {
       
       console.log("Seeding database with initial data...");
       
-      // Seed tokens
+      // Seed tokens with Base Sepolia testnet addresses
       const initialTokens: InsertToken[] = [
         {
           symbol: "PRIOR",
           name: "Prior Protocol Token",
-          address: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
+          address: "0xD4d41fd29d1557566B1e3729d63559DC9DA32C79", // Prior Token
           decimals: 18,
           logoColor: "#1A5CFF"
         },
         {
           symbol: "USDC",
-          name: "Mock USD Coin",
-          address: "0x2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b",
+          name: "USD Coin",
+          address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // USDC on Base Sepolia
           decimals: 6,
           logoColor: "#2775CA"
         },
         {
           symbol: "USDT",
-          name: "Mock Tether",
-          address: "0x3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+          name: "Tether",
+          address: "0x708374D87A11B3740610Dd1eCB1e6Ce38DeA0a98", // USDT on Base Sepolia
           decimals: 6,
           logoColor: "#26A17B"
         },
         {
           symbol: "DAI",
-          name: "Mock Dai",
-          address: "0x4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b",
+          name: "Dai Stablecoin",
+          address: "0x6Bb6F022104caF36F3a84900Cd46D32A1D6D2DF1", // DAI on Base Sepolia
           decimals: 18,
           logoColor: "#F5AC37"
         },
         {
           symbol: "WETH",
-          name: "Mock Wrapped ETH",
-          address: "0x5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b",
+          name: "Wrapped ETH",
+          address: "0x4200000000000000000000000000000000000006", // WETH on Base Sepolia
           decimals: 18,
           logoColor: "#627EEA"
         }
