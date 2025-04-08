@@ -166,6 +166,21 @@ export default function Swap() {
     }
   }, [fromToken, toToken, getExchangeRate]);
   
+  // Monitor wallet connection status
+  const { address } = useWallet();
+  
+  useEffect(() => {
+    // When the wallet is connected or the address changes, update UI state
+    if (address && isConnected) {
+      console.log("Wallet connection detected in UI effect, updating UI...");
+      
+      // Update token balances and rates
+      if (fromToken && toToken) {
+        getExchangeRate();
+      }
+    }
+  }, [address, isConnected, fromToken, toToken, getExchangeRate]);
+  
   // Format numbers for display
   const formatDisplayNumber = (value: string): string => {
     if (!value || isNaN(parseFloat(value))) return "0";
@@ -280,7 +295,7 @@ export default function Swap() {
   }, [fromToken, toToken]);
   
   // Handle swap
-  // Direct connect function similar to what we have in Faucet.tsx
+  // Direct connect function using the approach from the shared code
   const directConnectWallet = useCallback(async () => {
     try {
       if (!window.ethereum) {
@@ -294,8 +309,10 @@ export default function Swap() {
       }
       
       console.log("Requesting accounts directly from Swap component...");
-      const { requestAccounts } = await import('@/lib/web3');
-      const account = await requestAccounts();
+      
+      // Get the accounts from MetaMask
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      const account = accounts[0];
       
       if (!account) {
         toast({
@@ -308,26 +325,7 @@ export default function Swap() {
       
       console.log("Account connected:", account);
       
-      // Try to update the wallet address via global debug methods
-      try {
-        // @ts-ignore
-        if (window.__setWalletAddress) {
-          // @ts-ignore
-          const debugUpdate = window.__setWalletAddress(account);
-          console.log("Global wallet update result:", debugUpdate);
-        }
-      } catch (error) {
-        console.error("Error updating wallet address globally:", error);
-      }
-      
-      // Also try the standard connectWallet method
-      try {
-        await connectWallet();
-      } catch (error) {
-        console.error("Error with standard wallet connection:", error);
-      }
-      
-      // Switch to Base Sepolia
+      // Ensure we're on the Base Sepolia network
       try {
         const { switchToBaseSepoliaNetwork } = await import('@/lib/web3');
         await switchToBaseSepoliaNetwork();
@@ -335,11 +333,30 @@ export default function Swap() {
         console.error("Failed to switch network:", error);
       }
       
+      // Update global wallet state
+      try {
+        // Force WalletContext update through the exported function
+        const { updateWalletAddressGlobally } = await import('@/context/WalletContext');
+        const updated = updateWalletAddressGlobally(account);
+        console.log("Setting wallet address manually:", account);
+        console.log("Global wallet update result:", updated);
+      } catch (error) {
+        console.error("Error updating wallet address globally:", error);
+      }
+      
+      // Try the standard connect method as backup
+      try {
+        await connectWallet();
+      } catch (error) {
+        console.error("Error with standard wallet connection:", error);
+      }
+      
       toast({
         title: "Wallet Connected",
         description: `Connected to ${account.substring(0, 6)}...${account.substring(account.length - 4)}`,
       });
       
+      // Return the address for other uses
       return account;
     } catch (error) {
       console.error("Error in direct connect:", error);
