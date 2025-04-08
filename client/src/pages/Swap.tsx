@@ -3,6 +3,7 @@ import { useWallet } from "@/context/WalletContext";
 import { useToast } from "@/hooks/use-toast";
 import { TokenInfo } from "@/types";
 import { ethers } from "ethers";
+import { formatTokenAmount } from "@/lib/web3";
 
 // Main implementation
 const SwapContent = ({ 
@@ -33,6 +34,8 @@ const SwapContent = ({
   const [isFromDropdownOpen, setIsFromDropdownOpen] = useState(false);
   const [isToDropdownOpen, setIsToDropdownOpen] = useState(false);
   const [slippage, setSlippage] = useState("0.5");
+  const [isSwapping, setIsSwapping] = useState(false);
+  const [isCalculatingOutput, setIsCalculatingOutput] = useState(false);
   
   // Initialize token selection when tokens are loaded
   useEffect(() => {
@@ -55,7 +58,12 @@ const SwapContent = ({
     
     // Only PRIOR token pairs are supported by the contract
     if (fromToken.symbol !== "PRIOR" && toToken.symbol !== "PRIOR") {
-      return "1"; // Default for unsupported pairs
+      toast({
+        title: "Unsupported Pair",
+        description: "Only PRIOR token pairs are currently supported for swaps",
+        variant: "destructive"
+      });
+      return "0";
     }
     
     setIsLoadingRate(true);
@@ -80,18 +88,13 @@ const SwapContent = ({
         }
       } else if (toToken.symbol === "PRIOR") {
         // For token to PRIOR, we need to get the reverse rate
-        const result = await calculateSwapOutput(
-          toToken.address,
-          fromToken.address,
-          "1"
-        );
-        
-        if (result && result.amountOut) {
-          // Calculate the inverse rate
-          const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
-          // Inverse the rate (1 / rate)
-          rate = (1 / parseFloat(formattedAmount)).toString();
-        }
+        // Note: This isn't currently supported by the contract, so this is just placeholder logic
+        toast({
+          title: "Unsupported Direction",
+          description: "Only swapping FROM PRIOR TO other tokens is currently supported",
+          variant: "destructive"
+        });
+        rate = "0";
       }
       
       setExchangeRate(rate);
@@ -101,29 +104,13 @@ const SwapContent = ({
       console.error("Error getting exchange rate:", error);
       setIsLoadingRate(false);
       
-      // Default rates as fallback
-      const defaultRates: Record<string, Record<string, string>> = {
-        "PRIOR": {
-          "USDC": "0.05",
-          "USDT": "0.05",
-          "DAI": "0.05",
-          "WETH": "0.00003"
-        },
-        "USDC": {
-          "PRIOR": "20"
-        },
-        "USDT": {
-          "PRIOR": "20"
-        },
-        "DAI": {
-          "PRIOR": "20"
-        },
-        "WETH": {
-          "PRIOR": "30000"
-        }
-      };
+      toast({
+        title: "Error",
+        description: "Failed to get exchange rate from the contract",
+        variant: "destructive"
+      });
       
-      return defaultRates[fromToken.symbol]?.[toToken.symbol] || "1";
+      return "0";
     }
   };
   
@@ -142,36 +129,80 @@ const SwapContent = ({
     updateRate();
   }, [fromToken, toToken]);
   
+  // Format a number to maximum 6 decimal places and remove trailing zeros
+  const formatDisplayNumber = (value: string): string => {
+    if (!value || isNaN(parseFloat(value))) return "0";
+    
+    // Format to 6 decimal places maximum
+    const formatted = parseFloat(parseFloat(value).toFixed(6)).toString();
+    
+    // If it's a whole number, display without decimal places
+    if (formatted.indexOf('.') === -1) return formatted;
+    
+    // Otherwise, display with decimal places
+    return formatted;
+  };
+  
+  // Handle setting max amount from balance
+  const handleMaxAmount = () => {
+    if (fromToken && fromBalance) {
+      // Leave a small amount for gas if it's the network token
+      const maxAmount = fromToken.symbol === "WETH" 
+        ? Math.max(0, parseFloat(fromBalance) - 0.001).toString()
+        : fromBalance;
+      
+      setFromAmount(maxAmount);
+      handleFromAmountChange(maxAmount);
+    }
+  };
+  
   // Update to amount when from amount changes
   const handleFromAmountChange = async (value: string) => {
+    // Accept only numbers and decimals
+    if (value && !/^[0-9.]*$/.test(value)) return;
+    
     setFromAmount(value);
     if (value && !isNaN(parseFloat(value)) && fromToken && toToken) {
+      setIsCalculatingOutput(true);
+      
       try {
-        // For small amounts, use the current exchange rate
-        if (parseFloat(value) <= 1) {
-          const rate = await getExchangeRate();
-          const calculatedAmount = (parseFloat(value) * parseFloat(rate)).toString();
-          setToAmount(calculatedAmount);
-        } else {
-          // For larger amounts, get the actual output from the contract
-          const { calculateSwapOutput } = await import('@/lib/contracts');
-          const result = await calculateSwapOutput(
-            fromToken.address,
-            toToken.address,
-            value
-          );
-          
-          if (result && result.amountOut) {
-            const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
-            setToAmount(formattedAmount);
-          }
+        if (fromToken.symbol !== "PRIOR") {
+          toast({
+            title: "Unsupported Token",
+            description: "Only PRIOR token can be swapped in this contract",
+            variant: "destructive"
+          });
+          setToAmount("0");
+          setIsCalculatingOutput(false);
+          return;
+        }
+        
+        // Always get the actual output from the contract for accuracy
+        const { calculateSwapOutput } = await import('@/lib/contracts');
+        
+        const result = await calculateSwapOutput(
+          fromToken.address,
+          toToken.address,
+          value
+        );
+        
+        if (result && result.amountOut) {
+          const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
+          setToAmount(formattedAmount);
         }
       } catch (error) {
         console.error("Error calculating swap output:", error);
+        
         // Fallback to current rate
         const rate = await getExchangeRate();
-        const calculatedAmount = (parseFloat(value) * parseFloat(rate)).toString();
-        setToAmount(calculatedAmount);
+        if (rate !== "0") {
+          const calculatedAmount = (parseFloat(value) * parseFloat(rate)).toString();
+          setToAmount(calculatedAmount);
+        } else {
+          setToAmount("0");
+        }
+      } finally {
+        setIsCalculatingOutput(false);
       }
     } else {
       setToAmount("");
@@ -180,15 +211,20 @@ const SwapContent = ({
   
   // Update from amount when to amount changes
   const handleToAmountChange = async (value: string) => {
+    // Accept only numbers and decimals
+    if (value && !/^[0-9.]*$/.test(value)) return;
+    
     setToAmount(value);
     if (value && !isNaN(parseFloat(value)) && fromToken && toToken) {
       try {
-        // For now, just use the exchange rate for the calculation
-        // This is an approximation since calculating the exact input amount
-        // would require solving for the input given the output
+        // Use the exchange rate for the calculation
         const rate = await getExchangeRate();
-        const calculatedAmount = (parseFloat(value) / parseFloat(rate)).toString();
-        setFromAmount(calculatedAmount);
+        if (rate !== "0") {
+          const calculatedAmount = (parseFloat(value) / parseFloat(rate)).toString();
+          setFromAmount(calculatedAmount);
+        } else {
+          setFromAmount("0");
+        }
       } catch (error) {
         console.error("Error calculating from amount:", error);
         setFromAmount("");
@@ -198,29 +234,60 @@ const SwapContent = ({
     }
   };
   
+  // Switch the from and to tokens
   const switchTokens = () => {
-    const tempToken = fromToken;
-    setFromToken(toToken);
-    setToToken(tempToken);
-    setFromAmount(toAmount);
-    setToAmount(fromAmount);
+    if (fromToken?.symbol !== "PRIOR" && toToken?.symbol === "PRIOR") {
+      // This will make PRIOR the source token, which is what we want
+      const tempToken = fromToken;
+      setFromToken(toToken);
+      setToToken(tempToken);
+      
+      // Also switch the amounts
+      const tempAmount = fromAmount;
+      setFromAmount(toAmount);
+      setToAmount(tempAmount);
+      
+      // Recalculate based on the new from amount
+      handleFromAmountChange(toAmount);
+    } else {
+      toast({
+        title: "Unsupported Direction",
+        description: "Only swapping FROM PRIOR TO other tokens is currently supported",
+        variant: "destructive"
+      });
+    }
   };
   
   const selectFromToken = (token: TokenInfo) => {
     if (token.symbol === toToken?.symbol) {
+      // If same token is selected for both sides, swap them
       setToToken(fromToken);
     }
     setFromToken(token);
     setIsFromDropdownOpen(false);
-    handleFromAmountChange(fromAmount);
+    
+    // Check if the swap direction is valid
+    if (token.symbol !== "PRIOR") {
+      toast({
+        title: "Unsupported Token",
+        description: "Only PRIOR token can be the source token for swaps",
+        variant: "destructive"
+      });
+    } else {
+      // Recalculate amounts with the new token selection
+      handleFromAmountChange(fromAmount);
+    }
   };
   
   const selectToToken = (token: TokenInfo) => {
     if (token.symbol === fromToken?.symbol) {
+      // If same token is selected for both sides, swap them
       setFromToken(toToken);
     }
     setToToken(token);
     setIsToDropdownOpen(false);
+    
+    // Recalculate amounts with the new token selection
     handleFromAmountChange(fromAmount);
   };
   
@@ -248,6 +315,26 @@ const SwapContent = ({
       return;
     }
     
+    if (fromToken.symbol !== "PRIOR") {
+      toast({
+        title: "Unsupported Token",
+        description: "Only PRIOR token can be swapped in this contract",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (parseFloat(fromAmount) > parseFloat(fromBalance)) {
+      toast({
+        title: "Insufficient Balance",
+        description: `You don't have enough ${fromToken.symbol} tokens`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsSwapping(true);
+    
     try {
       const success = await sendSwapTransaction(
         fromToken.address,
@@ -260,7 +347,7 @@ const SwapContent = ({
       if (success) {
         toast({
           title: "Swap successful!",
-          description: `Successfully swapped ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`,
+          description: `Successfully swapped ${formatDisplayNumber(fromAmount)} ${fromToken.symbol} for ${formatDisplayNumber(toAmount)} ${toToken.symbol}`,
         });
         
         // Reset form
@@ -273,6 +360,8 @@ const SwapContent = ({
         description: error.message || "An error occurred during the swap",
         variant: "destructive"
       });
+    } finally {
+      setIsSwapping(false);
     }
   };
   
@@ -298,7 +387,15 @@ const SwapContent = ({
           <div className="mb-4">
             <div className="flex justify-between text-sm text-[#A0AEC0] mb-2">
               <label>From</label>
-              <div>Balance: <span>{fromBalance}</span></div>
+              <div className="flex items-center">
+                Balance: <span className="mx-1">{fromBalance}</span>
+                <button 
+                  onClick={handleMaxAmount}
+                  className="ml-1 px-2 py-0.5 text-xs bg-[#FF6B00] bg-opacity-20 text-[#FF6B00] rounded hover:bg-opacity-30 transition-colors"
+                >
+                  MAX
+                </button>
+              </div>
             </div>
             <div className="flex items-center bg-[#0B1118] border border-[#2D3748] rounded-lg p-3">
               <input 
@@ -306,6 +403,7 @@ const SwapContent = ({
                 placeholder="0.0" 
                 value={fromAmount}
                 onChange={(e) => handleFromAmountChange(e.target.value)}
+                disabled={isSwapping}
                 className="w-full bg-transparent text-white text-lg focus:outline-none"
               />
               <div className="relative">
@@ -378,7 +476,13 @@ const SwapContent = ({
           <div className="mb-6">
             <div className="flex justify-between text-sm text-[#A0AEC0] mb-2">
               <label>To</label>
-              <div>Balance: <span>{toBalance}</span></div>
+              <div className="flex items-center">
+                {isCalculatingOutput ? (
+                  <span className="text-[#FF6B00] animate-pulse">Calculating...</span>
+                ) : (
+                  <>Balance: <span>{toBalance}</span></>
+                )}
+              </div>
             </div>
             <div className="flex items-center bg-[#0B1118] border border-[#2D3748] rounded-lg p-3">
               <input 
@@ -386,6 +490,7 @@ const SwapContent = ({
                 placeholder="0.0" 
                 value={toAmount}
                 onChange={(e) => handleToAmountChange(e.target.value)}
+                disabled={isSwapping || isCalculatingOutput}
                 className="w-full bg-transparent text-white text-lg focus:outline-none"
               />
               <div className="relative">
@@ -447,9 +552,15 @@ const SwapContent = ({
           <div className="p-3 bg-[#FF6B00] bg-opacity-10 rounded-lg border border-[#FF6B00] border-opacity-30 mb-6 text-sm">
             <div className="flex justify-between items-center mb-2">
               <span className="text-[#A0AEC0]">Rate</span>
-              <span className="font-medium">
-                1 {fromToken?.symbol || "-"} = {exchangeRate} {toToken?.symbol || "-"}
-              </span>
+              {isLoadingRate ? (
+                <span className="font-medium text-[#FF6B00] animate-pulse">
+                  Loading rate...
+                </span>
+              ) : (
+                <span className="font-medium">
+                  1 {fromToken?.symbol || "-"} = {formatDisplayNumber(exchangeRate)} {toToken?.symbol || "-"}
+                </span>
+              )}
             </div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-[#A0AEC0]">Slippage Tolerance</span>
@@ -474,12 +585,25 @@ const SwapContent = ({
           
           <button 
             onClick={handleSwap}
-            className="w-full rounded-lg bg-[#FF6B00] hover:bg-opacity-90 transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide"
+            disabled={isSwapping || isCalculatingOutput || (fromToken?.symbol !== "PRIOR")}
+            className={`w-full rounded-lg ${isSwapping ? 'bg-[#FF6B00] bg-opacity-50' : 'bg-[#FF6B00] hover:bg-opacity-90'} transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide ${fromToken?.symbol !== "PRIOR" ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {!isConnected 
               ? "Connect Wallet" 
-              : "Swap Tokens"}
+              : isSwapping 
+                ? "Swapping..."
+                : fromToken?.symbol !== "PRIOR"
+                  ? "Only PRIOR can be swapped"
+                  : "Swap Tokens"
+            }
           </button>
+          
+          {isSwapping && (
+            <div className="mt-2 flex items-center justify-center text-[#FF6B00]">
+              <div className="animate-spin mr-2 h-4 w-4 border-2 border-[#FF6B00] border-t-transparent rounded-full"></div>
+              <span className="text-sm">Transaction in progress...</span>
+            </div>
+          )}
           
           <div className="mt-4 text-xs text-[#A0AEC0] text-center">
             <p>Note: This is a testnet swap. Tokens have no real value.</p>
