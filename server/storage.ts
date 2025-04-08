@@ -1,0 +1,349 @@
+import {
+  users, User, InsertUser,
+  quests, Quest, InsertQuest,
+  userQuests, UserQuest, InsertUserQuest,
+  proposals, Proposal, InsertProposal,
+  votes, Vote, InsertVote,
+  tokens, Token, InsertToken
+} from "@shared/schema";
+
+// Interface for storage operations
+export interface IStorage {
+  // User operations
+  getUser(address: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUserLastClaim(address: string): Promise<User | undefined>;
+  
+  // Quest operations
+  getAllQuests(): Promise<Quest[]>;
+  getQuest(id: number): Promise<Quest | undefined>;
+  createQuest(quest: InsertQuest): Promise<Quest>;
+  
+  // User Quest operations
+  getUserQuests(userId: number): Promise<UserQuest[]>;
+  createUserQuest(userQuest: InsertUserQuest): Promise<UserQuest>;
+  updateUserQuestStatus(id: number, status: string): Promise<UserQuest | undefined>;
+  
+  // Proposal operations
+  getAllProposals(): Promise<Proposal[]>;
+  getProposal(id: number): Promise<Proposal | undefined>;
+  createProposal(proposal: InsertProposal): Promise<Proposal>;
+  updateProposalVotes(id: number, voteType: string, increment: number): Promise<Proposal | undefined>;
+  
+  // Vote operations
+  getUserVote(userId: number, proposalId: number): Promise<Vote | undefined>;
+  createVote(vote: InsertVote): Promise<Vote>;
+  
+  // Token operations
+  getAllTokens(): Promise<Token[]>;
+  getToken(symbol: string): Promise<Token | undefined>;
+  createToken(token: InsertToken): Promise<Token>;
+}
+
+// In-memory implementation of storage
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private usersByAddress: Map<string, User>;
+  private quests: Map<number, Quest>;
+  private userQuests: Map<number, UserQuest>;
+  private proposals: Map<number, Proposal>;
+  private votes: Map<number, Vote>;
+  private tokens: Map<number, Token>;
+  private tokensBySymbol: Map<string, Token>;
+  
+  private userId: number;
+  private questId: number;
+  private userQuestId: number;
+  private proposalId: number;
+  private voteId: number;
+  private tokenId: number;
+  
+  constructor() {
+    this.users = new Map();
+    this.usersByAddress = new Map();
+    this.quests = new Map();
+    this.userQuests = new Map();
+    this.proposals = new Map();
+    this.votes = new Map();
+    this.tokens = new Map();
+    this.tokensBySymbol = new Map();
+    
+    this.userId = 1;
+    this.questId = 1;
+    this.userQuestId = 1;
+    this.proposalId = 1;
+    this.voteId = 1;
+    this.tokenId = 1;
+    
+    // Initialize with sample tokens
+    this.initializeTokens();
+    // Initialize with sample quests
+    this.initializeQuests();
+    // Initialize with sample proposals
+    this.initializeProposals();
+  }
+  
+  private initializeTokens() {
+    // Initial tokens setup with contract addresses (these are placeholders, should be replaced with actual contract addresses)
+    const initialTokens: InsertToken[] = [
+      {
+        symbol: "PRIOR",
+        name: "Prior Protocol Token",
+        address: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
+        decimals: 18,
+        logoColor: "#1A5CFF"
+      },
+      {
+        symbol: "USDC",
+        name: "Mock USD Coin",
+        address: "0x2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b",
+        decimals: 6,
+        logoColor: "#2775CA"
+      },
+      {
+        symbol: "USDT",
+        name: "Mock Tether",
+        address: "0x3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+        decimals: 6,
+        logoColor: "#26A17B"
+      },
+      {
+        symbol: "DAI",
+        name: "Mock Dai",
+        address: "0x4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b",
+        decimals: 18,
+        logoColor: "#F5AC37"
+      },
+      {
+        symbol: "WETH",
+        name: "Mock Wrapped ETH",
+        address: "0x5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b",
+        decimals: 18,
+        logoColor: "#627EEA"
+      }
+    ];
+    
+    initialTokens.forEach(token => {
+      this.createToken(token);
+    });
+  }
+  
+  private initializeQuests() {
+    const initialQuests: InsertQuest[] = [
+      {
+        title: "First Swap",
+        description: "Complete your first token swap on PriorSwap to earn 50 PRIOR tokens.",
+        reward: 50,
+        difficulty: "Beginner",
+        status: "active",
+        icon: "exchange-alt"
+      },
+      {
+        title: "Governance Vote",
+        description: "Participate in a test governance proposal to earn 100 PRIOR tokens.",
+        reward: 100,
+        difficulty: "Intermediate",
+        status: "active",
+        icon: "vote-yea"
+      },
+      {
+        title: "Liquidity Provider",
+        description: "Add liquidity to a trading pair and maintain it for 24 hours.",
+        reward: 200,
+        difficulty: "Advanced",
+        status: "coming_soon",
+        icon: "chart-line"
+      }
+    ];
+    
+    initialQuests.forEach(quest => {
+      this.createQuest(quest);
+    });
+  }
+  
+  private initializeProposals() {
+    const now = new Date();
+    const twoDaysLater = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const fiveDaysLater = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+    
+    const initialProposals: InsertProposal[] = [
+      {
+        title: "PIP-001: Update Token Distribution",
+        description: "Proposal to update the testnet token distribution model for better community involvement.",
+        status: "active",
+        endTime: twoDaysLater,
+      },
+      {
+        title: "PIP-002: Add New Test Token Pair",
+        description: "Proposal to add a new test token trading pair to the protocol.",
+        status: "active",
+        endTime: fiveDaysLater,
+      }
+    ];
+    
+    initialProposals.forEach(proposal => {
+      const createdProposal = this.createProposal(proposal);
+      // Add some initial votes
+      this.updateProposalVotes(createdProposal.id, 'yes', 65);
+      this.updateProposalVotes(createdProposal.id, 'no', 35);
+    });
+  }
+  
+  // User operations
+  async getUser(address: string): Promise<User | undefined> {
+    return this.usersByAddress.get(address);
+  }
+  
+  async createUser(user: InsertUser): Promise<User> {
+    const id = this.userId++;
+    const newUser: User = { ...user, id };
+    
+    this.users.set(id, newUser);
+    this.usersByAddress.set(user.address, newUser);
+    
+    return newUser;
+  }
+  
+  async updateUserLastClaim(address: string): Promise<User | undefined> {
+    const user = this.usersByAddress.get(address);
+    if (!user) return undefined;
+    
+    const updatedUser: User = { ...user, lastClaim: new Date() };
+    
+    this.users.set(user.id, updatedUser);
+    this.usersByAddress.set(address, updatedUser);
+    
+    return updatedUser;
+  }
+  
+  // Quest operations
+  async getAllQuests(): Promise<Quest[]> {
+    return Array.from(this.quests.values());
+  }
+  
+  async getQuest(id: number): Promise<Quest | undefined> {
+    return this.quests.get(id);
+  }
+  
+  async createQuest(quest: InsertQuest): Promise<Quest> {
+    const id = this.questId++;
+    const newQuest: Quest = { ...quest, id };
+    
+    this.quests.set(id, newQuest);
+    
+    return newQuest;
+  }
+  
+  // User Quest operations
+  async getUserQuests(userId: number): Promise<UserQuest[]> {
+    return Array.from(this.userQuests.values()).filter(uq => uq.userId === userId);
+  }
+  
+  async createUserQuest(userQuest: InsertUserQuest): Promise<UserQuest> {
+    const id = this.userQuestId++;
+    const newUserQuest: UserQuest = { ...userQuest, id, completedAt: null };
+    
+    this.userQuests.set(id, newUserQuest);
+    
+    return newUserQuest;
+  }
+  
+  async updateUserQuestStatus(id: number, status: string): Promise<UserQuest | undefined> {
+    const userQuest = this.userQuests.get(id);
+    if (!userQuest) return undefined;
+    
+    const updatedUserQuest: UserQuest = { 
+      ...userQuest, 
+      status, 
+      completedAt: status === 'completed' ? new Date() : userQuest.completedAt 
+    };
+    
+    this.userQuests.set(id, updatedUserQuest);
+    
+    return updatedUserQuest;
+  }
+  
+  // Proposal operations
+  async getAllProposals(): Promise<Proposal[]> {
+    return Array.from(this.proposals.values());
+  }
+  
+  async getProposal(id: number): Promise<Proposal | undefined> {
+    return this.proposals.get(id);
+  }
+  
+  async createProposal(proposal: InsertProposal): Promise<Proposal> {
+    const id = this.proposalId++;
+    const newProposal: Proposal = { 
+      ...proposal, 
+      id,
+      yesVotes: 0,
+      noVotes: 0
+    };
+    
+    this.proposals.set(id, newProposal);
+    
+    return newProposal;
+  }
+  
+  async updateProposalVotes(id: number, voteType: string, increment: number): Promise<Proposal | undefined> {
+    const proposal = this.proposals.get(id);
+    if (!proposal) return undefined;
+    
+    let updatedProposal: Proposal;
+    
+    if (voteType === 'yes') {
+      updatedProposal = { ...proposal, yesVotes: proposal.yesVotes + increment };
+    } else {
+      updatedProposal = { ...proposal, noVotes: proposal.noVotes + increment };
+    }
+    
+    this.proposals.set(id, updatedProposal);
+    
+    return updatedProposal;
+  }
+  
+  // Vote operations
+  async getUserVote(userId: number, proposalId: number): Promise<Vote | undefined> {
+    return Array.from(this.votes.values()).find(
+      vote => vote.userId === userId && vote.proposalId === proposalId
+    );
+  }
+  
+  async createVote(vote: InsertVote): Promise<Vote> {
+    const id = this.voteId++;
+    const newVote: Vote = { 
+      ...vote, 
+      id,
+      votedAt: new Date()
+    };
+    
+    this.votes.set(id, newVote);
+    
+    // Update the proposal's vote count
+    await this.updateProposalVotes(vote.proposalId, vote.vote, 1);
+    
+    return newVote;
+  }
+  
+  // Token operations
+  async getAllTokens(): Promise<Token[]> {
+    return Array.from(this.tokens.values());
+  }
+  
+  async getToken(symbol: string): Promise<Token | undefined> {
+    return this.tokensBySymbol.get(symbol);
+  }
+  
+  async createToken(token: InsertToken): Promise<Token> {
+    const id = this.tokenId++;
+    const newToken: Token = { ...token, id };
+    
+    this.tokens.set(id, newToken);
+    this.tokensBySymbol.set(token.symbol, newToken);
+    
+    return newToken;
+  }
+}
+
+export const storage = new MemStorage();

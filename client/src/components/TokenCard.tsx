@@ -1,0 +1,36 @@
+import React from "react";
+import { useWallet } from "@/context/WalletContext";
+import { TokenInfo } from "@/types";
+
+interface TokenCardProps {
+  token: TokenInfo;
+}
+
+const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
+  const { getTokenBalance } = useWallet();
+  const balance = getTokenBalance(token.symbol);
+
+  return (
+    <div className="gradient-border bg-[#141D29] p-4 shadow-lg">
+      <div className="flex items-center mb-2">
+        <div 
+          className="w-8 h-8 rounded-full flex items-center justify-center mr-2"
+          style={{ backgroundColor: token.logoColor }}
+        >
+          {token.symbol === "PRIOR" ? (
+            <span className="font-bold text-sm">P</span>
+          ) : token.symbol === "WETH" ? (
+            <span className="font-bold text-sm">Ξ</span>
+          ) : (
+            <span className="font-bold text-sm">$</span>
+          )}
+        </div>
+        <span className="font-medium">{token.symbol}</span>
+      </div>
+      <div className="text-2xl font-bold mb-1 font-space">{balance}</div>
+      <div className="text-xs text-[#A0AEC0]">{token.name}</div>
+    </div>
+  );
+};
+
+export default TokenCard;
