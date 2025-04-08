@@ -25,28 +25,28 @@ const Footer = () => {
               Whitepaper
             </a>
             <a 
-              href="#" 
+              href="https://medium.com/@priorprotocol_12054" 
+              target="_blank" 
+              rel="noopener noreferrer"
               className="text-[#A0AEC0] hover:text-white transition-colors"
             >
-              Smart Contracts
+              Medium
             </a>
             <a 
-              href="#" 
-              className="text-[#A0AEC0] hover:text-white transition-colors"
-            >
-              GitHub
-            </a>
-            <a 
-              href="#" 
-              className="text-[#A0AEC0] hover:text-white transition-colors"
-            >
-              Twitter
-            </a>
-            <a 
-              href="#" 
+              href="https://discord.com/invite/priorprotocol" 
+              target="_blank" 
+              rel="noopener noreferrer"
               className="text-[#A0AEC0] hover:text-white transition-colors"
             >
               Discord
+            </a>
+            <a 
+              href="https://x.com/priorprotocol" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[#A0AEC0] hover:text-white transition-colors"
+            >
+              Twitter
             </a>
           </div>
         </div>
