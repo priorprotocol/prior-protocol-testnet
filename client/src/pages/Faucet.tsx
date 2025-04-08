@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWallet } from "@/context/WalletContext";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import TokenCard from "@/components/TokenCard";
 import { TokenInfo } from "@/types";
+import { claimFromFaucet, getFaucetInfo } from "@/lib/contracts";
 
 const Faucet = () => {
   // Initialize default values for wallet context

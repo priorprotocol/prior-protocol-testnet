@@ -1,7 +1,177 @@
 import { ethers } from "ethers";
 import { getProvider, getSigner } from "./web3";
 
-// Define token contract ABI - this is a minimal ERC20 ABI
+// Define token contract ABI - full PRIOR token ABI
+const priorTokenAbi = [
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "approve",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "claimFromFaucet",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "getFaucetInfo",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "lastClaim",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalClaimed",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "name",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "decimals",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "transfer",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "transferFrom",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
+
+// Define standard ERC20 token ABI for other tokens
 const tokenAbi = [
   "function name() view returns (string)",
   "function symbol() view returns (string)",
@@ -21,8 +191,8 @@ const swapAbi = [
 // Base Sepolia testnet contract addresses
 export const contractAddresses = {
   // Prior Protocol token and swap contract addresses
-  priorToken: "0xD4d41fd29d1557566B1e3729d63559DC9DA32C79", // Prior Token
-  priorSwap: "0x7B1F06B1a10ec2CA699D69FC488b5CD2A45F4f43", // Prior Swap router
+  priorToken: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // Prior Token
+  priorSwap: "0x7B1F06B1a10ec2CA699D69FC488b5CD2A45F4f43", // Prior Swap router (to be updated)
   mockTokens: {
     // Using actual Base Sepolia testnet token addresses
     USDC: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // USDC on Base Sepolia
@@ -35,13 +205,17 @@ export const contractAddresses = {
 // Function to get token contract instance
 export const getTokenContract = async (tokenAddress: string) => {
   const provider = getProvider();
-  return new ethers.Contract(tokenAddress, tokenAbi, provider);
+  // Use the PRIOR token ABI for the PRIOR token, otherwise use the standard ERC20 ABI
+  const abi = tokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase() ? priorTokenAbi : tokenAbi;
+  return new ethers.Contract(tokenAddress, abi, provider);
 };
 
 // Function to get token contract with signer
 export const getTokenContractWithSigner = async (tokenAddress: string) => {
   const signer = await getSigner();
-  return new ethers.Contract(tokenAddress, tokenAbi, signer);
+  // Use the PRIOR token ABI for the PRIOR token, otherwise use the standard ERC20 ABI
+  const abi = tokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase() ? priorTokenAbi : tokenAbi;
+  return new ethers.Contract(tokenAddress, abi, signer);
 };
 
 // Function to get swap contract instance
@@ -123,6 +297,30 @@ export const swapTokens = async (
     return await tx.wait();
   } catch (error) {
     console.error("Error swapping tokens:", error);
+    throw error;
+  }
+};
+
+// Function to claim tokens from the faucet
+export const claimFromFaucet = async () => {
+  try {
+    const tokenContract = await getTokenContractWithSigner(contractAddresses.priorToken);
+    const tx = await tokenContract.claimFromFaucet();
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error claiming from faucet:", error);
+    throw error;
+  }
+};
+
+// Function to get faucet info for a user
+export const getFaucetInfo = async (address: string) => {
+  try {
+    const tokenContract = await getTokenContract(contractAddresses.priorToken);
+    const [lastClaim, totalClaimed] = await tokenContract.getFaucetInfo(address);
+    return { lastClaim, totalClaimed };
+  } catch (error) {
+    console.error("Error getting faucet info:", error);
     throw error;
   }
 };
