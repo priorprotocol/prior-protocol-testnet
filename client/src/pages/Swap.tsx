@@ -4,7 +4,25 @@ import { useToast } from "@/hooks/use-toast";
 import { TokenInfo } from "@/types";
 
 const Swap = () => {
-  const { isConnected, connectWallet, tokens, getTokenBalance, sendSwapTransaction } = useWallet();
+  // Initialize with default values
+  let isConnected = false;
+  let connectWallet = async () => {};
+  let tokens: TokenInfo[] = [];
+  let getTokenBalance = (_symbol: string) => "0.00";
+  let sendSwapTransaction = async () => false;
+  
+  // Only use the wallet context if it's available
+  try {
+    const wallet = useWallet();
+    isConnected = wallet.isConnected;
+    connectWallet = wallet.connectWallet;
+    tokens = wallet.tokens;
+    getTokenBalance = wallet.getTokenBalance;
+    sendSwapTransaction = wallet.sendSwapTransaction;
+  } catch (error) {
+    console.log("Wallet context not available yet");
+  }
+  
   const { toast } = useToast();
   
   const [fromAmount, setFromAmount] = useState("");
