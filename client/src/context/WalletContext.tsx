@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { TokenInfo, UserState } from "@/types";
+import { TokenInfo } from "@/types";
 import { 
   getProvider, 
   switchToBaseSepoliaNetwork, 
@@ -35,7 +35,7 @@ interface WalletContextType {
   getTokenBalance: (symbol: string) => string;
   copyToClipboard: (text: string) => void;
   userId: number | undefined;
-  sendSwapTransaction: (fromTokenAddress: string, toTokenAddress: string, fromAmount: string, toAmount: string, slippage: string) => Promise<boolean | void>;
+  sendSwapTransaction: (fromTokenAddress: string, toTokenAddress: string, fromAmount: string, toAmount: string, slippage: string) => Promise<boolean>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -43,6 +43,7 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export const useWallet = () => {
   const context = useContext(WalletContext);
   if (context === undefined) {
+    console.log("Wallet context not available yet");
     throw new Error("useWallet must be used within a WalletProvider");
   }
   return context;
@@ -60,12 +61,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const { toast } = useToast();
   
   // Get tokens from the API
-  const { data: tokens = [] as TokenInfo[] } = useQuery<TokenInfo[]>({
+  const { data: tokens = [] } = useQuery<TokenInfo[]>({
     queryKey: ['/api/tokens'],
   });
   
-  // Get user data
-  const { data: userData } = useQuery<{id?: number, address: string, lastClaim: string | null}>({
+  // Get user data when address is available
+  const { data: userData } = useQuery<{id: number, address: string, lastClaim: string | null}>({
     queryKey: [`/api/users/${address}`],
     enabled: !!address,
   });
@@ -78,31 +79,23 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   useEffect(() => {
     const initWallet = async () => {
       try {
-        // Check if already connected
         const savedAddress = await getAccount();
         if (savedAddress) {
           setAddress(savedAddress);
           
-          // Get chain ID
-          const currentChainId = await getChainId();
-          setChainId(currentChainId);
-          
-          // Create user if doesn't exist
-          if (savedAddress) {
-            try {
-              await apiRequest('POST', '/api/users', { address: savedAddress });
-            } catch (error) {
-              console.error("Error creating user:", error);
+          try {
+            const currentChainId = await getChainId();
+            setChainId(currentChainId);
+            
+            if (currentChainId !== 84532) {
+              toast({
+                title: "Wrong Network",
+                description: "Please switch to Base Sepolia Testnet",
+                variant: "destructive"
+              });
             }
-          }
-          
-          // Check if on Base Sepolia network
-          if (currentChainId !== 84532) {
-            toast({
-              title: "Wrong Network",
-              description: "Please switch to Base Sepolia Testnet",
-              variant: "destructive"
-            });
+          } catch (error) {
+            console.error("Error getting chain ID:", error);
           }
         }
       } catch (error) {
@@ -110,22 +103,22 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       }
     };
     
-    initWallet();
-    
-    // Listen for account changes
-    if (window.ethereum) {
-      window.ethereum.on('accountsChanged', (accounts: string[]) => {
+    // Setup event listeners for wallet
+    const setupListeners = () => {
+      if (!window.ethereum) return;
+      
+      const handleAccountsChanged = (accounts: string[]) => {
         if (accounts.length === 0) {
-          // User disconnected wallet
-          disconnectWallet();
+          setAddress(null);
+          setChainId(null);
+          setTokenBalances({});
+          queryClient.clear();
         } else {
-          // Account changed
           setAddress(accounts[0]);
         }
-      });
+      };
       
-      window.ethereum.on('chainChanged', (chainIdHex: string) => {
-        // Chain changed
+      const handleChainChanged = (chainIdHex: string) => {
         const newChainId = parseInt(chainIdHex, 16);
         setChainId(newChainId);
         
@@ -136,28 +129,46 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             variant: "destructive"
           });
         }
-      });
-    }
+      };
+      
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+      
+      return () => {
+        if (window.ethereum) {
+          window.ethereum.removeAllListeners('accountsChanged');
+          window.ethereum.removeAllListeners('chainChanged');
+        }
+      };
+    };
+    
+    initWallet();
+    const cleanup = setupListeners();
     
     return () => {
-      // Clean up listeners
-      if (window.ethereum) {
-        window.ethereum.removeAllListeners('accountsChanged');
-        window.ethereum.removeAllListeners('chainChanged');
-      }
+      if (cleanup) cleanup();
     };
   }, []);
   
-  // Update token balances when address changes
+  // Create user when address changes
+  useEffect(() => {
+    const createUserIfNeeded = async () => {
+      if (address) {
+        try {
+          await apiRequest('POST', '/api/users', { address });
+        } catch (error) {
+          console.error("Error creating user:", error);
+        }
+      }
+    };
+    
+    createUserIfNeeded();
+  }, [address]);
+  
+  // Update token balances when address or tokens change
   useEffect(() => {
     const fetchBalances = async () => {
-      if (!address) {
-        setTokenBalances({});
-        return;
-      }
-      
-      // If there are no tokens yet, skip this operation
-      if (!tokens || tokens.length === 0) {
+      if (!address || !tokens || tokens.length === 0) {
         return;
       }
       
@@ -166,7 +177,6 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         
         for (const token of tokens) {
           try {
-            // Fetch actual balances from the blockchain
             const result = await getTokenBalanceFromContract(token.address, address);
             balances[token.symbol] = formatTokenAmount(result.balance.toString(), result.decimals);
           } catch (error) {
@@ -186,34 +196,52 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   
   // Check for Prior Pioneer NFT ownership
   useEffect(() => {
+    let isMounted = true;
+    
     const checkForNFT = async () => {
       if (!address || !userId) return;
       
       try {
-        // Check if the user owns a Prior Pioneer NFT
         const hasNFT = await checkPriorPioneerNFT(address);
         
-        // Call API to award the badge if needed
-        const response = await apiRequest<{ awarded: boolean, badges: string[] }>('POST', `/api/users/${address}/check-nft-badge`, { hasNFT });
+        if (!isMounted) return;
         
-        if (hasNFT) {
-          console.log("Prior Pioneer NFT detected in wallet");
+        try {
+          // Define a proper response type
+          interface NFTBadgeResponse {
+            awarded: boolean;
+          }
           
-          // If this is the first time they're getting the badge, show a congratulations toast
-          if (response && response.awarded) {
+          const response = await apiRequest<NFTBadgeResponse>(
+            'POST', 
+            `/api/users/${userId}/check-nft-badge`, 
+            { hasNFT }
+          );
+          
+          if (!isMounted) return;
+          
+          if (hasNFT && response?.awarded) {
             toast({
               title: "🎉 Prior Pioneer NFT Badge Unlocked!",
               description: "Congratulations! You've been awarded the Prior Pioneer badge for owning the NFT.",
               duration: 6000
             });
           }
+        } catch (error) {
+          console.error("Error with NFT badge API:", error);
         }
       } catch (error) {
         console.error("Error checking for Prior Pioneer NFT:", error);
       }
     };
     
-    checkForNFT();
+    if (address && userId) {
+      checkForNFT();
+    }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [address, userId]);
   
   const connectWallet = async () => {
@@ -232,25 +260,15 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         return;
       }
       
-      // Request accounts
       const account = await requestAccounts();
       if (!account) throw new Error("No account found");
       
       setAddress(account);
       
-      // Switch to Base Sepolia network
       await switchToBaseSepoliaNetwork();
       
-      // Get chain ID
       const currentChainId = await getChainId();
       setChainId(currentChainId);
-      
-      // Create user if doesn't exist
-      try {
-        await apiRequest('POST', '/api/users', { address: account });
-      } catch (error) {
-        console.error("Error creating user:", error);
-      }
       
       closeWalletModal();
       
@@ -331,7 +349,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     fromAmount: string,
     toAmount: string,
     slippage: string
-  ) => {
+  ): Promise<boolean> => {
     if (!isConnected) {
       throw new Error("Wallet not connected");
     }
@@ -341,7 +359,6 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
     
     try {
-      // Parse decimals from token addresses
       const fromToken = tokens.find(t => t.address.toLowerCase() === fromTokenAddress.toLowerCase());
       const toToken = tokens.find(t => t.address.toLowerCase() === toTokenAddress.toLowerCase());
       
@@ -349,29 +366,22 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         throw new Error("Invalid token selection");
       }
       
-      // Get decimals for each token
       const fromDecimals = fromToken.address.toLowerCase() === contractAddresses.priorToken.toLowerCase() 
         ? 18 : fromToken.decimals;
         
-      // Parse the amount with the correct decimals
       const parsedAmount = parseTokenAmount(fromAmount, fromDecimals);
       
-      // Execute the swap on the blockchain
       toast({
         title: "Processing Swap",
         description: `Swapping ${fromAmount} ${fromToken.symbol} to ${toToken.symbol}...`,
       });
       
-      // Execute the actual swap
       await swapTokens(fromTokenAddress, toTokenAddress, parsedAmount, slippage);
       
-      // Force refresh balances
       const updatedBalances = {...tokenBalances};
       
-      // Refresh the token balances from the blockchain
       if (address) {
         try {
-          // We're using our imported contract function to get balances
           const fromTokenContract = await getTokenBalanceFromContract(fromTokenAddress, address);
           const toTokenContract = await getTokenBalanceFromContract(toTokenAddress, address);
           
@@ -384,25 +394,20 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             toTokenContract.balance.toString(), 
             toTokenContract.decimals
           );
+          
+          setTokenBalances(updatedBalances);
         } catch (error) {
           console.error("Error refreshing balances:", error);
         }
-        
-        setTokenBalances(updatedBalances);
       }
       
-      // Try to trigger a quest completion
       if (userId) {
         try {
-          // Record the swap with the backend
           await apiRequest('POST', `/api/users/${userId}/swap`, { address });
           
-          // The first quest is a swap quest
           const swapQuestId = 1;
           await apiRequest('POST', `/api/quests/${swapQuestId}/complete`, { userId });
         } catch (error) {
-          // Ignore errors here, it might just mean they haven't started the quest
-          // or already completed it
           console.error("Error recording swap:", error);
         }
       }
@@ -422,7 +427,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         variant: "destructive"
       });
       
-      throw error;
+      return false; // Return false instead of throwing the error so Promise<boolean> is satisfied
     }
   };
   
@@ -446,7 +451,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   };
   
   return (
-    <WalletContext.Provider value={value as WalletContextType}>
+    <WalletContext.Provider value={value}>
       {children}
     </WalletContext.Provider>
   );

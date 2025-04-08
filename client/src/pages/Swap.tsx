@@ -10,7 +10,16 @@ const Swap = () => {
   let connectWallet = async () => {};
   let tokens: TokenInfo[] = [];
   let getTokenBalance = (_symbol: string) => "0.00";
-  let sendSwapTransaction = async () => false;
+  let sendSwapTransaction = async (
+    fromTokenAddress: string,
+    toTokenAddress: string,
+    fromAmount: string,
+    toAmount: string,
+    slippage: string
+  ): Promise<boolean> => {
+    console.error("Wallet not connected");
+    return false;
+  };
   
   // Only use the wallet context if it's available
   try {
@@ -241,7 +250,7 @@ const Swap = () => {
     }
     
     try {
-      await sendSwapTransaction(
+      const success = await sendSwapTransaction(
         fromToken.address,
         toToken.address,
         fromAmount,
@@ -249,14 +258,16 @@ const Swap = () => {
         slippage
       );
       
-      toast({
-        title: "Swap successful!",
-        description: `Successfully swapped ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`,
-      });
-      
-      // Reset form
-      setFromAmount("");
-      setToAmount("");
+      if (success) {
+        toast({
+          title: "Swap successful!",
+          description: `Successfully swapped ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`,
+        });
+        
+        // Reset form
+        setFromAmount("");
+        setToAmount("");
+      }
     } catch (error: any) {
       toast({
         title: "Swap failed",

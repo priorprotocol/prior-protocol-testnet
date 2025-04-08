@@ -17,11 +17,11 @@ export const baseSepolia = {
 export const getProvider = () => {
   // Check if window.ethereum is available
   if (window.ethereum) {
-    return new ethers.BrowserProvider(window.ethereum);
+    return new ethers.providers.Web3Provider(window.ethereum);
   }
   
   // Fallback to RPC provider
-  return new ethers.JsonRpcProvider(baseSepolia.rpcUrls[0]);
+  return new ethers.providers.JsonRpcProvider(baseSepolia.rpcUrls[0]);
 };
 
 // Function to get signer
@@ -68,7 +68,7 @@ export const switchToBaseSepoliaNetwork = async () => {
 // Function to format token amount with proper decimals
 export const formatTokenAmount = (amount: string, decimals: number): string => {
   try {
-    const formatted = ethers.formatUnits(amount, decimals);
+    const formatted = ethers.utils.formatUnits(amount, decimals);
     // Display up to 4 decimal places max
     return parseFloat(formatted).toLocaleString(undefined, {
       maximumFractionDigits: 4,
@@ -82,7 +82,7 @@ export const formatTokenAmount = (amount: string, decimals: number): string => {
 // Function to parse token amount to wei
 export const parseTokenAmount = (amount: string, decimals: number): string => {
   try {
-    return ethers.parseUnits(amount, decimals).toString();
+    return ethers.utils.parseUnits(amount, decimals).toString();
   } catch (error) {
     console.error("Error parsing token amount:", error);
     return "0";
@@ -93,7 +93,7 @@ export const parseTokenAmount = (amount: string, decimals: number): string => {
 export const getChainId = async (): Promise<number> => {
   const provider = getProvider();
   const network = await provider.getNetwork();
-  return Number(network.chainId);
+  return network.chainId;
 };
 
 // Function to get account
