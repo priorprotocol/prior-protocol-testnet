@@ -56,45 +56,89 @@ const SwapContent = ({
   const getExchangeRate = async () => {
     if (!fromToken || !toToken) return "0";
     
-    // Only PRIOR token pairs are supported by the contract
-    if (fromToken.symbol !== "PRIOR" && toToken.symbol !== "PRIOR") {
-      toast({
-        title: "Unsupported Pair",
-        description: "Only PRIOR token pairs are currently supported for swaps",
-        variant: "destructive"
-      });
-      return "0";
-    }
-    
     setIsLoadingRate(true);
     
     try {
+      // Get mock exchange rates for any token pair
       const { calculateSwapOutput } = await import('@/lib/contracts');
       let rate = "0";
       
-      // Calculate based on which direction we're swapping
-      if (fromToken.symbol === "PRIOR") {
-        // For PRIOR to other token, calculate swap output for 1 PRIOR
-        const result = await calculateSwapOutput(
-          fromToken.address,
-          toToken.address,
-          "1"
-        );
-        
-        if (result && result.amountOut) {
-          // Format the output amount
-          const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
-          rate = formattedAmount;
+      // Define default mock rates for various token pairs (replace with actual API calls in production)
+      const mockRates: Record<string, Record<string, string>> = {
+        "PRIOR": {
+          "USDC": "0.05",
+          "USDT": "0.05",
+          "DAI": "0.05",
+          "WETH": "0.00003"
+        },
+        "USDC": {
+          "PRIOR": "20",
+          "USDT": "1",
+          "DAI": "1",
+          "WETH": "0.0006"
+        },
+        "USDT": {
+          "PRIOR": "20",
+          "USDC": "1",
+          "DAI": "1",
+          "WETH": "0.0006"
+        },
+        "DAI": {
+          "PRIOR": "20",
+          "USDC": "1",
+          "USDT": "1", 
+          "WETH": "0.0006"
+        },
+        "WETH": {
+          "PRIOR": "33333",
+          "USDC": "1667",
+          "USDT": "1667",
+          "DAI": "1667"
         }
-      } else if (toToken.symbol === "PRIOR") {
-        // For token to PRIOR, we need to get the reverse rate
-        // Note: This isn't currently supported by the contract, so this is just placeholder logic
-        toast({
-          title: "Unsupported Direction",
-          description: "Only swapping FROM PRIOR TO other tokens is currently supported",
-          variant: "destructive"
-        });
-        rate = "0";
+      };
+      
+      // Try to get real rate from contract if it's a PRIOR pair
+      if (fromToken.symbol === "PRIOR" || toToken.symbol === "PRIOR") {
+        try {
+          if (fromToken.symbol === "PRIOR") {
+            // For PRIOR to other token
+            const result = await calculateSwapOutput(
+              fromToken.address,
+              toToken.address,
+              "1"
+            );
+            
+            if (result && result.amountOut) {
+              // Format the output amount
+              const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
+              rate = formattedAmount;
+            }
+          } else if (toToken.symbol === "PRIOR") {
+            // For token to PRIOR (reverse calculation)
+            const result = await calculateSwapOutput(
+              toToken.address, 
+              fromToken.address,
+              "1"
+            );
+            
+            if (result && result.amountOut) {
+              // Calculate inverse rate
+              const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
+              // Inverse the rate (1 / rate) for the display
+              const inverseRate = parseFloat(formattedAmount);
+              if (inverseRate > 0) {
+                rate = (1 / inverseRate).toString();
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error getting contract exchange rate:", error);
+          // Fall back to mock rates
+          rate = mockRates[fromToken.symbol]?.[toToken.symbol] || "0";
+        }
+      } else {
+        // For non-PRIOR pairs, use mock rates
+        rate = mockRates[fromToken.symbol]?.[toToken.symbol] || "0";
       }
       
       setExchangeRate(rate);
@@ -106,7 +150,7 @@ const SwapContent = ({
       
       toast({
         title: "Error",
-        description: "Failed to get exchange rate from the contract",
+        description: "Failed to get exchange rate",
         variant: "destructive"
       });
       
@@ -166,29 +210,36 @@ const SwapContent = ({
       setIsCalculatingOutput(true);
       
       try {
-        if (fromToken.symbol !== "PRIOR") {
-          toast({
-            title: "Unsupported Token",
-            description: "Only PRIOR token can be swapped in this contract",
-            variant: "destructive"
-          });
-          setToAmount("0");
-          setIsCalculatingOutput(false);
-          return;
+        // Try to get real output for PRIOR pairs from the contract
+        if (fromToken.symbol === "PRIOR") {
+          try {
+            const { calculateSwapOutput } = await import('@/lib/contracts');
+            
+            const result = await calculateSwapOutput(
+              fromToken.address,
+              toToken.address,
+              value
+            );
+            
+            if (result && result.amountOut) {
+              const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
+              setToAmount(formattedAmount);
+              setIsCalculatingOutput(false);
+              return;
+            }
+          } catch (error) {
+            console.error("Error calculating swap output from contract:", error);
+            // Continue with mock rate calculation below
+          }
         }
         
-        // Always get the actual output from the contract for accuracy
-        const { calculateSwapOutput } = await import('@/lib/contracts');
-        
-        const result = await calculateSwapOutput(
-          fromToken.address,
-          toToken.address,
-          value
-        );
-        
-        if (result && result.amountOut) {
-          const formattedAmount = ethers.utils.formatUnits(result.amountOut, result.toDecimals);
-          setToAmount(formattedAmount);
+        // For non-PRIOR pairs or if contract calculation fails, use the exchange rate
+        const rate = await getExchangeRate();
+        if (rate !== "0") {
+          const calculatedAmount = (parseFloat(value) * parseFloat(rate)).toString();
+          setToAmount(calculatedAmount);
+        } else {
+          setToAmount("0");
         }
       } catch (error) {
         console.error("Error calculating swap output:", error);
@@ -236,47 +287,42 @@ const SwapContent = ({
   
   // Switch the from and to tokens
   const switchTokens = () => {
-    if (fromToken?.symbol !== "PRIOR" && toToken?.symbol === "PRIOR") {
-      // This will make PRIOR the source token, which is what we want
-      const tempToken = fromToken;
-      setFromToken(toToken);
-      setToToken(tempToken);
-      
-      // Also switch the amounts
-      const tempAmount = fromAmount;
-      setFromAmount(toAmount);
-      setToAmount(tempAmount);
-      
-      // Recalculate based on the new from amount
-      handleFromAmountChange(toAmount);
-    } else {
+    // Don't allow swapping if the tokens are the same
+    if (fromToken?.symbol === toToken?.symbol) {
       toast({
-        title: "Unsupported Direction",
-        description: "Only swapping FROM PRIOR TO other tokens is currently supported",
+        title: "Invalid Swap",
+        description: "Cannot swap a token for itself",
         variant: "destructive"
       });
+      return;
     }
+    
+    // Switch the tokens
+    const tempToken = fromToken;
+    setFromToken(toToken);
+    setToToken(tempToken);
+    
+    // Also switch the amounts
+    const tempAmount = fromAmount;
+    setFromAmount(toAmount);
+    setToAmount(tempAmount);
+    
+    // Recalculate based on the new from amount
+    handleFromAmountChange(toAmount);
   };
   
   const selectFromToken = (token: TokenInfo) => {
+    // Don't allow selecting the same token for both sides
     if (token.symbol === toToken?.symbol) {
       // If same token is selected for both sides, swap them
       setToToken(fromToken);
     }
+    
     setFromToken(token);
     setIsFromDropdownOpen(false);
     
-    // Check if the swap direction is valid
-    if (token.symbol !== "PRIOR") {
-      toast({
-        title: "Unsupported Token",
-        description: "Only PRIOR token can be the source token for swaps",
-        variant: "destructive"
-      });
-    } else {
-      // Recalculate amounts with the new token selection
-      handleFromAmountChange(fromAmount);
-    }
+    // Recalculate amounts with the new token selection
+    handleFromAmountChange(fromAmount);
   };
   
   const selectToToken = (token: TokenInfo) => {
@@ -315,20 +361,20 @@ const SwapContent = ({
       return;
     }
     
-    if (fromToken.symbol !== "PRIOR") {
-      toast({
-        title: "Unsupported Token",
-        description: "Only PRIOR token can be swapped in this contract",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     if (parseFloat(fromAmount) > parseFloat(fromBalance)) {
       toast({
         title: "Insufficient Balance",
         description: `You don't have enough ${fromToken.symbol} tokens`,
         variant: "destructive"
+      });
+      return;
+    }
+    
+    // Special handling for non-PRIOR source tokens
+    if (fromToken.symbol !== "PRIOR") {
+      toast({
+        title: "Testnet Mode",
+        description: "In this testnet, only PRIOR token is supported as a source token by the contract. UI displays exchange rates for all pairs, but transactions can only be executed from PRIOR to other tokens.",
       });
       return;
     }
