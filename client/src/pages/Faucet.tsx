@@ -66,9 +66,11 @@ const Faucet = () => {
         
         // Also update our backend to track the claim
         const response = await apiRequest('POST', '/api/claim', { address });
+        
+        // Get the API response directly - apiRequest already handles the JSON parsing
         return {
           txReceipt,
-          apiResponse: await response.json()
+          apiResponse: response
         };
       } catch (error) {
         console.error("Error in claim mutation:", error);
