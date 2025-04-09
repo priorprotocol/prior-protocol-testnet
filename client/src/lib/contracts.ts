@@ -462,8 +462,8 @@ export const contractAddresses = {
   priorSwap: "0x95762B35E9f5631F37b69F4418C500Aba05626bf", // PriorSwap - UPDATED
   mockTokens: {
     // Mock token addresses on Base Sepolia
-    USDC: "0x0C6BAA4B8092B29F6B370e06BdfE67434680E062", // mUSDC with 6 decimals
-    USDT: "0xdaDcC45A00fe893df95488622fA2B64BfFc5E0bf", // mUSDT with 6 decimals
+    USDC: "0xb950C186B2f15D0D85416AC19A16D6F23fD586b7", // mUSDC with 6 decimals
+    USDT: "0xeED9C99a850399F0C408616dc8F9dDCb948aeaA2", // mUSDT with 6 decimals
     DAI: "0x72f30eb1cE25523Ea2Fa63eDe9797481634E496B",  // mDAI with 6 decimals
     WETH: "0xc413B81c5fb4798b8e4c6053AADd383C4Dc3703B"  // mWETH with 18 decimals
   }
