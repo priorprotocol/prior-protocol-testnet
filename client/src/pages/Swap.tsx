@@ -91,7 +91,10 @@ export default function Swap() {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   
-  // Initialize provider
+  // State to store our own wallet address (separate from WalletContext)
+  const [directAddress, setDirectAddress] = useState<string | null>(null);
+
+  // Initialize provider and attempt to get the connected account directly
   useEffect(() => {
     // Safely check if ethereum is available
     const ethereum = typeof window !== 'undefined' && window.ethereum;
@@ -102,7 +105,17 @@ export default function Swap() {
         setProvider(web3Provider);
 
         // Setup listeners
-        ethereum.on('accountsChanged', handleAccountsChanged);
+        ethereum.on('accountsChanged', (accounts: string[]) => {
+          console.log("Accounts changed directly:", accounts);
+          if (accounts && accounts.length > 0) {
+            // Store the address in our component state
+            setDirectAddress(accounts[0]);
+            handleAccountsChanged(accounts);
+          } else {
+            setDirectAddress(null);
+          }
+        });
+
         ethereum.on('chainChanged', handleChainChanged);
         
         // Try to get accounts to see if already connected
@@ -110,7 +123,11 @@ export default function Swap() {
           .then(accounts => {
             if (accounts && accounts.length > 0) {
               console.log("Already connected account found:", accounts[0]);
-              // This will ensure our component knows about the connected account
+              
+              // Store in our own state
+              setDirectAddress(accounts[0]);
+              
+              // Also pass to handler for balance loading
               handleAccountsChanged(accounts);
               
               // Try to get a signer
@@ -124,6 +141,18 @@ export default function Swap() {
           })
           .catch(error => {
             console.error("Error checking accounts:", error);
+          });
+        
+        // Check directly with ethereum object
+        ethereum.request({ method: "eth_accounts" })
+          .then((accounts: any) => {
+            if (accounts && accounts.length > 0) {
+              console.log("Ethereum accounts:", accounts[0]);
+              setDirectAddress(accounts[0]);
+            }
+          })
+          .catch((error: any) => {
+            console.error("Error checking ethereum accounts:", error);
           });
         
         // Clean up event listeners
@@ -319,7 +348,8 @@ export default function Swap() {
 
   // Check if the current account has given allowance to the swap contract
   const checkAllowance = async () => {
-    if (!address || !fromAmount || !provider) return;
+    const walletAddress = directAddress || address;
+    if (!walletAddress || !fromAmount || !provider) return;
     
     try {
       const tokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
@@ -332,7 +362,7 @@ export default function Swap() {
         provider
       );
       
-      const allowance = await tokenContract.allowance(address, contractAddresses.priorSwap);
+      const allowance = await tokenContract.allowance(walletAddress, contractAddresses.priorSwap);
       const amountWei = ethers.utils.parseUnits(fromAmount, tokenDecimals);
       
       setHasAllowance(allowance.gte(amountWei));
@@ -453,13 +483,16 @@ export default function Swap() {
   // Check allowance when inputs change
   useEffect(() => {
     checkAllowance();
-  }, [address, fromToken, fromAmount]);
+  }, [directAddress, address, fromToken, fromAmount]);
 
   // Update balances when address changes
   useEffect(() => {
-    if (address) {
-      console.log("Address detected in useEffect, loading balances:", address);
-      loadBalances(address);
+    // Try using our direct address first, then fall back to global address
+    const currentAddress = directAddress || address;
+    
+    if (currentAddress) {
+      console.log("Address detected in useEffect, loading balances:", currentAddress);
+      loadBalances(currentAddress);
       
       // Also ensure we have a signer if we have an address
       if (provider && !signer) {
@@ -473,7 +506,7 @@ export default function Swap() {
     } else {
       console.log("No address available in useEffect");
     }
-  }, [address, provider, signer]);
+  }, [directAddress, address, provider, signer]);
 
   // Load exchange rates on first render
   useEffect(() => {
@@ -542,14 +575,24 @@ export default function Swap() {
             >
               <FiSettings className="w-5 h-5" />
             </button>
-            {isConnected || address ? (
+            {directAddress || isConnected || address ? (
               <div className="flex items-center bg-gray-800 rounded-full px-3 py-1">
                 <span className="text-sm mr-2">
-                  {address ? `${address.substring(0, 6)}...${address.substring(38)}` : "Connected"}
+                  {directAddress 
+                    ? `${directAddress.substring(0, 6)}...${directAddress.substring(38)}`
+                    : address 
+                      ? `${address.substring(0, 6)}...${address.substring(38)}` 
+                      : "Connected"}
                 </span>
                 <button 
                   onClick={() => {
-                    if (address) {
+                    if (directAddress) {
+                      navigator.clipboard.writeText(directAddress);
+                      toast({
+                        title: "Address Copied",
+                        description: "Wallet address copied to clipboard",
+                      });
+                    } else if (address) {
                       navigator.clipboard.writeText(address);
                       toast({
                         title: "Address Copied",
@@ -736,7 +779,7 @@ export default function Swap() {
 
           {/* Action Button */}
           <div className="mt-4">
-            {!isConnected && !address ? (
+            {!directAddress && !isConnected && !address ? (
               <button
                 onClick={manualConnectWallet}
                 className="w-full bg-gradient-to-r from-[#00df9a] to-blue-500 text-black font-medium py-3 rounded-xl hover:opacity-90 transition-opacity"
