@@ -516,19 +516,19 @@ export default function Swap() {
       let errorMessage = "Failed to execute swap. Please try again.";
       
       if (error.reason && error.reason.includes("Insufficient liquidity")) {
-        // Calculate a suggested amount (10% of the original amount)
+        // Calculate a suggested amount (1% of the original amount)
         const originalAmount = parseFloat(fromAmount);
-        const suggestedAmount = originalAmount * 0.1;
+        const suggestedAmount = Math.min(originalAmount * 0.01, 0.01);
         const formattedSuggestion = suggestedAmount.toFixed(4);
         
-        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a smaller amount (e.g. ${formattedSuggestion} ${fromToken}) or a different token pair.`;
+        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or switch to the PRIOR→USDC pair.`;
       } else if (error.message && error.message.includes("Insufficient liquidity")) {
-        // Calculate a suggested amount (10% of the original amount)
+        // Calculate a suggested amount (1% of the original amount)
         const originalAmount = parseFloat(fromAmount);
-        const suggestedAmount = originalAmount * 0.1;
+        const suggestedAmount = Math.min(originalAmount * 0.01, 0.01);
         const formattedSuggestion = suggestedAmount.toFixed(4);
         
-        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a smaller amount (e.g. ${formattedSuggestion} ${fromToken}) or a different token pair.`;
+        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or switch to the PRIOR→USDC pair.`;
       } else if (error.message && error.message.includes("user rejected")) {
         errorMessage = "Transaction rejected by user.";
       } else if (error.message) {
@@ -741,8 +741,11 @@ export default function Swap() {
 
         {/* Testnet Notice */}
         <div className="bg-indigo-900/70 border border-indigo-700 rounded-xl p-3 mb-4 text-sm">
-          <p className="text-indigo-200 font-medium">
-            <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment with limited liquidity. If you encounter "Insufficient liquidity" errors, try swapping smaller amounts (0.1-10 PRIOR recommended). Token balances may reset periodically.
+          <p className="text-indigo-200 font-medium mb-2">
+            <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment with extremely limited liquidity. Try swapping with very small amounts (0.01-0.1 PRIOR recommended).
+          </p>
+          <p className="text-yellow-300 text-xs">
+            <span className="font-bold">Best working pairs:</span> PRIOR → USDC (try 0.01 PRIOR). Other pairs may not have sufficient liquidity yet.
           </p>
         </div>
 
@@ -790,12 +793,23 @@ export default function Swap() {
           <div className="bg-gray-700 rounded-xl p-3 mb-2">
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm text-gray-400">From</span>
-              <button 
-                onClick={setMaxAmount}
-                className="text-xs bg-gray-600 hover:bg-gray-500 px-2 py-0.5 rounded"
-              >
-                Max: {formatBalance(balances[fromToken] || "0")}
-              </button>
+              <div className="flex space-x-1">
+                {fromToken === "PRIOR" && toToken === "USDC" && (
+                  <button 
+                    onClick={() => setFromAmount("0.01")}
+                    className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
+                    title="Use recommended test amount for PRIOR→USDC"
+                  >
+                    Try: 0.01
+                  </button>
+                )}
+                <button 
+                  onClick={setMaxAmount}
+                  className="text-xs bg-gray-600 hover:bg-gray-500 px-2 py-0.5 rounded"
+                >
+                  Max: {formatBalance(balances[fromToken] || "0")}
+                </button>
+              </div>
             </div>
             <div className="flex items-center">
               <input
@@ -909,7 +923,8 @@ export default function Swap() {
             <div className="mt-3 p-2 bg-gray-700 rounded-lg text-xs">
               <span className="block text-yellow-300 mb-1">🚧 Testnet Environment</span>
               <span className="text-gray-300">
-                Try swapping smaller amounts (0.1-5 PRIOR) for best results. The testnet has limited liquidity and some token pairs may not work.
+                Try swapping very small amounts (0.01-0.1 PRIOR) for best results. 
+                The PRIOR→USDC pair has the best chance of working.
               </span>
             </div>
           </div>
