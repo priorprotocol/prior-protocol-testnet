@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import { FiCopy, FiChevronDown, FiArrowDown, FiRefreshCw, FiSettings, FiExternalLink } from "react-icons/fi";
+import { FiCopy, FiChevronDown, FiArrowDown, FiRefreshCw, FiSettings, FiExternalLink, FiLogOut } from "react-icons/fi";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/context/WalletContext";
 
@@ -69,6 +69,7 @@ export default function Swap() {
     address, 
     isConnected, 
     connectWallet, 
+    disconnectWallet,
     getTokenBalance,
   } = useWallet();
 
@@ -647,26 +648,52 @@ export default function Swap() {
                       ? `${address.substring(0, 6)}...${address.substring(38)}` 
                       : "Connected"}
                 </span>
-                <button 
-                  onClick={() => {
-                    if (directAddress) {
-                      navigator.clipboard.writeText(directAddress);
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={() => {
+                      if (directAddress) {
+                        navigator.clipboard.writeText(directAddress);
+                        toast({
+                          title: "Address Copied",
+                          description: "Wallet address copied to clipboard",
+                        });
+                      } else if (address) {
+                        navigator.clipboard.writeText(address);
+                        toast({
+                          title: "Address Copied",
+                          description: "Wallet address copied to clipboard",
+                        });
+                      }
+                    }}
+                    className="text-gray-400 hover:text-white"
+                    title="Copy address"
+                  >
+                    <FiCopy className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Disconnect the wallet
+                      setDirectAddress(null);
+                      setIsLocalConnected(false);
+                      // Reset balances
+                      setBalances({});
+                      // Display toast
                       toast({
-                        title: "Address Copied",
-                        description: "Wallet address copied to clipboard",
+                        title: "Wallet Disconnected",
+                        description: "Your wallet has been disconnected"
                       });
-                    } else if (address) {
-                      navigator.clipboard.writeText(address);
-                      toast({
-                        title: "Address Copied",
-                        description: "Wallet address copied to clipboard",
-                      });
-                    }
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <FiCopy className="w-4 h-4" />
-                </button>
+                      
+                      // If there's a global disconnect in WalletContext, try to use it
+                      if (disconnectWallet) {
+                        disconnectWallet();
+                      }
+                    }}
+                    className="text-red-400 hover:text-red-300 ml-1"
+                    title="Disconnect wallet"
+                  >
+                    <FiLogOut className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ) : (
               <button
