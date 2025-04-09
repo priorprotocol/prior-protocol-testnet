@@ -1,119 +1,108 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { FiCopy, FiChevronDown, FiArrowDown, FiRefreshCw, FiSettings, FiExternalLink } from "react-icons/fi";
-import { useToast } from "@/hooks/use-toast";
-import { useWallet } from "@/context/WalletContext";
 
-// Import contract addresses and functions from contracts.ts
-import { 
-  contractAddresses, 
-  swapTokens, 
-  approveTokens,
-  getPriorToUSDCRate,
-  getPriorToUSDTRate,
-  getPriorToDAIRate,
-  getPriorToWETHRate
-} from "@/lib/contracts";
+// Contract addresses
+const PRIOR_SWAP_ADDRESS = "0x95762B35E9f5631F37b69F4418C500Aba05626bf";
+const PRIOR_TOKEN_ADDRESS = "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD";
+const USDC_TOKEN_ADDRESS = "0x0C6BAA4B8092B29F6B370e06BdfE67434680E062";
+const USDT_TOKEN_ADDRESS = "0xdaDcC45A00fe893df95488622fA2B64BfFc5E0bf";
+const DAI_TOKEN_ADDRESS = "0x72f30eb1cE25523Ea2Fa63eDe9797481634E496B";
+const WETH_TOKEN_ADDRESS = "0xc413B81c5fb4798b8e4c6053AADd383C4Dc3703B";
 
-import { 
-  getProvider, 
-  getSigner,
-  formatTokenAmount,
-  parseTokenAmount
-} from "@/lib/web3";
+// ABI from your provided contract
+const PRIOR_SWAP_ABI = [
+  // ... (use the full ABI you provided)
+];
 
-// Define token info
+const ERC20_ABI = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)"
+];
+
+const MAX_UINT256 = ethers.MaxUint256.toString();
+
 const TOKENS = {
   PRIOR: {
-    address: contractAddresses.priorToken,
+    address: PRIOR_TOKEN_ADDRESS,
     symbol: "PRIOR",
     decimals: 18,
-    logo: "P",
+    logo: "https://placehold.co/40/00df9a/white?text=P",
     color: "#00df9a"
   },
   USDC: {
-    address: contractAddresses.mockTokens.USDC,
+    address: USDC_TOKEN_ADDRESS,
     symbol: "USDC",
     decimals: 6,
-    logo: "U",
+    logo: "https://placehold.co/40/2775CA/white?text=U",
     color: "#2775CA"
   },
   USDT: {
-    address: contractAddresses.mockTokens.USDT,
+    address: USDT_TOKEN_ADDRESS,
     symbol: "USDT",
     decimals: 6,
-    logo: "U",
+    logo: "https://placehold.co/40/26A17B/white?text=U",
     color: "#26A17B"
   },
   DAI: {
-    address: contractAddresses.mockTokens.DAI,
+    address: DAI_TOKEN_ADDRESS,
     symbol: "DAI",
-    decimals: 6,
-    logo: "D",
+    decimals: 18,
+    logo: "https://placehold.co/40/F5AC37/white?text=D",
     color: "#F5AC37"
   },
   WETH: {
-    address: contractAddresses.mockTokens.WETH,
+    address: WETH_TOKEN_ADDRESS,
     symbol: "WETH",
     decimals: 18,
-    logo: "W",
+    logo: "https://placehold.co/40/627EEA/white?text=W",
     color: "#627EEA"
   }
 };
 
-const MAX_UINT256 = ethers.constants.MaxUint256.toString();
-
-export default function Swap() {
-  const { toast } = useToast();
-  const { 
-    address, 
-    isConnected, 
-    connectWallet, 
-    getTokenBalance,
-  } = useWallet();
-
+const Swap = () => {
   // State variables
-  const [fromToken, setFromToken] = useState<string>("PRIOR");
-  const [toToken, setToToken] = useState<string>("USDC");
-  const [fromAmount, setFromAmount] = useState<string>("");
-  const [toAmount, setToAmount] = useState<string>("0");
-  const [balances, setBalances] = useState<{[key: string]: string}>({});
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isApproving, setIsApproving] = useState<boolean>(false);
-  const [isSwapping, setIsSwapping] = useState<boolean>(false);
-  const [hasAllowance, setHasAllowance] = useState<boolean>(false);
-  const [slippage, setSlippage] = useState<number>(0.5); // 0.5% default slippage
-  const [showSettings, setShowSettings] = useState<boolean>(false);
-  const [txHash, setTxHash] = useState<string>("");
-  const [exchangeRates, setExchangeRates] = useState<{[key: string]: number}>({});
-  const [showFromDropdown, setShowFromDropdown] = useState<boolean>(false);
-  const [showToDropdown, setShowToDropdown] = useState<boolean>(false);
-  const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
-  const [signer, setSigner] = useState<ethers.Signer | null>(null);
-  
+  const [account, setAccount] = useState(null);
+  const [provider, setProvider] = useState(null);
+  const [signer, setSigner] = useState(null);
+  const [balances, setBalances] = useState({});
+  const [fromToken, setFromToken] = useState("PRIOR");
+  const [toToken, setToToken] = useState("USDC");
+  const [fromAmount, setFromAmount] = useState("");
+  const [toAmount, setToAmount] = useState("0");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isSwapping, setIsSwapping] = useState(false);
+  const [hasAllowance, setHasAllowance] = useState(false);
+  const [slippage, setSlippage] = useState(0.5); // 0.5% default slippage
+  const [showSettings, setShowSettings] = useState(false);
+  const [txHash, setTxHash] = useState("");
+  const [exchangeRates, setExchangeRates] = useState({});
+  const [showFromDropdown, setShowFromDropdown] = useState(false);
+  const [showToDropdown, setShowToDropdown] = useState(false);
+
   // Initialize provider
   useEffect(() => {
     if (window.ethereum) {
-      const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
-      setProvider(web3Provider);
+      const initProvider = new ethers.BrowserProvider(window.ethereum);
+      setProvider(initProvider);
 
       window.ethereum.on('accountsChanged', handleAccountsChanged);
       window.ethereum.on('chainChanged', handleChainChanged);
-      
-      // Clean up event listeners
-      return () => {
-        window.ethereum.removeAllListeners('accountsChanged');
-        window.ethereum.removeAllListeners('chainChanged');
-      };
     }
   }, []);
 
-  const handleAccountsChanged = async (accounts: string[]) => {
+  const handleAccountsChanged = (accounts) => {
     if (accounts.length === 0) {
       // Wallet disconnected
+      setAccount(null);
       setBalances({});
     } else {
-      await loadBalances(accounts[0]);
+      setAccount(accounts[0]);
+      loadBalances(accounts[0]);
     }
   };
 
@@ -121,41 +110,35 @@ export default function Swap() {
     window.location.reload();
   };
 
-  // Connect wallet manually
-  const manualConnectWallet = async () => {
+  // Connect wallet
+  const connectWallet = async () => {
     if (!provider) return;
     
     try {
       setIsLoading(true);
       const accounts = await provider.send("eth_requestAccounts", []);
-      const signerInstance = provider.getSigner();
+      const signer = await provider.getSigner();
       
-      setSigner(signerInstance);
+      setAccount(accounts[0]);
+      setSigner(signer);
       await loadBalances(accounts[0]);
       await loadExchangeRates();
-      
-      // Attempt standard connect through wallet context too
-      connectWallet();
     } catch (error) {
       console.error("Error connecting wallet:", error);
-      toast({
-        title: "Connection Error",
-        description: "Failed to connect wallet. Please try again.",
-        variant: "destructive"
-      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Load token balances for selected tokens
-  const loadBalances = async (walletAddress: string) => {
-    const newBalances: {[key: string]: string} = {};
+  // Load token balances
+  const loadBalances = async (walletAddress) => {
+    const newBalances = {};
     
     try {
-      for (const symbol of Object.keys(TOKENS)) {
-        const balance = getTokenBalance(symbol);
-        newBalances[symbol] = balance;
+      for (const [symbol, token] of Object.entries(TOKENS)) {
+        const contract = new ethers.Contract(token.address, ERC20_ABI, provider);
+        const balance = await contract.balanceOf(walletAddress);
+        newBalances[symbol] = ethers.formatUnits(balance, token.decimals);
       }
       
       setBalances(newBalances);
@@ -167,75 +150,56 @@ export default function Swap() {
   // Load exchange rates from contract
   const loadExchangeRates = async () => {
     try {
+      const swapContract = new ethers.Contract(PRIOR_SWAP_ADDRESS, PRIOR_SWAP_ABI, provider);
+      
       const [
         priorToUsdcRate, 
         priorToUsdtRate, 
         priorToDaiRate, 
         priorToWethRate
       ] = await Promise.all([
-        getPriorToUSDCRate(),
-        getPriorToUSDTRate(),
-        getPriorToDAIRate(),
-        getPriorToWETHRate()
+        swapContract.PRIOR_TO_USDC_RATE(),
+        swapContract.PRIOR_TO_USDT_RATE(),
+        swapContract.PRIOR_TO_DAI_RATE(),
+        swapContract.PRIOR_TO_WETH_RATE()
       ]);
 
-      // Convert to proper number formats
-      const priorUsdcValue = ethers.utils.formatUnits(priorToUsdcRate, 6);
-      const priorUsdtValue = ethers.utils.formatUnits(priorToUsdtRate, 6);
-      const priorDaiValue = ethers.utils.formatUnits(priorToDaiRate, 18);
-      const priorWethValue = ethers.utils.formatUnits(priorToWethRate, 18);
-
-      // Calculate inverse rates (approximation)
-      const usdcPriorValue = (1 / parseFloat(priorUsdcValue)).toString();
-      const usdtPriorValue = (1 / parseFloat(priorUsdtValue)).toString();
-      const daiPriorValue = (1 / parseFloat(priorDaiValue)).toString();
-      const wethPriorValue = (1 / parseFloat(priorWethValue)).toString();
+      // Calculate inverse rates for swapping from stablecoins to PRIOR
+      const usdcToPriorRate = 10n ** 36n / priorToUsdcRate;
+      const usdtToPriorRate = 10n ** 36n / priorToUsdtRate;
+      const daiToPriorRate = 10n ** 36n / priorToDaiRate;
+      const wethToPriorRate = 10n ** 36n / priorToWethRate;
 
       setExchangeRates({
-        PRIOR_USDC: parseFloat(priorUsdcValue),
-        PRIOR_USDT: parseFloat(priorUsdtValue),
-        PRIOR_DAI: parseFloat(priorDaiValue),
-        PRIOR_WETH: parseFloat(priorWethValue),
-        USDC_PRIOR: parseFloat(usdcPriorValue),
-        USDT_PRIOR: parseFloat(usdtPriorValue),
-        DAI_PRIOR: parseFloat(daiPriorValue),
-        WETH_PRIOR: parseFloat(wethPriorValue)
+        PRIOR_USDC: parseFloat(ethers.formatUnits(priorToUsdcRate, 6)),
+        PRIOR_USDT: parseFloat(ethers.formatUnits(priorToUsdtRate, 6)),
+        PRIOR_DAI: parseFloat(ethers.formatUnits(priorToDaiRate, 18)),
+        PRIOR_WETH: parseFloat(ethers.formatUnits(priorToWethRate, 18)),
+        USDC_PRIOR: parseFloat(ethers.formatUnits(usdcToPriorRate, 18)),
+        USDT_PRIOR: parseFloat(ethers.formatUnits(usdtToPriorRate, 18)),
+        DAI_PRIOR: parseFloat(ethers.formatUnits(daiToPriorRate, 18)),
+        WETH_PRIOR: parseFloat(ethers.formatUnits(wethToPriorRate, 18))
       });
     } catch (error) {
       console.error("Error loading exchange rates:", error);
-      // Set fallback rates in case of error
-      setExchangeRates({
-        PRIOR_USDC: 0.999,
-        PRIOR_USDT: 0.999,
-        PRIOR_DAI: 0.999,
-        PRIOR_WETH: 0.0005,
-        USDC_PRIOR: 1.001,
-        USDT_PRIOR: 1.001,
-        DAI_PRIOR: 1.001,
-        WETH_PRIOR: 2000
-      });
     }
   };
 
-  // Check if the current account has given allowance to the swap contract
+  // Check token allowance
   const checkAllowance = async () => {
-    if (!address || !fromAmount || !provider) return;
+    if (!account || !fromAmount) return;
     
     try {
-      const tokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
-      const tokenDecimals = TOKENS[fromToken as keyof typeof TOKENS].decimals;
       const tokenContract = new ethers.Contract(
-        tokenAddress,
-        [
-          "function allowance(address owner, address spender) view returns (uint256)",
-        ],
+        TOKENS[fromToken].address, 
+        ERC20_ABI, 
         provider
       );
       
-      const allowance = await tokenContract.allowance(address, contractAddresses.priorSwap);
-      const amountWei = ethers.utils.parseUnits(fromAmount, tokenDecimals);
+      const allowance = await tokenContract.allowance(account, PRIOR_SWAP_ADDRESS);
+      const amountWei = ethers.parseUnits(fromAmount, TOKENS[fromToken].decimals);
       
-      setHasAllowance(allowance.gte(amountWei));
+      setHasAllowance(allowance >= amountWei);
     } catch (error) {
       console.error("Error checking allowance:", error);
       setHasAllowance(false);
@@ -248,21 +212,17 @@ export default function Swap() {
     
     setIsApproving(true);
     try {
-      const tokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
-      await approveTokens(tokenAddress, MAX_UINT256);
+      const tokenContract = new ethers.Contract(
+        TOKENS[fromToken].address, 
+        ERC20_ABI, 
+        signer
+      );
       
+      const tx = await tokenContract.approve(PRIOR_SWAP_ADDRESS, MAX_UINT256);
+      await tx.wait();
       setHasAllowance(true);
-      toast({
-        title: "Approval Successful",
-        description: `Successfully approved ${fromToken} for trading.`,
-      });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error approving token:", error);
-      toast({
-        title: "Approval Failed",
-        description: error.message || "Failed to approve token for trading.",
-        variant: "destructive"
-      });
     } finally {
       setIsApproving(false);
     }
@@ -274,52 +234,60 @@ export default function Swap() {
     
     setIsSwapping(true);
     try {
-      const fromTokenInfo = TOKENS[fromToken as keyof typeof TOKENS];
-      const toTokenInfo = TOKENS[toToken as keyof typeof TOKENS];
-      
-      const amountIn = parseTokenAmount(fromAmount, fromTokenInfo.decimals);
-      
-      // Calculate slippage for minimum amount out (not currently used but good practice)
-      const slippageFactor = 1 - (slippage / 100);
-      const minAmountOut = parseFloat(toAmount) * slippageFactor;
-      
-      // Perform swap
-      const txReceipt = await swapTokens(
-        fromTokenInfo.address,
-        toTokenInfo.address,
-        amountIn,
-        slippage.toString()
-      );
-      
-      if (txReceipt) {
-        setTxHash(txReceipt.transactionHash);
-        toast({
-          title: "Swap Successful",
-          description: `Successfully swapped ${fromAmount} ${fromToken} for approximately ${parseFloat(toAmount).toFixed(6)} ${toToken}`,
-        });
-        
-        // Refresh balances after successful swap
-        if (address) {
-          await loadBalances(address);
+      const swapContract = new ethers.Contract(PRIOR_SWAP_ADDRESS, PRIOR_SWAP_ABI, signer);
+      const amountWei = ethers.parseUnits(fromAmount, TOKENS[fromToken].decimals);
+      let tx;
+
+      if (fromToken === "PRIOR") {
+        switch(toToken) {
+          case "USDC": 
+            tx = await swapContract.swapPriorForUSDC(amountWei); 
+            break;
+          case "USDT": 
+            tx = await swapContract.swapPriorForUSDT(amountWei); 
+            break;
+          case "DAI": 
+            tx = await swapContract.swapPriorForDAI(amountWei); 
+            break;
+          case "WETH": 
+            tx = await swapContract.swapPriorForWETH(amountWei); 
+            break;
+          default: 
+            throw new Error("Unsupported token pair");
         }
-        
-        // Clear inputs after successful swap
-        setFromAmount("");
-        setToAmount("0");
+      } else {
+        switch(fromToken) {
+          case "USDC": 
+            tx = await swapContract.swapUSDCForPrior(amountWei); 
+            break;
+          case "USDT": 
+            tx = await swapContract.swapUSDTForPrior(amountWei); 
+            break;
+          case "DAI": 
+            tx = await swapContract.swapDAIForPrior(amountWei); 
+            break;
+          case "WETH": 
+            tx = await swapContract.swapWETHForPrior(amountWei); 
+            break;
+          default: 
+            throw new Error("Unsupported token pair");
+        }
       }
-    } catch (error: any) {
+
+      setTxHash(tx.hash);
+      await tx.wait();
+      
+      // Refresh balances after swap
+      await loadBalances(account);
+      setFromAmount("");
+    } catch (error) {
       console.error("Error executing swap:", error);
-      toast({
-        title: "Swap Failed",
-        description: error.message || "Failed to execute swap. Please try again.",
-        variant: "destructive"
-      });
     } finally {
       setIsSwapping(false);
     }
   };
 
-  // Calculate expected output amount when input amount changes
+  // Calculate expected output amount
   useEffect(() => {
     if (!fromAmount || isNaN(parseFloat(fromAmount))) {
       setToAmount("0");
@@ -336,13 +304,12 @@ export default function Swap() {
         return;
       }
 
-      // Apply slippage in the preview (this doesn't affect actual transaction)
-      const slippageMultiplier = 1;
+      // Apply slippage
+      const slippageMultiplier = 1 - (slippage / 100);
       const result = amount * rate * slippageMultiplier;
       
       // Format based on token decimals
-      const targetDecimals = TOKENS[toToken as keyof typeof TOKENS].decimals;
-      const formattedResult = result.toFixed(targetDecimals > 6 ? 6 : targetDecimals);
+      const formattedResult = result.toFixed(TOKENS[toToken].decimals > 6 ? 6 : TOKENS[toToken].decimals);
       setToAmount(formattedResult);
     } catch (error) {
       console.error("Calculation error:", error);
@@ -353,22 +320,10 @@ export default function Swap() {
   // Check allowance when inputs change
   useEffect(() => {
     checkAllowance();
-  }, [address, fromToken, fromAmount]);
-
-  // Update balances when address changes
-  useEffect(() => {
-    if (address) {
-      loadBalances(address);
-    }
-  }, [address]);
-
-  // Load exchange rates on first render
-  useEffect(() => {
-    loadExchangeRates();
-  }, []);
+  }, [account, fromToken, fromAmount]);
 
   // Handle token selection
-  const handleFromTokenSelect = (token: string) => {
+  const handleFromTokenSelect = (token) => {
     if (token === toToken) {
       setToToken(fromToken);
     }
@@ -376,7 +331,7 @@ export default function Swap() {
     setShowFromDropdown(false);
   };
 
-  const handleToTokenSelect = (token: string) => {
+  const handleToTokenSelect = (token) => {
     if (token === fromToken) {
       setFromToken(toToken);
     }
@@ -389,11 +344,6 @@ export default function Swap() {
     const temp = fromToken;
     setFromToken(toToken);
     setToToken(temp);
-    
-    // Also switch amounts if possible
-    if (toAmount && toAmount !== "0") {
-      setFromAmount(toAmount);
-    }
   };
 
   // Set max amount
@@ -402,18 +352,13 @@ export default function Swap() {
   };
 
   // Format balance display
-  const formatBalance = (balance: string) => {
-    return parseFloat(balance || "0").toFixed(4);
+  const formatBalance = (balance) => {
+    return parseFloat(balance).toFixed(4);
   };
 
   // Get available tokens for dropdown
-  const getAvailableTokens = (excludeToken: string) => {
+  const getAvailableTokens = (excludeToken) => {
     return Object.keys(TOKENS).filter(token => token !== excludeToken);
-  };
-
-  // Verify if at least one token is PRIOR
-  const isPriorInPair = () => {
-    return fromToken === "PRIOR" || toToken === "PRIOR";
   };
 
   return (
@@ -429,19 +374,13 @@ export default function Swap() {
             >
               <FiSettings className="w-5 h-5" />
             </button>
-            {address ? (
+            {account ? (
               <div className="flex items-center bg-gray-800 rounded-full px-3 py-1">
                 <span className="text-sm mr-2">
-                  {`${address.substring(0, 6)}...${address.substring(38)}`}
+                  {`${account.substring(0, 6)}...${account.substring(38)}`}
                 </span>
                 <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(address);
-                    toast({
-                      title: "Address Copied",
-                      description: "Wallet address copied to clipboard",
-                    });
-                  }}
+                  onClick={() => navigator.clipboard.writeText(account)}
                   className="text-gray-400 hover:text-white"
                 >
                   <FiCopy className="w-4 h-4" />
@@ -449,11 +388,10 @@ export default function Swap() {
               </div>
             ) : (
               <button
-                onClick={isConnected ? () => {} : manualConnectWallet}
-                disabled={isLoading}
+                onClick={connectWallet}
                 className="bg-gradient-to-r from-[#00df9a] to-blue-500 text-black font-medium px-4 py-2 rounded-full hover:opacity-90 transition-opacity"
               >
-                {isLoading ? "Connecting..." : "Connect Wallet"}
+                Connect Wallet
               </button>
             )}
           </div>
@@ -523,10 +461,8 @@ export default function Swap() {
                   onClick={() => setShowFromDropdown(!showFromDropdown)}
                   className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-3 py-2 rounded-lg ml-2 transition-colors"
                 >
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: TOKENS[fromToken as keyof typeof TOKENS].color }}>
-                    <span className="text-white text-sm font-bold">{TOKENS[fromToken as keyof typeof TOKENS].logo}</span>
-                  </div>
-                  <span>{fromToken}</span>
+                  <img src={TOKENS[fromToken].logo} alt={fromToken} className="w-6 h-6 rounded-full" />
+                  <span>{TOKENS[fromToken].symbol}</span>
                   <FiChevronDown className="text-gray-300" />
                 </button>
                 {showFromDropdown && (
@@ -537,10 +473,8 @@ export default function Swap() {
                         onClick={() => handleFromTokenSelect(token)}
                         className="w-full text-left px-4 py-3 hover:bg-gray-700 flex items-center gap-3"
                       >
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: TOKENS[token as keyof typeof TOKENS].color }}>
-                          <span className="text-white text-sm font-bold">{TOKENS[token as keyof typeof TOKENS].logo}</span>
-                        </div>
-                        <span>{token}</span>
+                        <img src={TOKENS[token].logo} alt={token} className="w-6 h-6 rounded-full" />
+                        <span>{TOKENS[token].symbol}</span>
                       </button>
                     ))}
                   </div>
@@ -579,10 +513,8 @@ export default function Swap() {
                   onClick={() => setShowToDropdown(!showToDropdown)}
                   className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-3 py-2 rounded-lg ml-2 transition-colors"
                 >
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: TOKENS[toToken as keyof typeof TOKENS].color }}>
-                    <span className="text-white text-sm font-bold">{TOKENS[toToken as keyof typeof TOKENS].logo}</span>
-                  </div>
-                  <span>{toToken}</span>
+                  <img src={TOKENS[toToken].logo} alt={toToken} className="w-6 h-6 rounded-full" />
+                  <span>{TOKENS[toToken].symbol}</span>
                   <FiChevronDown className="text-gray-300" />
                 </button>
                 {showToDropdown && (
@@ -593,10 +525,8 @@ export default function Swap() {
                         onClick={() => handleToTokenSelect(token)}
                         className="w-full text-left px-4 py-3 hover:bg-gray-700 flex items-center gap-3"
                       >
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: TOKENS[token as keyof typeof TOKENS].color }}>
-                          <span className="text-white text-sm font-bold">{TOKENS[token as keyof typeof TOKENS].logo}</span>
-                        </div>
-                        <span>{token}</span>
+                        <img src={TOKENS[token].logo} alt={token} className="w-6 h-6 rounded-full" />
+                        <span>{TOKENS[token].symbol}</span>
                       </button>
                     ))}
                   </div>
@@ -610,7 +540,7 @@ export default function Swap() {
             <div className="flex justify-between">
               <span>Rate</span>
               <span>
-                1 {fromToken} = {exchangeRates[`${fromToken}_${toToken}`]?.toFixed(6) || '0'} {toToken}
+                1 {TOKENS[fromToken].symbol} = {exchangeRates[`${fromToken}_${toToken}`]?.toFixed(6) || '0'} {TOKENS[toToken].symbol}
               </span>
             </div>
             <div className="flex justify-between mt-1">
@@ -621,31 +551,24 @@ export default function Swap() {
 
           {/* Action Button */}
           <div className="mt-4">
-            {!address ? (
+            {!account ? (
               <button
-                onClick={manualConnectWallet}
+                onClick={connectWallet}
                 className="w-full bg-gradient-to-r from-[#00df9a] to-blue-500 text-black font-medium py-3 rounded-xl hover:opacity-90 transition-opacity"
               >
                 Connect Wallet
-              </button>
-            ) : !isPriorInPair() ? (
-              <button 
-                disabled
-                className="w-full bg-gray-700 text-gray-400 font-medium py-3 rounded-xl"
-              >
-                Pair must include PRIOR
               </button>
             ) : parseFloat(fromAmount) > parseFloat(balances[fromToken] || "0") ? (
               <button 
                 disabled
                 className="w-full bg-gray-700 text-gray-400 font-medium py-3 rounded-xl"
               >
-                Insufficient {fromToken} balance
+                Insufficient {TOKENS[fromToken].symbol} balance
               </button>
             ) : !hasAllowance ? (
               <button 
                 onClick={approveToken}
-                disabled={isApproving || !fromAmount || parseFloat(fromAmount) <= 0}
+                disabled={isApproving || !fromAmount}
                 className={`w-full ${isApproving ? 'bg-gray-600' : 'bg-gradient-to-r from-blue-600 to-blue-500'} text-white font-medium py-3 rounded-xl transition-colors`}
               >
                 {isApproving ? (
@@ -653,12 +576,12 @@ export default function Swap() {
                     <FiRefreshCw className="animate-spin mr-2" />
                     Approving...
                   </span>
-                ) : `Approve ${fromToken}`}
+                ) : `Approve ${TOKENS[fromToken].symbol}`}
               </button>
             ) : (
               <button
                 onClick={executeSwap}
-                disabled={isSwapping || !fromAmount || parseFloat(fromAmount) <= 0}
+                disabled={isSwapping || !fromAmount}
                 className={`w-full ${isSwapping ? 'bg-gray-600' : 'bg-gradient-to-r from-[#00df9a] to-blue-500'} text-black font-medium py-3 rounded-xl transition-colors`}
               >
                 {isSwapping ? (
@@ -666,7 +589,7 @@ export default function Swap() {
                     <FiRefreshCw className="animate-spin mr-2" />
                     Swapping...
                   </span>
-                ) : `Swap to ${toToken}`}
+                ) : `Swap to ${TOKENS[toToken].symbol}`}
               </button>
             )}
           </div>
@@ -688,4 +611,6 @@ export default function Swap() {
       </div>
     </div>
   );
-}
+};
+
+export default Swap;
