@@ -160,22 +160,15 @@ export default function Swap() {
       // First use the global wallet context's connect method
       await connectWallet();
       
-      // Then try to get a signer if we have a provider
-      if (provider) {
-        try {
-          const signerInstance = provider.getSigner();
-          setSigner(signerInstance);
-        } catch (error) {
-          console.error("Error getting signer:", error);
-        }
-      }
-      
       // Force a direct request to ensure MetaMask popup appears
       if (window.ethereum) {
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
         console.log("Connected accounts:", accounts);
         
         if (accounts && accounts.length > 0) {
+          // Manually set the address in our component state
+          const connectedAddress = accounts[0];
+          
           // Force wallet chain check
           try {
             const chainId = await window.ethereum.request({ method: 'eth_chainId' });
@@ -212,9 +205,35 @@ export default function Swap() {
             console.error("Error checking chain:", chainError);
           }
           
-          // Update the state in our component
-          await loadBalances(accounts[0]);
-          await loadExchangeRates();
+          // Then try to get a signer if we have a provider
+          if (provider) {
+            try {
+              const signerInstance = provider.getSigner();
+              setSigner(signerInstance);
+              
+              // Force update our component state with the newly connected address
+              await loadBalances(connectedAddress);
+              await loadExchangeRates();
+              
+              // Show a success toast
+              toast({
+                title: "Wallet Connected",
+                description: `Connected to ${connectedAddress.substring(0, 6)}...${connectedAddress.substring(connectedAddress.length - 4)}`,
+              });
+              
+              // Try to force a refresh of the WalletContext
+              try {
+                const { updateWalletAddressGlobally } = await import('@/context/WalletContext');
+                if (updateWalletAddressGlobally) {
+                  updateWalletAddressGlobally(connectedAddress);
+                }
+              } catch (error) {
+                console.error("Error updating global wallet state:", error);
+              }
+            } catch (error) {
+              console.error("Error getting signer:", error);
+            }
+          }
         }
       }
     } catch (error) {
@@ -523,18 +542,20 @@ export default function Swap() {
             >
               <FiSettings className="w-5 h-5" />
             </button>
-            {address ? (
+            {isConnected || address ? (
               <div className="flex items-center bg-gray-800 rounded-full px-3 py-1">
                 <span className="text-sm mr-2">
-                  {`${address.substring(0, 6)}...${address.substring(38)}`}
+                  {address ? `${address.substring(0, 6)}...${address.substring(38)}` : "Connected"}
                 </span>
                 <button 
                   onClick={() => {
-                    navigator.clipboard.writeText(address);
-                    toast({
-                      title: "Address Copied",
-                      description: "Wallet address copied to clipboard",
-                    });
+                    if (address) {
+                      navigator.clipboard.writeText(address);
+                      toast({
+                        title: "Address Copied",
+                        description: "Wallet address copied to clipboard",
+                      });
+                    }
                   }}
                   className="text-gray-400 hover:text-white"
                 >
@@ -543,7 +564,7 @@ export default function Swap() {
               </div>
             ) : (
               <button
-                onClick={isConnected ? () => {} : manualConnectWallet}
+                onClick={manualConnectWallet}
                 disabled={isLoading}
                 className="bg-gradient-to-r from-[#00df9a] to-blue-500 text-black font-medium px-4 py-2 rounded-full hover:opacity-90 transition-opacity"
               >
@@ -715,7 +736,7 @@ export default function Swap() {
 
           {/* Action Button */}
           <div className="mt-4">
-            {!address ? (
+            {!isConnected && !address ? (
               <button
                 onClick={manualConnectWallet}
                 className="w-full bg-gradient-to-r from-[#00df9a] to-blue-500 text-black font-medium py-3 rounded-xl hover:opacity-90 transition-opacity"
