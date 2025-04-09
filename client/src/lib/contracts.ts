@@ -173,12 +173,288 @@ const priorTokenAbi = [
 
 // Define standard ERC20 token ABI for other tokens
 const tokenAbi = [
-  "function name() view returns (string)",
-  "function symbol() view returns (string)",
-  "function decimals() view returns (uint8)",
-  "function balanceOf(address) view returns (uint256)",
-  "function transfer(address to, uint amount) returns (bool)",
-  "function approve(address spender, uint256 amount) returns (bool)"
+        {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "spender",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "allowance",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "needed",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "ERC20InsufficientAllowance",
+                "type": "error"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "sender",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "balance",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "needed",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "ERC20InsufficientBalance",
+                "type": "error"
+        },
+        {
+                "anonymous": false,
+                "inputs": [
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "owner",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "spender",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": false,
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "Approval",
+                "type": "event"
+        },
+        {
+                "anonymous": false,
+                "inputs": [
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "from",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "to",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": false,
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "Transfer",
+                "type": "event"
+        },
+        {
+                "inputs": [],
+                "name": "INITIAL_SUPPLY",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "owner",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "spender",
+                                "type": "address"
+                        }
+                ],
+                "name": "allowance",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "spender",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "approve",
+                "outputs": [
+                        {
+                                "internalType": "bool",
+                                "name": "",
+                                "type": "bool"
+                        }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "account",
+                                "type": "address"
+                        }
+                ],
+                "name": "balanceOf",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "decimals",
+                "outputs": [
+                        {
+                                "internalType": "uint8",
+                                "name": "",
+                                "type": "uint8"
+                        }
+                ],
+                "stateMutability": "pure",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "name",
+                "outputs": [
+                        {
+                                "internalType": "string",
+                                "name": "",
+                                "type": "string"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "symbol",
+                "outputs": [
+                        {
+                                "internalType": "string",
+                                "name": "",
+                                "type": "string"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "totalSupply",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "to",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "transfer",
+                "outputs": [
+                        {
+                                "internalType": "bool",
+                                "name": "",
+                                "type": "bool"
+                        }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "from",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "to",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "transferFrom",
+                "outputs": [
+                        {
+                                "internalType": "bool",
+                                "name": "",
+                                "type": "bool"
+                        }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        }
 ];
 
 // Define PriorSwap contract ABI - updated with new ABI
@@ -219,6 +495,85 @@ const swapAbi = [
         {
                 "inputs": [
                         {
+                                "internalType": "address",
+                                "name": "_priorToken",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "_usdcToken",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "_usdtToken",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "_daiToken",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "_wethToken",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "owner",
+                                "type": "address"
+                        }
+                ],
+                "name": "OwnableInvalidOwner",
+                "type": "error"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "account",
+                                "type": "address"
+                        }
+                ],
+                "name": "OwnableUnauthorizedAccount",
+                "type": "error"
+        },
+        {
+                "anonymous": false,
+                "inputs": [
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "previousOwner",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "newOwner",
+                                "type": "address"
+                        }
+                ],
+                "name": "OwnershipTransferred",
+                "type": "event"
+        },
+        {
+                "inputs": [],
+                "name": "renounceOwnership",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
                                 "internalType": "uint256",
                                 "name": "daiAmount",
                                 "type": "uint256"
@@ -228,6 +583,37 @@ const swapAbi = [
                 "outputs": [],
                 "stateMutability": "nonpayable",
                 "type": "function"
+        },
+        {
+                "anonymous": false,
+                "inputs": [
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "user",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": false,
+                                "internalType": "string",
+                                "name": "swapType",
+                                "type": "string"
+                        },
+                        {
+                                "indexed": false,
+                                "internalType": "uint256",
+                                "name": "amountIn",
+                                "type": "uint256"
+                        },
+                        {
+                                "indexed": false,
+                                "internalType": "uint256",
+                                "name": "amountOut",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "SwapExecuted",
+                "type": "event"
         },
         {
                 "inputs": [
@@ -321,6 +707,37 @@ const swapAbi = [
                 "type": "function"
         },
         {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "newOwner",
+                                "type": "address"
+                        }
+                ],
+                "name": "transferOwnership",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "token",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "amount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "withdrawTokens",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
                 "inputs": [],
                 "name": "daiToken",
                 "outputs": [
@@ -341,6 +758,19 @@ const swapAbi = [
                                 "internalType": "uint256",
                                 "name": "",
                                 "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                        {
+                                "internalType": "address",
+                                "name": "",
+                                "type": "address"
                         }
                 ],
                 "stateMutability": "view",
