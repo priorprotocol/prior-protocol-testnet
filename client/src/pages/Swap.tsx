@@ -319,6 +319,15 @@ export default function Swap() {
     try {
       console.log("Fetching token balances for address:", walletAddress);
       
+      // Debug: Print out token addresses being used
+      console.log("Token addresses being used:");
+      console.log("PRIOR:", TOKENS.PRIOR.address);
+      console.log("USDC:", TOKENS.USDC.address);
+      console.log("USDT:", TOKENS.USDT.address);
+      console.log("DAI:", TOKENS.DAI.address);
+      console.log("WETH:", TOKENS.WETH.address);
+      console.log("PriorSwap contract:", contractAddresses.priorSwap);
+      
       // Properly fetch all token balances from the contract
       if (provider) {
         for (const symbol of Object.keys(TOKENS)) {
@@ -506,13 +515,22 @@ export default function Swap() {
       // Handle specific error messages with more user-friendly text
       let errorMessage = "Failed to execute swap. Please try again.";
       
-      if (error.reason === "execution reverted: Insufficient liquidity") {
-        // Calculate a suggested amount (25% of the original amount)
+      if (error.reason && error.reason.includes("Insufficient liquidity")) {
+        // Calculate a suggested amount (10% of the original amount)
         const originalAmount = parseFloat(fromAmount);
-        const suggestedAmount = originalAmount * 0.25;
+        const suggestedAmount = originalAmount * 0.1;
         const formattedSuggestion = suggestedAmount.toFixed(4);
         
         errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a smaller amount (e.g. ${formattedSuggestion} ${fromToken}) or a different token pair.`;
+      } else if (error.message && error.message.includes("Insufficient liquidity")) {
+        // Calculate a suggested amount (10% of the original amount)
+        const originalAmount = parseFloat(fromAmount);
+        const suggestedAmount = originalAmount * 0.1;
+        const formattedSuggestion = suggestedAmount.toFixed(4);
+        
+        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a smaller amount (e.g. ${formattedSuggestion} ${fromToken}) or a different token pair.`;
+      } else if (error.message && error.message.includes("user rejected")) {
+        errorMessage = "Transaction rejected by user.";
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -721,6 +739,13 @@ export default function Swap() {
           </div>
         </div>
 
+        {/* Testnet Notice */}
+        <div className="bg-indigo-900/70 border border-indigo-700 rounded-xl p-3 mb-4 text-sm">
+          <p className="text-indigo-200 font-medium">
+            <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment with limited liquidity. If you encounter "Insufficient liquidity" errors, try swapping smaller amounts (0.1-10 PRIOR recommended). Token balances may reset periodically.
+          </p>
+        </div>
+
         {/* Swap Card */}
         <div className="bg-gray-800 rounded-2xl p-4 shadow-xl border border-gray-700">
           {/* Settings Panel */}
@@ -884,7 +909,7 @@ export default function Swap() {
             <div className="mt-3 p-2 bg-gray-700 rounded-lg text-xs">
               <span className="block text-yellow-300 mb-1">🚧 Testnet Environment</span>
               <span className="text-gray-300">
-                This is a testnet DEX with limited liquidity. You might encounter "Insufficient liquidity" errors when swapping large amounts. Try smaller amounts if this happens.
+                Try swapping smaller amounts (0.1-5 PRIOR) for best results. The testnet has limited liquidity and some token pairs may not work.
               </span>
             </div>
           </div>
