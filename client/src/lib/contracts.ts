@@ -181,125 +181,275 @@ const tokenAbi = [
   "function approve(address spender, uint256 amount) returns (bool)"
 ];
 
-// Define PriorSwap contract ABI - full ABI for the actual PriorSwap contract
+// Define PriorSwap contract ABI - updated with new ABI
 const swapAbi = [
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "priorAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "swapPriorForUSDC",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "priorAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "swapPriorForUSDT",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "priorAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "swapPriorForDAI",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "priorAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "swapPriorForWETH",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "PRIOR_TO_USDC_RATE",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "PRIOR_TO_USDT_RATE",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "PRIOR_TO_DAI_RATE",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "PRIOR_TO_WETH_RATE",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "FEE_BASIS_POINTS",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  }
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "priorAmount",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "usdcAmount",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "usdtAmount",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "daiAmount",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "wethAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "fundSwapWithTokens",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "daiAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapDAIForPrior",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "priorAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapPriorForDAI",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "priorAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapPriorForUSDC",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "priorAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapPriorForUSDT",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "priorAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapPriorForWETH",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "usdcAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapUSDCForPrior",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "usdtAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapUSDTForPrior",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "wethAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapWETHForPrior",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "daiToken",
+                "outputs": [
+                        {
+                                "internalType": "contract IERC20",
+                                "name": "",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "FEE_BASIS_POINTS",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "PRIOR_TO_DAI_RATE",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "PRIOR_TO_USDC_RATE",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "PRIOR_TO_USDT_RATE",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "PRIOR_TO_WETH_RATE",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "priorToken",
+                "outputs": [
+                        {
+                                "internalType": "contract IERC20",
+                                "name": "",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "usdcToken",
+                "outputs": [
+                        {
+                                "internalType": "contract IERC20",
+                                "name": "",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "usdtToken",
+                "outputs": [
+                        {
+                                "internalType": "contract IERC20",
+                                "name": "",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "wethToken",
+                "outputs": [
+                        {
+                                "internalType": "contract IERC20",
+                                "name": "",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        }
 ];
 
 // New contract addresses
@@ -309,7 +459,7 @@ export const PRIOR_PIONEER_NFT_ADDRESS = "0x2a45dfDbdCfcF72CBE835435eD54f4beE7d0
 export const contractAddresses = {
   // Real token addresses on Base Sepolia testnet
   priorToken: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // PRIOR token
-  priorSwap: "0x1e09f076824fFD47eC47E94C0dB8F5702Fd5ef9e", // PriorSwap
+  priorSwap: "0x95762B35E9f5631F37b69F4418C500Aba05626bf", // PriorSwap - UPDATED
   mockTokens: {
     // Mock token addresses on Base Sepolia
     USDC: "0x0C6BAA4B8092B29F6B370e06BdfE67434680E062", // mUSDC with 6 decimals
@@ -441,7 +591,7 @@ export const approveTokens = async (tokenAddress: string, amount: string) => {
   }
 };
 
-// Function to perform token swap
+// Function to perform token swap - now supporting both directions
 export const swapTokens = async (
   fromTokenAddress: string,
   toTokenAddress: string,
@@ -449,30 +599,44 @@ export const swapTokens = async (
   slippageTolerance: string
 ) => {
   try {
-    // Only PRIOR token can be swapped in this contract
-    if (fromTokenAddress.toLowerCase() !== contractAddresses.priorToken.toLowerCase()) {
-      throw new Error("Only PRIOR token can be swapped in this contract");
-    }
-    
     // First approve the tokens
     await approveTokens(fromTokenAddress, amountIn);
     
     // Get swap contract with signer
     const swapContract = await getSwapContractWithSigner();
     
-    // Determine which swap function to call based on the destination token
+    // Determine which swap function to call based on the token pair
     let tx;
     
-    if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
-      tx = await swapContract.swapPriorForUSDC(amountIn);
-    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
-      tx = await swapContract.swapPriorForUSDT(amountIn);
-    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
-      tx = await swapContract.swapPriorForDAI(amountIn);
-    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
-      tx = await swapContract.swapPriorForWETH(amountIn);
+    // Swapping from PRIOR to other tokens
+    if (fromTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+        tx = await swapContract.swapPriorForUSDC(amountIn);
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+        tx = await swapContract.swapPriorForUSDT(amountIn);
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+        tx = await swapContract.swapPriorForDAI(amountIn);
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+        tx = await swapContract.swapPriorForWETH(amountIn);
+      } else {
+        throw new Error("Unsupported token pair for swap");
+      }
+    } 
+    // Swapping from other tokens to PRIOR
+    else if (toTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+        tx = await swapContract.swapUSDCForPrior(amountIn);
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+        tx = await swapContract.swapUSDTForPrior(amountIn);
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+        tx = await swapContract.swapDAIForPrior(amountIn);
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+        tx = await swapContract.swapWETHForPrior(amountIn);
+      } else {
+        throw new Error("Unsupported token pair for swap");
+      }
     } else {
-      throw new Error("Unsupported token pair for swap");
+      throw new Error("At least one side of the swap must be PRIOR token");
     }
     
     return await tx.wait();
@@ -591,28 +755,31 @@ export const checkPriorPioneerNFT = async (address: string): Promise<boolean> =>
 
 export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddress: string, amountIn: string) => {
   try {
-    if (fromTokenAddress.toLowerCase() !== contractAddresses.priorToken.toLowerCase()) {
-      throw new Error("Only PRIOR token can be swapped in this contract");
-    }
-    
-    let rate;
-    if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
-      rate = await getPriorToUSDCRate();
-    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
-      rate = await getPriorToUSDTRate();
-    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
-      rate = await getPriorToDAIRate();
-    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
-      rate = await getPriorToWETHRate();
-    } else {
-      throw new Error("Unsupported token pair for swap");
-    }
-    
+    // Get fee basis points
     const feeBasisPoints = await getSwapFee();
+    const feeBasisPointsBN = ethers.BigNumber.from(feeBasisPoints.toString());
+    const tenThousand = ethers.BigNumber.from(10000);
+    const million = ethers.BigNumber.from(1000000);
     
-    // Determine the destination token decimals
+    // Get source token decimals
+    let fromTokenDecimals = 18;
+    if (fromTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      fromTokenDecimals = tokenDecimals.PRIOR;
+    } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+      fromTokenDecimals = tokenDecimals.USDC;
+    } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+      fromTokenDecimals = tokenDecimals.USDT;
+    } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+      fromTokenDecimals = tokenDecimals.DAI;
+    } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+      fromTokenDecimals = tokenDecimals.WETH;
+    }
+    
+    // Get destination token decimals
     let toTokenDecimals = 18;
-    if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+    if (toTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      toTokenDecimals = tokenDecimals.PRIOR;
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
       toTokenDecimals = tokenDecimals.USDC;
     } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
       toTokenDecimals = tokenDecimals.USDT;
@@ -622,31 +789,79 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
       toTokenDecimals = tokenDecimals.WETH;
     }
     
-    // Convert amount to proper format for calculations using PRIOR token decimals (18)
-    const amountBigNumber = ethers.utils.parseUnits(amountIn, tokenDecimals.PRIOR);
+    // Convert input amount to BigNumber using source token decimals
+    const amountBigNumber = ethers.utils.parseUnits(amountIn, fromTokenDecimals);
     
-    // For ethers v5.x, we need to handle BigNumber (not BigInt) operations
-    // Convert rate to ethers.BigNumber for compatibility
-    const rateAsBigNumber = ethers.BigNumber.from(rate.toString());
-    const million = ethers.BigNumber.from(1000000);
-    
-    // Calculate raw amount (PRIOR * 1000000 / rate)
-    const rawAmount = amountBigNumber.mul(million).div(rateAsBigNumber);
-    
-    // Apply fee (amount - (amount * fee / 10000))
-    const feeBasisPointsBN = ethers.BigNumber.from(feeBasisPoints.toString());
-    const tenThousand = ethers.BigNumber.from(10000);
-    const feeAmount = rawAmount.mul(feeBasisPointsBN).div(tenThousand);
-    const amountOut = rawAmount.sub(feeAmount);
-    
-    return {
-      amountIn: amountBigNumber,
-      amountOut,
-      rate,
-      fee: feeBasisPoints,
-      fromDecimals: tokenDecimals.PRIOR,
-      toDecimals: toTokenDecimals
-    };
+    // Case 1: PRIOR -> Other token
+    if (fromTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      let rate;
+      if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+        rate = await getPriorToUSDCRate();
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+        rate = await getPriorToUSDTRate();
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+        rate = await getPriorToDAIRate();
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+        rate = await getPriorToWETHRate();
+      } else {
+        throw new Error("Unsupported token pair for swap");
+      }
+      
+      // Convert rate to ethers.BigNumber
+      const rateAsBigNumber = ethers.BigNumber.from(rate.toString());
+      
+      // Calculate raw amount (PRIOR * 1000000 / rate)
+      const rawAmount = amountBigNumber.mul(million).div(rateAsBigNumber);
+      
+      // Apply fee (amount - (amount * fee / 10000))
+      const feeAmount = rawAmount.mul(feeBasisPointsBN).div(tenThousand);
+      const amountOut = rawAmount.sub(feeAmount);
+      
+      return {
+        amountIn: amountBigNumber,
+        amountOut,
+        rate,
+        fee: feeBasisPoints,
+        fromDecimals: fromTokenDecimals,
+        toDecimals: toTokenDecimals
+      };
+    } 
+    // Case 2: Other token -> PRIOR
+    else if (toTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      let rate;
+      if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+        rate = await getPriorToUSDCRate();
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+        rate = await getPriorToUSDTRate();
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+        rate = await getPriorToDAIRate();
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+        rate = await getPriorToWETHRate();
+      } else {
+        throw new Error("Unsupported token pair for swap");
+      }
+      
+      // Convert rate to ethers.BigNumber
+      const rateAsBigNumber = ethers.BigNumber.from(rate.toString());
+      
+      // Calculate raw amount (token * rate / 1000000)
+      const rawAmount = amountBigNumber.mul(rateAsBigNumber).div(million);
+      
+      // Apply fee (amount - (amount * fee / 10000))
+      const feeAmount = rawAmount.mul(feeBasisPointsBN).div(tenThousand);
+      const amountOut = rawAmount.sub(feeAmount);
+      
+      return {
+        amountIn: amountBigNumber,
+        amountOut,
+        rate,
+        fee: feeBasisPoints,
+        fromDecimals: fromTokenDecimals,
+        toDecimals: toTokenDecimals
+      };
+    } else {
+      throw new Error("At least one side of the swap must be PRIOR token");
+    }
   } catch (error) {
     console.error("Error calculating swap output:", error);
     throw error;

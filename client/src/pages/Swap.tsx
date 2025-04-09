@@ -418,11 +418,12 @@ export default function Swap() {
       return;
     }
     
-    // In this testnet, only PRIOR can be the source token
-    if (fromToken.symbol !== "PRIOR") {
+    // Ensure one of the tokens is PRIOR - bidirectional swaps now supported
+    if (fromToken.symbol !== "PRIOR" && toToken.symbol !== "PRIOR") {
       toast({
-        title: "Testnet Mode",
-        description: "In this testnet, only PRIOR token is supported as a source token. UI displays exchange rates for all pairs, but transactions can only be executed from PRIOR to other tokens.",
+        title: "Swap Limitation",
+        description: "At least one side of the swap must be PRIOR token. Direct swaps between other tokens are not supported.",
+        variant: "destructive"
       });
       return;
     }
@@ -691,7 +692,7 @@ export default function Swap() {
           
           {/* Testnet Note */}
           <div className="mt-4 text-xs text-center text-gray-400">
-            <p>This is a testnet implementation. Only PRIOR can be used as the source token for actual swaps.</p>
+            <p>This is a testnet implementation. Swaps must involve PRIOR token on at least one side of the pair.</p>
           </div>
         </div>
       </div>
