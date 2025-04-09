@@ -93,18 +93,49 @@ export default function Swap() {
   
   // Initialize provider
   useEffect(() => {
-    if (window.ethereum) {
-      const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
-      setProvider(web3Provider);
+    // Safely check if ethereum is available
+    const ethereum = typeof window !== 'undefined' && window.ethereum;
+    
+    if (ethereum) {
+      try {
+        const web3Provider = new ethers.providers.Web3Provider(ethereum);
+        setProvider(web3Provider);
 
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
-      
-      // Clean up event listeners
-      return () => {
-        window.ethereum.removeAllListeners('accountsChanged');
-        window.ethereum.removeAllListeners('chainChanged');
-      };
+        // Setup listeners
+        ethereum.on('accountsChanged', handleAccountsChanged);
+        ethereum.on('chainChanged', handleChainChanged);
+        
+        // Try to get accounts to see if already connected
+        web3Provider.listAccounts()
+          .then(accounts => {
+            if (accounts && accounts.length > 0) {
+              console.log("Already connected account found:", accounts[0]);
+              // This will ensure our component knows about the connected account
+              handleAccountsChanged(accounts);
+              
+              // Try to get a signer
+              try {
+                const signerInstance = web3Provider.getSigner();
+                setSigner(signerInstance);
+              } catch (signerError) {
+                console.error("Error getting signer during initialization:", signerError);
+              }
+            }
+          })
+          .catch(error => {
+            console.error("Error checking accounts:", error);
+          });
+        
+        // Clean up event listeners
+        return () => {
+          ethereum.removeAllListeners('accountsChanged');
+          ethereum.removeAllListeners('chainChanged');
+        };
+      } catch (error) {
+        console.error("Error initializing provider:", error);
+      }
+    } else {
+      console.log("No ethereum object found in window. MetaMask may not be installed.");
     }
   }, []);
 
@@ -121,21 +152,71 @@ export default function Swap() {
     window.location.reload();
   };
 
-  // Connect wallet manually
+  // Connect wallet manually - improved to ensure proper connection with WalletContext
   const manualConnectWallet = async () => {
-    if (!provider) return;
-    
     try {
       setIsLoading(true);
-      const accounts = await provider.send("eth_requestAccounts", []);
-      const signerInstance = provider.getSigner();
       
-      setSigner(signerInstance);
-      await loadBalances(accounts[0]);
-      await loadExchangeRates();
+      // First use the global wallet context's connect method
+      await connectWallet();
       
-      // Attempt standard connect through wallet context too
-      connectWallet();
+      // Then try to get a signer if we have a provider
+      if (provider) {
+        try {
+          const signerInstance = provider.getSigner();
+          setSigner(signerInstance);
+        } catch (error) {
+          console.error("Error getting signer:", error);
+        }
+      }
+      
+      // Force a direct request to ensure MetaMask popup appears
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        console.log("Connected accounts:", accounts);
+        
+        if (accounts && accounts.length > 0) {
+          // Force wallet chain check
+          try {
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            const desiredChainId = '0x14a34'; // Base Sepolia chain ID
+            
+            if (chainId !== desiredChainId) {
+              // Try to switch to Base Sepolia
+              try {
+                await window.ethereum.request({
+                  method: 'wallet_switchEthereumChain',
+                  params: [{ chainId: desiredChainId }],
+                });
+              } catch (switchError: any) {
+                // Chain doesn't exist, let's add it
+                if (switchError.code === 4902) {
+                  await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                      chainId: desiredChainId,
+                      chainName: 'Base Sepolia',
+                      nativeCurrency: {
+                        name: 'ETH',
+                        symbol: 'ETH',
+                        decimals: 18
+                      },
+                      rpcUrls: ['https://sepolia.base.org'],
+                      blockExplorerUrls: ['https://sepolia-explorer.base.org']
+                    }]
+                  });
+                }
+              }
+            }
+          } catch (chainError) {
+            console.error("Error checking chain:", chainError);
+          }
+          
+          // Update the state in our component
+          await loadBalances(accounts[0]);
+          await loadExchangeRates();
+        }
+      }
     } catch (error) {
       console.error("Error connecting wallet:", error);
       toast({
@@ -358,9 +439,22 @@ export default function Swap() {
   // Update balances when address changes
   useEffect(() => {
     if (address) {
+      console.log("Address detected in useEffect, loading balances:", address);
       loadBalances(address);
+      
+      // Also ensure we have a signer if we have an address
+      if (provider && !signer) {
+        try {
+          const signerInstance = provider.getSigner();
+          setSigner(signerInstance);
+        } catch (error) {
+          console.error("Error getting signer in address effect:", error);
+        }
+      }
+    } else {
+      console.log("No address available in useEffect");
     }
-  }, [address]);
+  }, [address, provider, signer]);
 
   // Load exchange rates on first render
   useEffect(() => {
