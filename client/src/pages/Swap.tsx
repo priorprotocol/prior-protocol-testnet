@@ -503,9 +503,23 @@ export default function Swap() {
       }
     } catch (error: any) {
       console.error("Error executing swap:", error);
+      // Handle specific error messages with more user-friendly text
+      let errorMessage = "Failed to execute swap. Please try again.";
+      
+      if (error.reason === "execution reverted: Insufficient liquidity") {
+        // Calculate a suggested amount (25% of the original amount)
+        const originalAmount = parseFloat(fromAmount);
+        const suggestedAmount = originalAmount * 0.25;
+        const formattedSuggestion = suggestedAmount.toFixed(4);
+        
+        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a smaller amount (e.g. ${formattedSuggestion} ${fromToken}) or a different token pair.`;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Swap Failed",
-        description: error.message || "Failed to execute swap. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -864,6 +878,14 @@ export default function Swap() {
             <div className="flex justify-between mt-1">
               <span>Slippage</span>
               <span>{slippage}%</span>
+            </div>
+            
+            {/* Testnet Notice */}
+            <div className="mt-3 p-2 bg-gray-700 rounded-lg text-xs">
+              <span className="block text-yellow-300 mb-1">🚧 Testnet Environment</span>
+              <span className="text-gray-300">
+                This is a testnet DEX with limited liquidity. You might encounter "Insufficient liquidity" errors when swapping large amounts. Try smaller amounts if this happens.
+              </span>
             </div>
           </div>
 
