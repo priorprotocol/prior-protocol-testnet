@@ -93,6 +93,7 @@ export default function Swap() {
   
   // State to store our own wallet address (separate from WalletContext)
   const [directAddress, setDirectAddress] = useState<string | null>(null);
+  const [isLocalConnected, setIsLocalConnected] = useState<boolean>(false);
 
   // Initialize provider and attempt to get the connected account directly
   useEffect(() => {
@@ -110,49 +111,65 @@ export default function Swap() {
           if (accounts && accounts.length > 0) {
             // Store the address in our component state
             setDirectAddress(accounts[0]);
+            setIsLocalConnected(true);
             handleAccountsChanged(accounts);
           } else {
             setDirectAddress(null);
+            setIsLocalConnected(false);
           }
         });
 
         ethereum.on('chainChanged', handleChainChanged);
         
-        // Try to get accounts to see if already connected
-        web3Provider.listAccounts()
-          .then(accounts => {
+        // First, try direct method which is most reliable
+        ethereum.request({ method: "eth_accounts" })
+          .then((accounts: any) => {
             if (accounts && accounts.length > 0) {
-              console.log("Already connected account found:", accounts[0]);
-              
-              // Store in our own state
+              console.log("Ethereum accounts directly:", accounts[0]);
               setDirectAddress(accounts[0]);
-              
-              // Also pass to handler for balance loading
-              handleAccountsChanged(accounts);
+              setIsLocalConnected(true);
+              // Also load balances
+              loadBalances(accounts[0]);
               
               // Try to get a signer
               try {
                 const signerInstance = web3Provider.getSigner();
                 setSigner(signerInstance);
               } catch (signerError) {
-                console.error("Error getting signer during initialization:", signerError);
+                console.error("Error getting signer after direct check:", signerError);
+              }
+            }
+          })
+          .catch((error: any) => {
+            console.error("Error checking ethereum accounts directly:", error);
+          });
+        
+        // Backup method using web3Provider
+        web3Provider.listAccounts()
+          .then(accounts => {
+            if (accounts && accounts.length > 0) {
+              console.log("Already connected account found via provider:", accounts[0]);
+              
+              // Store in our own state
+              setDirectAddress(accounts[0]);
+              setIsLocalConnected(true);
+              
+              // Also pass to handler for balance loading
+              handleAccountsChanged(accounts);
+              
+              // Try to get a signer
+              if (!signer) {
+                try {
+                  const signerInstance = web3Provider.getSigner();
+                  setSigner(signerInstance);
+                } catch (signerError) {
+                  console.error("Error getting signer during initialization:", signerError);
+                }
               }
             }
           })
           .catch(error => {
-            console.error("Error checking accounts:", error);
-          });
-        
-        // Check directly with ethereum object
-        ethereum.request({ method: "eth_accounts" })
-          .then((accounts: any) => {
-            if (accounts && accounts.length > 0) {
-              console.log("Ethereum accounts:", accounts[0]);
-              setDirectAddress(accounts[0]);
-            }
-          })
-          .catch((error: any) => {
-            console.error("Error checking ethereum accounts:", error);
+            console.error("Error checking accounts via provider:", error);
           });
         
         // Clean up event listeners
@@ -171,8 +188,13 @@ export default function Swap() {
   const handleAccountsChanged = async (accounts: string[]) => {
     if (accounts.length === 0) {
       // Wallet disconnected
+      setDirectAddress(null);
+      setIsLocalConnected(false);
       setBalances({});
     } else {
+      // Wallet connected or changed
+      setDirectAddress(accounts[0]);
+      setIsLocalConnected(true);
       await loadBalances(accounts[0]);
     }
   };
@@ -181,25 +203,24 @@ export default function Swap() {
     window.location.reload();
   };
 
-  // Connect wallet manually - improved to ensure proper connection with WalletContext
+  // Connect wallet manually - completely bypass WalletContext
   const manualConnectWallet = async () => {
     try {
       setIsLoading(true);
       
-      // First use the global wallet context's connect method
-      await connectWallet();
-      
-      // Force a direct request to ensure MetaMask popup appears
+      // Skip the WalletContext's connect method and go straight to MetaMask
       if (window.ethereum) {
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-        console.log("Connected accounts:", accounts);
-        
-        if (accounts && accounts.length > 0) {
-          // Manually set the address in our component state
-          const connectedAddress = accounts[0];
+        try {
+          // Request accounts directly from MetaMask
+          const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+          console.log("Connected accounts directly from MetaMask:", accounts);
           
-          // Force wallet chain check
-          try {
+          if (accounts && accounts.length > 0) {
+            // Explicitly set our component state
+            const connectedAddress = accounts[0];
+            setDirectAddress(connectedAddress);
+            
+            // Check if we're on the right chain
             const chainId = await window.ethereum.request({ method: 'eth_chainId' });
             const desiredChainId = '0x14a34'; // Base Sepolia chain ID
             
@@ -230,43 +251,56 @@ export default function Swap() {
                 }
               }
             }
-          } catch (chainError) {
-            console.error("Error checking chain:", chainError);
-          }
-          
-          // Then try to get a signer if we have a provider
-          if (provider) {
-            try {
-              const signerInstance = provider.getSigner();
-              setSigner(signerInstance);
+            
+            // Setup a web3 provider and signer using this account
+            if (window.ethereum) {
+              const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+              setProvider(web3Provider);
               
-              // Force update our component state with the newly connected address
-              await loadBalances(connectedAddress);
-              await loadExchangeRates();
-              
-              // Show a success toast
-              toast({
-                title: "Wallet Connected",
-                description: `Connected to ${connectedAddress.substring(0, 6)}...${connectedAddress.substring(connectedAddress.length - 4)}`,
-              });
-              
-              // Try to force a refresh of the WalletContext
+              // Get a signer with the connected account
               try {
-                const { updateWalletAddressGlobally } = await import('@/context/WalletContext');
-                if (updateWalletAddressGlobally) {
-                  updateWalletAddressGlobally(connectedAddress);
-                }
-              } catch (error) {
-                console.error("Error updating global wallet state:", error);
+                const signerInstance = web3Provider.getSigner();
+                setSigner(signerInstance);
+                
+                // Force-load balances to ensure our UI updates
+                await loadBalances(connectedAddress);
+                await loadExchangeRates();
+                
+                // Log for debugging
+                console.log("Direct connection successful. Address:", connectedAddress);
+                
+                // Show success message
+                toast({
+                  title: "Wallet Connected Successfully",
+                  description: `Connected to ${connectedAddress.substring(0, 6)}...${connectedAddress.substring(connectedAddress.length - 4)}`,
+                });
+                
+                // Force a re-render for the UI to update
+                setIsLocalConnected(true);
+                
+              } catch (signerError) {
+                console.error("Error getting signer:", signerError);
               }
-            } catch (error) {
-              console.error("Error getting signer:", error);
             }
           }
+        } catch (requestError) {
+          console.error("Error requesting accounts:", requestError);
+          toast({
+            title: "Connection Error",
+            description: "MetaMask account request was rejected. Please try again.",
+            variant: "destructive"
+          });
         }
+      } else {
+        // MetaMask not installed
+        toast({
+          title: "MetaMask Not Found",
+          description: "Please install MetaMask extension to connect your wallet.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      console.error("Error connecting wallet:", error);
+      console.error("Error in wallet connection:", error);
       toast({
         title: "Connection Error",
         description: "Failed to connect wallet. Please try again.",
@@ -282,9 +316,37 @@ export default function Swap() {
     const newBalances: {[key: string]: string} = {};
     
     try {
-      for (const symbol of Object.keys(TOKENS)) {
-        const balance = getTokenBalance(symbol);
-        newBalances[symbol] = balance;
+      console.log("Fetching token balances for address:", walletAddress);
+      
+      // Properly fetch all token balances from the contract
+      if (provider) {
+        for (const symbol of Object.keys(TOKENS)) {
+          try {
+            const tokenAddress = TOKENS[symbol as keyof typeof TOKENS].address;
+            const tokenDecimals = TOKENS[symbol as keyof typeof TOKENS].decimals;
+            
+            const tokenContract = new ethers.Contract(
+              tokenAddress,
+              ["function balanceOf(address) view returns (uint256)"],
+              provider
+            );
+            
+            const balance = await tokenContract.balanceOf(walletAddress);
+            const formattedBalance = ethers.utils.formatUnits(balance, tokenDecimals);
+            
+            newBalances[symbol] = formattedBalance;
+            console.log(`${symbol} balance updated:`, formattedBalance);
+          } catch (tokenError) {
+            console.error(`Error getting ${symbol} balance:`, tokenError);
+            newBalances[symbol] = "0";
+          }
+        }
+      } else {
+        // Fallback to context's token balance getter
+        for (const symbol of Object.keys(TOKENS)) {
+          const balance = getTokenBalance(symbol);
+          newBalances[symbol] = balance;
+        }
       }
       
       setBalances(newBalances);
@@ -429,8 +491,9 @@ export default function Swap() {
         });
         
         // Refresh balances after successful swap
-        if (address) {
-          await loadBalances(address);
+        const currentAddress = directAddress || address;
+        if (currentAddress) {
+          await loadBalances(currentAddress);
         }
         
         // Clear inputs after successful swap
@@ -575,7 +638,7 @@ export default function Swap() {
             >
               <FiSettings className="w-5 h-5" />
             </button>
-            {directAddress || isConnected || address ? (
+            {directAddress || isLocalConnected || isConnected || address ? (
               <div className="flex items-center bg-gray-800 rounded-full px-3 py-1">
                 <span className="text-sm mr-2">
                   {directAddress 
@@ -779,7 +842,7 @@ export default function Swap() {
 
           {/* Action Button */}
           <div className="mt-4">
-            {!directAddress && !isConnected && !address ? (
+            {!directAddress && !isLocalConnected && !isConnected && !address ? (
               <button
                 onClick={manualConnectWallet}
                 className="w-full bg-gradient-to-r from-[#00df9a] to-blue-500 text-black font-medium py-3 rounded-xl hover:opacity-90 transition-opacity"
