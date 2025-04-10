@@ -469,7 +469,7 @@ export default function Swap() {
       const fromTokenInfo = TOKENS[fromToken as keyof typeof TOKENS];
       const toTokenInfo = TOKENS[toToken as keyof typeof TOKENS];
       
-      const amountIn = parseTokenAmount(fromAmount, fromTokenInfo.decimals);
+      const amountIn = fromAmount; // We'll pass the raw amount string to the swapTokens function
       
       // Calculate slippage for minimum amount out (not currently used but good practice)
       const slippageFactor = 1 - (slippage / 100);
