@@ -987,22 +987,38 @@ export const getTokenDecimalsFromAddress = (tokenAddress: string): number => {
 // Function to get token balance
 export const getTokenBalance = async (tokenAddress: string, address: string) => {
   try {
+    console.log(`Fetching token balance for address: ${address} and token: ${tokenAddress}`);
+    
+    // Get token contract to interact with
     const tokenContract = await getTokenContract(tokenAddress);
-    const balance = await tokenContract.balanceOf(address);
     
-    // Get token decimals using the helper function
-    let decimals = getTokenDecimalsFromAddress(tokenAddress);
+    // Debug info
+    const symbol = getTokenSymbol(tokenAddress);
+    console.log(`Token symbol: ${symbol}`);
     
-    // If it's an unknown token, try to get decimals from the contract
-    if (decimals === 18 && getTokenSymbol(tokenAddress) === "UNKNOWN") {
-      try {
-        decimals = await tokenContract.decimals();
-      } catch (error) {
-        console.error("Error getting token decimals:", error);
+    try {
+      // Call balanceOf with the user's address
+      const balance = await tokenContract.balanceOf(address);
+      console.log(`Raw balance result for ${symbol}: ${balance.toString()}`);
+      
+      // Get token decimals using the helper function
+      let decimals = getTokenDecimalsFromAddress(tokenAddress);
+      console.log(`Using decimals: ${decimals} for ${symbol}`);
+      
+      // If it's an unknown token, try to get decimals from the contract
+      if (decimals === 18 && getTokenSymbol(tokenAddress) === "UNKNOWN") {
+        try {
+          decimals = await tokenContract.decimals();
+        } catch (error) {
+          console.error("Error getting token decimals:", error);
+        }
       }
+      
+      return { balance, decimals };
+    } catch (err) {
+      console.error(`Error in balanceOf call for ${symbol}:`, err);
+      return { balance: ethers.utils.parseUnits("0", 18), decimals: 18 };
     }
-    
-    return { balance, decimals };
   } catch (error) {
     console.error("Error getting token balance:", error);
     return { balance: ethers.utils.parseUnits("0", 18), decimals: 18 };

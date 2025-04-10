@@ -12,7 +12,8 @@ import {
   getPriorToUSDCRate,
   getPriorToUSDTRate,
   getPriorToDAIRate,
-  getPriorToWETHRate
+  getPriorToWETHRate,
+  getTokenBalance as getTokenBalanceFromContract
 } from "@/lib/contracts";
 
 import { 
@@ -328,21 +329,16 @@ export default function Swap() {
       console.log("WETH:", TOKENS.WETH.address);
       console.log("PriorSwap contract:", contractAddresses.priorSwap);
       
-      // Properly fetch all token balances from the contract
+      // Properly fetch all token balances from the contract using our improved getTokenBalance function
       if (provider) {
         for (const symbol of Object.keys(TOKENS)) {
           try {
             const tokenAddress = TOKENS[symbol as keyof typeof TOKENS].address;
             const tokenDecimals = TOKENS[symbol as keyof typeof TOKENS].decimals;
             
-            const tokenContract = new ethers.Contract(
-              tokenAddress,
-              ["function balanceOf(address) view returns (uint256)"],
-              provider
-            );
-            
-            const balance = await tokenContract.balanceOf(walletAddress);
-            const formattedBalance = ethers.utils.formatUnits(balance, tokenDecimals);
+            // Use the updated contract helper function to get the balance
+            const result = await getTokenBalanceFromContract(tokenAddress, walletAddress);
+            const formattedBalance = ethers.utils.formatUnits(result.balance, result.decimals);
             
             newBalances[symbol] = formattedBalance;
             console.log(`${symbol} balance updated:`, formattedBalance);
