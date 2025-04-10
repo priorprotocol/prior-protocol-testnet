@@ -4,9 +4,8 @@ import { FiCopy, FiChevronDown, FiArrowDown, FiRefreshCw, FiSettings, FiExternal
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/context/WalletContext";
 
-// Import contract addresses and functions from contracts.ts
+// Import contract functions and addresses from the reorganized structure
 import { 
-  contractAddresses, 
   swapTokens, 
   approveTokens,
   getPriorToUSDCRate,
@@ -14,14 +13,10 @@ import {
   getPriorToDAIRate,
   getPriorToWETHRate,
   getTokenBalance as getTokenBalanceFromContract
-} from "@/lib/contracts";
+} from "@/contracts/services";
+import { CONTRACT_ADDRESSES as contractAddresses } from "@/contracts/addresses";
 
-import { 
-  getProvider, 
-  getSigner,
-  formatTokenAmount,
-  parseTokenAmount
-} from "@/lib/web3";
+// These utility functions will be replaced with our direct ethers.js usage
 
 // Define token info
 const TOKENS = {
