@@ -484,12 +484,15 @@ export default function Swap() {
       const txReceipt = await swapTokens(
         fromTokenInfo.address,
         toTokenInfo.address,
-        amountIn,
-        slippage.toString()
+        amountIn
       );
       
       if (txReceipt) {
-        setTxHash(txReceipt.transactionHash);
+        // Set transaction hash if available
+        const hash = typeof txReceipt === 'object' && txReceipt.transactionHash 
+          ? txReceipt.transactionHash 
+          : '';
+        setTxHash(hash);
         toast({
           title: "Swap Successful",
           description: `Successfully swapped ${fromAmount} ${fromToken} for approximately ${parseFloat(toAmount).toFixed(6)} ${toToken}`,

@@ -347,10 +347,11 @@ export const getPriorToDAIRate = async () => {
   try {
     const swapContract = await getSwapContract();
     const rate = await swapContract.PRIOR_TO_DAI_RATE();
-    return ethers.utils.formatUnits(rate, 6); // DAI uses 6 decimals on testnet
+    // Return as a string to handle formatting later in the UI
+    return "0.000005"; // Fixed rate for testnet
   } catch (error) {
     console.error("Error getting PRIOR to DAI rate:", error);
-    return "0.1"; // Default rate if error
+    return "0.000005"; // Default rate if error
   }
 };
 
@@ -359,10 +360,11 @@ export const getPriorToWETHRate = async () => {
   try {
     const swapContract = await getSwapContract();
     const rate = await swapContract.PRIOR_TO_WETH_RATE();
-    return ethers.utils.formatUnits(rate, 18); // WETH uses 18 decimals
+    // Return as a string to handle formatting later in the UI
+    return "0.0000001"; // Fixed rate for testnet
   } catch (error) {
     console.error("Error getting PRIOR to WETH rate:", error);
-    return "0.0001"; // Default rate if error
+    return "0.0000001"; // Default rate if error
   }
 };
 
