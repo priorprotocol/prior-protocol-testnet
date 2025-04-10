@@ -1,0 +1,1314 @@
+import { ethers } from "ethers";
+import { getProvider, getSigner } from "./web3";
+
+// Define token contract ABI - full PRIOR token ABI
+const priorTokenAbi = [
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "approve",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "claimFromFaucet",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "getFaucetInfo",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "lastClaim",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalClaimed",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "name",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "decimals",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "transfer",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "transferFrom",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
+
+// Define standard ERC20 token ABI for other tokens
+const tokenAbi = [
+        {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "spender",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "allowance",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "needed",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "ERC20InsufficientAllowance",
+                "type": "error"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "sender",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "balance",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "needed",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "ERC20InsufficientBalance",
+                "type": "error"
+        },
+        {
+                "anonymous": false,
+                "inputs": [
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "owner",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "spender",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": false,
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "Approval",
+                "type": "event"
+        },
+        {
+                "anonymous": false,
+                "inputs": [
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "from",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "to",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": false,
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "Transfer",
+                "type": "event"
+        },
+        {
+                "inputs": [],
+                "name": "INITIAL_SUPPLY",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "owner",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "spender",
+                                "type": "address"
+                        }
+                ],
+                "name": "allowance",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "spender",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "approve",
+                "outputs": [
+                        {
+                                "internalType": "bool",
+                                "name": "",
+                                "type": "bool"
+                        }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "account",
+                                "type": "address"
+                        }
+                ],
+                "name": "balanceOf",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "decimals",
+                "outputs": [
+                        {
+                                "internalType": "uint8",
+                                "name": "",
+                                "type": "uint8"
+                        }
+                ],
+                "stateMutability": "pure",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "name",
+                "outputs": [
+                        {
+                                "internalType": "string",
+                                "name": "",
+                                "type": "string"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "symbol",
+                "outputs": [
+                        {
+                                "internalType": "string",
+                                "name": "",
+                                "type": "string"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "totalSupply",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "to",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "transfer",
+                "outputs": [
+                        {
+                                "internalType": "bool",
+                                "name": "",
+                                "type": "bool"
+                        }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "from",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "to",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "transferFrom",
+                "outputs": [
+                        {
+                                "internalType": "bool",
+                                "name": "",
+                                "type": "bool"
+                        }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        }
+];
+
+// Import updated PriorSwap ABI
+import { swapAbi } from './swapAbi';
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "priorAmount",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "usdcAmount",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "usdtAmount",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "daiAmount",
+                                "type": "uint256"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "wethAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "fundSwapWithTokens",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "_priorToken",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "_usdcToken",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "_usdtToken",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "_daiToken",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "address",
+                                "name": "_wethToken",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "owner",
+                                "type": "address"
+                        }
+                ],
+                "name": "OwnableInvalidOwner",
+                "type": "error"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "account",
+                                "type": "address"
+                        }
+                ],
+                "name": "OwnableUnauthorizedAccount",
+                "type": "error"
+        },
+        {
+                "anonymous": false,
+                "inputs": [
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "previousOwner",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "newOwner",
+                                "type": "address"
+                        }
+                ],
+                "name": "OwnershipTransferred",
+                "type": "event"
+        },
+        {
+                "inputs": [],
+                "name": "renounceOwnership",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "daiAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapDAIForPrior",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "anonymous": false,
+                "inputs": [
+                        {
+                                "indexed": true,
+                                "internalType": "address",
+                                "name": "user",
+                                "type": "address"
+                        },
+                        {
+                                "indexed": false,
+                                "internalType": "string",
+                                "name": "swapType",
+                                "type": "string"
+                        },
+                        {
+                                "indexed": false,
+                                "internalType": "uint256",
+                                "name": "amountIn",
+                                "type": "uint256"
+                        },
+                        {
+                                "indexed": false,
+                                "internalType": "uint256",
+                                "name": "amountOut",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "SwapExecuted",
+                "type": "event"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "priorAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapPriorForDAI",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "priorAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapPriorForUSDC",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "priorAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapPriorForUSDT",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "priorAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapPriorForWETH",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "usdcAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapUSDCForPrior",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "usdtAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapUSDTForPrior",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "wethAmount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "swapWETHForPrior",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "newOwner",
+                                "type": "address"
+                        }
+                ],
+                "name": "transferOwnership",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [
+                        {
+                                "internalType": "address",
+                                "name": "token",
+                                "type": "address"
+                        },
+                        {
+                                "internalType": "uint256",
+                                "name": "amount",
+                                "type": "uint256"
+                        }
+                ],
+                "name": "withdrawTokens",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "daiToken",
+                "outputs": [
+                        {
+                                "internalType": "contract IERC20",
+                                "name": "",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "FEE_BASIS_POINTS",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                        {
+                                "internalType": "address",
+                                "name": "",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "PRIOR_TO_DAI_RATE",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "PRIOR_TO_USDC_RATE",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "PRIOR_TO_USDT_RATE",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "PRIOR_TO_WETH_RATE",
+                "outputs": [
+                        {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "priorToken",
+                "outputs": [
+                        {
+                                "internalType": "contract IERC20",
+                                "name": "",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "usdcToken",
+                "outputs": [
+                        {
+                                "internalType": "contract IERC20",
+                                "name": "",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "usdtToken",
+                "outputs": [
+                        {
+                                "internalType": "contract IERC20",
+                                "name": "",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        },
+        {
+                "inputs": [],
+                "name": "wethToken",
+                "outputs": [
+                        {
+                                "internalType": "contract IERC20",
+                                "name": "",
+                                "type": "address"
+                        }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+        }
+];
+
+// New contract addresses
+// Updated Prior Pioneer NFT contract address
+export const PRIOR_PIONEER_NFT_ADDRESS = "0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59";
+
+export const contractAddresses = {
+  // Real token addresses on Base Sepolia testnet
+  priorToken: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // PRIOR token
+  priorSwap: "0x4e659af0932de50379391794d4dad10f21b9235b", // PriorSwap - UPDATED
+  mockTokens: {
+    // Mock token addresses on Base Sepolia
+    USDC: "0xb950C186B2f15D0D85416AC19A16D6F23fD586b7", // mUSDC with 6 decimals
+    USDT: "0xeED9C99a850399F0C408616dc8F9dDCb948aeaA2", // mUSDT with 6 decimals
+    DAI: "0x72f30eb1cE25523Ea2Fa63eDe9797481634E496B",  // mDAI with 6 decimals
+    WETH: "0xc413B81c5fb4798b8e4c6053AADd383C4Dc3703B"  // mWETH with 18 decimals
+  }
+};
+
+// Token decimals
+export const tokenDecimals = {
+  PRIOR: 18,
+  USDC: 6,
+  USDT: 6,
+  DAI: 6,
+  WETH: 18
+};
+
+// Token symbols as they appear on-chain
+export const tokenSymbols = {
+  USDC: "mUSDC",
+  USDT: "mUSDT",
+  DAI: "mDAI",
+  WETH: "mWETH"
+};
+
+// Function to get token contract instance
+export const getTokenContract = async (tokenAddress: string) => {
+  const provider = getProvider();
+  if (!provider) throw new Error("Provider not available");
+  
+  // Use the PRIOR token ABI for the PRIOR token, otherwise use the standard ERC20 ABI
+  const abi = tokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase() ? priorTokenAbi : tokenAbi;
+  return new ethers.Contract(tokenAddress, abi, provider);
+};
+
+// Function to get token contract with signer
+export const getTokenContractWithSigner = async (tokenAddress: string) => {
+  const signer = await getSigner();
+  if (!signer) throw new Error("Signer not available - connect wallet first");
+  
+  // Use the PRIOR token ABI for the PRIOR token, otherwise use the standard ERC20 ABI
+  const abi = tokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase() ? priorTokenAbi : tokenAbi;
+  return new ethers.Contract(tokenAddress, abi, signer);
+};
+
+// Function to get swap contract instance
+export const getSwapContract = async () => {
+  const provider = getProvider();
+  if (!provider) throw new Error("Provider not available");
+  
+  return new ethers.Contract(contractAddresses.priorSwap, swapAbi, provider);
+};
+
+// Function to get swap contract with signer
+export const getSwapContractWithSigner = async () => {
+  const signer = await getSigner();
+  if (!signer) throw new Error("Signer not available - connect wallet first");
+  
+  return new ethers.Contract(contractAddresses.priorSwap, swapAbi, signer);
+};
+
+// Helper function to get token symbol
+export const getTokenSymbol = (tokenAddress: string): string => {
+  if (tokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+    return "PRIOR";
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+    return tokenSymbols.USDC;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+    return tokenSymbols.USDT;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+    return tokenSymbols.DAI;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+    return tokenSymbols.WETH;
+  }
+  return "UNKNOWN";
+};
+
+// Helper function to get token decimals
+export const getTokenDecimalsFromAddress = (tokenAddress: string): number => {
+  if (tokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+    return tokenDecimals.PRIOR;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+    return tokenDecimals.USDC;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+    return tokenDecimals.USDT;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+    return tokenDecimals.DAI;
+  } else if (tokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+    return tokenDecimals.WETH;
+  }
+  return 18; // Default for unknown tokens
+};
+
+// Function to get token balance
+export const getTokenBalance = async (tokenAddress: string, address: string) => {
+  try {
+    console.log(`Fetching token balance for address: ${address} and token: ${tokenAddress}`);
+    
+    // Get token contract to interact with
+    const tokenContract = await getTokenContract(tokenAddress);
+    
+    // Debug info
+    const symbol = getTokenSymbol(tokenAddress);
+    console.log(`Token symbol: ${symbol}`);
+    
+    try {
+      // Call balanceOf with the user's address
+      const balance = await tokenContract.balanceOf(address);
+      console.log(`Raw balance result for ${symbol}: ${balance.toString()}`);
+      
+      // Get token decimals using the helper function
+      let decimals = getTokenDecimalsFromAddress(tokenAddress);
+      console.log(`Using decimals: ${decimals} for ${symbol}`);
+      
+      // If it's an unknown token, try to get decimals from the contract
+      if (decimals === 18 && getTokenSymbol(tokenAddress) === "UNKNOWN") {
+        try {
+          decimals = await tokenContract.decimals();
+        } catch (error) {
+          console.error("Error getting token decimals:", error);
+        }
+      }
+      
+      return { balance, decimals };
+    } catch (err) {
+      console.error(`Error in balanceOf call for ${symbol}:`, err);
+      return { balance: ethers.utils.parseUnits("0", 18), decimals: 18 };
+    }
+  } catch (error) {
+    console.error("Error getting token balance:", error);
+    return { balance: ethers.utils.parseUnits("0", 18), decimals: 18 };
+  }
+};
+
+// Function to approve tokens for swap
+export const approveTokens = async (tokenAddress: string, amount: string) => {
+  try {
+    const tokenContract = await getTokenContractWithSigner(tokenAddress);
+    const tx = await tokenContract.approve(contractAddresses.priorSwap, amount);
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error approving tokens:", error);
+    throw error;
+  }
+};
+
+// Function to perform token swap - now supporting both directions
+export const swapTokens = async (
+  fromTokenAddress: string,
+  toTokenAddress: string,
+  amountIn: string,
+  slippageTolerance: string
+) => {
+  try {
+    // First approve the tokens
+    await approveTokens(fromTokenAddress, amountIn);
+    
+    // Get swap contract with signer
+    const swapContract = await getSwapContractWithSigner();
+    
+    // Determine which swap function to call based on the token pair
+    let tx;
+    
+    // Swapping from PRIOR to other tokens
+    if (fromTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+        tx = await swapContract.swapPriorForUSDC(amountIn);
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+        tx = await swapContract.swapPriorForUSDT(amountIn);
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+        tx = await swapContract.swapPriorForDAI(amountIn);
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+        tx = await swapContract.swapPriorForWETH(amountIn);
+      } else {
+        throw new Error("Unsupported token pair for swap");
+      }
+    } 
+    // Swapping from other tokens to PRIOR
+    else if (toTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+        tx = await swapContract.swapUSDCForPrior(amountIn);
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+        tx = await swapContract.swapUSDTForPrior(amountIn);
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+        tx = await swapContract.swapDAIForPrior(amountIn);
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+        tx = await swapContract.swapWETHForPrior(amountIn);
+      } else {
+        throw new Error("Unsupported token pair for swap");
+      }
+    } else {
+      throw new Error("At least one side of the swap must be PRIOR token");
+    }
+    
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error swapping tokens:", error);
+    throw error;
+  }
+};
+
+// Function to claim tokens from the faucet
+export const claimFromFaucet = async () => {
+  try {
+    const tokenContract = await getTokenContractWithSigner(contractAddresses.priorToken);
+    const tx = await tokenContract.claimFromFaucet();
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error claiming from faucet:", error);
+    throw error;
+  }
+};
+
+// Function to get faucet info for a user
+export const getFaucetInfo = async (address: string) => {
+  try {
+    const tokenContract = await getTokenContract(contractAddresses.priorToken);
+    const [lastClaim, totalClaimed] = await tokenContract.getFaucetInfo(address);
+    return { lastClaim, totalClaimed };
+  } catch (error) {
+    console.error("Error getting faucet info:", error);
+    throw error;
+  }
+};
+
+// Function to get swap rate for PRIOR to USDC
+export const getPriorToUSDCRate = async () => {
+  try {
+    const swapContract = await getSwapContract();
+    const rate = await swapContract.PRIOR_TO_USDC_RATE();
+    return rate;
+  } catch (error) {
+    console.error("Error getting PRIOR to USDC rate:", error);
+    throw error;
+  }
+};
+
+// Function to get swap rate for PRIOR to USDT
+export const getPriorToUSDTRate = async () => {
+  try {
+    const swapContract = await getSwapContract();
+    const rate = await swapContract.PRIOR_TO_USDT_RATE();
+    return rate;
+  } catch (error) {
+    console.error("Error getting PRIOR to USDT rate:", error);
+    throw error;
+  }
+};
+
+// Function to get swap rate for PRIOR to DAI
+export const getPriorToDAIRate = async () => {
+  try {
+    const swapContract = await getSwapContract();
+    const rate = await swapContract.PRIOR_TO_DAI_RATE();
+    return rate;
+  } catch (error) {
+    console.error("Error getting PRIOR to DAI rate:", error);
+    throw error;
+  }
+};
+
+// Function to get swap rate for PRIOR to WETH
+export const getPriorToWETHRate = async () => {
+  try {
+    const swapContract = await getSwapContract();
+    const rate = await swapContract.PRIOR_TO_WETH_RATE();
+    return rate;
+  } catch (error) {
+    console.error("Error getting PRIOR to WETH rate:", error);
+    throw error;
+  }
+};
+
+// Function to get swap fee
+export const getSwapFee = async () => {
+  try {
+    const swapContract = await getSwapContract();
+    const feeBasisPoints = await swapContract.FEE_BASIS_POINTS();
+    return feeBasisPoints;
+  } catch (error) {
+    console.error("Error getting swap fee:", error);
+    throw error;
+  }
+};
+
+// Helper function to calculate output amounts for swap
+// Function to check if a wallet address owns a Prior Pioneer NFT
+export const checkPriorPioneerNFT = async (address: string): Promise<boolean> => {
+  try {
+    const nftAbi = [
+      "function balanceOf(address owner) view returns (uint256)",
+      "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)"
+    ];
+    
+    const provider = getProvider();
+    if (!provider) throw new Error("Provider not available");
+    
+    const nftContract = new ethers.Contract(PRIOR_PIONEER_NFT_ADDRESS, nftAbi, provider);
+    
+    // Check NFT balance
+    const balance = await nftContract.balanceOf(address);
+    return balance > 0;
+  } catch (error) {
+    console.error("Error checking Prior Pioneer NFT ownership:", error);
+    return false;
+  }
+};
+
+export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddress: string, amountIn: string) => {
+  try {
+    // Get fee basis points
+    const feeBasisPoints = await getSwapFee();
+    const feeBasisPointsBN = ethers.BigNumber.from(feeBasisPoints.toString());
+    const tenThousand = ethers.BigNumber.from(10000);
+    const million = ethers.BigNumber.from(1000000);
+    
+    // Get source token decimals
+    let fromTokenDecimals = 18;
+    if (fromTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      fromTokenDecimals = tokenDecimals.PRIOR;
+    } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+      fromTokenDecimals = tokenDecimals.USDC;
+    } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+      fromTokenDecimals = tokenDecimals.USDT;
+    } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+      fromTokenDecimals = tokenDecimals.DAI;
+    } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+      fromTokenDecimals = tokenDecimals.WETH;
+    }
+    
+    // Get destination token decimals
+    let toTokenDecimals = 18;
+    if (toTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      toTokenDecimals = tokenDecimals.PRIOR;
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+      toTokenDecimals = tokenDecimals.USDC;
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+      toTokenDecimals = tokenDecimals.USDT;
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+      toTokenDecimals = tokenDecimals.DAI;
+    } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+      toTokenDecimals = tokenDecimals.WETH;
+    }
+    
+    // Convert input amount to BigNumber using source token decimals
+    const amountBigNumber = ethers.utils.parseUnits(amountIn, fromTokenDecimals);
+    
+    // Case 1: PRIOR -> Other token
+    if (fromTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      let rate;
+      if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+        rate = await getPriorToUSDCRate();
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+        rate = await getPriorToUSDTRate();
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+        rate = await getPriorToDAIRate();
+      } else if (toTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+        rate = await getPriorToWETHRate();
+      } else {
+        throw new Error("Unsupported token pair for swap");
+      }
+      
+      // Convert rate to ethers.BigNumber
+      const rateAsBigNumber = ethers.BigNumber.from(rate.toString());
+      
+      // Calculate raw amount (PRIOR * 1000000 / rate)
+      const rawAmount = amountBigNumber.mul(million).div(rateAsBigNumber);
+      
+      // Apply fee (amount - (amount * fee / 10000))
+      const feeAmount = rawAmount.mul(feeBasisPointsBN).div(tenThousand);
+      const amountOut = rawAmount.sub(feeAmount);
+      
+      return {
+        amountIn: amountBigNumber,
+        amountOut,
+        rate,
+        fee: feeBasisPoints,
+        fromDecimals: fromTokenDecimals,
+        toDecimals: toTokenDecimals
+      };
+    } 
+    // Case 2: Other token -> PRIOR
+    else if (toTokenAddress.toLowerCase() === contractAddresses.priorToken.toLowerCase()) {
+      let rate;
+      if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDC.toLowerCase()) {
+        rate = await getPriorToUSDCRate();
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.USDT.toLowerCase()) {
+        rate = await getPriorToUSDTRate();
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.DAI.toLowerCase()) {
+        rate = await getPriorToDAIRate();
+      } else if (fromTokenAddress.toLowerCase() === contractAddresses.mockTokens.WETH.toLowerCase()) {
+        rate = await getPriorToWETHRate();
+      } else {
+        throw new Error("Unsupported token pair for swap");
+      }
+      
+      // Convert rate to ethers.BigNumber
+      const rateAsBigNumber = ethers.BigNumber.from(rate.toString());
+      
+      // Calculate raw amount (token * rate / 1000000)
+      const rawAmount = amountBigNumber.mul(rateAsBigNumber).div(million);
+      
+      // Apply fee (amount - (amount * fee / 10000))
+      const feeAmount = rawAmount.mul(feeBasisPointsBN).div(tenThousand);
+      const amountOut = rawAmount.sub(feeAmount);
+      
+      return {
+        amountIn: amountBigNumber,
+        amountOut,
+        rate,
+        fee: feeBasisPoints,
+        fromDecimals: fromTokenDecimals,
+        toDecimals: toTokenDecimals
+      };
+    } else {
+      throw new Error("At least one side of the swap must be PRIOR token");
+    }
+  } catch (error) {
+    console.error("Error calculating swap output:", error);
+    throw error;
+  }
+};
