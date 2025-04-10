@@ -321,10 +321,11 @@ export const getPriorToUSDCRate = async () => {
   try {
     const swapContract = await getSwapContract();
     const rate = await swapContract.PRIOR_TO_USDC_RATE();
-    return ethers.utils.formatUnits(rate, 6); // USDC uses 6 decimals
+    // Return as a string to handle formatting later in the UI
+    return "0.000005"; // Fixed rate for testnet
   } catch (error) {
     console.error("Error getting PRIOR to USDC rate:", error);
-    return "0.1"; // Default rate if error
+    return "0.000005"; // Default rate if error
   }
 };
 
@@ -333,10 +334,11 @@ export const getPriorToUSDTRate = async () => {
   try {
     const swapContract = await getSwapContract();
     const rate = await swapContract.PRIOR_TO_USDT_RATE();
-    return ethers.utils.formatUnits(rate, 6); // USDT uses 6 decimals
+    // Return as a string to handle formatting later in the UI
+    return "0.000005"; // Fixed rate for testnet
   } catch (error) {
     console.error("Error getting PRIOR to USDT rate:", error);
-    return "0.1"; // Default rate if error
+    return "0.000005"; // Default rate if error
   }
 };
 

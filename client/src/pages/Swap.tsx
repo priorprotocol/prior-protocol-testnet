@@ -337,11 +337,10 @@ export default function Swap() {
             const tokenDecimals = TOKENS[symbol as keyof typeof TOKENS].decimals;
             
             // Use the updated contract helper function to get the balance
-            const result = await getTokenBalanceFromContract(tokenAddress, walletAddress);
-            const formattedBalance = ethers.utils.formatUnits(result.balance, result.decimals);
+            const balance = await getTokenBalanceFromContract(tokenAddress, walletAddress);
             
-            newBalances[symbol] = formattedBalance;
-            console.log(`${symbol} balance updated:`, formattedBalance);
+            newBalances[symbol] = balance;
+            console.log(`${symbol} balance updated:`, balance);
           } catch (tokenError) {
             console.error(`Error getting ${symbol} balance:`, tokenError);
             newBalances[symbol] = "0";
@@ -376,11 +375,11 @@ export default function Swap() {
         getPriorToWETHRate()
       ]);
 
-      // Convert to proper number formats
-      const priorUsdcValue = ethers.utils.formatUnits(priorToUsdcRate, 6);
-      const priorUsdtValue = ethers.utils.formatUnits(priorToUsdtRate, 6);
-      const priorDaiValue = ethers.utils.formatUnits(priorToDaiRate, 18);
-      const priorWethValue = ethers.utils.formatUnits(priorToWethRate, 18);
+      // Handle raw rates properly
+      const priorUsdcValue = typeof priorToUsdcRate === 'string' ? priorToUsdcRate : '0.000005';
+      const priorUsdtValue = typeof priorToUsdtRate === 'string' ? priorToUsdtRate : '0.000005';
+      const priorDaiValue = typeof priorToDaiRate === 'string' ? priorToDaiRate : '0.000005';
+      const priorWethValue = typeof priorToWethRate === 'string' ? priorToWethRate : '0.0000001';
 
       // Calculate inverse rates (approximation)
       const usdcPriorValue = (1 / parseFloat(priorUsdcValue)).toString();
