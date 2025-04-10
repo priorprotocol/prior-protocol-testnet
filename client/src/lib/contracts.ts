@@ -889,7 +889,7 @@ export const PRIOR_PIONEER_NFT_ADDRESS = "0x2a45dfDbdCfcF72CBE835435eD54f4beE7d0
 export const contractAddresses = {
   // Real token addresses on Base Sepolia testnet
   priorToken: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // PRIOR token
-  priorSwap: "0x95762B35E9f5631F37b69F4418C500Aba05626bf", // PriorSwap - UPDATED
+  priorSwap: "0x4e659af0932de50379391794d4dad10f21b9235b", // PriorSwap - UPDATED
   mockTokens: {
     // Mock token addresses on Base Sepolia
     USDC: "0xb950C186B2f15D0D85416AC19A16D6F23fD586b7", // mUSDC with 6 decimals
