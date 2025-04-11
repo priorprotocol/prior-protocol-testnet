@@ -32,26 +32,59 @@ const Faucet = () => {
     enabled: isConnected && !!address,
   });
   
-  // Time until next claim
-  const getTimeUntilNextClaim = () => {
-    if (!userData?.lastClaim) return "00:00:00";
+  // State to hold the countdown time
+  const [timeUntilNextClaim, setTimeUntilNextClaim] = useState("00:00:00");
+  
+  // Check if the user can claim tokens
+  const canClaim = () => {
+    if (!userData?.lastClaim) return true;
     
     const lastClaim = new Date(userData.lastClaim);
     const nextClaim = new Date(lastClaim.getTime() + 24 * 60 * 60 * 1000);
     const now = new Date();
     
-    if (now >= nextClaim) return "00:00:00";
-    
-    const diffTime = nextClaim.getTime() - now.getTime();
-    const hours = Math.floor(diffTime / (1000 * 60 * 60));
-    const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
-    
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return now >= nextClaim;
   };
   
-  const canClaimTokens = !userData?.lastClaim || 
-    new Date().getTime() - new Date(userData.lastClaim).getTime() >= 24 * 60 * 60 * 1000;
+  const canClaimTokens = canClaim();
+  
+  // Update the countdown timer
+  useEffect(() => {
+    // Only start the timer if there's a lastClaim and can't claim yet
+    if (!userData?.lastClaim || canClaimTokens) return;
+    
+    // Function to update the timer
+    const updateTimer = () => {
+      const lastClaim = new Date(userData?.lastClaim || 0);
+      const nextClaim = new Date(lastClaim.getTime() + 24 * 60 * 60 * 1000);
+      const now = new Date();
+      
+      if (now >= nextClaim) {
+        setTimeUntilNextClaim("00:00:00");
+        // If the countdown reaches zero, refresh user data
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
+        return;
+      }
+      
+      const diffTime = nextClaim.getTime() - now.getTime();
+      const hours = Math.floor(diffTime / (1000 * 60 * 60));
+      const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
+      
+      setTimeUntilNextClaim(
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      );
+    };
+    
+    // Update immediately
+    updateTimer();
+    
+    // Set interval to update every second
+    const intervalId = setInterval(updateTimer, 1000);
+    
+    // Clean up on unmount
+    return () => clearInterval(intervalId);
+  }, [userData?.lastClaim, address, canClaimTokens]);
   
   // Handle token claim using blockchain contract directly
   const claimMutation = useMutation({
@@ -307,10 +340,12 @@ const Faucet = () => {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-space font-semibold">Daily Token Claim</h3>
-              <div className="flex items-center text-[#A0AEC0] text-sm">
-                <i className="fas fa-clock mr-1"></i>
-                <span>{getTimeUntilNextClaim()}</span> until next claim
-              </div>
+              {isConnected && userData?.lastClaim && !canClaimTokens && (
+                <div className="flex items-center text-[#A0AEC0] text-sm">
+                  <i className="fas fa-clock mr-1"></i>
+                  <span>{timeUntilNextClaim}</span> until next claim
+                </div>
+              )}
             </div>
             <div className="flex items-center justify-between p-4 bg-[#1A5CFF] bg-opacity-10 rounded-lg border border-[#1A5CFF] border-opacity-30">
               <div className="flex items-center">
