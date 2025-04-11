@@ -7,6 +7,7 @@ import { TransactionHistory } from "@/components/TransactionHistory";
 import { useWallet } from "@/context/WalletContext";
 import { claimFromFaucet, getFaucetInfo } from "@/contracts/services";
 import { useWalletSync } from "@/hooks/useWalletSync";
+import DirectWalletConnect from "@/components/DirectWalletConnect";
 
 const Faucet = () => {
   // Use the sync hook for better connection management across components
@@ -260,15 +261,22 @@ const Faucet = () => {
     }
   };
   
-  const handleDisconnectWallet = () => {
+  const handleDisconnectWallet = async () => {
     try {
       console.log("Disconnecting wallet...");
       
       // First, clear local state
       setLocalBalances({});
       
-      // Then call the global disconnect method from wallet context
-      disconnectWallet();
+      try {
+        // Try direct disconnect first
+        const { disconnectWalletDirectly } = await import('@/lib/fixWalletConnection');
+        disconnectWalletDirectly();
+      } catch (error) {
+        console.error("Direct disconnect failed, falling back to context:", error);
+        // Then call the global disconnect method from wallet context
+        disconnectWallet();
+      }
       
       toast({
         title: "Wallet Disconnected",
@@ -352,19 +360,27 @@ const Faucet = () => {
             </div>
           </div>
           
-          <button 
-            onClick={handleClaimTokens}
-            disabled={isConnected && !canClaimTokens || claimMutation.isPending}
-            className={`w-full rounded-lg ${isConnected && !canClaimTokens ? 'bg-[#A0AEC0] cursor-not-allowed' : 'bg-[#1A5CFF] hover:bg-opacity-90'} transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide`}
-          >
-            {!isConnected 
-              ? "Connect Wallet" 
-              : claimMutation.isPending 
-              ? "Claiming..." 
-              : canClaimTokens 
-              ? "Claim 1 PRIOR Token" 
-              : "Already Claimed Today"}
-          </button>
+          {!isConnected ? (
+            // Show direct wallet connect button when not connected
+            <div className="flex justify-center w-full">
+              <DirectWalletConnect 
+                className="w-full rounded-lg px-8 py-4 uppercase tracking-wide"
+              />
+            </div>
+          ) : (
+            // Show normal claim button when connected
+            <button 
+              onClick={handleClaimTokens}
+              disabled={!canClaimTokens || claimMutation.isPending}
+              className={`w-full rounded-lg ${!canClaimTokens ? 'bg-[#A0AEC0] cursor-not-allowed' : 'bg-[#1A5CFF] hover:bg-opacity-90'} transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide`}
+            >
+              {claimMutation.isPending 
+                ? "Claiming..." 
+                : canClaimTokens 
+                ? "Claim 1 PRIOR Token" 
+                : "Already Claimed Today"}
+            </button>
+          )}
           
           <div className="mt-6 text-sm text-[#A0AEC0] text-center">
             <p>Need some ETH for gas? <a href="https://www.coinbase.com/faucets/base-sepolia-faucet" target="_blank" rel="noopener noreferrer" className="text-[#1A5CFF] hover:underline">Get Base Sepolia ETH here</a></p>

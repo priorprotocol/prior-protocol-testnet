@@ -67,7 +67,15 @@ const Header = () => {
               <span className="text-[#A0AEC0]">{formatAddress(address)}</span>
             </button>
             <button
-              onClick={disconnectWallet}
+              onClick={async () => {
+                try {
+                  const { disconnectWalletDirectly } = await import('@/lib/fixWalletConnection');
+                  disconnectWalletDirectly();
+                } catch (error) {
+                  console.error("Direct disconnect failed, falling back to context:", error);
+                  disconnectWallet();
+                }
+              }}
               className="flex items-center rounded-full bg-[#1A5CFF] px-4 py-2 hover:bg-opacity-90 transition-all font-bold text-sm"
             >
               <span>Disconnect</span>
@@ -124,9 +132,16 @@ const Header = () => {
                   <span className="text-[#A0AEC0]">{formatAddress(address)}</span>
                 </button>
                 <button
-                  onClick={() => {
-                    disconnectWallet();
-                    setIsMobileMenuOpen(false);
+                  onClick={async () => {
+                    try {
+                      const { disconnectWalletDirectly } = await import('@/lib/fixWalletConnection');
+                      disconnectWalletDirectly();
+                      setIsMobileMenuOpen(false);
+                    } catch (error) {
+                      console.error("Direct disconnect failed, falling back to context:", error);
+                      disconnectWallet();
+                      setIsMobileMenuOpen(false);
+                    }
                   }}
                   className="flex items-center justify-center rounded-full bg-[#1A5CFF] px-4 py-3 hover:bg-opacity-90 transition-all font-bold text-sm"
                 >
@@ -135,9 +150,17 @@ const Header = () => {
               </div>
             ) : (
               <button 
-                onClick={() => {
-                  openWalletModal();
-                  setIsMobileMenuOpen(false);
+                onClick={async () => {
+                  // Use the direct connection method
+                  try {
+                    const { connectWalletDirectly } = await import('@/lib/fixWalletConnection');
+                    await connectWalletDirectly();
+                    setIsMobileMenuOpen(false);
+                  } catch (error) {
+                    console.error("Direct connection failed:", error);
+                    openWalletModal(); // Fallback to modal
+                    setIsMobileMenuOpen(false);
+                  }
                 }}
                 className="flex items-center justify-center rounded-full bg-[#1A5CFF] px-6 py-3 hover:bg-opacity-90 transition-all font-bold text-sm mt-4"
               >
