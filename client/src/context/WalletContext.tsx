@@ -653,26 +653,35 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         description: `Swapping ${fromAmount} ${fromToken.symbol} to ${toToken.symbol}...`,
       });
       
-      const txReceipt = await swapTokens(fromTokenAddress, toTokenAddress, parsedAmount, slippage);
+      // Get the appropriate swap contract address
+      const swapContractAddress = 
+        (fromToken.symbol === "PRIOR" && toToken.symbol === "USDC") || (fromToken.symbol === "USDC" && toToken.symbol === "PRIOR") 
+          ? contractAddresses.swapContracts.PRIOR_USDC
+          : (fromToken.symbol === "PRIOR" && toToken.symbol === "USDT") || (fromToken.symbol === "USDT" && toToken.symbol === "PRIOR")
+            ? contractAddresses.swapContracts.PRIOR_USDT
+            : contractAddresses.swapContracts.USDC_USDT;
+            
+      console.log("Using swap contract address:", swapContractAddress);
+      
+      // Add the swap contract address parameter to the call
+      const txReceipt = await swapTokens(fromTokenAddress, toTokenAddress, parsedAmount, swapContractAddress, slippage);
       const txHash = txReceipt.transactionHash || txReceipt.hash;
       const blockNumber = txReceipt.blockNumber;
       
       const updatedBalances = {...tokenBalances};
       
+      // Add a delay to ensure the blockchain state is updated before we fetch new balances
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       if (address) {
         try {
-          const fromTokenContract = await getTokenBalanceFromContract(fromTokenAddress, address);
-          const toTokenContract = await getTokenBalanceFromContract(toTokenAddress, address);
+          // Fetch balances directly as strings since getTokenBalanceFromContract returns formatted strings
+          const fromTokenBalance = await getTokenBalanceFromContract(fromTokenAddress, address);
+          const toTokenBalance = await getTokenBalanceFromContract(toTokenAddress, address);
           
-          updatedBalances[fromToken.symbol] = formatTokenAmount(
-            fromTokenContract.balance.toString(), 
-            fromTokenContract.decimals
-          );
-          
-          updatedBalances[toToken.symbol] = formatTokenAmount(
-            toTokenContract.balance.toString(), 
-            toTokenContract.decimals
-          );
+          // Update balances directly with the returned formatted string values
+          updatedBalances[fromToken.symbol] = fromTokenBalance;
+          updatedBalances[toToken.symbol] = toTokenBalance;
           
           setTokenBalances(updatedBalances);
         } catch (error) {
