@@ -6,8 +6,12 @@ import { Button } from "@/components/ui/button";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 
 const Quest = () => {
-  // Use the wallet context directly
-  const { isConnected, address, openWalletModal, disconnectWallet } = useWallet();
+  // Use both wallet systems for compatibility during transition
+  const { address: contextAddress } = useWallet();
+  const { address: standaloneAddress, isConnected } = useStandaloneWallet();
+  
+  // Prefer standalone address but fall back to context address
+  const address = standaloneAddress || contextAddress;
   
   // Define types for quests and user quests
   interface Quest {
@@ -54,12 +58,9 @@ const Quest = () => {
           <div className="bg-[#141D29] rounded-lg border border-[#2D3748] p-8 text-center mb-8 max-w-2xl mx-auto">
             <h3 className="font-space font-semibold text-xl mb-4">Connect Your Wallet</h3>
             <p className="text-[#A0AEC0] mb-6">Connect your wallet to view and track your quest progress.</p>
-            <Button 
-              onClick={() => openWalletModal()}
-              className="rounded-lg bg-[#1A5CFF] hover:bg-opacity-90 transition-all font-bold text-sm px-6 py-3"
-            >
-              Connect Wallet
-            </Button>
+            <StandaloneWalletButton 
+              size="lg"
+            />
           </div>
         ) : (
           <>

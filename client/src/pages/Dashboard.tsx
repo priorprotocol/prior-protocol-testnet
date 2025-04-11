@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useWallet } from "@/context/WalletContext";
+import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { PioneerBadgeCard } from "@/components/PioneerBadgeCard";
 import { Leaderboard } from "@/components/Leaderboard";
 import { getBadgeInfo } from "@/lib/badges";
 import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
+import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 // Define the UserStats interface locally to match the server return type
 interface UserStats {
   totalFaucetClaims: number;
@@ -23,8 +25,13 @@ interface UserStats {
 }
 
 const Dashboard = () => {
-  const { address, userId, tokens, getTokenBalance, connectWallet, openWalletModal } = useWallet();
+  // Use both wallet systems for compatibility during transition
+  const { userId, tokens, getTokenBalance } = useWallet();
+  const { address: standaloneAddress } = useStandaloneWallet();
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // Prefer standalone address
+  const address = standaloneAddress;
 
   // Fetch user stats
   const { data: userStats, isLoading: statsLoading } = useQuery({
@@ -52,12 +59,9 @@ const Dashboard = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
           <p className="text-[#A0AEC0] mb-6">Please connect your wallet to view your dashboard.</p>
-          <button 
-            onClick={() => openWalletModal()}
-            className="rounded-lg bg-[#1A5CFF] hover:bg-opacity-90 transition-all font-bold text-sm px-6 py-3"
-          >
-            Connect Wallet
-          </button>
+          <StandaloneWalletButton 
+            size="lg"
+          />
         </div>
       </div>
     );
