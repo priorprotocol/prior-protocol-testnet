@@ -393,6 +393,7 @@ export default function Swap() {
 
       // Update the rates in our state
       setExchangeRates({
+        // PRIOR pairs
         PRIOR_USDC: parseFloat(priorUsdcValue),  // 10
         PRIOR_USDT: parseFloat(priorUsdtValue),  // 10
         PRIOR_DAI: parseFloat(priorDaiValue),    // 10
@@ -400,12 +401,16 @@ export default function Swap() {
         USDC_PRIOR: parseFloat(usdcPriorValue),  // 0.1
         USDT_PRIOR: parseFloat(usdtPriorValue),  // 0.1
         DAI_PRIOR: parseFloat(daiPriorValue),    // 0.1
-        WETH_PRIOR: parseFloat(wethPriorValue)   // 2000
+        WETH_PRIOR: parseFloat(wethPriorValue),  // 2000
+        // Add USDC-USDT direct pairs (fixed 1:1 rate)
+        USDC_USDT: 1,
+        USDT_USDC: 1
       });
     } catch (error) {
       console.error("Error loading exchange rates:", error);
       // Set fallback rates based on smart contract's fixed ratios: 1 PRIOR = 10 USDC/USDT, 1 USDC = 1 USDT
       setExchangeRates({
+        // PRIOR pairs
         PRIOR_USDC: 10, // 1 PRIOR = 10 USDC
         PRIOR_USDT: 10, // 1 PRIOR = 10 USDT
         PRIOR_DAI: 10, // 1 PRIOR = 10 DAI (assuming same as USDC/USDT)
@@ -413,7 +418,10 @@ export default function Swap() {
         USDC_PRIOR: 0.1, // 1 USDC = 0.1 PRIOR
         USDT_PRIOR: 0.1, // 1 USDT = 0.1 PRIOR
         DAI_PRIOR: 0.1, // 1 DAI = 0.1 PRIOR (assuming same as USDC/USDT)
-        WETH_PRIOR: 2000 // Keep WETH rate as is
+        WETH_PRIOR: 2000, // Keep WETH rate as is
+        // USDC-USDT direct pairs
+        USDC_USDT: 1, // 1 USDC = 1 USDT
+        USDT_USDC: 1  // 1 USDT = 1 USDC
       });
     }
   };
