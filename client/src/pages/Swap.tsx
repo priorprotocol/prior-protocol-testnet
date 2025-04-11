@@ -706,9 +706,18 @@ export default function Swap() {
     return Object.keys(TOKENS).filter(token => token !== excludeToken);
   };
 
-  // Verify if at least one token is PRIOR
-  const isPriorInPair = () => {
-    return fromToken === "PRIOR" || toToken === "PRIOR";
+  // Verify if the pair is supported by a contract
+  const isValidSwapPair = () => {
+    // PRIOR with any token is valid
+    if (fromToken === "PRIOR" || toToken === "PRIOR") {
+      return true;
+    }
+    // USDC/USDT pair is also valid
+    if ((fromToken === "USDC" && toToken === "USDT") || 
+        (fromToken === "USDT" && toToken === "USDC")) {
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -798,7 +807,7 @@ export default function Swap() {
             <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment with extremely limited liquidity. Try swapping with very small amounts (0.01-0.1 PRIOR recommended).
           </p>
           <p className="text-yellow-300 text-xs">
-            <span className="font-bold">Best working pairs:</span> PRIOR → USDC (try 0.01 PRIOR). Other pairs may not have sufficient liquidity yet.
+            <span className="font-bold">Supported pairs:</span> PRIOR → USDC/USDT (try 0.01 PRIOR), and USDC ↔ USDT direct swaps.
           </p>
         </div>
 
@@ -976,8 +985,8 @@ export default function Swap() {
             <div className="mt-3 p-2 bg-gray-700 rounded-lg text-xs">
               <span className="block text-yellow-300 mb-1">🚧 Testnet Environment</span>
               <span className="text-gray-300">
-                Try swapping very small amounts (0.01-0.1 PRIOR) for best results. 
-                The PRIOR→USDC pair has the best chance of working.
+                Try small amounts for PRIOR (0.01-0.1). Both PRIOR swap pairs and direct 
+                USDC↔USDT swaps are supported on this testnet.
               </span>
             </div>
           </div>
@@ -991,12 +1000,12 @@ export default function Swap() {
               >
                 Connect Wallet
               </button>
-            ) : !isPriorInPair() ? (
+            ) : !isValidSwapPair() ? (
               <button 
                 disabled
                 className="w-full bg-gray-700 text-gray-400 font-medium py-3 rounded-xl"
               >
-                Pair must include PRIOR
+                Unsupported token pair
               </button>
             ) : parseFloat(fromAmount) > parseFloat(balances[fromToken] || "0") ? (
               <button 
