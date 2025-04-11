@@ -1,19 +1,17 @@
 import React from 'react';
 import { SiDiscord, SiMedium } from 'react-icons/si';
-import { FaTwitter, FaBook, FaKey } from 'react-icons/fa';
-import priorLogo from '@/assets/images/prior-protocol-logo.png';
-import priorPioneerNft from '@/assets/images/prior-pioneer-nft.jpg';
+import { FaTwitter, FaBook, FaKey, FaIdBadge } from 'react-icons/fa';
+import { FaImage } from 'react-icons/fa6';
 
 const About = () => {
   return (
     <div className="container mx-auto px-4 py-10">
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col items-center mb-12">
-          <img 
-            src={priorLogo} 
-            alt="Prior Protocol Logo" 
-            className="w-32 h-32 mb-6" 
-          />
+          {/* Logo placeholder - will be replaced with new asset */}
+          <div className="w-32 h-32 mb-6 flex items-center justify-center bg-gray-800 rounded-full">
+            <FaImage className="text-[#00df9a] text-5xl" />
+          </div>
           <h1 className="text-3xl font-bold mb-4">About Prior Protocol</h1>
           <p className="text-[#A0AEC0] text-center mb-8 max-w-2xl">
             Prior Protocol is a decentralized finance (DeFi) platform built on Base, 
@@ -74,11 +72,12 @@ const About = () => {
           <h2 className="text-2xl font-bold mb-6 text-center">Prior Pioneer NFT</h2>
           <div className="flex flex-col md:flex-row gap-8 items-center bg-[#1A202C] p-6 rounded-lg">
             <div className="md:w-1/3">
-              <img 
-                src={priorPioneerNft} 
-                alt="Prior Pioneer NFT" 
-                className="w-full max-w-[240px] mx-auto rounded-lg" 
-              />
+              {/* NFT image placeholder - will be replaced with new asset */}
+              <div 
+                className="w-full max-w-[240px] h-[240px] mx-auto rounded-lg bg-gray-800 flex items-center justify-center"
+              >
+                <FaKey className="text-[#1A5CFF] text-5xl" />
+              </div>
               <div className="text-center mt-4">
                 <p className="text-xs text-[#A0AEC0]">Contract Address:</p>
                 <p className="text-xs text-[#1A5CFF] break-all">0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59</p>
