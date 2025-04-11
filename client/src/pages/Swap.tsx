@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { FiCopy, FiChevronDown, FiArrowDown, FiRefreshCw, FiSettings, FiExternalLink, FiLogOut } from "react-icons/fi";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/context/WalletContext";
+import { TransactionHistory } from "@/components/TransactionHistory";
 
 // Import contract functions and addresses from the reorganized structure
 import { 
@@ -1085,6 +1086,13 @@ export default function Swap() {
           </div>
         )}
       </div>
+      
+      {/* Transaction History */}
+      {(directAddress || isConnected || isLocalConnected) && (
+        <div className="mt-10">
+          <TransactionHistory />
+        </div>
+      )}
     </div>
   );
 }
