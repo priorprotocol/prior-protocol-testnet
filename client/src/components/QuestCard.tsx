@@ -71,17 +71,8 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
   
   const handleQuestAction = async () => {
     if (!isConnected) {
-      try {
-        await connectWallet();
-        return; // Wait for connection to complete, then user can try again
-      } catch (error) {
-        toast({
-          title: "Wallet not connected",
-          description: "Please connect your wallet to interact with quests.",
-          variant: "destructive"
-        });
-      }
-      return;
+      openWalletModal();
+      return; // Open wallet modal and wait for user to connect
     }
     
     if (quest.status === 'coming_soon') {

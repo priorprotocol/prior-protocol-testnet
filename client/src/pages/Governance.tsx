@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Governance = () => {
   // Use the wallet context directly
-  const { isConnected, address, getTokenBalance } = useWallet();
+  const { isConnected, address, getTokenBalance, openWalletModal } = useWallet();
   
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);

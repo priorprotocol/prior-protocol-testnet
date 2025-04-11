@@ -17,20 +17,8 @@ interface ProposalCardProps {
 }
 
 const ProposalCard: React.FC<ProposalCardProps> = ({ proposal }) => {
-  // Initialize with default values
-  let address: string | null = null;
-  let isConnected = false;
-  let userId: number | undefined = undefined;
-  
-  // Only use the wallet context if it's available
-  try {
-    const wallet = useWallet();
-    address = wallet.address;
-    isConnected = wallet.isConnected;
-    userId = wallet.userId;
-  } catch (error) {
-    console.log("Wallet context not available yet in ProposalCard component");
-  }
+  // Use the wallet context directly
+  const { address, isConnected, userId, openWalletModal } = useWallet();
   
   const { toast } = useToast();
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -81,11 +69,7 @@ const ProposalCard: React.FC<ProposalCardProps> = ({ proposal }) => {
   
   const handleVote = (vote: string) => {
     if (!isConnected) {
-      toast({
-        title: "Wallet not connected",
-        description: "Please connect your wallet to vote on proposals.",
-        variant: "destructive"
-      });
+      openWalletModal();
       return;
     }
     
