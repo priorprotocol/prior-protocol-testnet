@@ -83,10 +83,22 @@ export const getSwapContract = async (fromToken?: string, toToken?: string) => {
 };
 
 // Function to get the appropriate swap contract with signer based on token pair
-export const getSwapContractWithSigner = async (fromToken?: string, toToken?: string) => {
+export const getSwapContractWithSigner = async (fromToken?: string, toToken?: string, specificContractAddress?: string) => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
+  
+  // If a specific contract address is provided, use that
+  if (specificContractAddress) {
+    // Determine which ABI to use based on the contract address
+    if (specificContractAddress === SWAP_CONTRACTS.PRIOR_USDC) {
+      return new ethers.Contract(specificContractAddress, priorUsdcSwapAbi, signer);
+    } else if (specificContractAddress === SWAP_CONTRACTS.PRIOR_USDT) {
+      return new ethers.Contract(specificContractAddress, priorUsdtSwapAbi, signer);
+    } else if (specificContractAddress === SWAP_CONTRACTS.USDC_USDT) {
+      return new ethers.Contract(specificContractAddress, usdcUsdtSwapAbi, signer);
+    }
+  }
   
   // If no tokens specified, default to PRIOR-USDC swap contract
   if (!fromToken || !toToken) {
@@ -200,34 +212,15 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
 };
 
 // Function to approve tokens for swap
-export const approveTokens = async (tokenAddress: string, toTokenAddress: string, amount: string): Promise<boolean> => {
+export const approveTokens = async (tokenAddress: string, spenderAddress: string, amount: string): Promise<boolean> => {
   try {
     const contract = await getTokenContractWithSigner(tokenAddress);
     const decimals = getTokenDecimalsFromAddress(tokenAddress);
     const parsedAmount = ethers.utils.parseUnits(amount, decimals);
     
-    // Get the right swap contract address based on the token pair
-    const fromSymbol = getTokenSymbol(tokenAddress);
-    const toSymbol = getTokenSymbol(toTokenAddress);
-    
-    let swapContractAddress;
-    
-    if ((fromSymbol === 'PRIOR' && toSymbol === 'USDC') || 
-        (fromSymbol === 'USDC' && toSymbol === 'PRIOR')) {
-      swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
-    } else if ((fromSymbol === 'PRIOR' && toSymbol === 'USDT') || 
-               (fromSymbol === 'USDT' && toSymbol === 'PRIOR')) {
-      swapContractAddress = SWAP_CONTRACTS.PRIOR_USDT;
-    } else if ((fromSymbol === 'USDC' && toSymbol === 'USDT') || 
-               (fromSymbol === 'USDT' && toSymbol === 'USDC')) {
-      swapContractAddress = SWAP_CONTRACTS.USDC_USDT;
-    } else {
-      // Default to PRIOR-USDC swap
-      swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
-    }
-    
+    // Use the provided spender address (which should be the swap contract address)
     // Approve the swap contract to spend the tokens
-    const tx = await contract.approve(swapContractAddress, parsedAmount);
+    const tx = await contract.approve(spenderAddress, parsedAmount);
     await tx.wait();
     return true;
   } catch (error) {
@@ -241,10 +234,15 @@ export const swapTokens = async (
   fromTokenAddress: string,
   toTokenAddress: string,
   amount: string,
+  swapContractAddress?: string,
+  minAmountOut?: string,
 ): Promise<any> => {
   try {
-    // Get the appropriate swap contract based on the token pair
-    const swapContract = await getSwapContractWithSigner(fromTokenAddress, toTokenAddress);
+    // Get the appropriate swap contract based on the token pair or use the provided address
+    const swapContract = swapContractAddress 
+      ? await getSwapContractWithSigner(fromTokenAddress, toTokenAddress, swapContractAddress)
+      : await getSwapContractWithSigner(fromTokenAddress, toTokenAddress);
+      
     const fromSymbol = getTokenSymbol(fromTokenAddress);
     const toSymbol = getTokenSymbol(toTokenAddress);
     const decimals = getTokenDecimalsFromAddress(fromTokenAddress);

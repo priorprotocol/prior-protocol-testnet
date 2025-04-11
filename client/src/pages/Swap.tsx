@@ -322,7 +322,8 @@ export default function Swap() {
       console.log("USDT:", TOKENS.USDT.address);
       console.log("DAI:", TOKENS.DAI.address);
       console.log("WETH:", TOKENS.WETH.address);
-      console.log("PriorSwap contract:", contractAddresses.priorSwap);
+      // Debug logs
+      console.log("Swap contracts:", contractAddresses.swapContracts);
       
       // Properly fetch all token balances from the contract using our improved getTokenBalance function
       if (provider) {
@@ -466,7 +467,15 @@ export default function Swap() {
     setIsApproving(true);
     try {
       const tokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
-      await approveTokens(tokenAddress, MAX_UINT256);
+      
+      // Get the appropriate swap contract for the token pair
+      const swapContractAddress = getSwapContractAddress(fromToken, toToken);
+      if (!swapContractAddress) {
+        throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
+      }
+      
+      // Pass both token address and the specific swap contract address to approve
+      await approveTokens(tokenAddress, swapContractAddress, MAX_UINT256);
       
       setHasAllowance(true);
       toast({
@@ -496,15 +505,23 @@ export default function Swap() {
       
       const amountIn = fromAmount; // We'll pass the raw amount string to the swapTokens function
       
-      // Calculate slippage for minimum amount out (not currently used but good practice)
+      // Calculate slippage for minimum amount out
       const slippageFactor = 1 - (slippage / 100);
       const minAmountOut = parseFloat(toAmount) * slippageFactor;
       
-      // Perform swap
+      // Get the appropriate swap contract for this token pair
+      const swapContractAddress = getSwapContractAddress(fromToken, toToken);
+      if (!swapContractAddress) {
+        throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
+      }
+      
+      // Perform swap with proper contract address
       const txReceipt = await swapTokens(
         fromTokenInfo.address,
         toTokenInfo.address,
-        amountIn
+        amountIn,
+        swapContractAddress,
+        minAmountOut.toString()
       );
       
       if (txReceipt) {
