@@ -706,9 +706,19 @@ export default function Swap() {
     return Object.keys(TOKENS).filter(token => token !== excludeToken);
   };
 
-  // Verify if at least one token is PRIOR
-  const isPriorInPair = () => {
-    return fromToken === "PRIOR" || toToken === "PRIOR";
+  // Verify if the pair is supported
+  const isPairSupported = () => {
+    // PRIOR pairs are always supported
+    if (fromToken === "PRIOR" || toToken === "PRIOR") {
+      return true;
+    }
+    
+    // USDC-USDT pair is also supported
+    if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
+      return true;
+    }
+    
+    return false;
   };
 
   return (
@@ -991,12 +1001,12 @@ export default function Swap() {
               >
                 Connect Wallet
               </button>
-            ) : !isPriorInPair() ? (
+            ) : !isPairSupported() ? (
               <button 
                 disabled
                 className="w-full bg-gray-700 text-gray-400 font-medium py-3 rounded-xl"
               >
-                Pair must include PRIOR
+                Unsupported token pair
               </button>
             ) : parseFloat(fromAmount) > parseFloat(balances[fromToken] || "0") ? (
               <button 
