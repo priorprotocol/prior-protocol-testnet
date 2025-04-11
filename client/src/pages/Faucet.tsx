@@ -60,7 +60,7 @@ const Faucet = () => {
       
       try {
         // Call the PRIOR token contract's claimFromFaucet function
-        console.log("Calling claimFromFaucet with address:", address);
+        console.log("Calling claimFromFaucet with the connected wallet");
         const txReceipt = await claimFromFaucet();
         console.log("Claim transaction receipt:", txReceipt);
         

@@ -347,12 +347,28 @@ export const swapTokens = async (
 };
 
 // Function to claim tokens from faucet
-export const claimFromFaucet = async (): Promise<boolean> => {
+export const claimFromFaucet = async (userAddress?: string): Promise<boolean> => {
   try {
     const faucetContract = await getFaucetContractWithSigner();
+    console.log("Faucet contract address:", CONTRACT_ADDRESSES.priorFaucet);
     
-    const tx = await faucetContract.claim();
-    await tx.wait();
+    // Log current user address to help debug issues
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const signerAddress = await signer.getAddress();
+    console.log("Signer address for faucet claim:", signerAddress);
+    
+    // Make claim call - depending on contract implementation
+    let tx;
+    
+    // Based on error logs, the contract's claim function doesn't take any parameters
+    // Ignore the passed address and use msg.sender
+    console.log("Claiming with default msg.sender");
+    tx = await faucetContract.claim();
+    
+    console.log("Claim transaction sent:", tx.hash);
+    const receipt = await tx.wait();
+    console.log("Claim transaction confirmed in block:", receipt.blockNumber);
     return true;
   } catch (error) {
     console.error("Error claiming from faucet:", error);
@@ -364,9 +380,32 @@ export const claimFromFaucet = async (): Promise<boolean> => {
 export const getFaucetInfo = async (address: string) => {
   try {
     const faucetContract = await getFaucetContract();
+    console.log("Checking faucet claim status for address:", address);
     
-    const lastClaimTime = await faucetContract.checkClaim(address);
-    const nextClaimTime = Number(lastClaimTime.toString()) + 24 * 60 * 60; // 24 hours in seconds
+    // First, directly check if user can claim using the contract's canClaim function
+    try {
+      const canClaimNow = await faucetContract.canClaim(address);
+      console.log("Can claim status from contract:", canClaimNow);
+      
+      if (canClaimNow) {
+        return {
+          canClaim: true,
+          nextClaimTime: new Date(),
+          timeRemaining: 0
+        };
+      }
+    } catch (err) {
+      console.error("Error calling canClaim:", err);
+    }
+    
+    // Get last claim time using lastClaim mapping on the contract
+    const lastClaimTime = await faucetContract.lastClaim(address);
+    console.log("Last claim time:", lastClaimTime.toString());
+    
+    const waitTime = await faucetContract.WAIT_TIME();
+    console.log("Wait time between claims:", waitTime.toString());
+    
+    const nextClaimTime = Number(lastClaimTime.toString()) + Number(waitTime.toString());
     const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
     
     return {
