@@ -169,18 +169,26 @@ export const getNftContract = async () => {
 
 // Get token symbol from address
 export const getTokenSymbol = (tokenAddress: string): string => {
+  // Normalize the input address
   const lowerCaseAddress = tokenAddress.toLowerCase();
   
+  // Check if the address is the PRIOR token
   if (lowerCaseAddress === CONTRACT_ADDRESSES.priorToken.toLowerCase()) {
+    console.log(`Identified address ${tokenAddress} as PRIOR token`);
     return "PRIOR";
   }
   
+  // Check if the address matches any of our known tokens
   for (const [symbol, address] of Object.entries(CONTRACT_ADDRESSES.tokens)) {
-    if (lowerCaseAddress === address.toLowerCase()) {
+    const tokenLowerAddress = (typeof address === 'string') ? address.toLowerCase() : '';
+    if (lowerCaseAddress === tokenLowerAddress) {
+      console.log(`Identified address ${tokenAddress} as ${symbol} token`);
       return symbol;
     }
   }
   
+  // Log a warning if no match is found
+  console.warn(`Could not identify token symbol for address: ${tokenAddress}`);
   return "Unknown";
 };
 
@@ -553,33 +561,46 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
     const fromDecimals = getTokenDecimalsFromAddress(fromTokenAddress);
     const toDecimals = getTokenDecimalsFromAddress(toTokenAddress);
     
+    console.log(`Calculating swap from ${fromSymbol} (${fromDecimals} decimals) to ${toSymbol} (${toDecimals} decimals)`);
+    console.log(`Input amount: ${amountIn}`);
+    
     // Get the appropriate swap contract based on the token pair
     const swapContract = await getSwapContract(fromTokenAddress, toTokenAddress);
     
     // Parse the input amount with the correct decimals
     const parsedAmountIn = ethers.utils.parseUnits(amountIn, fromDecimals);
+    console.log(`Parsed input amount: ${parsedAmountIn.toString()}`);
+    
     let outputAmount;
     
     try {
       // Call the appropriate calculation function based on the swap pair
       if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
         outputAmount = await swapContract.calculatePriorToUsdc(parsedAmountIn);
+        console.log(`Contract calculated PRIOR to USDC: ${outputAmount.toString()}`);
       } else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
         outputAmount = await swapContract.calculateUsdcToPrior(parsedAmountIn);
+        console.log(`Contract calculated USDC to PRIOR: ${outputAmount.toString()}`);
       } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
         outputAmount = await swapContract.calculatePriorToUsdt(parsedAmountIn);
+        console.log(`Contract calculated PRIOR to USDT: ${outputAmount.toString()}`);
       } else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
         outputAmount = await swapContract.calculateUsdtToPrior(parsedAmountIn);
+        console.log(`Contract calculated USDT to PRIOR: ${outputAmount.toString()}`);
       } else if (fromSymbol === "USDC" && toSymbol === "USDT") {
         outputAmount = await swapContract.calculateUsdcToUsdt(parsedAmountIn);
+        console.log(`Contract calculated USDC to USDT: ${outputAmount.toString()}`);
       } else if (fromSymbol === "USDT" && toSymbol === "USDC") {
         outputAmount = await swapContract.calculateUsdtToUsdc(parsedAmountIn);
+        console.log(`Contract calculated USDT to USDC: ${outputAmount.toString()}`);
       } else {
         throw new Error(`Swap calculation not supported for pair: ${fromSymbol}/${toSymbol}`);
       }
       
       // Format the output with the correct decimals
-      return ethers.utils.formatUnits(outputAmount, toDecimals);
+      const formattedOutput = ethers.utils.formatUnits(outputAmount, toDecimals);
+      console.log(`Formatted output (${toDecimals} decimals): ${formattedOutput}`);
+      return formattedOutput;
     } catch (error) {
       console.error("Error calculating swap amount directly from contract:", error);
       
@@ -600,11 +621,23 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
         rate = "1"; // 1 USDT = 1 USDC
       }
       
+      console.log(`Using fixed rate calculation: 1 ${fromSymbol} = ${rate} ${toSymbol}`);
+      
       // Apply a 0.5% swap fee
       const amountOut = parseFloat(amountIn) * parseFloat(rate);
       const amountOutAfterFee = amountOut * 0.995; // 0.5% fee
       
-      return amountOutAfterFee.toFixed(toDecimals);
+      // For stablecoins with 6 decimals, we need to return the correct decimal format
+      if ((toSymbol === "USDC" || toSymbol === "USDT") && toDecimals === 6) {
+        const formatted = amountOutAfterFee.toFixed(6);
+        console.log(`Fixed rate calculation result: ${formatted} (6 decimals)`);
+        return formatted;
+      }
+      
+      // For other tokens, use the default formatting
+      const formatted = amountOutAfterFee.toFixed(4);
+      console.log(`Fixed rate calculation result: ${formatted} (default format)`);
+      return formatted;
     }
   } catch (error) {
     console.error("Error calculating swap output:", error);
