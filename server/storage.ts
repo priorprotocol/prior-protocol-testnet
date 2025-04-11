@@ -102,6 +102,13 @@ export class MemStorage implements IStorage {
     this.initializeQuests();
     // Initialize with sample proposals
     this.initializeProposals();
+    
+    // Initialize sample transaction data - do this asynchronously
+    setTimeout(() => {
+      this.initializeSampleData().catch(err => 
+        console.error("Error initializing sample data:", err)
+      );
+    }, 1000);
   }
   
   private initializeTokens() {
@@ -195,6 +202,67 @@ export class MemStorage implements IStorage {
       await this.updateProposalVotes(createdProposal.id, 'yes', 65);
       await this.updateProposalVotes(createdProposal.id, 'no', 35);
     });
+  }
+  
+  private async initializeSampleData() {
+    // Create a demo user if not exists
+    const demoUserAddress = "0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae";
+    const demoUser = this.usersByAddress.get(demoUserAddress);
+    
+    if (!demoUser) {
+      console.log("Creating demo user and sample transaction data");
+      const now = new Date();
+      const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      
+      // Create demo user - await the promise to get the actual user object
+      const user = await this.createUser({ 
+        address: demoUserAddress, 
+        lastClaim: twelveHoursAgo 
+      });
+      
+      // First create a user to ensure it exists in our in-memory database
+      if (user && user.id) {
+        // Add sample transactions - faucet claim transaction
+        await this.createTransaction({
+          userId: user.id,
+          type: 'faucet_claim',
+          fromToken: null,
+          toToken: 'PRIOR',
+          fromAmount: null,
+          toAmount: '1',
+          txHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+          status: 'completed',
+          blockNumber: 123456
+        });
+        
+        // Sample swap transaction - PRIOR to USDC
+        await this.createTransaction({
+          userId: user.id,
+          type: 'swap',
+          fromToken: 'PRIOR',
+          toToken: 'USDC',
+          fromAmount: '0.1',
+          toAmount: '1',
+          txHash: '0x9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef',
+          status: 'completed',
+          blockNumber: 123457
+        });
+        
+        // Sample swap transaction - USDC to USDT
+        await this.createTransaction({
+          userId: user.id,
+          type: 'swap',
+          fromToken: 'USDC',
+          toToken: 'USDT',
+          fromAmount: '5',
+          toAmount: '5',
+          txHash: '0xaabbccddeeff11223344556677889900aabbccddeeff1122334455667788990',
+          status: 'completed',
+          blockNumber: 123458
+        });
+      }
+    }
   }
   
   // User operations

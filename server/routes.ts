@@ -473,6 +473,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const transactions = await storage.getUserTransactionsByType(user.id, type);
     res.json(transactions);
   });
+  
+  // Get user's transaction history by user ID (for internal use)
+  app.get(`${apiPrefix}/users/:userId/transactions`, async (req, res) => {
+    const userId = parseInt(req.params.userId);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    
+    // Since we can't access the private 'users' Map directly, we'll just proceed with
+    // the transaction lookup and handle not finding any as an empty result
+    try {
+      const transactions = await storage.getUserTransactions(userId);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching transactions for userId:", userId, error);
+      res.status(500).json({ message: "Error fetching transactions" });
+    }
+  });
+  
+  // Get user's transaction history by user ID and type (for internal use)
+  app.get(`${apiPrefix}/users/:userId/transactions/:type`, async (req, res) => {
+    const userId = parseInt(req.params.userId);
+    const { type } = req.params;
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    
+    // Since we can't access the private 'users' Map directly, we'll just proceed with
+    // the transaction lookup by type and handle not finding any as an empty result
+    try {
+      const transactions = await storage.getUserTransactionsByType(userId, type);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching transactions for userId:", userId, "type:", type, error);
+      res.status(500).json({ message: "Error fetching transactions" });
+    }
+  });
 
   // Record a transaction
   app.post(`${apiPrefix}/transactions`, async (req, res) => {
