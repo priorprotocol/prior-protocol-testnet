@@ -76,7 +76,10 @@ const Header = () => {
           </div>
         ) : (
           <button 
-            onClick={() => openWalletModal()}
+            onClick={() => {
+              console.log("Header: Opening wallet modal");
+              openWalletModal();
+            }}
             className="hidden md:flex items-center rounded-full bg-[#1A5CFF] px-6 py-2 hover:bg-opacity-90 transition-all font-bold text-sm"
           >
             <span>Connect Wallet</span>
@@ -128,6 +131,7 @@ const Header = () => {
             ) : (
               <button 
                 onClick={() => {
+                  console.log("Mobile Menu: Opening wallet modal");
                   openWalletModal();
                   setIsMobileMenuOpen(false);
                 }}
