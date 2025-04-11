@@ -14,7 +14,7 @@ import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
 import { UserStats } from "@/types";
 
 const Dashboard = () => {
-  const { address, userId, tokens, getTokenBalance } = useWallet();
+  const { address, userId, tokens, getTokenBalance, connectWallet } = useWallet();
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch user stats
