@@ -17,7 +17,8 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
   
   const { data: leaderboard, isLoading } = useQuery({
     queryKey: ["/api/leaderboard", limit],
-    queryFn: () => apiRequest<User[]>(`/api/leaderboard?limit=${limit}`),
+    queryFn: async () => apiRequest<User[]>(`/api/leaderboard?limit=${limit}`),
+    refetchOnWindowFocus: false,
   });
   
   // Badge rendering helper functions
@@ -25,26 +26,26 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
     switch (index) {
       case 0: // 1st place
         return (
-          <Badge className="bg-amber-500 text-black hover:bg-amber-400" variant="secondary">
+          <Badge className="bg-amber-500 text-black hover:bg-amber-400">
             <FaTrophy className="mr-1" /> 1st Place
           </Badge>
         );
       case 1: // 2nd place
         return (
-          <Badge className="bg-gray-400 text-black hover:bg-gray-300" variant="secondary">
+          <Badge className="bg-gray-400 text-black hover:bg-gray-300">
             <FaMedal className="mr-1" /> 2nd Place
           </Badge>
         );
       case 2: // 3rd place
         return (
-          <Badge className="bg-amber-700 text-white hover:bg-amber-600" variant="secondary">
+          <Badge className="bg-amber-700 text-white hover:bg-amber-600">
             <FaMedal className="mr-1" /> 3rd Place
           </Badge>
         );
       case 3: // 4th place
       case 4: // 5th place
         return (
-          <Badge className="bg-blue-600 hover:bg-blue-500" variant="secondary">
+          <Badge className="bg-blue-600 hover:bg-blue-500">
             <FaAward className="mr-1" /> Top 5
           </Badge>
         );

@@ -8,14 +8,31 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest<T = any>(
-  method: string,
-  url: string,
+  urlOrPathOrMethod: string,
+  urlOrPathOrData?: string | unknown | undefined,
   data?: unknown | undefined,
 ): Promise<T> {
+  // If the first argument starts with a slash or http, assume it's a GET request
+  if (urlOrPathOrMethod.startsWith('/') || urlOrPathOrMethod.startsWith('http')) {
+    const url = urlOrPathOrMethod;
+    const res = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+    });
+    
+    await throwIfResNotOk(res);
+    return res.json() as Promise<T>;
+  }
+  
+  // Otherwise, assume it's a method and the second argument is the URL
+  const method = urlOrPathOrMethod;
+  const url = urlOrPathOrData as string;
+  const requestData = data;
+  
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers: requestData ? { "Content-Type": "application/json" } : {},
+    body: requestData ? JSON.stringify(requestData) : undefined,
     credentials: "include",
   });
 
