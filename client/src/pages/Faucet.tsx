@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import TokenCard from "@/components/TokenCard";
+import { TransactionHistory } from "@/components/TransactionHistory";
 import { TokenInfo } from "@/types";
 import { claimFromFaucet, getFaucetInfo, getTokenBalance } from "@/contracts/services";
 import { requestAccounts, switchToBaseSepoliaNetwork } from "@/lib/web3";
@@ -425,6 +426,10 @@ const Faucet = () => {
               return <TokenCard key={token.symbol} token={tokenWithLocalBalance} />;
             })}
           </div>
+        </div>
+        
+        <div className="mt-12 max-w-4xl mx-auto">
+          <TransactionHistory />
         </div>
       </div>
     </section>

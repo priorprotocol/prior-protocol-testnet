@@ -496,7 +496,13 @@ export class MemStorage implements IStorage {
       ...transaction,
       id,
       timestamp: new Date(),
-      status: transaction.status || 'completed'
+      status: transaction.status || 'completed',
+      // Ensure all nullable fields have proper default values
+      fromToken: transaction.fromToken || null,
+      toToken: transaction.toToken || null,
+      fromAmount: transaction.fromAmount || null,
+      toAmount: transaction.toAmount || null,
+      blockNumber: transaction.blockNumber || null
     };
     
     this.transactions.set(id, newTransaction);

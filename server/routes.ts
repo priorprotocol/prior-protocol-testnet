@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertVoteSchema } from "@shared/schema";
+import { insertUserSchema, insertVoteSchema, insertTransactionSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -55,12 +55,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Claim tokens (update last claim time)
   app.post(`${apiPrefix}/claim`, async (req, res) => {
-    const addressSchema = z.object({
+    const claimSchema = z.object({
       address: z.string().min(42).max(42),
+      txHash: z.string().optional(),
+      amount: z.string().optional(),
+      blockNumber: z.number().optional()
     });
     
     try {
-      const { address } = addressSchema.parse(req.body);
+      const { address, txHash, amount, blockNumber } = claimSchema.parse(req.body);
       let user = await storage.getUser(address);
       
       if (!user) {
@@ -90,13 +93,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.addUserBadge(updatedUser.id, "token_claimed");
       }
       
+      // If a transaction hash is provided, record the transaction
+      if (txHash && updatedUser) {
+        await storage.createTransaction({
+          userId: updatedUser.id,
+          type: 'faucet_claim',
+          fromToken: null,
+          toToken: 'PRIOR',
+          fromAmount: null,
+          toAmount: amount || '1',
+          txHash,
+          status: 'completed',
+          blockNumber: blockNumber || null
+        });
+      }
+      
       res.json({
         message: "Tokens claimed successfully",
         user: updatedUser,
         nextClaimTime: new Date(new Date().getTime() + 24 * 60 * 60 * 1000)
       });
     } catch (error) {
-      res.status(400).json({ message: "Invalid wallet address format" });
+      res.status(400).json({ message: "Invalid request format" });
     }
   });
   
@@ -311,25 +329,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Record a swap for a user
   app.post(`${apiPrefix}/users/:address/swaps`, async (req, res) => {
-    const { address } = req.params;
-    
-    const user = await storage.getUser(address);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    
-    // Increment the swap count
-    const newCount = await storage.incrementUserSwapCount(user.id);
-    
-    // If this is their first swap, add the swap_completed badge
-    if (newCount === 1) {
-      await storage.addUserBadge(user.id, "swap_completed");
-    }
-    
-    res.json({ 
-      message: "Swap recorded successfully",
-      totalSwaps: newCount 
+    const swapSchema = z.object({
+      txHash: z.string().optional(),
+      fromToken: z.string().optional(),
+      toToken: z.string().optional(),
+      fromAmount: z.string().optional(),
+      toAmount: z.string().optional(),
+      blockNumber: z.number().optional()
     });
+    
+    try {
+      const { address } = req.params;
+      const { txHash, fromToken, toToken, fromAmount, toAmount, blockNumber } = swapSchema.parse(req.body);
+      
+      const user = await storage.getUser(address);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Increment the swap count
+      const newCount = await storage.incrementUserSwapCount(user.id);
+      
+      // If this is their first swap, add the swap_completed badge
+      if (newCount === 1) {
+        await storage.addUserBadge(user.id, "swap_completed");
+      }
+      
+      // If transaction details are provided, record it
+      if (txHash && fromToken && toToken && fromAmount && toAmount) {
+        await storage.createTransaction({
+          userId: user.id,
+          type: 'swap',
+          fromToken,
+          toToken,
+          fromAmount,
+          toAmount,
+          txHash,
+          status: 'completed',
+          blockNumber: blockNumber || null
+        });
+      }
+      
+      res.json({ 
+        message: "Swap recorded successfully",
+        totalSwaps: newCount 
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid request format" });
+    }
   });
   
   // Get user's vote on a proposal
@@ -398,6 +445,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request format" });
+    }
+  });
+
+  // Get user's transaction history (all types)
+  app.get(`${apiPrefix}/users/:address/transactions`, async (req, res) => {
+    const { address } = req.params;
+    
+    const user = await storage.getUser(address);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const transactions = await storage.getUserTransactions(user.id);
+    res.json(transactions);
+  });
+
+  // Get user's transaction history by type
+  app.get(`${apiPrefix}/users/:address/transactions/:type`, async (req, res) => {
+    const { address, type } = req.params;
+    
+    const user = await storage.getUser(address);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const transactions = await storage.getUserTransactionsByType(user.id, type);
+    res.json(transactions);
+  });
+
+  // Record a transaction
+  app.post(`${apiPrefix}/transactions`, async (req, res) => {
+    try {
+      const transactionData = insertTransactionSchema.parse(req.body);
+      
+      // Verify user exists
+      const user = await storage.getUser(req.body.userAddress);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Create the transaction with user ID
+      const transaction = await storage.createTransaction({
+        ...transactionData,
+        userId: user.id
+      });
+      
+      res.status(201).json(transaction);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid transaction data" });
+    }
+  });
+
+  // Record a faucet claim transaction
+  app.post(`${apiPrefix}/transactions/faucet-claim`, async (req, res) => {
+    try {
+      const { address, txHash, amount, blockNumber } = req.body;
+      
+      if (!address || !txHash) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Find user
+      const user = await storage.getUser(address);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Create transaction record
+      const transaction = await storage.createTransaction({
+        userId: user.id,
+        type: 'faucet_claim',
+        fromToken: null,
+        toToken: 'PRIOR',
+        fromAmount: null,
+        toAmount: amount || '1',
+        txHash,
+        status: 'completed',
+        blockNumber: blockNumber || null
+      });
+      
+      res.status(201).json(transaction);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to record transaction" });
+    }
+  });
+
+  // Record a swap transaction
+  app.post(`${apiPrefix}/transactions/swap`, async (req, res) => {
+    try {
+      const { address, txHash, fromToken, toToken, fromAmount, toAmount, blockNumber } = req.body;
+      
+      if (!address || !txHash || !fromToken || !toToken || !fromAmount || !toAmount) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Find user
+      const user = await storage.getUser(address);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Create transaction record
+      const transaction = await storage.createTransaction({
+        userId: user.id,
+        type: 'swap',
+        fromToken,
+        toToken,
+        fromAmount,
+        toAmount,
+        txHash,
+        status: 'completed',
+        blockNumber: blockNumber || null
+      });
+      
+      // Increment the user's swap count
+      await storage.incrementUserSwapCount(user.id);
+      
+      res.status(201).json(transaction);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to record transaction" });
     }
   });
 
