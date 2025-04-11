@@ -214,30 +214,43 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
     
     // Special handling for USDC/USDT with 6 decimals
     if (symbol === "USDC" || symbol === "USDT") {
-      // For very large balances (likely using wrong decimals)
-      if (balance.gt(ethers.BigNumber.from("10").pow(12).mul(1000))) {
-        // Convert 18 decimals to 6 decimals by dividing by 10^12
-        balance = balance.div(ethers.BigNumber.from("10").pow(12));
+      try {
+        // Convert to string for manual handling
+        const rawValue = balance.toString();
+        
+        // Check if this is likely an 18-decimal value (very large)
+        // For USDC/USDT, if it's using 18 decimals instead of 6, the value would be extremely large
+        if (rawValue.length > 12) {
+          console.log(`Detected large ${symbol} value (probably using 18 decimals instead of 6):`, rawValue);
+          
+          // Manual fix: For a value like 3999999999999000000 (18 decimals), 
+          // we need to convert it to 3.999999 (6 decimals)
+          // Calculate the correct 6-decimal value
+          const scaledValue = ethers.BigNumber.from(rawValue).div(ethers.BigNumber.from(10).pow(12));
+          console.log(`Converted value (18 to 6 decimals): ${scaledValue.toString()}`);
+          
+          // Now format with 6 decimals
+          const valueWithDecimal = ethers.utils.formatUnits(scaledValue, 6);
+          console.log(`${symbol} balance updated:`, valueWithDecimal);
+          return valueWithDecimal;
+        }
+        
+        // For normal USDC/USDT values using the correct 6 decimals
+        const valueWithDecimal = ethers.utils.formatUnits(rawValue, 6);
+        console.log(`${symbol} balance updated:`, valueWithDecimal);
+        return valueWithDecimal;
+      } catch (error) {
+        console.error("Error formatting stablecoin balance:", error);
+        try {
+          // Fallback: try to format with 6 decimals directly
+          const formattedBalance = ethers.utils.formatUnits(balance, 6);
+          console.log(`${symbol} balance updated (fallback):`, formattedBalance);
+          return formattedBalance;
+        } catch (fallbackError) {
+          console.error("Fallback formatting also failed:", fallbackError);
+          return "0.00";
+        }
       }
-      
-      // Format with proper 6 decimals
-      const divisor = ethers.BigNumber.from("10").pow(6);
-      const integerPart = balance.div(divisor);
-      const fractionalPart = balance.mod(divisor);
-      
-      // Format with proper decimal places
-      let formattedBalance;
-      if (fractionalPart.isZero()) {
-        formattedBalance = integerPart.toString();
-      } else {
-        const fractionalStr = fractionalPart.toString().padStart(6, '0');
-        // Remove trailing zeros
-        const trimmedFraction = fractionalStr.replace(/0+$/, '');
-        formattedBalance = trimmedFraction ? `${integerPart}.${trimmedFraction}` : integerPart.toString();
-      }
-      
-      console.log(`${symbol} balance updated:`, formattedBalance);
-      return formattedBalance;
     } 
     // For PRIOR with 18 decimals
     else {
