@@ -63,7 +63,7 @@ interface WalletContextType {
   connectWithCoinbaseWallet: () => Promise<void>;
   connectWithWalletConnect: () => Promise<void>;
   disconnectWallet: () => void;
-  openWalletModal: () => Promise<void>;
+  openWalletModal: () => void;
   closeWalletModal: () => void;
   tokens: TokenInfo[];
   getTokenBalance: (symbol: string) => string;
@@ -83,7 +83,7 @@ const defaultContextValue: WalletContextType = {
   connectWithCoinbaseWallet: async () => {},
   connectWithWalletConnect: async () => {},
   disconnectWallet: () => {},
-  openWalletModal: async () => {},
+  openWalletModal: () => {},
   closeWalletModal: () => {},
   tokens: [],
   getTokenBalance: () => "0.00",
@@ -527,34 +527,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     });
   };
   
-  const openWalletModal = async () => {
-    console.log("Opening wallet modal from context");
-    
-    // First try direct connection if window.ethereum is available
-    if (window.ethereum) {
-      try {
-        console.log("Attempting direct connection via openWalletModal");
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-        
-        if (accounts && accounts.length > 0) {
-          console.log("Direct connection succeeded:", accounts[0]);
-          setAddress(accounts[0]);
-          
-          // Save to localStorage for persistence
-          localStorage.setItem('walletState', JSON.stringify({
-            address: accounts[0],
-            timestamp: Date.now()
-          }));
-          
-          // No need to open the modal since connection succeeded
-          return;
-        }
-      } catch (err) {
-        console.error("Direct connection failed, falling back to modal:", err);
-      }
-    }
-    
-    // Fall back to modal if direct connection failed or not available
+  const openWalletModal = () => {
     setIsWalletModalOpen(true);
   };
   

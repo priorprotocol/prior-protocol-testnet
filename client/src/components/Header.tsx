@@ -76,10 +76,7 @@ const Header = () => {
           </div>
         ) : (
           <button 
-            onClick={async () => {
-              console.log("Header: Opening wallet modal");
-              await openWalletModal();
-            }}
+            onClick={() => openWalletModal()}
             className="hidden md:flex items-center rounded-full bg-[#1A5CFF] px-6 py-2 hover:bg-opacity-90 transition-all font-bold text-sm"
           >
             <span>Connect Wallet</span>
@@ -130,9 +127,8 @@ const Header = () => {
               </div>
             ) : (
               <button 
-                onClick={async () => {
-                  console.log("Mobile Menu: Opening wallet modal");
-                  await openWalletModal();
+                onClick={() => {
+                  openWalletModal();
                   setIsMobileMenuOpen(false);
                 }}
                 className="flex items-center justify-center rounded-full bg-[#1A5CFF] px-6 py-3 hover:bg-opacity-90 transition-all font-bold text-sm mt-4"
