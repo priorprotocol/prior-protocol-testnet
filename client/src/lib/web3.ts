@@ -98,43 +98,70 @@ export const switchToBaseSepoliaNetwork = async () => {
 // Function to format token amount with proper decimals
 export const formatTokenAmount = (amount: string, decimals: number): string => {
   try {
+    console.log(`Formatting raw amount: ${amount} with ${decimals} decimals`);
+    
     // Special handling for USDC and USDT (decimals = 6)
     if (decimals === 6) {
-      // For USDC and USDT, convert directly from the raw amount
+      // Critical fix for USDC/USDT: Detect if the amount is actually using 18 decimals
+      // instead of 6 (caused by contract interaction issues)
       const value = ethers.BigNumber.from(amount);
+      
+      // Check if the value is abnormally large (likely using 18 decimals instead of 6)
+      // For USDC/USDT, values over 1 trillion (10^12) are suspicious
+      if (value.gt(ethers.BigNumber.from(10).pow(12).mul(1000))) {
+        console.log(`Detected improperly scaled USDC/USDT amount: ${amount}`);
+        
+        // Adjust by dividing by 10^12 (difference between 18 and 6 decimals)
+        const adjustedValue = value.div(ethers.BigNumber.from(10).pow(12));
+        console.log(`Adjusted to: ${adjustedValue.toString()}`);
+        
+        // Now apply standard 6 decimal formatting to the corrected value
+        const divisor = ethers.BigNumber.from(10).pow(6);
+        const integerPart = adjustedValue.div(divisor);
+        const fractionalPart = adjustedValue.mod(divisor);
+        
+        if (fractionalPart.isZero()) {
+          console.log(`Final formatted amount: ${integerPart.toString()}`);
+          return integerPart.toString();
+        }
+        
+        const fractionalStr = fractionalPart.toString().padStart(6, '0');
+        const result = `${integerPart}.${fractionalStr.replace(/0+$/, '')}`;
+        console.log(`Final formatted amount: ${result}`);
+        return result;
+      }
+      
+      // Standard 6 decimal token formatting
       const divisor = ethers.BigNumber.from(10).pow(6);
       const integerPart = value.div(divisor);
       const fractionalPart = value.mod(divisor);
       
-      // Format with proper decimal places - only show decimals if needed
       if (fractionalPart.isZero()) {
+        console.log(`Standard formatted amount: ${integerPart.toString()}`);
         return integerPart.toString();
-      } else {
-        // Pad with leading zeros if needed
-        const fractionalStr = fractionalPart.toString().padStart(6, '0');
-        // Remove trailing zeros
-        const trimmedFractional = fractionalStr.replace(/0+$/, '');
-        if (trimmedFractional) {
-          return `${integerPart}.${trimmedFractional}`;
-        } else {
-          return integerPart.toString();
-        }
       }
+      
+      const fractionalStr = fractionalPart.toString().padStart(6, '0');
+      const result = `${integerPart}.${fractionalStr.replace(/0+$/, '')}`;
+      console.log(`Standard formatted amount: ${result}`);
+      return result;
     } else {
       // For PRIOR (18 decimals) and other tokens
       const formatted = ethers.utils.formatUnits(amount, decimals);
-      // Display up to 4 decimal places max, but trim trailing zeros
       const parsed = parseFloat(formatted);
+      
+      let result;
       if (Number.isInteger(parsed)) {
-        return parsed.toString();
+        result = parsed.toString();
       } else {
-        return parsed.toLocaleString(undefined, {
-          maximumFractionDigits: 4,
-        });
+        result = parsed.toFixed(4);
       }
+      
+      console.log(`Formatted ${decimals}-decimal token: ${result}`);
+      return result;
     }
   } catch (error) {
-    console.error("Error formatting token amount:", error);
+    console.error("Error formatting token amount:", error, "with amount:", amount);
     return "0.00";
   }
 };

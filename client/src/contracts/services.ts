@@ -212,36 +212,40 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
     const decimals = TOKEN_DECIMALS[symbol as keyof typeof TOKEN_DECIMALS] || 18;
     console.log(`Using decimals: ${decimals} for ${symbol}`);
     
-    // For USDC and USDT (6 decimals), directly convert from raw amount without ethers.utils
+    // Special handling for USDC/USDT with 6 decimals
     if (symbol === "USDC" || symbol === "USDT") {
-      const rawBalance = balance.toString();
-      // If below 1 million (1e6), we need to format as a decimal
-      if (rawBalance.length <= 6) {
-        const padded = rawBalance.padStart(6, '0');
-        const decimal = parseFloat(`0.${padded}`);
-        console.log(`${symbol} balance updated:`, decimal.toFixed(6));
-        return decimal.toFixed(6);
-      } else {
-        // For larger amounts, split into whole number and fractional parts
-        const whole = rawBalance.slice(0, rawBalance.length - 6);
-        const fraction = rawBalance.slice(rawBalance.length - 6);
-        const trimmedFraction = fraction.replace(/0+$/, '');
-        
-        if (trimmedFraction) {
-          const result = `${whole}.${trimmedFraction}`;
-          console.log(`${symbol} balance updated:`, result);
-          return result;
-        } else {
-          console.log(`${symbol} balance updated:`, whole);
-          return whole;
-        }
+      // For very large balances (likely using wrong decimals)
+      if (balance.gt(ethers.BigNumber.from("10").pow(12).mul(1000))) {
+        // Convert 18 decimals to 6 decimals by dividing by 10^12
+        balance = balance.div(ethers.BigNumber.from("10").pow(12));
       }
-    } else {
-      // For other tokens like PRIOR (18 decimals)
+      
+      // Format with proper 6 decimals
+      const divisor = ethers.BigNumber.from("10").pow(6);
+      const integerPart = balance.div(divisor);
+      const fractionalPart = balance.mod(divisor);
+      
+      // Format with proper decimal places
+      let formattedBalance;
+      if (fractionalPart.isZero()) {
+        formattedBalance = integerPart.toString();
+      } else {
+        const fractionalStr = fractionalPart.toString().padStart(6, '0');
+        // Remove trailing zeros
+        const trimmedFraction = fractionalStr.replace(/0+$/, '');
+        formattedBalance = trimmedFraction ? `${integerPart}.${trimmedFraction}` : integerPart.toString();
+      }
+      
+      console.log(`${symbol} balance updated:`, formattedBalance);
+      return formattedBalance;
+    } 
+    // For PRIOR with 18 decimals
+    else {
       const formattedBalance = ethers.utils.formatUnits(balance, decimals);
       const numBalance = parseFloat(formattedBalance);
-      console.log(`${symbol} balance updated:`, numBalance.toFixed(4));
-      return numBalance.toFixed(4);
+      const result = numBalance.toFixed(4);
+      console.log(`${symbol} balance updated:`, result);
+      return result;
     }
   } catch (error) {
     console.error(`Error fetching balance for ${tokenAddress}:`, error);
