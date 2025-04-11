@@ -680,20 +680,34 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       
       const updatedBalances = {...tokenBalances};
       
-      // Add a delay to ensure the blockchain state is updated before we fetch new balances
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Add a longer delay to ensure the blockchain state is updated before we fetch new balances
+      console.log("Waiting for blockchain state to update...");
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
       if (address) {
         try {
-          // Fetch balances directly as strings since getTokenBalanceFromContract returns formatted strings
-          const fromTokenBalance = await getTokenBalanceFromContract(fromTokenAddress, address);
-          const toTokenBalance = await getTokenBalanceFromContract(toTokenAddress, address);
+          console.log("Refreshing token balances after swap...");
           
-          // Update balances directly with the returned formatted string values
-          updatedBalances[fromToken.symbol] = fromTokenBalance;
-          updatedBalances[toToken.symbol] = toTokenBalance;
+          // Create a fresh copy of all token balances
+          const newBalances: Record<string, string> = {};
           
-          setTokenBalances(updatedBalances);
+          // Fetch all token balances again to ensure everything is fully updated
+          for (const token of tokens) {
+            try {
+              console.log(`Re-fetching balance for ${token.symbol}...`);
+              const refreshedBalance = await getTokenBalanceFromContract(token.address, address);
+              newBalances[token.symbol] = refreshedBalance;
+              console.log(`Updated ${token.symbol} balance: ${refreshedBalance}`);
+            } catch (balanceError) {
+              console.error(`Error refreshing ${token.symbol} balance:`, balanceError);
+              // Keep the old balance if there's an error
+              newBalances[token.symbol] = tokenBalances[token.symbol] || "0.00";
+            }
+          }
+          
+          // Set all token balances at once to avoid partial updates
+          setTokenBalances(newBalances);
+          console.log("All token balances refreshed successfully");
         } catch (error) {
           console.error("Error refreshing balances:", error);
         }

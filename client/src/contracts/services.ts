@@ -328,18 +328,27 @@ export const swapTokens = async (
     let tx;
     
     try {
-      // When swapping FROM stablecoins (USDC/USDT) TO PRIOR, we need to approve the tokens first
-      if ((fromSymbol === "USDC" && toSymbol === "PRIOR") || (fromSymbol === "USDT" && toSymbol === "PRIOR")) {
-        console.log(`Approving ${fromSymbol} tokens for swap contract...`);
+      // For ALL stablecoin swaps (either to PRIOR or between stablecoins),
+      // we need to approve the tokens first
+      if (fromSymbol === "USDC" || fromSymbol === "USDT") {
+        console.log(`Approving ${fromSymbol} tokens for swap contract at ${swapContractAddress}...`);
         
-        // We need to approve the tokens before swapping when going from stablecoin to PRIOR
-        const success = await approveTokens(fromTokenAddress, swapContractAddress || "", safeAmount);
+        // Ensure we have a valid contract address for approval
+        if (!swapContractAddress) {
+          throw new Error("No swap contract address provided for token approval");
+        }
+        
+        // We need to approve the tokens before swapping when the source is a stablecoin
+        const success = await approveTokens(fromTokenAddress, swapContractAddress, safeAmount);
         
         if (!success) {
           throw new Error(`Failed to approve ${fromSymbol} tokens for swap`);
         }
         
         console.log(`${fromSymbol} tokens approved successfully!`);
+        
+        // Add a small delay after approval to ensure it's processed before the swap
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
       
       // PRIOR/USDC Swap - most reliable pair
@@ -393,6 +402,19 @@ export const swapTokens = async (
         } else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
           console.log("Trying again with a smaller amount due to liquidity constraint for stablecoin swap");
           const tinyAmount = "1"; // Use a very small amount (1 USDC/USDT)
+          
+          // Make sure to re-approve for the smaller amount if this is a stablecoin pair
+          if (swapContractAddress) {
+            console.log(`Re-approving ${fromSymbol} tokens for reduced amount: ${tinyAmount}`);
+            const approvalSuccess = await approveTokens(fromTokenAddress, swapContractAddress, tinyAmount);
+            if (!approvalSuccess) {
+              throw new Error(`Failed to approve ${fromSymbol} tokens for reduced swap amount`);
+            }
+            
+            // Add a small delay after approval
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          
           const tinyParsedAmount = ethers.utils.parseUnits(tinyAmount, decimals);
           
           if (fromSymbol === "USDC" && toSymbol === "USDT") {
