@@ -9,20 +9,16 @@ import { claimFromFaucet, getFaucetInfo } from "@/contracts/services";
 import { useWalletSync } from "@/hooks/useWalletSync";
 
 const Faucet = () => {
-  // Get all values we need from the wallet context for consistency
-  const walletContext = useWallet();
-  const { 
-    tokens,
-    copyToClipboard,
-    disconnectWallet,
-    getTokenBalance
-  } = walletContext;
-  
   // Use the sync hook for better connection management across components
   const { 
     address,
     isConnected,
-    openWalletModal
+    openWalletModal,
+    connectWithMetaMask,
+    disconnectWallet,
+    tokens,
+    copyToClipboard,
+    getTokenBalance
   } = useWalletSync();
   
   const { toast } = useToast();

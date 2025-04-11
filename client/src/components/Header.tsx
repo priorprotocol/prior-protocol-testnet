@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useWallet } from "@/context/WalletContext";
 import { useWalletSync } from "@/hooks/useWalletSync";
 
 const Header = () => {
