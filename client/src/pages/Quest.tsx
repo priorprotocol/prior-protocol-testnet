@@ -53,9 +53,9 @@ const Quest = () => {
             <h3 className="font-space font-semibold text-xl mb-4">Connect Your Wallet</h3>
             <p className="text-[#A0AEC0] mb-6">Connect your wallet to view and track your quest progress.</p>
             <Button 
-              onClick={() => {
+              onClick={async () => {
                 console.log("Quest: Opening wallet modal");
-                openWalletModal();
+                await openWalletModal();
               }}
               className="rounded-lg bg-[#1A5CFF] hover:bg-opacity-90 transition-all font-bold text-sm px-6 py-3"
             >

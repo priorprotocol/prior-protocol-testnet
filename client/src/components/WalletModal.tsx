@@ -16,7 +16,29 @@ const WalletModal = () => {
     // Add a direct connection handler for debugging
     const handleMetaMaskConnect = async () => {
       try {
-        console.log("Attempting direct MetaMask connection...");
+        console.log("Attempting direct MetaMask connection from wallet modal...");
+        
+        // Direct connect using window.ethereum
+        if (window.ethereum) {
+          const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+          if (accounts && accounts.length > 0) {
+            console.log("Successfully connected to account:", accounts[0]);
+            // Save to localStorage for persistence
+            localStorage.setItem('walletState', JSON.stringify({
+              address: accounts[0],
+              timestamp: Date.now()
+            }));
+            
+            // Call connect after successful connection
+            await connectWithMetaMask();
+            
+            // Close modal on success
+            closeWalletModal();
+            return;
+          }
+        }
+        
+        // Fallback to normal connect
         await connectWithMetaMask();
       } catch (error) {
         console.error("MetaMask connection error:", error);
