@@ -805,10 +805,10 @@ export default function Swap() {
         {/* Testnet Notice */}
         <div className="bg-indigo-900/70 border border-indigo-700 rounded-xl p-3 mb-4 text-sm">
           <p className="text-indigo-200 font-medium mb-2">
-            <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment with extremely limited liquidity. Try swapping with very small amounts (0.01-0.1 PRIOR recommended).
+            <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment with extremely limited liquidity. Try swapping with very small amounts (0.01-0.1 PRIOR or 1-10 USDC/USDT recommended).
           </p>
           <p className="text-yellow-300 text-xs">
-            <span className="font-bold">Best working pairs:</span> PRIOR → USDC (try 0.01 PRIOR). Other pairs may not have sufficient liquidity yet.
+            <span className="font-bold">Supported pairs:</span> PRIOR ↔ USDC/USDT and USDC ↔ USDT. Best results with small amounts.
           </p>
         </div>
 
@@ -864,6 +864,24 @@ export default function Swap() {
                     title="Use recommended test amount for PRIOR→USDC"
                   >
                     Try: 0.01
+                  </button>
+                )}
+                {(fromToken === "USDC" && toToken === "USDT") && (
+                  <button 
+                    onClick={() => setFromAmount("1")}
+                    className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
+                    title="Use recommended test amount for USDC→USDT"
+                  >
+                    Try: 1
+                  </button>
+                )}
+                {(fromToken === "USDT" && toToken === "USDC") && (
+                  <button 
+                    onClick={() => setFromAmount("1")}
+                    className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
+                    title="Use recommended test amount for USDT→USDC"
+                  >
+                    Try: 1
                   </button>
                 )}
                 <button 
@@ -986,8 +1004,9 @@ export default function Swap() {
             <div className="mt-3 p-2 bg-gray-700 rounded-lg text-xs">
               <span className="block text-yellow-300 mb-1">🚧 Testnet Environment</span>
               <span className="text-gray-300">
-                Try swapping very small amounts (0.01-0.1 PRIOR) for best results. 
-                The PRIOR→USDC pair has the best chance of working.
+                Try swapping small amounts for best results:
+                <span className="block mt-1 ml-2">• PRIOR pairs: 0.01-0.1 PRIOR</span>
+                <span className="block ml-2">• USDC/USDT pairs: 1-10 USDC/USDT</span>
               </span>
             </div>
           </div>

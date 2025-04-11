@@ -257,6 +257,16 @@ export const swapTokens = async (
       safeAmount = "0.01";
     }
     
+    // For stablecoin to stablecoin swaps, also use a reasonable amount
+    if ((fromSymbol === "USDC" && toSymbol === "USDT") || 
+        (fromSymbol === "USDT" && toSymbol === "USDC")) {
+      // For stablecoin swap testing, allow slightly larger amounts since they have 1:1 ratio
+      if (parseFloat(amount) > 10) {
+        console.log("Amount too large for testnet stablecoin swap, reducing to 10");
+        safeAmount = "10";
+      }
+    }
+    
     const parsedAmount = ethers.utils.parseUnits(safeAmount, decimals);
     console.log(`Parsed amount for ${fromSymbol}: ${parsedAmount.toString()}`);
     
@@ -296,20 +306,36 @@ export const swapTokens = async (
       console.error("Swap execution error:", error);
       
       // Try again with an even smaller amount if we get a liquidity error
-      if (error.message && error.message.includes("liquidity") && fromSymbol === "PRIOR") {
-        console.log("Trying again with a very small amount due to liquidity constraint");
-        const tinyAmount = "0.001";
-        const tinyParsedAmount = ethers.utils.parseUnits(tinyAmount, decimals);
-        
-        if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
-          tx = await swapContract.swapPriorToUsdc(tinyParsedAmount);
-        } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
-          tx = await swapContract.swapPriorToUsdt(tinyParsedAmount);
+      if (error.message && error.message.includes("liquidity")) {
+        if (fromSymbol === "PRIOR") {
+          console.log("Trying again with a very small amount due to liquidity constraint for PRIOR");
+          const tinyAmount = "0.001";
+          const tinyParsedAmount = ethers.utils.parseUnits(tinyAmount, decimals);
+          
+          if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
+            tx = await swapContract.swapPriorToUsdc(tinyParsedAmount);
+          } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
+            tx = await swapContract.swapPriorToUsdt(tinyParsedAmount);
+          } else {
+            throw error;
+          }
+          
+          return tx.wait();
+        } else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
+          console.log("Trying again with a smaller amount due to liquidity constraint for stablecoin swap");
+          const tinyAmount = "1"; // Use a very small amount (1 USDC/USDT)
+          const tinyParsedAmount = ethers.utils.parseUnits(tinyAmount, decimals);
+          
+          if (fromSymbol === "USDC" && toSymbol === "USDT") {
+            tx = await swapContract.swapUsdcToUsdt(tinyParsedAmount);
+          } else if (fromSymbol === "USDT" && toSymbol === "USDC") {
+            tx = await swapContract.swapUsdtToUsdc(tinyParsedAmount);
+          }
+          
+          return tx.wait();
         } else {
           throw error;
         }
-        
-        return tx.wait();
       } else {
         throw error;
       }
