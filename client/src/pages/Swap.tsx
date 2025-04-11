@@ -621,8 +621,20 @@ export default function Swap() {
       
       // Format based on token decimals
       const targetDecimals = TOKENS[toToken as keyof typeof TOKENS].decimals;
-      const formattedResult = result.toFixed(targetDecimals > 6 ? 6 : targetDecimals);
-      setToAmount(formattedResult);
+      
+      // For stablecoins (USDC/USDT), fix to 2 decimals for display clarity
+      // For PRIOR, use 4 decimals to match contract calculations
+      const displayDecimals = targetDecimals === 6 ? 2 : 4;
+      
+      // For USDC-USDT pairs, they have fixed 1:1 exchange rate, so use exact amount
+      if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
+        // Ensure exact 1:1 ratio for stablecoin pairs
+        setToAmount(fromAmount);
+      } else {
+        // For other pairs, format to appropriate decimals
+        const formattedResult = result.toFixed(displayDecimals);
+        setToAmount(formattedResult);
+      }
     } catch (error) {
       console.error("Calculation error:", error);
       setToAmount("0");
@@ -696,9 +708,15 @@ export default function Swap() {
     setFromAmount(balances[fromToken] || "0");
   };
 
-  // Format balance display
-  const formatBalance = (balance: string) => {
-    return parseFloat(balance || "0").toFixed(4);
+  // Format balance display based on token decimals
+  const formatBalance = (balance: string, tokenSymbol?: string) => {
+    const token = tokenSymbol || "PRIOR"; // Default to PRIOR if no token specified
+    const decimals = TOKENS[token as keyof typeof TOKENS]?.decimals || 18;
+    
+    // For stablecoins use 2 decimals, for PRIOR use 4
+    const displayDecimals = decimals === 6 ? 2 : 4;
+    
+    return parseFloat(balance || "0").toFixed(displayDecimals);
   };
 
   // Get available tokens for dropdown
@@ -888,7 +906,7 @@ export default function Swap() {
                   onClick={setMaxAmount}
                   className="text-xs bg-gray-600 hover:bg-gray-500 px-2 py-0.5 rounded"
                 >
-                  Max: {formatBalance(balances[fromToken] || "0")}
+                  Max: {formatBalance(balances[fromToken] || "0", fromToken)}
                 </button>
               </div>
             </div>
@@ -946,7 +964,7 @@ export default function Swap() {
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm text-gray-400">To</span>
               <span className="text-xs text-gray-400">
-                Balance: {formatBalance(balances[toToken] || "0")}
+                Balance: {formatBalance(balances[toToken] || "0", toToken)}
               </span>
             </div>
             <div className="flex items-center">
