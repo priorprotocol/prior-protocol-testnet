@@ -360,60 +360,80 @@ export const claimFromFaucet = async (userAddress?: string): Promise<boolean> =>
       const provider = new ethers.providers.Web3Provider(window.ethereum as any); 
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
-      console.log("Signer address for faucet claim:", signerAddress);
+      
+      // Always ensure we have a checksummed address
+      const checksummedAddress = ethers.utils.getAddress(signerAddress);
+      console.log("Checksummed signer address for faucet claim:", checksummedAddress);
       
       // Get the faucet contract with signer
       const faucetContract = await getFaucetContractWithSigner();
       console.log("Faucet contract address:", CONTRACT_ADDRESSES.priorFaucet);
       
-      // Check if we can claim first
+      // Check if we can claim first using our checksummed address
       try {
-        const canClaim = await faucetContract.canClaim(signerAddress);
+        const canClaim = await faucetContract.canClaim(checksummedAddress);
         console.log("Can claim status:", canClaim);
         if (!canClaim) {
           console.log("Cannot claim yet according to contract");
           // Get the last claim time
-          const lastClaimTime = await faucetContract.lastClaim(signerAddress);
+          const lastClaimTime = await faucetContract.lastClaim(checksummedAddress);
           const waitTime = await faucetContract.WAIT_TIME();
           const nextClaimTime = Number(lastClaimTime.toString()) + Number(waitTime.toString());
           const currentTime = Math.floor(Date.now() / 1000);
           console.log(`Last claim: ${lastClaimTime}, Next claim: ${nextClaimTime}, Current time: ${currentTime}`);
-          return false;
+          
+          const waitTimeInHours = Math.ceil((nextClaimTime - currentTime) / 3600);
+          throw new Error(`You must wait ${waitTimeInHours} hour(s) before claiming again.`);
         }
-      } catch (checkError) {
+      } catch (checkError: any) {
         console.log("Error checking claim status:", checkError);
-        // Continue anyway as the claim function may handle this internally
+        
+        // If this is the wait time error we just threw, propagate it
+        if (checkError.message && checkError.message.includes("You must wait")) {
+          throw checkError;
+        }
+        // For other errors, continue and let the claim function handle it internally
       }
       
-      // Make the claim transaction
+      // Make the claim transaction - the claim function does not take parameters, 
+      // it uses msg.sender internally in the contract
       console.log("Claiming with msg.sender...");
       const tx = await faucetContract.claim();
       console.log("Claim transaction sent:", tx.hash);
       
       const receipt = await tx.wait();
       console.log("Claim transaction receipt:", receipt);
+      
+      // Verify the transaction was successful
+      if (receipt.status === 0) {
+        throw new Error("Transaction failed");
+      }
+      
       console.log("Claim transaction confirmed in block:", receipt.blockNumber);
       
       return true;
     } catch (error) {
       console.error("Error in claimFromFaucet:", error);
-      return false;
+      throw error; // Propagate the error to be handled by the caller
     }
   } catch (error) {
     console.error("Error claiming from faucet:", error);
-    return false;
+    throw error; // Propagate the error to be handled by the caller
   }
 };
 
 // Function to check if user can claim from faucet
 export const getFaucetInfo = async (address: string) => {
   try {
+    // Ensure the address is checksummed
+    const checksummedAddress = ethers.utils.getAddress(address);
+    
     const faucetContract = await getFaucetContract();
-    console.log("Checking faucet claim status for address:", address);
+    console.log("Checking faucet claim status for address:", checksummedAddress);
     
     // First, directly check if user can claim using the contract's canClaim function
     try {
-      const canClaimNow = await faucetContract.canClaim(address);
+      const canClaimNow = await faucetContract.canClaim(checksummedAddress);
       console.log("Can claim status from contract:", canClaimNow);
       
       if (canClaimNow) {
@@ -428,7 +448,7 @@ export const getFaucetInfo = async (address: string) => {
     }
     
     // Get last claim time using lastClaim mapping on the contract
-    const lastClaimTime = await faucetContract.lastClaim(address);
+    const lastClaimTime = await faucetContract.lastClaim(checksummedAddress);
     console.log("Last claim time:", lastClaimTime.toString());
     
     const waitTime = await faucetContract.WAIT_TIME();

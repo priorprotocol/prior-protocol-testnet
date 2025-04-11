@@ -100,38 +100,25 @@ export class MemStorage implements IStorage {
       {
         symbol: "PRIOR",
         name: "Prior Protocol Token",
-        address: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // Real PRIOR token address
+        address: "0xBc8697476a56679534b15994C0f1122556bBF9F4", // Real PRIOR token address
         decimals: 18,
         logoColor: "#1A5CFF"
       },
       {
         symbol: "USDC",
         name: "Mock USD Coin",
-        address: "0x0C6BAA4B8092B29F6B370e06BdfE67434680E062", // Real mUSDC address
+        address: "0xc6d67115Cf17A55F9F22D29b955654A7c96781C5", // Real mUSDC address
         decimals: 6,
         logoColor: "#2775CA"
       },
       {
         symbol: "USDT",
         name: "Mock Tether",
-        address: "0xdaDcC45A00fe893df95488622fA2B64BfFc5E0bf", // Real mUSDT address
+        address: "0x2B744c80C4895fDC2003108E186aBD7613c0ec7E", // Real mUSDT address
         decimals: 6,
         logoColor: "#26A17B"
-      },
-      {
-        symbol: "DAI",
-        name: "Mock Dai",
-        address: "0x72f30eb1cE25523Ea2Fa63eDe9797481634E496B", // Real mDAI address
-        decimals: 6, // Note: Actual decimals is 6, not 18
-        logoColor: "#F5AC37"
-      },
-      {
-        symbol: "WETH",
-        name: "Mock Wrapped ETH",
-        address: "0xc413B81c5fb4798b8e4c6053AADd383C4Dc3703B", // Real mWETH address
-        decimals: 18,
-        logoColor: "#627EEA"
       }
+      // Removing DAI and WETH as they're not needed in the updated contracts
     ];
     
     initialTokens.forEach(token => {
