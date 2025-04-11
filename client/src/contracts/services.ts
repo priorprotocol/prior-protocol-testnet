@@ -20,14 +20,14 @@ import {
 // Function to get token contract instance
 export const getTokenContract = async (tokenAddress: string) => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const provider = new ethers.providers.Web3Provider(window.ethereum as any);
   return new ethers.Contract(tokenAddress, erc20Abi, provider);
 };
 
 // Function to get token contract with signer (for transactions)
 export const getTokenContractWithSigner = async (tokenAddress: string) => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const provider = new ethers.providers.Web3Provider(window.ethereum as any);
   const signer = provider.getSigner();
   return new ethers.Contract(tokenAddress, erc20Abi, signer);
 };
@@ -35,7 +35,7 @@ export const getTokenContractWithSigner = async (tokenAddress: string) => {
 // Function to get the appropriate swap contract based on token pair
 export const getSwapContract = async (fromToken?: string, toToken?: string) => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const provider = new ethers.providers.Web3Provider(window.ethereum as any);
   
   // If no tokens specified, default to PRIOR-USDC swap contract
   if (!fromToken || !toToken) {
@@ -85,7 +85,7 @@ export const getSwapContract = async (fromToken?: string, toToken?: string) => {
 // Function to get the appropriate swap contract with signer based on token pair
 export const getSwapContractWithSigner = async (fromToken?: string, toToken?: string, specificContractAddress?: string) => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const provider = new ethers.providers.Web3Provider(window.ethereum as any);
   const signer = provider.getSigner();
   
   // If a specific contract address is provided, use that
@@ -148,14 +148,14 @@ export const getSwapContractWithSigner = async (fromToken?: string, toToken?: st
 // Function to get Faucet contract instance
 export const getFaucetContract = async () => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const provider = new ethers.providers.Web3Provider(window.ethereum as any);
   return new ethers.Contract(CONTRACT_ADDRESSES.priorFaucet, faucetAbi, provider);
 };
 
 // Function to get Faucet contract with signer (for transactions)
 export const getFaucetContractWithSigner = async () => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const provider = new ethers.providers.Web3Provider(window.ethereum as any);
   const signer = provider.getSigner();
   return new ethers.Contract(CONTRACT_ADDRESSES.priorFaucet, faucetAbi, signer);
 };
@@ -163,7 +163,7 @@ export const getFaucetContractWithSigner = async () => {
 // Function to get NFT contract
 export const getNftContract = async () => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const provider = new ethers.providers.Web3Provider(window.ethereum as any);
   return new ethers.Contract(CONTRACT_ADDRESSES.priorPioneerNFT, nftAbi, provider);
 };
 
@@ -353,10 +353,19 @@ export const claimFromFaucet = async (userAddress?: string): Promise<boolean> =>
     console.log("Faucet contract address:", CONTRACT_ADDRESSES.priorFaucet);
     
     // Log current user address to help debug issues
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    const signerAddress = await signer.getAddress();
-    console.log("Signer address for faucet claim:", signerAddress);
+    if (!window.ethereum) {
+      console.error("No ethereum provider found");
+      return false;
+    }
+    
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum as any); 
+      const signer = provider.getSigner();
+      const signerAddress = await signer.getAddress();
+      console.log("Signer address for faucet claim:", signerAddress);
+    } catch (err) {
+      console.error("Error getting signer address:", err);
+    }
     
     // Make claim call - depending on contract implementation
     let tx;

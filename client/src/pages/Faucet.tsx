@@ -113,9 +113,8 @@ const Faucet = () => {
         try {
           console.log(`Getting balance for ${token.symbol} at address ${token.address}`);
           const result = await getTokenBalance(token.address, userAddress);
-          const formattedBalance = formatTokenAmount(result.balance.toString(), result.decimals);
-          console.log(`Balance for ${token.symbol}: ${formattedBalance}`);
-          balances[token.symbol] = formattedBalance;
+          console.log(`Balance for ${token.symbol}: ${result}`);
+          balances[token.symbol] = result;
         } catch (error) {
           console.error(`Error fetching balance for ${token.symbol}:`, error);
           balances[token.symbol] = "0.00";
