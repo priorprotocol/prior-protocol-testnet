@@ -393,7 +393,6 @@ export default function Swap() {
 
       // Update the rates in our state
       setExchangeRates({
-        // PRIOR pairs
         PRIOR_USDC: parseFloat(priorUsdcValue),  // 10
         PRIOR_USDT: parseFloat(priorUsdtValue),  // 10
         PRIOR_DAI: parseFloat(priorDaiValue),    // 10
@@ -401,16 +400,12 @@ export default function Swap() {
         USDC_PRIOR: parseFloat(usdcPriorValue),  // 0.1
         USDT_PRIOR: parseFloat(usdtPriorValue),  // 0.1
         DAI_PRIOR: parseFloat(daiPriorValue),    // 0.1
-        WETH_PRIOR: parseFloat(wethPriorValue),  // 2000
-        // Add USDC-USDT direct pairs (fixed 1:1 rate)
-        USDC_USDT: 1,
-        USDT_USDC: 1
+        WETH_PRIOR: parseFloat(wethPriorValue)   // 2000
       });
     } catch (error) {
       console.error("Error loading exchange rates:", error);
       // Set fallback rates based on smart contract's fixed ratios: 1 PRIOR = 10 USDC/USDT, 1 USDC = 1 USDT
       setExchangeRates({
-        // PRIOR pairs
         PRIOR_USDC: 10, // 1 PRIOR = 10 USDC
         PRIOR_USDT: 10, // 1 PRIOR = 10 USDT
         PRIOR_DAI: 10, // 1 PRIOR = 10 DAI (assuming same as USDC/USDT)
@@ -418,28 +413,24 @@ export default function Swap() {
         USDC_PRIOR: 0.1, // 1 USDC = 0.1 PRIOR
         USDT_PRIOR: 0.1, // 1 USDT = 0.1 PRIOR
         DAI_PRIOR: 0.1, // 1 DAI = 0.1 PRIOR (assuming same as USDC/USDT)
-        WETH_PRIOR: 2000, // Keep WETH rate as is
-        // USDC-USDT direct pairs
-        USDC_USDT: 1, // 1 USDC = 1 USDT
-        USDT_USDC: 1  // 1 USDT = 1 USDC
+        WETH_PRIOR: 2000 // Keep WETH rate as is
       });
     }
   };
 
   // Get the appropriate swap contract address based on token pair
   const getSwapContractAddress = (fromTok: string, toTok: string): string => {
-    // For PRIOR pairs, check if the pair includes PRIOR and another token
-    if ((fromTok === 'PRIOR' && toTok === 'USDC') || (fromTok === 'USDC' && toTok === 'PRIOR')) {
+    // Define pairs in a deterministic order (alphabetical)
+    const pair = [fromTok, toTok].sort().join('_');
+    
+    // Map to the correct contract address
+    if (pair === 'PRIOR_USDC') {
       return contractAddresses.swapContracts.PRIOR_USDC;
-    } 
-    else if ((fromTok === 'PRIOR' && toTok === 'USDT') || (fromTok === 'USDT' && toTok === 'PRIOR')) {
+    } else if (pair === 'PRIOR_USDT') {
       return contractAddresses.swapContracts.PRIOR_USDT;
-    } 
-    // For USDC-USDT direct swap
-    else if ((fromTok === 'USDC' && toTok === 'USDT') || (fromTok === 'USDT' && toTok === 'USDC')) {
+    } else if (pair === 'USDC_USDT') {
       return contractAddresses.swapContracts.USDC_USDT;
-    } 
-    else {
+    } else {
       console.error(`No swap contract found for pair: ${fromTok}-${toTok}`);
       return '';
     }
@@ -480,60 +471,18 @@ export default function Swap() {
 
   // Approve token spending
   const approveToken = async () => {
-    console.log("Approve button clicked");
-    
-    // Check if we have required data
-    if (!signer) {
-      console.log("No signer available, trying to get one");
-      try {
-        if (provider) {
-          const signerInstance = provider.getSigner();
-          setSigner(signerInstance);
-          console.log("Created new signer");
-        } else {
-          console.error("No provider available for creating signer");
-          toast({
-            title: "Connection Error",
-            description: "Wallet connection not available. Please try reconnecting your wallet.",
-            variant: "destructive"
-          });
-          return;
-        }
-      } catch (signerError) {
-        console.error("Error getting signer:", signerError);
-        toast({
-          title: "Wallet Error",
-          description: "Could not access your wallet. Please try reconnecting.",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-    
-    if (!fromAmount) {
-      console.log("No amount specified");
-      toast({
-        title: "Input Required",
-        description: "Please enter an amount to swap",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!signer || !fromAmount) return;
     
     setIsApproving(true);
     try {
       const tokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
       const tokenDecimals = TOKENS[fromToken as keyof typeof TOKENS].decimals;
       
-      console.log(`Using token address: ${tokenAddress} with decimals: ${tokenDecimals}`);
-      
       // Get the appropriate swap contract for the token pair
       const swapContractAddress = getSwapContractAddress(fromToken, toToken);
       if (!swapContractAddress) {
         throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
       }
-      
-      console.log(`Resolved swap contract address: ${swapContractAddress}`);
       
       // Instead of using MAX_UINT256, use a more precise amount
       // Approve 100x the amount being swapped to avoid frequent approvals
@@ -543,25 +492,9 @@ export default function Swap() {
       
       console.log(`Approving ${approvalAmount} ${fromToken} for swap contract: ${swapContractAddress}`);
       
-      // Force window.ethereum to request connection first
-      if (window.ethereum) {
-        console.log("Requesting accounts to ensure wallet is unlocked");
-        try {
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
-        } catch (walletError) {
-          console.error("Error requesting accounts:", walletError);
-          throw new Error("Wallet access denied. Please unlock your wallet and try again.");
-        }
-      }
-      
       // Pass both token address and the specific swap contract address to approve
-      const success = await approveTokens(tokenAddress, swapContractAddress, approvalAmount);
+      await approveTokens(tokenAddress, swapContractAddress, approvalAmount);
       
-      if (!success) {
-        throw new Error("Approval transaction failed. Please check your wallet and try again.");
-      }
-      
-      console.log("Approval successful");
       setHasAllowance(true);
       toast({
         title: "Approval Successful",
@@ -581,62 +514,12 @@ export default function Swap() {
 
   // Execute swap
   const executeSwap = async () => {
-    console.log("Swap button clicked");
-    
-    // Ensure we have all required data
-    if (!signer) {
-      console.log("No signer available, trying to get one");
-      try {
-        if (provider) {
-          const signerInstance = provider.getSigner();
-          setSigner(signerInstance);
-          console.log("Created new signer for swap");
-        } else {
-          console.error("No provider available for creating signer");
-          toast({
-            title: "Connection Error",
-            description: "Wallet connection not available. Please try reconnecting your wallet.",
-            variant: "destructive"
-          });
-          return;
-        }
-      } catch (signerError) {
-        console.error("Error getting signer:", signerError);
-        toast({
-          title: "Wallet Error",
-          description: "Could not access your wallet. Please try reconnecting.",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-    
-    if (!fromAmount) {
-      console.log("No amount specified for swap");
-      toast({
-        title: "Input Required",
-        description: "Please enter an amount to swap",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (!hasAllowance) {
-      console.log("No allowance for swap");
-      toast({
-        title: "Approval Required",
-        description: "Please approve the token before swapping",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!signer || !fromAmount || !hasAllowance) return;
     
     setIsSwapping(true);
     try {
       const fromTokenInfo = TOKENS[fromToken as keyof typeof TOKENS];
       const toTokenInfo = TOKENS[toToken as keyof typeof TOKENS];
-      
-      console.log(`Swapping from ${fromToken} (${fromTokenInfo.address}) to ${toToken} (${toTokenInfo.address})`);
       
       const amountIn = fromAmount; // We'll pass the raw amount string to the swapTokens function
       
@@ -644,25 +527,10 @@ export default function Swap() {
       const slippageFactor = 1 - (slippage / 100);
       const minAmountOut = parseFloat(toAmount) * slippageFactor;
       
-      console.log(`Amount in: ${amountIn} ${fromToken}, Min amount out: ${minAmountOut.toString()} ${toToken} (with ${slippage}% slippage)`);
-      
       // Get the appropriate swap contract for this token pair
       const swapContractAddress = getSwapContractAddress(fromToken, toToken);
       if (!swapContractAddress) {
         throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
-      }
-      
-      console.log(`Using swap contract: ${swapContractAddress}`);
-      
-      // Force window.ethereum to request connection first
-      if (window.ethereum) {
-        console.log("Requesting accounts to ensure wallet is unlocked for swap");
-        try {
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
-        } catch (walletError) {
-          console.error("Error requesting accounts for swap:", walletError);
-          throw new Error("Wallet access denied. Please unlock your wallet and try again.");
-        }
       }
       
       // Perform swap with proper contract address
@@ -680,7 +548,6 @@ export default function Swap() {
           ? txReceipt.transactionHash 
           : '';
         setTxHash(hash);
-        console.log("Swap successful, transaction hash:", hash);
         toast({
           title: "Swap Successful",
           description: `Successfully swapped ${fromAmount} ${fromToken} for approximately ${parseFloat(toAmount).toFixed(6)} ${toToken}`,
@@ -695,9 +562,6 @@ export default function Swap() {
         // Clear inputs after successful swap
         setFromAmount("");
         setToAmount("0");
-      } else {
-        console.error("Swap returned no receipt");
-        throw new Error("Transaction may have failed. Please check your wallet for details.");
       }
     } catch (error: any) {
       console.error("Error executing swap:", error);
@@ -710,14 +574,14 @@ export default function Swap() {
         const suggestedAmount = Math.min(originalAmount * 0.01, 0.01);
         const formattedSuggestion = suggestedAmount.toFixed(4);
         
-        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or try the PRIOR→USDC or USDC↔USDT pairs.`;
+        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or switch to the PRIOR→USDC pair.`;
       } else if (error.message && error.message.includes("Insufficient liquidity")) {
         // Calculate a suggested amount (1% of the original amount)
         const originalAmount = parseFloat(fromAmount);
         const suggestedAmount = Math.min(originalAmount * 0.01, 0.01);
         const formattedSuggestion = suggestedAmount.toFixed(4);
         
-        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or try the PRIOR→USDC or USDC↔USDT pairs.`;
+        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or switch to the PRIOR→USDC pair.`;
       } else if (error.message && error.message.includes("user rejected")) {
         errorMessage = "Transaction rejected by user.";
       } else if (error.message) {
@@ -842,18 +706,9 @@ export default function Swap() {
     return Object.keys(TOKENS).filter(token => token !== excludeToken);
   };
 
-  // Verify if the pair is supported by a contract
-  const isValidSwapPair = () => {
-    // PRIOR with any token is valid
-    if (fromToken === "PRIOR" || toToken === "PRIOR") {
-      return true;
-    }
-    // USDC/USDT pair is also valid
-    if ((fromToken === "USDC" && toToken === "USDT") || 
-        (fromToken === "USDT" && toToken === "USDC")) {
-      return true;
-    }
-    return false;
+  // Verify if at least one token is PRIOR
+  const isPriorInPair = () => {
+    return fromToken === "PRIOR" || toToken === "PRIOR";
   };
 
   return (
@@ -943,7 +798,7 @@ export default function Swap() {
             <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment with extremely limited liquidity. Try swapping with very small amounts (0.01-0.1 PRIOR recommended).
           </p>
           <p className="text-yellow-300 text-xs">
-            <span className="font-bold">Supported pairs:</span> PRIOR → USDC/USDT (try 0.01 PRIOR), and USDC ↔ USDT direct swaps.
+            <span className="font-bold">Best working pairs:</span> PRIOR → USDC (try 0.01 PRIOR). Other pairs may not have sufficient liquidity yet.
           </p>
         </div>
 
@@ -1121,8 +976,8 @@ export default function Swap() {
             <div className="mt-3 p-2 bg-gray-700 rounded-lg text-xs">
               <span className="block text-yellow-300 mb-1">🚧 Testnet Environment</span>
               <span className="text-gray-300">
-                Try small amounts for PRIOR (0.01-0.1). Both PRIOR swap pairs and direct 
-                USDC↔USDT swaps are supported on this testnet.
+                Try swapping very small amounts (0.01-0.1 PRIOR) for best results. 
+                The PRIOR→USDC pair has the best chance of working.
               </span>
             </div>
           </div>
@@ -1136,12 +991,12 @@ export default function Swap() {
               >
                 Connect Wallet
               </button>
-            ) : !isValidSwapPair() ? (
+            ) : !isPriorInPair() ? (
               <button 
                 disabled
                 className="w-full bg-gray-700 text-gray-400 font-medium py-3 rounded-xl"
               >
-                Unsupported token pair
+                Pair must include PRIOR
               </button>
             ) : parseFloat(fromAmount) > parseFloat(balances[fromToken] || "0") ? (
               <button 
