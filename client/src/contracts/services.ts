@@ -27,6 +27,16 @@ export const getTokenContract = async (tokenAddress: string) => {
 // Function to get token contract with signer (for transactions)
 export const getTokenContractWithSigner = async (tokenAddress: string) => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
+  
+  // Force wallet connection before getting signer
+  try {
+    console.log("Requesting accounts to ensure connection for token contract");
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+  } catch (error) {
+    console.error("Error requesting accounts for token contract:", error);
+    throw new Error("Failed to connect to wallet. Please unlock your wallet and try again.");
+  }
+  
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
   return new ethers.Contract(tokenAddress, erc20Abi, signer);
@@ -85,6 +95,16 @@ export const getSwapContract = async (fromToken?: string, toToken?: string) => {
 // Function to get the appropriate swap contract with signer based on token pair
 export const getSwapContractWithSigner = async (fromToken?: string, toToken?: string, specificContractAddress?: string) => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
+  
+  // Force wallet connection before getting signer
+  try {
+    console.log("Requesting accounts to ensure connection for swap contract");
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+  } catch (error) {
+    console.error("Error requesting accounts for swap contract:", error);
+    throw new Error("Failed to connect to wallet. Please unlock your wallet and try again.");
+  }
+  
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
   
@@ -155,6 +175,16 @@ export const getFaucetContract = async () => {
 // Function to get Faucet contract with signer (for transactions)
 export const getFaucetContractWithSigner = async () => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
+  
+  // Force wallet connection before getting signer
+  try {
+    console.log("Requesting accounts to ensure connection for faucet contract");
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+  } catch (error) {
+    console.error("Error requesting accounts for faucet contract:", error);
+    throw new Error("Failed to connect to wallet. Please unlock your wallet and try again.");
+  }
+  
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
   return new ethers.Contract(CONTRACT_ADDRESSES.priorFaucet, faucetAbi, signer);

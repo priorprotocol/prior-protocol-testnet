@@ -480,18 +480,60 @@ export default function Swap() {
 
   // Approve token spending
   const approveToken = async () => {
-    if (!signer || !fromAmount) return;
+    console.log("Approve button clicked");
+    
+    // Check if we have required data
+    if (!signer) {
+      console.log("No signer available, trying to get one");
+      try {
+        if (provider) {
+          const signerInstance = provider.getSigner();
+          setSigner(signerInstance);
+          console.log("Created new signer");
+        } else {
+          console.error("No provider available for creating signer");
+          toast({
+            title: "Connection Error",
+            description: "Wallet connection not available. Please try reconnecting your wallet.",
+            variant: "destructive"
+          });
+          return;
+        }
+      } catch (signerError) {
+        console.error("Error getting signer:", signerError);
+        toast({
+          title: "Wallet Error",
+          description: "Could not access your wallet. Please try reconnecting.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
+    if (!fromAmount) {
+      console.log("No amount specified");
+      toast({
+        title: "Input Required",
+        description: "Please enter an amount to swap",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsApproving(true);
     try {
       const tokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
       const tokenDecimals = TOKENS[fromToken as keyof typeof TOKENS].decimals;
       
+      console.log(`Using token address: ${tokenAddress} with decimals: ${tokenDecimals}`);
+      
       // Get the appropriate swap contract for the token pair
       const swapContractAddress = getSwapContractAddress(fromToken, toToken);
       if (!swapContractAddress) {
         throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
       }
+      
+      console.log(`Resolved swap contract address: ${swapContractAddress}`);
       
       // Instead of using MAX_UINT256, use a more precise amount
       // Approve 100x the amount being swapped to avoid frequent approvals
@@ -501,9 +543,25 @@ export default function Swap() {
       
       console.log(`Approving ${approvalAmount} ${fromToken} for swap contract: ${swapContractAddress}`);
       
-      // Pass both token address and the specific swap contract address to approve
-      await approveTokens(tokenAddress, swapContractAddress, approvalAmount);
+      // Force window.ethereum to request connection first
+      if (window.ethereum) {
+        console.log("Requesting accounts to ensure wallet is unlocked");
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+        } catch (walletError) {
+          console.error("Error requesting accounts:", walletError);
+          throw new Error("Wallet access denied. Please unlock your wallet and try again.");
+        }
+      }
       
+      // Pass both token address and the specific swap contract address to approve
+      const success = await approveTokens(tokenAddress, swapContractAddress, approvalAmount);
+      
+      if (!success) {
+        throw new Error("Approval transaction failed. Please check your wallet and try again.");
+      }
+      
+      console.log("Approval successful");
       setHasAllowance(true);
       toast({
         title: "Approval Successful",
@@ -523,12 +581,62 @@ export default function Swap() {
 
   // Execute swap
   const executeSwap = async () => {
-    if (!signer || !fromAmount || !hasAllowance) return;
+    console.log("Swap button clicked");
+    
+    // Ensure we have all required data
+    if (!signer) {
+      console.log("No signer available, trying to get one");
+      try {
+        if (provider) {
+          const signerInstance = provider.getSigner();
+          setSigner(signerInstance);
+          console.log("Created new signer for swap");
+        } else {
+          console.error("No provider available for creating signer");
+          toast({
+            title: "Connection Error",
+            description: "Wallet connection not available. Please try reconnecting your wallet.",
+            variant: "destructive"
+          });
+          return;
+        }
+      } catch (signerError) {
+        console.error("Error getting signer:", signerError);
+        toast({
+          title: "Wallet Error",
+          description: "Could not access your wallet. Please try reconnecting.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
+    if (!fromAmount) {
+      console.log("No amount specified for swap");
+      toast({
+        title: "Input Required",
+        description: "Please enter an amount to swap",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!hasAllowance) {
+      console.log("No allowance for swap");
+      toast({
+        title: "Approval Required",
+        description: "Please approve the token before swapping",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsSwapping(true);
     try {
       const fromTokenInfo = TOKENS[fromToken as keyof typeof TOKENS];
       const toTokenInfo = TOKENS[toToken as keyof typeof TOKENS];
+      
+      console.log(`Swapping from ${fromToken} (${fromTokenInfo.address}) to ${toToken} (${toTokenInfo.address})`);
       
       const amountIn = fromAmount; // We'll pass the raw amount string to the swapTokens function
       
@@ -536,10 +644,25 @@ export default function Swap() {
       const slippageFactor = 1 - (slippage / 100);
       const minAmountOut = parseFloat(toAmount) * slippageFactor;
       
+      console.log(`Amount in: ${amountIn} ${fromToken}, Min amount out: ${minAmountOut.toString()} ${toToken} (with ${slippage}% slippage)`);
+      
       // Get the appropriate swap contract for this token pair
       const swapContractAddress = getSwapContractAddress(fromToken, toToken);
       if (!swapContractAddress) {
         throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
+      }
+      
+      console.log(`Using swap contract: ${swapContractAddress}`);
+      
+      // Force window.ethereum to request connection first
+      if (window.ethereum) {
+        console.log("Requesting accounts to ensure wallet is unlocked for swap");
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+        } catch (walletError) {
+          console.error("Error requesting accounts for swap:", walletError);
+          throw new Error("Wallet access denied. Please unlock your wallet and try again.");
+        }
       }
       
       // Perform swap with proper contract address
@@ -557,6 +680,7 @@ export default function Swap() {
           ? txReceipt.transactionHash 
           : '';
         setTxHash(hash);
+        console.log("Swap successful, transaction hash:", hash);
         toast({
           title: "Swap Successful",
           description: `Successfully swapped ${fromAmount} ${fromToken} for approximately ${parseFloat(toAmount).toFixed(6)} ${toToken}`,
@@ -571,6 +695,9 @@ export default function Swap() {
         // Clear inputs after successful swap
         setFromAmount("");
         setToAmount("0");
+      } else {
+        console.error("Swap returned no receipt");
+        throw new Error("Transaction may have failed. Please check your wallet for details.");
       }
     } catch (error: any) {
       console.error("Error executing swap:", error);
