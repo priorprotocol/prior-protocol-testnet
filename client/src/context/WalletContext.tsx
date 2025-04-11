@@ -14,10 +14,10 @@ import {
 } from "@/lib/web3";
 import { 
   getTokenBalance as getTokenBalanceFromContract, 
-  swapTokens, 
   contractAddresses,
   checkPriorPioneerNFT
 } from "@/lib/contracts";
+import { swapTokens } from "@/contracts/services";
 
 // Global wallet update function for compatibility with older code
 // Create a custom event for wallet connection
@@ -352,8 +352,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
           if (!isMounted) return;
           
           try {
-            const result = await getTokenBalanceFromContract(token.address, address);
-            const formattedBalance = formatTokenAmount(result.balance.toString(), result.decimals);
+            // getTokenBalanceFromContract now returns a formatted string directly
+            const formattedBalance = await getTokenBalanceFromContract(token.address, address);
             
             // Only update if the balance has actually changed to avoid re-renders
             if (newBalances[token.symbol] !== formattedBalance) {
@@ -663,10 +663,17 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             
       console.log("Using swap contract address:", swapContractAddress);
       
-      // Add the swap contract address parameter to the call
-      const txReceipt = await swapTokens(fromTokenAddress, toTokenAddress, parsedAmount, swapContractAddress, slippage);
-      const txHash = txReceipt.transactionHash || txReceipt.hash;
-      const blockNumber = txReceipt.blockNumber;
+      // Call swapTokens with the correct parameters and contract address
+      const txReceipt = await swapTokens(fromTokenAddress, toTokenAddress, parsedAmount, swapContractAddress);
+      
+      // Get transaction details for recording purposes
+      // Use optional chaining in case the structure is different than expected
+      const txHash = typeof txReceipt === 'object' && (txReceipt?.transactionHash || txReceipt?.hash) 
+        ? (txReceipt.transactionHash || txReceipt.hash) 
+        : 'unknown';
+      const blockNumber = typeof txReceipt === 'object' && txReceipt?.blockNumber 
+        ? txReceipt.blockNumber 
+        : 0;
       
       const updatedBalances = {...tokenBalances};
       
