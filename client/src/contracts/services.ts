@@ -212,17 +212,35 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
     const decimals = TOKEN_DECIMALS[symbol as keyof typeof TOKEN_DECIMALS] || 18;
     console.log(`Using decimals: ${decimals} for ${symbol}`);
     
-    // Format the balance with proper decimals
-    const formattedBalance = ethers.utils.formatUnits(balance, decimals);
-    
-    // Format based on token type for better display
+    // For USDC and USDT (6 decimals), directly convert from raw amount without ethers.utils
     if (symbol === "USDC" || symbol === "USDT") {
-      const numBalance = parseFloat(formattedBalance);
-      console.log(`${symbol} balance updated: "${numBalance.toFixed(2)}"`);
-      return numBalance.toFixed(2);
+      const rawBalance = balance.toString();
+      // If below 1 million (1e6), we need to format as a decimal
+      if (rawBalance.length <= 6) {
+        const padded = rawBalance.padStart(6, '0');
+        const decimal = parseFloat(`0.${padded}`);
+        console.log(`${symbol} balance updated:`, decimal.toFixed(6));
+        return decimal.toFixed(6);
+      } else {
+        // For larger amounts, split into whole number and fractional parts
+        const whole = rawBalance.slice(0, rawBalance.length - 6);
+        const fraction = rawBalance.slice(rawBalance.length - 6);
+        const trimmedFraction = fraction.replace(/0+$/, '');
+        
+        if (trimmedFraction) {
+          const result = `${whole}.${trimmedFraction}`;
+          console.log(`${symbol} balance updated:`, result);
+          return result;
+        } else {
+          console.log(`${symbol} balance updated:`, whole);
+          return whole;
+        }
+      }
     } else {
+      // For other tokens like PRIOR (18 decimals)
+      const formattedBalance = ethers.utils.formatUnits(balance, decimals);
       const numBalance = parseFloat(formattedBalance);
-      console.log(`${symbol} balance updated: "${numBalance.toFixed(4)}"`);
+      console.log(`${symbol} balance updated:`, numBalance.toFixed(4));
       return numBalance.toFixed(4);
     }
   } catch (error) {
