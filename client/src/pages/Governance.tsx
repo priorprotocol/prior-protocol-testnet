@@ -10,9 +10,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 const Governance = () => {
-  // Use the wallet context
-  const wallet = useWallet();
-  const { isConnected, address, getTokenBalance } = wallet;
+  // Use the wallet context directly
+  const { isConnected, address, getTokenBalance } = useWallet();
   
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);

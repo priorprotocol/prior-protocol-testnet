@@ -42,7 +42,13 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-10">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
-          <p className="text-[#A0AEC0]">Please connect your wallet to view your dashboard.</p>
+          <p className="text-[#A0AEC0] mb-6">Please connect your wallet to view your dashboard.</p>
+          <button 
+            onClick={connectWallet}
+            className="rounded-lg bg-[#1A5CFF] hover:bg-opacity-90 transition-all font-bold text-sm px-6 py-3"
+          >
+            Connect Wallet
+          </button>
         </div>
       </div>
     );

@@ -3,9 +3,8 @@ import { useWallet } from "@/context/WalletContext";
 import QuestCard from "@/components/QuestCard";
 
 const Quest = () => {
-  // Use the wallet context
-  const wallet = useWallet();
-  const { isConnected, address } = wallet;
+  // Use the wallet context directly
+  const { isConnected, address } = useWallet();
   
   // Define types for quests and user quests
   interface Quest {

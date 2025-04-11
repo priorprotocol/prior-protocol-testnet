@@ -6,29 +6,15 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location] = useLocation();
   
-  // Safely use the wallet context if available
-  let address: string | null = null;
-  let isConnected = false;
-  let connectWallet: () => Promise<void> = async () => {
-    console.log("Wallet provider not available");
-  };
-  let disconnectWallet: () => void = () => {
-    console.log("Wallet provider not available");
-  };
-  let copyToClipboard: (text: string) => void = () => {
-    console.log("Wallet provider not available");
-  };
-  
-  try {
-    const wallet = useWallet();
-    address = wallet.address;
-    isConnected = wallet.isConnected;
-    connectWallet = wallet.connectWallet;
-    disconnectWallet = wallet.disconnectWallet;
-    copyToClipboard = wallet.copyToClipboard;
-  } catch (error) {
-    // If wallet context is not available, we'll use the defaults
-  }
+  // Use the wallet context directly
+  const { 
+    address, 
+    isConnected, 
+    connectWallet, 
+    disconnectWallet, 
+    copyToClipboard,
+    openWalletModal
+  } = useWallet();
   
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);

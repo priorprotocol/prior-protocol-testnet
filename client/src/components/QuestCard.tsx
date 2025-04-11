@@ -22,18 +22,8 @@ interface QuestCardProps {
 }
 
 const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
-  // Initialize with default values
-  let address: string | null = null;
-  let isConnected = false;
-  
-  // Only use the wallet context if it's available
-  try {
-    const wallet = useWallet();
-    address = wallet.address;
-    isConnected = wallet.isConnected;
-  } catch (error) {
-    console.log("Wallet context not available yet in QuestCard component");
-  }
+  // Use the wallet context directly
+  const { address, isConnected, connectWallet } = useWallet();
   
   const { toast } = useToast();
   
@@ -79,13 +69,18 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
     }
   });
   
-  const handleQuestAction = () => {
+  const handleQuestAction = async () => {
     if (!isConnected) {
-      toast({
-        title: "Wallet not connected",
-        description: "Please connect your wallet to interact with quests.",
-        variant: "destructive"
-      });
+      try {
+        await connectWallet();
+        return; // Wait for connection to complete, then user can try again
+      } catch (error) {
+        toast({
+          title: "Wallet not connected",
+          description: "Please connect your wallet to interact with quests.",
+          variant: "destructive"
+        });
+      }
       return;
     }
     
