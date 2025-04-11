@@ -212,10 +212,22 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
     const decimals = TOKEN_DECIMALS[symbol as keyof typeof TOKEN_DECIMALS] || 18;
     console.log(`Using decimals: ${decimals} for ${symbol}`);
     
-    return ethers.utils.formatUnits(balance, decimals);
+    // Format the balance with proper decimals
+    const formattedBalance = ethers.utils.formatUnits(balance, decimals);
+    
+    // Format based on token type for better display
+    if (symbol === "USDC" || symbol === "USDT") {
+      const numBalance = parseFloat(formattedBalance);
+      console.log(`${symbol} balance updated: "${numBalance.toFixed(2)}"`);
+      return numBalance.toFixed(2);
+    } else {
+      const numBalance = parseFloat(formattedBalance);
+      console.log(`${symbol} balance updated: "${numBalance.toFixed(4)}"`);
+      return numBalance.toFixed(4);
+    }
   } catch (error) {
-    console.error("Error getting token balance:", error);
-    return "0.0";
+    console.error(`Error fetching balance for ${tokenAddress}:`, error);
+    return "0.00";
   }
 };
 

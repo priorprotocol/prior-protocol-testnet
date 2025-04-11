@@ -90,6 +90,26 @@ export const insertTokenSchema = createInsertSchema(tokens).omit({
   id: true,
 });
 
+// Transaction history table
+export const transactions = pgTable("transactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: text("type").notNull(), // 'faucet_claim', 'swap', etc.
+  fromToken: text("from_token"),
+  toToken: text("to_token"),
+  fromAmount: text("from_amount"),
+  toAmount: text("to_amount"),
+  txHash: text("tx_hash").notNull(),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+  status: text("status").notNull().default("completed"), // 'completed', 'pending', 'failed'
+  blockNumber: integer("block_number"),
+});
+
+export const insertTransactionSchema = createInsertSchema(transactions).omit({
+  id: true,
+  timestamp: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;

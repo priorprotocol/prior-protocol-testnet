@@ -18,8 +18,33 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
     console.log("Wallet context not available yet in TokenCard component");
   }
   
+  // Format the balance based on token type and decimals
+  const formatBalance = (rawBalance: string): string => {
+    // If no balance or invalid, return 0
+    if (!rawBalance || isNaN(parseFloat(rawBalance))) {
+      return '0.00';
+    }
+    
+    // For USDC and USDT which should display with less decimals
+    if (token.symbol === 'USDC' || token.symbol === 'USDT') {
+      // Parse the balance and format 
+      const value = parseFloat(rawBalance);
+      // If the value is extremely large, it's likely a decimal formatting issue
+      if (value > 10000) {
+        // Assume we need to divide by 10^12 for proper display (from e18 to e6)
+        return (value / 1000000000000).toFixed(2);
+      }
+      return value.toFixed(2);
+    }
+    
+    // For PRIOR and other tokens, use regular formatting
+    const value = parseFloat(rawBalance);
+    return value.toFixed(4);
+  };
+  
   // Use the token's balance if provided, otherwise get it from the wallet context
-  const balance = token.balance || getTokenBalance(token.symbol);
+  const rawBalance = token.balance || getTokenBalance(token.symbol);
+  const balance = formatBalance(rawBalance);
 
   return (
     <div className="gradient-border bg-[#141D29] p-4 shadow-lg">
