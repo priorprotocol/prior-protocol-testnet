@@ -20,14 +20,32 @@ import {
 } from "@/lib/contracts";
 
 // Global wallet update function for compatibility with older code
+// Create a custom event for wallet connection
+export function notifyWalletChange(address: string | null) {
+  try {
+    const event = new CustomEvent('walletChanged', { 
+      detail: { address } 
+    });
+    window.dispatchEvent(event);
+    return true;
+  } catch (error) {
+    console.error("Error dispatching wallet event:", error);
+    return false;
+  }
+}
+
+// Legacy function maintained for backward compatibility
 export function updateWalletAddressGlobally(address: string): boolean {
   try {
+    // Also dispatch the custom event
+    notifyWalletChange(address);
+    
     // @ts-ignore - Access global debug function to update wallet address
     if (window.__setWalletAddress) {
       // @ts-ignore
       return window.__setWalletAddress(address);
     }
-    return false;
+    return true;
   } catch (error) {
     console.error("Error updating wallet address globally:", error);
     return false;
@@ -87,7 +105,13 @@ interface WalletProviderProps {
 
 // The actual provider component
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
-  const [address, setAddress] = useState<string | null>(null);
+  const [address, setAddressInternal] = useState<string | null>(null);
+  
+  // Custom setter for address that also notifies other components
+  const setAddress = (newAddress: string | null) => {
+    setAddressInternal(newAddress);
+    notifyWalletChange(newAddress);
+  };
   const [chainId, setChainId] = useState<number | null>(null);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [tokenBalances, setTokenBalances] = useState<Record<string, string>>({});
@@ -115,6 +139,40 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     const initWallet = async () => {
       if (!mounted) return;
       
+      // Check for saved wallet state
+      try {
+        const savedWalletState = localStorage.getItem('walletState');
+        if (savedWalletState) {
+          const { address: savedAddress, timestamp } = JSON.parse(savedWalletState);
+          
+          // Session timeout after 24 hours
+          const isExpired = Date.now() - timestamp > 24 * 60 * 60 * 1000;
+          
+          if (savedAddress && !isExpired) {
+            // If we have a saved state, try to reconnect automatically
+            console.log("Restoring wallet connection from saved state...");
+            
+            // Try to verify the connection is still valid
+            if (window.ethereum) {
+              const accounts = await window.ethereum.request({ method: "eth_accounts" });
+              if (accounts && accounts.length > 0 && accounts[0].toLowerCase() === savedAddress.toLowerCase()) {
+                // Still connected!
+                setAddress(accounts[0]);
+              } else {
+                // Account changed or disconnected, clear localStorage
+                localStorage.removeItem('walletState');
+              }
+            }
+          } else {
+            // Expired session, clear localStorage
+            localStorage.removeItem('walletState');
+          }
+        }
+      } catch (e) {
+        console.error("Error restoring wallet state:", e);
+        localStorage.removeItem('walletState');
+      }
+      
       // Check if window.ethereum exists safely
       if (typeof window === 'undefined' || !window.ethereum) {
         console.log("No ethereum provider detected");
@@ -129,6 +187,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         
         if (accounts && accounts.length > 0) {
           setAddress(accounts[0]);
+          
+          // Save to localStorage for persistence across page reloads
+          localStorage.setItem('walletState', JSON.stringify({
+            address: accounts[0],
+            timestamp: Date.now()
+          }));
           
           try {
             // Get the chain ID
@@ -453,6 +517,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     setChainId(null);
     setTokenBalances({});
     queryClient.clear();
+    
+    // Clear the saved wallet state
+    localStorage.removeItem('walletState');
     
     toast({
       title: "Wallet Disconnected",
