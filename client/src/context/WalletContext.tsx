@@ -17,7 +17,7 @@ import {
   contractAddresses,
   checkPriorPioneerNFT
 } from "@/lib/contracts";
-import { swapTokens } from "@/contracts/services";
+import { swapTokens, approveTokens, getSwapContractInfo } from "@/contracts/services";
 
 // Global wallet update function for compatibility with older code
 // Create a custom event for wallet connection
@@ -663,11 +663,50 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             
       console.log("Using swap contract address:", swapContractAddress);
       
+      // For stablecoins (USDC/USDT), we need to approve spending before swap
+      if (fromToken.symbol === "USDC" || fromToken.symbol === "USDT") {
+        console.log(`Approving ${fromToken.symbol} tokens for swap...`);
+        
+        toast({
+          title: "Approval Required",
+          description: `Please approve ${fromToken.symbol} to continue with swap`,
+        });
+        
+        try {
+          // Direct approval call from wallet context to ensure it's properly handled
+          const approved = await approveTokens(
+            fromToken.address,
+            swapContractAddress,
+            fromAmount
+          );
+          
+          if (!approved) {
+            throw new Error(`Failed to approve ${fromToken.symbol} tokens`);
+          }
+          
+          console.log(`${fromToken.symbol} approved successfully!`);
+          
+          // Wait a moment for the approval to be processed
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (approvalError) {
+          console.error("Token approval failed:", approvalError);
+          toast({
+            title: "Approval Failed",
+            description: `Failed to approve ${fromToken.symbol}. Please try again.`,
+            variant: "destructive"
+          });
+          return false;
+        }
+      }
+      
+      // Make sure we're using the already parsed amount value
+      console.log(`Executing swap with amount: ${parsedAmount}`);
+      
       // Call swapTokens with the correct parameters
       const txReceipt = await swapTokens(
         fromTokenAddress,
         toTokenAddress,
-        parsedAmount,
+        parsedAmount, // Use the parsed amount which is already properly formatted
         swapContractAddress
       );
       

@@ -288,7 +288,7 @@ export const approveTokens = async (tokenAddress: string, spenderAddress: string
 export const swapTokens = async (
   fromTokenAddress: string,
   toTokenAddress: string,
-  amount: string,
+  amount: string, // This is a string representation of the token amount, needs parsing with correct decimals
   swapContractAddress?: string,
   minAmountOut?: string,
 ): Promise<ethers.providers.TransactionReceipt> => {
