@@ -5,8 +5,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import TokenCard from "@/components/TokenCard";
 import { TokenInfo } from "@/types";
-import { claimFromFaucet, getFaucetInfo, getTokenBalance } from "@/lib/contracts";
-import { requestAccounts, switchToBaseSepoliaNetwork, formatTokenAmount } from "@/lib/web3";
+import { claimFromFaucet, getFaucetInfo, getTokenBalance } from "@/contracts/services";
+import { requestAccounts, switchToBaseSepoliaNetwork } from "@/lib/web3";
 
 const Faucet = () => {
   const wallet = useWallet();
@@ -59,19 +59,42 @@ const Faucet = () => {
       if (!address) throw new Error("Wallet not connected");
       
       try {
+        // First check if we can claim using the smart contract
+        const faucetContractInfo = await getFaucetInfo(address);
+        console.log("Faucet contract info:", faucetContractInfo);
+        
+        if (!faucetContractInfo.canClaim) {
+          const waitTimeInHours = Math.ceil(faucetContractInfo.timeRemaining / 3600);
+          throw new Error(`You must wait ${waitTimeInHours} hour(s) before claiming again. The smart contract enforces this limit.`);
+        }
+        
         // Call the PRIOR token contract's claimFromFaucet function
         console.log("Calling claimFromFaucet with the connected wallet");
         const txReceipt = await claimFromFaucet();
         console.log("Claim transaction receipt:", txReceipt);
         
-        // Also update our backend to track the claim
-        const response = await apiRequest('POST', '/api/claim', { address });
+        if (!txReceipt) {
+          throw new Error("Claim transaction failed on the blockchain");
+        }
         
-        // Get the API response directly - apiRequest already handles the JSON parsing
-        return {
-          txReceipt,
-          apiResponse: response
-        };
+        // Also update our backend to track the claim
+        try {
+          const response = await apiRequest('POST', '/api/claim', { address });
+          console.log("Backend claim response:", response);
+          
+          // Get the API response directly - apiRequest already handles the JSON parsing
+          return {
+            txReceipt,
+            apiResponse: response
+          };
+        } catch (apiError) {
+          // If the blockchain claim worked but the API failed, still consider it a success
+          console.error("API claim error:", apiError);
+          return {
+            txReceipt,
+            apiResponse: null
+          };
+        }
       } catch (error) {
         console.error("Error in claim mutation:", error);
         throw error;
@@ -83,16 +106,25 @@ const Faucet = () => {
         title: "Token claimed successfully!",
         description: "1 PRIOR token has been sent to your wallet.",
       });
+      
+      // Refresh the user data and balances
       if (address) {
         queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
+        updateLocalBalances(address);
       }
     },
     onError: (error: any) => {
       console.error("Claim error:", error);
-      // Check for specific error message from the Prior smart contract
-      const errorMessage = error.reason?.includes("Wait 24 hours between claims") 
-        ? "You must wait 24 hours between claims. The Prior smart contract enforces this limit." 
-        : error.message || "An error occurred. There might be a network issue or insufficient gas.";
+      // Check for specific error messages
+      let errorMessage = "An error occurred during the claim process";
+      
+      if (error.reason?.includes("Wait 24 hours") || error.message?.includes("wait")) {
+        errorMessage = "You must wait 24 hours between claims. The Prior smart contract enforces this limit.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (error.reason) {
+        errorMessage = error.reason;
+      }
         
       toast({
         title: "Failed to claim token",

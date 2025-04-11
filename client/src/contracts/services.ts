@@ -349,36 +349,56 @@ export const swapTokens = async (
 // Function to claim tokens from faucet
 export const claimFromFaucet = async (userAddress?: string): Promise<boolean> => {
   try {
-    const faucetContract = await getFaucetContractWithSigner();
-    console.log("Faucet contract address:", CONTRACT_ADDRESSES.priorFaucet);
-    
-    // Log current user address to help debug issues
+    console.log("Starting faucet claim process...");
     if (!window.ethereum) {
       console.error("No ethereum provider found");
       return false;
     }
     
     try {
+      // Get the current connected address
       const provider = new ethers.providers.Web3Provider(window.ethereum as any); 
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
       console.log("Signer address for faucet claim:", signerAddress);
-    } catch (err) {
-      console.error("Error getting signer address:", err);
+      
+      // Get the faucet contract with signer
+      const faucetContract = await getFaucetContractWithSigner();
+      console.log("Faucet contract address:", CONTRACT_ADDRESSES.priorFaucet);
+      
+      // Check if we can claim first
+      try {
+        const canClaim = await faucetContract.canClaim(signerAddress);
+        console.log("Can claim status:", canClaim);
+        if (!canClaim) {
+          console.log("Cannot claim yet according to contract");
+          // Get the last claim time
+          const lastClaimTime = await faucetContract.lastClaim(signerAddress);
+          const waitTime = await faucetContract.WAIT_TIME();
+          const nextClaimTime = Number(lastClaimTime.toString()) + Number(waitTime.toString());
+          const currentTime = Math.floor(Date.now() / 1000);
+          console.log(`Last claim: ${lastClaimTime}, Next claim: ${nextClaimTime}, Current time: ${currentTime}`);
+          return false;
+        }
+      } catch (checkError) {
+        console.log("Error checking claim status:", checkError);
+        // Continue anyway as the claim function may handle this internally
+      }
+      
+      // Make the claim transaction
+      console.log("Claiming with msg.sender...");
+      const tx = await faucetContract.claim();
+      console.log("Claim transaction sent:", tx.hash);
+      
+      const receipt = await tx.wait();
+      console.log("Claim transaction receipt:", receipt);
+      console.log("Claim transaction confirmed in block:", receipt.blockNumber);
+      
+      return true;
+    } catch (error) {
+      console.error("Error in claimFromFaucet:", error);
+      return false;
     }
-    
-    // Make claim call - depending on contract implementation
-    let tx;
-    
-    // Based on error logs, the contract's claim function doesn't take any parameters
-    // Ignore the passed address and use msg.sender
-    console.log("Claiming with default msg.sender");
-    tx = await faucetContract.claim();
-    
-    console.log("Claim transaction sent:", tx.hash);
-    const receipt = await tx.wait();
-    console.log("Claim transaction confirmed in block:", receipt.blockNumber);
-    return true;
   } catch (error) {
     console.error("Error claiming from faucet:", error);
     return false;
