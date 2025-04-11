@@ -6,36 +6,28 @@
 export const TOKEN_DECIMALS = {
   PRIOR: 18,
   USDC: 6,
-  USDT: 6,
-  DAI: 6,
-  WETH: 18
+  USDT: 6
 };
 
 // On-chain token symbols (may differ from UI symbols)
 export const TOKEN_SYMBOLS = {
   PRIOR: "PRIOR",
   USDC: "mUSDC", // Mock USDC
-  USDT: "mUSDT", // Mock USDT
-  DAI: "mDAI",   // Mock DAI
-  WETH: "mWETH"  // Mock WETH
+  USDT: "mUSDT"  // Mock USDT
 };
 
 // Token names
 export const TOKEN_NAMES = {
   PRIOR: "Prior Protocol Token",
   USDC: "Mock USD Coin",
-  USDT: "Mock Tether USD",
-  DAI: "Mock Dai Stablecoin",
-  WETH: "Mock Wrapped Ether"
+  USDT: "Mock Tether USD"
 };
 
 // Token colors used in UI
 export const TOKEN_COLORS = {
   PRIOR: "#00df9a",  
   USDC: "#2775CA",   
-  USDT: "#26A17B",   
-  DAI: "#F5AC37",    
-  WETH: "#627EEA"     
+  USDT: "#26A17B"
 };
 
 // Export a grouped metadata object
