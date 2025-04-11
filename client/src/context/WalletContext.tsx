@@ -663,17 +663,20 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             
       console.log("Using swap contract address:", swapContractAddress);
       
-      // Call swapTokens with the correct parameters and contract address
-      const txReceipt = await swapTokens(fromTokenAddress, toTokenAddress, parsedAmount, swapContractAddress);
+      // Call swapTokens with the correct parameters
+      const txReceipt = await swapTokens(
+        fromTokenAddress,
+        toTokenAddress,
+        parsedAmount,
+        swapContractAddress
+      );
       
-      // Get transaction details for recording purposes
-      // Use optional chaining in case the structure is different than expected
-      const txHash = typeof txReceipt === 'object' && (txReceipt?.transactionHash || txReceipt?.hash) 
-        ? (txReceipt.transactionHash || txReceipt.hash) 
-        : 'unknown';
-      const blockNumber = typeof txReceipt === 'object' && txReceipt?.blockNumber 
-        ? txReceipt.blockNumber 
-        : 0;
+      // Get transaction hash and block number from receipt
+      // ethers.js TransactionReceipt should have these properties
+      // Use type assertion to handle TypeScript issues
+      const receipt = txReceipt as any;
+      const txHash = receipt.transactionHash || receipt.hash || 'unknown';
+      const blockNumber = receipt.blockNumber || 0;
       
       const updatedBalances = {...tokenBalances};
       
