@@ -1,10 +1,13 @@
 /**
- * Formats a wallet address to show only the first 6 and last 4 characters
- * @param address The full wallet address
- * @returns Formatted address (e.g., "0x1234...5678")
+ * Formats an Ethereum address for display by shortening it (e.g. 0x1234...5678)
+ * @param address The full Ethereum address
+ * @param prefixLength Number of characters to show at the beginning (default: 6)
+ * @param suffixLength Number of characters to show at the end (default: 4)
+ * @returns Formatted address string
  */
-export function formatWalletAddress(address: string): string {
-  if (!address || address.length < 10) return address;
+export function formatAddress(address: string, prefixLength = 6, suffixLength = 4): string {
+  if (!address) return '';
+  if (address.length < prefixLength + suffixLength + 3) return address;
   
-  return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  return `${address.substring(0, prefixLength)}...${address.substring(address.length - suffixLength)}`;
 }

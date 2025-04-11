@@ -1,19 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { User } from "@/types";
-import { formatWalletAddress } from "@/lib/formatAddress";
+import { formatAddress } from "@/lib/formatAddress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FaTrophy, FaMedal, FaAward } from "react-icons/fa";
 import { useWallet } from "@/context/WalletContext";
+import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 
 interface LeaderboardProps {
   limit?: number;
 }
 
 export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
-  const { address } = useWallet();
+  // Use both for compatibility during transition
+  const { address: contextAddress } = useWallet();
+  const { address: standaloneAddress } = useStandaloneWallet();
+  
+  // Prefer standalone address but fall back to context address
+  const address = standaloneAddress || contextAddress;
   
   const { data: leaderboard, isLoading } = useQuery({
     queryKey: ["/api/leaderboard", limit],
@@ -93,7 +99,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                       </div>
                       <div>
                         <div className="font-medium">
-                          {formatWalletAddress(user.address)}
+                          {formatAddress(user.address)}
                           {isCurrentUser && <span className="ml-2 text-xs text-[#1A5CFF]">(You)</span>}
                         </div>
                         {rankBadge && <div className="mt-1">{rankBadge}</div>}

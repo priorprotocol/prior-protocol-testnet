@@ -1,19 +1,24 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useWalletSync } from "@/hooks/useWalletSync";
+import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
+import StandaloneWalletButton from "@/components/StandaloneWalletButton";
+import { formatAddress } from "@/lib/formatAddress";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location] = useLocation();
   
-  // Use the synchronized wallet hook instead of useWallet directly
+  // Use both wallet systems during transition
   const { 
-    address, 
-    isConnected, 
-    disconnectWallet, 
-    copyToClipboard,
-    openWalletModal
+    copyToClipboard
   } = useWalletSync();
+  
+  // Use our standalone wallet hook for consistent wallet state
+  const {
+    address,
+    isConnected
+  } = useStandaloneWallet();
   
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -29,9 +34,8 @@ const Header = () => {
     { name: "About", path: "/about" }
   ];
   
-  const formatAddress = (address: string) => {
-    return address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : "Connect Wallet";
-  };
+  // We can remove this since we're using the imported formatAddress function
+  
   
   return (
     <header className="border-b border-[#2D3748] sticky top-0 bg-[#0B1118] z-50">
@@ -57,30 +61,19 @@ const Header = () => {
           ))}
         </nav>
         
-        {/* Connect Wallet Button or Wallet Info */}
-        {isConnected && address ? (
-          <div className="hidden md:flex items-center space-x-2">
-            <button
-              onClick={() => address && copyToClipboard(address)}
-              className="flex items-center rounded-full bg-[#1E293B] px-4 py-2 hover:bg-opacity-90 transition-all font-bold text-sm"
-            >
-              <span className="text-[#A0AEC0]">{formatAddress(address)}</span>
-            </button>
-            <button
-              onClick={disconnectWallet}
-              className="flex items-center rounded-full bg-[#1A5CFF] px-4 py-2 hover:bg-opacity-90 transition-all font-bold text-sm"
-            >
-              <span>Disconnect</span>
-            </button>
-          </div>
-        ) : (
-          <button 
-            onClick={() => openWalletModal()}
-            className="hidden md:flex items-center rounded-full bg-[#1A5CFF] px-6 py-2 hover:bg-opacity-90 transition-all font-bold text-sm"
-          >
-            <span>Connect Wallet</span>
-          </button>
-        )}
+        {/* Standalone Wallet Button */}
+        <div className="hidden md:block">
+          <StandaloneWalletButton
+            onConnect={(newAddress) => {
+              console.log("Connected to wallet:", newAddress);
+              if (newAddress) copyToClipboard(newAddress);
+            }}
+            onDisconnect={() => {
+              console.log("Wallet disconnected");
+            }}
+            showAddress={true}
+          />
+        </div>
         
         {/* Mobile menu button */}
         <button 
@@ -106,35 +99,20 @@ const Header = () => {
               </Link>
             ))}
             
-            {isConnected && address ? (
-              <div className="flex flex-col space-y-2 mt-4">
-                <button
-                  onClick={() => address && copyToClipboard(address)}
-                  className="flex items-center justify-center rounded-full bg-[#1E293B] px-4 py-3 hover:bg-opacity-90 transition-all font-bold text-sm"
-                >
-                  <span className="text-[#A0AEC0]">{formatAddress(address)}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    disconnectWallet();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="flex items-center justify-center rounded-full bg-[#1A5CFF] px-4 py-3 hover:bg-opacity-90 transition-all font-bold text-sm"
-                >
-                  <span>Disconnect</span>
-                </button>
-              </div>
-            ) : (
-              <button 
-                onClick={() => {
-                  openWalletModal();
+            <div className="mt-4">
+              <StandaloneWalletButton 
+                onConnect={() => {
+                  // Close the mobile menu after connecting
                   setIsMobileMenuOpen(false);
                 }}
-                className="flex items-center justify-center rounded-full bg-[#1A5CFF] px-6 py-3 hover:bg-opacity-90 transition-all font-bold text-sm mt-4"
-              >
-                <span>Connect Wallet</span>
-              </button>
-            )}
+                onDisconnect={() => {
+                  // Close the mobile menu after disconnecting
+                  setIsMobileMenuOpen(false);
+                }}
+                size="lg"
+                className="w-full justify-center"
+              />
+            </div>
           </nav>
         </div>
       </div>

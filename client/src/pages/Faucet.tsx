@@ -4,22 +4,27 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import TokenCard from "@/components/TokenCard";
 import { TransactionHistory } from "@/components/TransactionHistory";
-import { useWallet } from "@/context/WalletContext";
-import { claimFromFaucet, getFaucetInfo } from "@/contracts/services";
 import { useWalletSync } from "@/hooks/useWalletSync";
+import { claimFromFaucet, getFaucetInfo } from "@/contracts/services";
+import StandaloneWalletButton from "@/components/StandaloneWalletButton";
+import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
+import { formatAddress } from "@/lib/formatAddress";
 
 const Faucet = () => {
-  // Use the sync hook for better connection management across components
+  // Use both wallet systems during the transition
   const { 
+    tokens,
+    getTokenBalance,
+    copyToClipboard
+  } = useWalletSync();
+  
+  // Use our standalone wallet hook for wallet connection
+  const {
     address,
     isConnected,
-    openWalletModal,
-    connectWithMetaMask,
-    disconnectWallet,
-    tokens,
-    copyToClipboard,
-    getTokenBalance
-  } = useWalletSync();
+    connect: connectWallet,
+    disconnect: disconnectWallet
+  } = useStandaloneWallet();
   
   const { toast } = useToast();
   const [isCopied, setIsCopied] = useState(false);
@@ -229,15 +234,17 @@ const Faucet = () => {
   const handleClaimTokens = async () => {
     if (!isConnected) {
       try {
-        // Use the connectWithMetaMask function from the wallet context
-        // This leverages the already fixed and optimized wallet connection flow
-        console.log("Connecting via wallet context function...");
-        await connectWithMetaMask();
+        // Use the standalone connect function
+        console.log("Connecting via standalone wallet...");
+        await connectWallet();
         return;
       } catch (error) {
-        console.error("Direct wallet connection failed:", error);
-        // Fallback to the modal
-        openWalletModal();
+        console.error("Wallet connection failed:", error);
+        toast({
+          title: "Connection Failed",
+          description: "Please make sure MetaMask is installed and unlocked.",
+          variant: "destructive"
+        });
       }
       return;
     }
@@ -320,12 +327,11 @@ const Faucet = () => {
             <div className="flex justify-between items-center mb-2">
               <label className="text-[#A0AEC0] text-sm font-medium">Your Wallet Address</label>
               {isConnected && (
-                <button 
-                  onClick={handleDisconnectWallet}
+                <StandaloneWalletButton 
+                  variant="outline"
+                  size="sm"
                   className="text-xs text-[#FF5757] hover:text-red-400 transition-colors flex items-center gap-1"
-                >
-                  <i className="fas fa-sign-out-alt"></i> Disconnect
-                </button>
+                />
               )}
             </div>
             <div className="flex">
@@ -349,19 +355,27 @@ const Faucet = () => {
             </div>
           </div>
           
-          <button 
-            onClick={handleClaimTokens}
-            disabled={isConnected && !canClaimTokens || claimMutation.isPending}
-            className={`w-full rounded-lg ${isConnected && !canClaimTokens ? 'bg-[#A0AEC0] cursor-not-allowed' : 'bg-[#1A5CFF] hover:bg-opacity-90'} transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide`}
-          >
-            {!isConnected 
-              ? "Connect Wallet" 
-              : claimMutation.isPending 
-              ? "Claiming..." 
-              : canClaimTokens 
-              ? "Claim 1 PRIOR Token" 
-              : "Already Claimed Today"}
-          </button>
+          {!isConnected ? (
+            <StandaloneWalletButton
+              onConnect={(newAddress) => {
+                console.log("Wallet connected:", newAddress);
+              }}
+              className="w-full rounded-lg py-4 uppercase tracking-wide"
+              size="lg"
+            />
+          ) : (
+            <button 
+              onClick={handleClaimTokens}
+              disabled={!canClaimTokens || claimMutation.isPending}
+              className={`w-full rounded-lg ${!canClaimTokens ? 'bg-[#A0AEC0] cursor-not-allowed' : 'bg-[#1A5CFF] hover:bg-opacity-90'} transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide`}
+            >
+              {claimMutation.isPending 
+                ? "Claiming..." 
+                : canClaimTokens 
+                ? "Claim 1 PRIOR Token" 
+                : "Already Claimed Today"}
+            </button>
+          )}
           
           <div className="mt-6 text-sm text-[#A0AEC0] text-center">
             <p>Need some ETH for gas? <a href="https://www.coinbase.com/faucets/base-sepolia-faucet" target="_blank" rel="noopener noreferrer" className="text-[#1A5CFF] hover:underline">Get Base Sepolia ETH here</a></p>
