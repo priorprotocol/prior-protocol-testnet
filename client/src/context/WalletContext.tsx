@@ -635,10 +635,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       throw new Error("Please switch to Base Sepolia network");
     }
     
-    try {
-      // Import the swap helpers directly in the function to avoid circular dependencies
-      const { approveTokenForSwap, executeSwap, getSwapContractAddress } = await import('@/utils/swapHelper');
-      
+    try {      
       const fromToken = tokens.find(t => t.address.toLowerCase() === fromTokenAddress.toLowerCase());
       const toToken = tokens.find(t => t.address.toLowerCase() === toTokenAddress.toLowerCase());
       
@@ -646,30 +643,53 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         throw new Error("Invalid token selection");
       }
       
+      const fromDecimals = fromToken.address.toLowerCase() === contractAddresses.priorToken.toLowerCase() 
+        ? 18 : fromToken.decimals;
+        
+      const parsedAmount = parseTokenAmount(fromAmount, fromDecimals);
+      
       toast({
         title: "Processing Swap",
-        description: `Preparing to swap ${fromAmount} ${fromToken.symbol} to ${toToken.symbol}...`,
+        description: `Swapping ${fromAmount} ${fromToken.symbol} to ${toToken.symbol}...`,
       });
       
-      // Get the appropriate swap contract address using our helper
-      const swapContractAddress = getSwapContractAddress(fromToken.symbol, toToken.symbol);
+      // Get the appropriate swap contract address
+      const swapContractAddress = 
+        (fromToken.symbol === "PRIOR" && toToken.symbol === "USDC") || (fromToken.symbol === "USDC" && toToken.symbol === "PRIOR") 
+          ? contractAddresses.swapContracts.PRIOR_USDC
+          : (fromToken.symbol === "PRIOR" && toToken.symbol === "USDT") || (fromToken.symbol === "USDT" && toToken.symbol === "PRIOR")
+            ? contractAddresses.swapContracts.PRIOR_USDT
+            : contractAddresses.swapContracts.USDC_USDT;
+            
       console.log("Using swap contract address:", swapContractAddress);
       
-      // For stablecoins (USDC/USDT), approve tokens using our enhanced approval function
+      // For stablecoins (USDC/USDT), we need to approve spending before swap
       if (fromToken.symbol === "USDC" || fromToken.symbol === "USDT") {
+        console.log(`Approving ${fromToken.symbol} tokens for swap...`);
+        
         toast({
           title: "Approval Required",
-          description: `Please approve ${fromToken.symbol} tokens in your wallet`,
+          description: `Please approve ${fromToken.symbol} to continue with swap`,
         });
         
-        const approved = await approveTokenForSwap(
-          fromToken.address,
-          fromToken.symbol,
-          swapContractAddress,
-          fromAmount
-        );
-        
-        if (!approved) {
+        try {
+          // Direct approval call from wallet context to ensure it's properly handled
+          const approved = await approveTokens(
+            fromToken.address,
+            swapContractAddress,
+            fromAmount
+          );
+          
+          if (!approved) {
+            throw new Error(`Failed to approve ${fromToken.symbol} tokens`);
+          }
+          
+          console.log(`${fromToken.symbol} approved successfully!`);
+          
+          // Wait a moment for the approval to be processed
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (approvalError) {
+          console.error("Token approval failed:", approvalError);
           toast({
             title: "Approval Failed",
             description: `Failed to approve ${fromToken.symbol}. Please try again.`,
@@ -677,30 +697,13 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
           });
           return false;
         }
-        
-        // Wait for approval transaction to be processed
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        toast({
-          title: "Approval Successful",
-          description: `${fromToken.symbol} tokens approved. Proceeding with swap...`,
-        });
       }
       
-      // Execute the swap using our enhanced swap function
-      console.log(`Executing swap: ${fromAmount} ${fromToken.symbol} to ${toToken.symbol}`);
-      
-      toast({
-        title: "Swapping Tokens",
-        description: `Executing swap transaction...`,
-      });
-      
-      // Call our enhanced swap function
-      const txReceipt = await executeSwap(
-        fromToken.symbol,
-        toToken.symbol,
-        fromToken.address,
-        fromAmount,
+      // Call swapTokens with the correct parameters
+      const txReceipt = await swapTokens(
+        fromTokenAddress, 
+        toTokenAddress,
+        parsedAmount, 
         swapContractAddress
       );
       
