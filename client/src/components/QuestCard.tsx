@@ -23,7 +23,7 @@ interface QuestCardProps {
 
 const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
   // Use the wallet context directly
-  const { address, isConnected, connectWallet } = useWallet();
+  const { address, isConnected, connectWallet, openWalletModal } = useWallet();
   
   const { toast } = useToast();
   

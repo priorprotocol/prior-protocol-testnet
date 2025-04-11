@@ -11,10 +11,19 @@ import { PioneerBadgeCard } from "@/components/PioneerBadgeCard";
 import { Leaderboard } from "@/components/Leaderboard";
 import { getBadgeInfo } from "@/lib/badges";
 import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
-import { UserStats } from "@/types";
+// Define the UserStats interface locally to match the server return type
+interface UserStats {
+  totalFaucetClaims: number;
+  totalSwaps: number;
+  completedQuests: number;
+  totalQuests: number;
+  proposalsVoted: number;
+  proposalsCreated: number;
+  points: number;
+}
 
 const Dashboard = () => {
-  const { address, userId, tokens, getTokenBalance, connectWallet } = useWallet();
+  const { address, userId, tokens, getTokenBalance, connectWallet, openWalletModal } = useWallet();
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch user stats
@@ -44,7 +53,7 @@ const Dashboard = () => {
           <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
           <p className="text-[#A0AEC0] mb-6">Please connect your wallet to view your dashboard.</p>
           <button 
-            onClick={connectWallet}
+            onClick={() => openWalletModal()}
             className="rounded-lg bg-[#1A5CFF] hover:bg-opacity-90 transition-all font-bold text-sm px-6 py-3"
           >
             Connect Wallet
