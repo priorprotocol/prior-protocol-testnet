@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useWallet } from "@/context/WalletContext";
 import QuestCard from "@/components/QuestCard";
+import { Button } from "@/components/ui/button";
 
 const Quest = () => {
   // Use the wallet context directly
-  const { isConnected, address } = useWallet();
+  const { isConnected, address, openWalletModal, disconnectWallet } = useWallet();
   
   // Define types for quests and user quests
   interface Quest {
@@ -46,25 +47,40 @@ const Quest = () => {
             Complete testnet quests to earn additional PRIOR tokens and learn about the protocol's features.
           </p>
         </div>
-        
-        {isLoading ? (
-          <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1A5CFF]"></div>
-            <p className="mt-2 text-[#A0AEC0]">Loading quests...</p>
+
+        {!isConnected ? (
+          <div className="bg-[#141D29] rounded-lg border border-[#2D3748] p-8 text-center mb-8 max-w-2xl mx-auto">
+            <h3 className="font-space font-semibold text-xl mb-4">Connect Your Wallet</h3>
+            <p className="text-[#A0AEC0] mb-6">Connect your wallet to view and track your quest progress.</p>
+            <Button 
+              onClick={() => openWalletModal()}
+              className="rounded-lg bg-[#1A5CFF] hover:bg-opacity-90 transition-all font-bold text-sm px-6 py-3"
+            >
+              Connect Wallet
+            </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {quests.map((quest: Quest) => {
-              const userQuest = userQuests.find((uq: UserQuest) => uq.questId === quest.id);
-              return (
-                <QuestCard 
-                  key={quest.id} 
-                  quest={quest} 
-                  userQuest={userQuest}
-                />
-              );
-            })}
-          </div>
+          <>
+            {isLoading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1A5CFF]"></div>
+                <p className="mt-2 text-[#A0AEC0]">Loading quests...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                {quests.map((quest: Quest) => {
+                  const userQuest = userQuests.find((uq: UserQuest) => uq.questId === quest.id);
+                  return (
+                    <QuestCard 
+                      key={quest.id} 
+                      quest={quest} 
+                      userQuest={userQuest}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
         
         <div className="mt-12 text-center">
