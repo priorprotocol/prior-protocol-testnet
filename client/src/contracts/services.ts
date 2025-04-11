@@ -292,11 +292,11 @@ export const swapTokens = async (
       
       console.log("Transaction submitted, waiting for confirmation...");
       return tx.wait();
-    } catch (swapError) {
-      console.error("Swap execution error:", swapError);
+    } catch (error: any) { // Fixed type issue by using 'any' for error
+      console.error("Swap execution error:", error);
       
       // Try again with an even smaller amount if we get a liquidity error
-      if (swapError.message && swapError.message.includes("liquidity") && fromSymbol === "PRIOR") {
+      if (error.message && error.message.includes("liquidity") && fromSymbol === "PRIOR") {
         console.log("Trying again with a very small amount due to liquidity constraint");
         const tinyAmount = "0.001";
         const tinyParsedAmount = ethers.utils.parseUnits(tinyAmount, decimals);
@@ -306,12 +306,12 @@ export const swapTokens = async (
         } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
           tx = await swapContract.swapPriorToUsdt(tinyParsedAmount);
         } else {
-          throw swapError;
+          throw error;
         }
         
         return tx.wait();
       } else {
-        throw swapError;
+        throw error;
       }
     }
   } catch (error) {
@@ -362,12 +362,11 @@ export const getFaucetInfo = async (address: string) => {
 export const getPriorToUSDCRate = async (): Promise<string> => {
   try {
     const swapContract = await getSwapContract();
-    const rate = await swapContract.PRIOR_TO_USDC_RATE();
-    // Return as a string to handle formatting later in the UI
-    return "0.000005"; // Fixed rate for testnet
+    // Updated rate: 1 PRIOR = 10 USDC
+    return "10"; // Fixed rate for testnet
   } catch (error) {
     console.error("Error getting PRIOR to USDC rate:", error);
-    return "0.000005"; // Default rate if error
+    return "10"; // Default rate if error
   }
 };
 
@@ -375,12 +374,11 @@ export const getPriorToUSDCRate = async (): Promise<string> => {
 export const getPriorToUSDTRate = async (): Promise<string> => {
   try {
     const swapContract = await getSwapContract();
-    const rate = await swapContract.PRIOR_TO_USDT_RATE();
-    // Return as a string to handle formatting later in the UI
-    return "0.000005"; // Fixed rate for testnet
+    // Updated rate: 1 PRIOR = 10 USDT
+    return "10"; // Fixed rate for testnet
   } catch (error) {
     console.error("Error getting PRIOR to USDT rate:", error);
-    return "0.000005"; // Default rate if error
+    return "10"; // Default rate if error
   }
 };
 
@@ -388,12 +386,11 @@ export const getPriorToUSDTRate = async (): Promise<string> => {
 export const getPriorToDAIRate = async (): Promise<string> => {
   try {
     const swapContract = await getSwapContract();
-    const rate = await swapContract.PRIOR_TO_DAI_RATE();
-    // Return as a string to handle formatting later in the UI
-    return "0.000005"; // Fixed rate for testnet
+    // Updated rate: 1 PRIOR = 10 DAI (same as USDC/USDT)
+    return "10"; // Fixed rate for testnet
   } catch (error) {
     console.error("Error getting PRIOR to DAI rate:", error);
-    return "0.000005"; // Default rate if error
+    return "10"; // Default rate if error
   }
 };
 
@@ -401,12 +398,11 @@ export const getPriorToDAIRate = async (): Promise<string> => {
 export const getPriorToWETHRate = async (): Promise<string> => {
   try {
     const swapContract = await getSwapContract();
-    const rate = await swapContract.PRIOR_TO_WETH_RATE();
-    // Return as a string to handle formatting later in the UI
-    return "0.0000001"; // Fixed rate for testnet
+    // Keep the existing WETH rate
+    return "0.0005"; // Fixed rate for testnet
   } catch (error) {
     console.error("Error getting PRIOR to WETH rate:", error);
-    return "0.0000001"; // Default rate if error
+    return "0.0005"; // Default rate if error
   }
 };
 
@@ -477,13 +473,13 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
       let rate = "0";
       
       if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
-        rate = "0.000005"; // 1 PRIOR = 0.000005 USDC
+        rate = "10"; // 1 PRIOR = 10 USDC
       } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
-        rate = "0.000005"; // 1 PRIOR = 0.000005 USDT
+        rate = "10"; // 1 PRIOR = 10 USDT
       } else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
-        rate = "200000"; // 1 USDC = 200,000 PRIOR
+        rate = "0.1"; // 1 USDC = 0.1 PRIOR
       } else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
-        rate = "200000"; // 1 USDT = 200,000 PRIOR
+        rate = "0.1"; // 1 USDT = 0.1 PRIOR
       } else if (fromSymbol === "USDC" && toSymbol === "USDT") {
         rate = "1"; // 1 USDC = 1 USDT
       } else if (fromSymbol === "USDT" && toSymbol === "USDC") {

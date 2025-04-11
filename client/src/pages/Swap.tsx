@@ -360,6 +360,7 @@ export default function Swap() {
   // Load exchange rates from contract
   const loadExchangeRates = async () => {
     try {
+      // Get the fixed rates from the contract via our service functions
       const [
         priorToUsdcRate, 
         priorToUsdtRate, 
@@ -371,41 +372,48 @@ export default function Swap() {
         getPriorToDAIRate(),
         getPriorToWETHRate()
       ]);
+      
+      console.log("Loaded exchange rates from contract:");
+      console.log(`PRIOR to USDC rate: ${priorToUsdcRate}`);
+      console.log(`PRIOR to USDT rate: ${priorToUsdtRate}`);
+      console.log(`PRIOR to DAI rate: ${priorToDaiRate}`);
+      console.log(`PRIOR to WETH rate: ${priorToWethRate}`);
 
-      // Handle raw rates properly
-      const priorUsdcValue = typeof priorToUsdcRate === 'string' ? priorToUsdcRate : '0.000005';
-      const priorUsdtValue = typeof priorToUsdtRate === 'string' ? priorToUsdtRate : '0.000005';
-      const priorDaiValue = typeof priorToDaiRate === 'string' ? priorToDaiRate : '0.000005';
-      const priorWethValue = typeof priorToWethRate === 'string' ? priorToWethRate : '0.0000001';
+      // Parse rates - now our contract is returning the correct fixed values
+      const priorUsdcValue = typeof priorToUsdcRate === 'string' ? priorToUsdcRate : '10'; // 1 PRIOR = 10 USDC
+      const priorUsdtValue = typeof priorToUsdtRate === 'string' ? priorToUsdtRate : '10'; // 1 PRIOR = 10 USDT
+      const priorDaiValue = typeof priorToDaiRate === 'string' ? priorToDaiRate : '10';    // 1 PRIOR = 10 DAI
+      const priorWethValue = typeof priorToWethRate === 'string' ? priorToWethRate : '0.0005'; // Keep WETH rate as is
 
-      // Calculate inverse rates (approximation)
-      const usdcPriorValue = (1 / parseFloat(priorUsdcValue)).toString();
-      const usdtPriorValue = (1 / parseFloat(priorUsdtValue)).toString();
-      const daiPriorValue = (1 / parseFloat(priorDaiValue)).toString();
-      const wethPriorValue = (1 / parseFloat(priorWethValue)).toString();
+      // Calculate the inverse rates (for X to PRIOR conversions)
+      const usdcPriorValue = (1 / parseFloat(priorUsdcValue)).toString(); // 1 USDC = 0.1 PRIOR
+      const usdtPriorValue = (1 / parseFloat(priorUsdtValue)).toString(); // 1 USDT = 0.1 PRIOR
+      const daiPriorValue = (1 / parseFloat(priorDaiValue)).toString();   // 1 DAI = 0.1 PRIOR
+      const wethPriorValue = (1 / parseFloat(priorWethValue)).toString(); // Keep WETH inverse rate as is
 
+      // Update the rates in our state
       setExchangeRates({
-        PRIOR_USDC: parseFloat(priorUsdcValue),
-        PRIOR_USDT: parseFloat(priorUsdtValue),
-        PRIOR_DAI: parseFloat(priorDaiValue),
-        PRIOR_WETH: parseFloat(priorWethValue),
-        USDC_PRIOR: parseFloat(usdcPriorValue),
-        USDT_PRIOR: parseFloat(usdtPriorValue),
-        DAI_PRIOR: parseFloat(daiPriorValue),
-        WETH_PRIOR: parseFloat(wethPriorValue)
+        PRIOR_USDC: parseFloat(priorUsdcValue),  // 10
+        PRIOR_USDT: parseFloat(priorUsdtValue),  // 10
+        PRIOR_DAI: parseFloat(priorDaiValue),    // 10
+        PRIOR_WETH: parseFloat(priorWethValue),  // 0.0005
+        USDC_PRIOR: parseFloat(usdcPriorValue),  // 0.1
+        USDT_PRIOR: parseFloat(usdtPriorValue),  // 0.1
+        DAI_PRIOR: parseFloat(daiPriorValue),    // 0.1
+        WETH_PRIOR: parseFloat(wethPriorValue)   // 2000
       });
     } catch (error) {
       console.error("Error loading exchange rates:", error);
-      // Set fallback rates in case of error
+      // Set fallback rates based on smart contract's fixed ratios: 1 PRIOR = 10 USDC/USDT, 1 USDC = 1 USDT
       setExchangeRates({
-        PRIOR_USDC: 0.999,
-        PRIOR_USDT: 0.999,
-        PRIOR_DAI: 0.999,
-        PRIOR_WETH: 0.0005,
-        USDC_PRIOR: 1.001,
-        USDT_PRIOR: 1.001,
-        DAI_PRIOR: 1.001,
-        WETH_PRIOR: 2000
+        PRIOR_USDC: 10, // 1 PRIOR = 10 USDC
+        PRIOR_USDT: 10, // 1 PRIOR = 10 USDT
+        PRIOR_DAI: 10, // 1 PRIOR = 10 DAI (assuming same as USDC/USDT)
+        PRIOR_WETH: 0.0005, // Keep WETH rate as is
+        USDC_PRIOR: 0.1, // 1 USDC = 0.1 PRIOR
+        USDT_PRIOR: 0.1, // 1 USDT = 0.1 PRIOR
+        DAI_PRIOR: 0.1, // 1 DAI = 0.1 PRIOR (assuming same as USDC/USDT)
+        WETH_PRIOR: 2000 // Keep WETH rate as is
       });
     }
   };
