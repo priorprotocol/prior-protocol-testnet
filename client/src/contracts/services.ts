@@ -269,17 +269,35 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
 // Function to approve tokens for swap
 export const approveTokens = async (tokenAddress: string, spenderAddress: string, amount: string): Promise<boolean> => {
   try {
+    console.log(`Approving tokens for swap: ${amount} from address ${tokenAddress} to spender ${spenderAddress}`);
+    
+    // Get the token contract with signer
     const contract = await getTokenContractWithSigner(tokenAddress);
+    const fromSymbol = getTokenSymbol(tokenAddress);
     const decimals = getTokenDecimalsFromAddress(tokenAddress);
+    
+    console.log(`Using ${decimals} decimals for ${fromSymbol}`);
+    
+    // Parse amount with correct decimals
     const parsedAmount = ethers.utils.parseUnits(amount, decimals);
     
-    // Use the provided spender address (which should be the swap contract address)
-    // Approve the swap contract to spend the tokens
-    const tx = await contract.approve(spenderAddress, parsedAmount);
-    await tx.wait();
+    // Add buffer for approvals (200%)
+    const bufferedAmount = parsedAmount.mul(2);
+    console.log(`Approving ${bufferedAmount.toString()} tokens (with buffer)`);
+    
+    // Approve the tokens
+    const tx = await contract.approve(spenderAddress, bufferedAmount);
+    console.log(`Approval transaction sent, waiting for confirmation...`);
+    
+    const receipt = await tx.wait();
+    console.log(`Approval confirmed in transaction: ${receipt.transactionHash}`);
+    
     return true;
   } catch (error) {
     console.error("Error approving tokens:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+    }
     return false;
   }
 };
@@ -288,90 +306,47 @@ export const approveTokens = async (tokenAddress: string, spenderAddress: string
 export const swapTokens = async (
   fromTokenAddress: string,
   toTokenAddress: string,
-  amount: string, // This is a string representation of the token amount, needs parsing with correct decimals
-  swapContractAddress?: string,
-  minAmountOut?: string,
+  parsedAmount: ethers.BigNumber, // Now we pass in the already parsed amount
+  swapContractAddress: string,
 ): Promise<ethers.providers.TransactionReceipt> => {
   try {
-    console.log(`Attempting to swap ${amount} from ${fromTokenAddress} to ${toTokenAddress}`);
-    console.log(`Using swap contract: ${swapContractAddress}`);
+    console.log(`Attempting to swap tokens from ${fromTokenAddress} to ${toTokenAddress}`);
+    console.log(`Using swap contract address: ${swapContractAddress}`);
+    console.log(`Parsed amount for swap: ${parsedAmount.toString()}`);
     
-    // Get the appropriate swap contract based on the token pair or use the provided address
-    const swapContract = swapContractAddress 
-      ? await getSwapContractWithSigner(fromTokenAddress, toTokenAddress, swapContractAddress)
-      : await getSwapContractWithSigner(fromTokenAddress, toTokenAddress);
+    // Get the swap contract with signer using the provided address
+    const swapContract = await getSwapContractWithSigner(fromTokenAddress, toTokenAddress, swapContractAddress);
       
     const fromSymbol = getTokenSymbol(fromTokenAddress);
     const toSymbol = getTokenSymbol(toTokenAddress);
-    const decimals = getTokenDecimalsFromAddress(fromTokenAddress);
     
-    // Make sure we're using a very small amount for testing due to limited liquidity
-    let safeAmount = amount;
-    if (parseFloat(amount) > 0.1 && fromSymbol === "PRIOR") {
-      console.log("Amount too large for testnet, reducing to 0.01");
-      safeAmount = "0.01";
-    }
-    
-    // For stablecoin to stablecoin swaps, also use a reasonable amount
-    if ((fromSymbol === "USDC" && toSymbol === "USDT") || 
-        (fromSymbol === "USDT" && toSymbol === "USDC")) {
-      // For stablecoin swap testing, allow slightly larger amounts since they have 1:1 ratio
-      if (parseFloat(amount) > 10) {
-        console.log("Amount too large for testnet stablecoin swap, reducing to 10");
-        safeAmount = "10";
-      }
-    }
-    
-    const parsedAmount = ethers.utils.parseUnits(safeAmount, decimals);
-    console.log(`Parsed amount for ${fromSymbol}: ${parsedAmount.toString()}`);
+    // Since we're passing in parsedAmount directly, we don't need the decimal conversion here
+    console.log(`Starting ${fromSymbol} to ${toSymbol} swap with amount: ${parsedAmount.toString()}`);
     
     let tx;
     
     try {
-      // For ALL stablecoin swaps (either to PRIOR or between stablecoins),
-      // we need to approve the tokens first
-      if (fromSymbol === "USDC" || fromSymbol === "USDT") {
-        console.log(`Approving ${fromSymbol} tokens for swap contract at ${swapContractAddress}...`);
-        
-        // Ensure we have a valid contract address for approval
-        if (!swapContractAddress) {
-          throw new Error("No swap contract address provided for token approval");
-        }
-        
-        // We need to approve the tokens before swapping when the source is a stablecoin
-        const success = await approveTokens(fromTokenAddress, swapContractAddress, safeAmount);
-        
-        if (!success) {
-          throw new Error(`Failed to approve ${fromSymbol} tokens for swap`);
-        }
-        
-        console.log(`${fromSymbol} tokens approved successfully!`);
-        
-        // Add a small delay after approval to ensure it's processed before the swap
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-      
-      // PRIOR/USDC Swap - most reliable pair
-      if ((fromSymbol === "PRIOR" && toSymbol === "USDC")) {
+      // PRIOR/USDC Swap
+      if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
         console.log("Executing PRIOR to USDC swap");
         tx = await swapContract.swapPriorToUsdc(parsedAmount);
-      } else if ((fromSymbol === "USDC" && toSymbol === "PRIOR")) {
+      } else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
         console.log("Executing USDC to PRIOR swap");
         tx = await swapContract.swapUsdcToPrior(parsedAmount);
       } 
       // PRIOR/USDT Swap
-      else if ((fromSymbol === "PRIOR" && toSymbol === "USDT")) {
+      else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
         console.log("Executing PRIOR to USDT swap");
         tx = await swapContract.swapPriorToUsdt(parsedAmount);
-      } else if ((fromSymbol === "USDT" && toSymbol === "PRIOR")) {
+      } else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
         console.log("Executing USDT to PRIOR swap");
         tx = await swapContract.swapUsdtToPrior(parsedAmount);
       }
       // USDC/USDT Swap
-      else if ((fromSymbol === "USDC" && toSymbol === "USDT")) {
+      else if (fromSymbol === "USDC" && toSymbol === "USDT") {
         console.log("Executing USDC to USDT swap");
         tx = await swapContract.swapUsdcToUsdt(parsedAmount);
-      } else if ((fromSymbol === "USDT" && toSymbol === "USDC")) {
+      } else if (fromSymbol === "USDT" && toSymbol === "USDC") {
         console.log("Executing USDT to USDC swap");
         tx = await swapContract.swapUsdtToUsdc(parsedAmount);
       } else {
@@ -380,20 +355,19 @@ export const swapTokens = async (
       
       console.log("Transaction submitted, waiting for confirmation...");
       return tx.wait();
-    } catch (error: any) { // Fixed type issue by using 'any' for error
+    } catch (error: any) {
       console.error("Swap execution error:", error);
       
       // Try again with an even smaller amount if we get a liquidity error
       if (error.message && error.message.includes("liquidity")) {
         if (fromSymbol === "PRIOR") {
           console.log("Trying again with a very small amount due to liquidity constraint for PRIOR");
-          const tinyAmount = "0.001";
-          const tinyParsedAmount = ethers.utils.parseUnits(tinyAmount, decimals);
+          const tinyAmount = ethers.utils.parseUnits("0.001", 18); // PRIOR has 18 decimals
           
           if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
-            tx = await swapContract.swapPriorToUsdc(tinyParsedAmount);
+            tx = await swapContract.swapPriorToUsdc(tinyAmount);
           } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
-            tx = await swapContract.swapPriorToUsdt(tinyParsedAmount);
+            tx = await swapContract.swapPriorToUsdt(tinyAmount);
           } else {
             throw error;
           }
@@ -401,26 +375,12 @@ export const swapTokens = async (
           return tx.wait();
         } else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
           console.log("Trying again with a smaller amount due to liquidity constraint for stablecoin swap");
-          const tinyAmount = "1"; // Use a very small amount (1 USDC/USDT)
-          
-          // Make sure to re-approve for the smaller amount if this is a stablecoin pair
-          if (swapContractAddress) {
-            console.log(`Re-approving ${fromSymbol} tokens for reduced amount: ${tinyAmount}`);
-            const approvalSuccess = await approveTokens(fromTokenAddress, swapContractAddress, tinyAmount);
-            if (!approvalSuccess) {
-              throw new Error(`Failed to approve ${fromSymbol} tokens for reduced swap amount`);
-            }
-            
-            // Add a small delay after approval
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-          
-          const tinyParsedAmount = ethers.utils.parseUnits(tinyAmount, decimals);
+          const tinyAmount = ethers.utils.parseUnits("1", 6); // Stablecoins have 6 decimals
           
           if (fromSymbol === "USDC" && toSymbol === "USDT") {
-            tx = await swapContract.swapUsdcToUsdt(tinyParsedAmount);
+            tx = await swapContract.swapUsdcToUsdt(tinyAmount);
           } else if (fromSymbol === "USDT" && toSymbol === "USDC") {
-            tx = await swapContract.swapUsdtToUsdc(tinyParsedAmount);
+            tx = await swapContract.swapUsdtToUsdc(tinyAmount);
           }
           
           return tx.wait();
