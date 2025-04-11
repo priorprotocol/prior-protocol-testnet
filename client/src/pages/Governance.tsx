@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useWallet } from "@/context/WalletContext";
+import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import ProposalCard from "@/components/ProposalCard";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -8,10 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 
 const Governance = () => {
-  // Use the wallet context directly
-  const { isConnected, address, getTokenBalance, openWalletModal, disconnectWallet } = useWallet();
+  // Use both wallet systems for compatibility during transition
+  const { getTokenBalance } = useWallet();
+  const { address, isConnected } = useStandaloneWallet();
   
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -60,12 +63,9 @@ const Governance = () => {
             <div className="bg-[#141D29] rounded-lg border border-[#2D3748] p-8 text-center mb-8">
               <h3 className="font-space font-semibold text-xl mb-4">Connect Your Wallet</h3>
               <p className="text-[#A0AEC0] mb-6">Connect your wallet to view and participate in governance proposals.</p>
-              <Button 
-                onClick={() => openWalletModal()}
-                className="rounded-lg bg-[#1A5CFF] hover:bg-opacity-90 transition-all font-bold text-sm px-6 py-3"
-              >
-                Connect Wallet
-              </Button>
+              <StandaloneWalletButton 
+                size="lg"
+              />
             </div>
           ) : (
             <div>

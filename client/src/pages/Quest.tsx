@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useWallet } from "@/context/WalletContext";
+import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import QuestCard from "@/components/QuestCard";
 import { Button } from "@/components/ui/button";
+import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 
 const Quest = () => {
   // Use the wallet context directly
