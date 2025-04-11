@@ -471,16 +471,74 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         });
         return;
       }
+
+      console.log("Attempting direct MetaMask connection...");
       
-      const account = await requestAccounts();
-      if (!account) throw new Error("No account found");
+      // Request accounts directly from the provider
+      const accounts = await window.ethereum.request({ 
+        method: "eth_requestAccounts" 
+      });
       
+      if (!accounts || accounts.length === 0) {
+        throw new Error("No accounts found");
+      }
+      
+      const account = accounts[0];
+      console.log("Account connected:", account);
+      
+      // Set the connected account
       setAddress(account);
       
-      await switchToBaseSepoliaNetwork();
+      // Save wallet state to localStorage
+      localStorage.setItem('walletState', JSON.stringify({
+        address: account,
+        timestamp: Date.now()
+      }));
       
-      const currentChainId = await getChainId();
-      setChainId(currentChainId);
+      // Switch to Base Sepolia network
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: `0x${(84532).toString(16)}` }],
+        });
+      } catch (switchError: any) {
+        // Handle adding the network if not already present
+        if (switchError.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: `0x${(84532).toString(16)}`,
+                  chainName: "Base Sepolia",
+                  nativeCurrency: {
+                    name: "Sepolia Ether",
+                    symbol: "ETH",
+                    decimals: 18,
+                  },
+                  rpcUrls: ["https://sepolia.base.org"],
+                  blockExplorerUrls: ["https://sepolia.basescan.org"],
+                },
+              ],
+            });
+          } catch (addError) {
+            console.error("Error adding Base Sepolia network:", addError);
+          }
+        } else {
+          console.error("Error switching network:", switchError);
+        }
+      }
+      
+      // Get the current chain ID
+      try {
+        const provider = getProvider();
+        if (provider) {
+          const network = await provider.getNetwork();
+          setChainId(network.chainId);
+        }
+      } catch (chainError) {
+        console.error("Error getting chain ID:", chainError);
+      }
       
       closeWalletModal();
       
@@ -488,6 +546,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         title: "Wallet Connected",
         description: `Connected to ${account.substring(0, 6)}...${account.substring(account.length - 4)}`,
       });
+      
+      return account;
     } catch (error: any) {
       console.error("Error connecting wallet:", error);
       toast({
@@ -495,6 +555,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         description: error.message || "Failed to connect wallet",
         variant: "destructive"
       });
+      
+      return null;
     }
   };
   

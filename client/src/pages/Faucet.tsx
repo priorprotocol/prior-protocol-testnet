@@ -233,64 +233,11 @@ const Faucet = () => {
   const handleClaimTokens = async () => {
     if (!isConnected) {
       try {
-        // Direct way to connect wallet bypassing the modal
-        const ethereum = window.ethereum;
-        if (!ethereum) {
-          toast({
-            title: "No wallet detected",
-            description: "Please install MetaMask or another Ethereum wallet to continue",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        console.log("Requesting accounts directly...");
-        const accounts = await ethereum.request({ method: "eth_requestAccounts" });
-        
-        if (accounts && accounts.length > 0) {
-          console.log("Account connected:", accounts[0]);
-          
-          // Attempt to switch to Base Sepolia
-          try {
-            await window.ethereum.request({
-              method: "wallet_switchEthereumChain",
-              params: [{ chainId: `0x${(84532).toString(16)}` }],
-            });
-          } catch (switchError: any) {
-            console.error("Error switching chain:", switchError);
-            // This error code indicates that the chain has not been added to MetaMask
-            if (switchError.code === 4902) {
-              try {
-                await window.ethereum.request({
-                  method: "wallet_addEthereumChain",
-                  params: [
-                    {
-                      chainId: `0x${(84532).toString(16)}`,
-                      chainName: "Base Sepolia",
-                      nativeCurrency: {
-                        name: "Sepolia Ether",
-                        symbol: "ETH",
-                        decimals: 18,
-                      },
-                      rpcUrls: ["https://sepolia.base.org"],
-                      blockExplorerUrls: ["https://sepolia.basescan.org"],
-                    },
-                  ],
-                });
-              } catch (addError) {
-                console.error("Error adding chain:", addError);
-              }
-            }
-          }
-          
-          toast({
-            title: "Wallet Connected",
-            description: `Connected to ${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`,
-          });
-          
-          // The wallet context will automatically update via event listeners
-          return;
-        }
+        // Use the connectWithMetaMask function from the wallet context
+        // This leverages the already fixed and optimized wallet connection flow
+        console.log("Connecting via wallet context function...");
+        await connectWithMetaMask();
+        return;
       } catch (error) {
         console.error("Direct wallet connection failed:", error);
         // Fallback to the modal
