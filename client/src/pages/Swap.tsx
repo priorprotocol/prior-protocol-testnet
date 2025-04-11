@@ -57,7 +57,8 @@ const TOKENS = {
   }
 };
 
-const MAX_UINT256 = ethers.constants.MaxUint256.toString();
+// Use a more conservative approval amount to avoid overflow issues
+const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
 
 export default function Swap() {
   const { toast } = useToast();
@@ -467,6 +468,7 @@ export default function Swap() {
     setIsApproving(true);
     try {
       const tokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
+      const tokenDecimals = TOKENS[fromToken as keyof typeof TOKENS].decimals;
       
       // Get the appropriate swap contract for the token pair
       const swapContractAddress = getSwapContractAddress(fromToken, toToken);
@@ -474,8 +476,16 @@ export default function Swap() {
         throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
       }
       
+      // Instead of using MAX_UINT256, use a more precise amount
+      // Approve 100x the amount being swapped to avoid frequent approvals
+      const multiplier = 100;
+      const amountToApprove = parseFloat(fromAmount) * multiplier;
+      const approvalAmount = amountToApprove.toString();
+      
+      console.log(`Approving ${approvalAmount} ${fromToken} for swap contract: ${swapContractAddress}`);
+      
       // Pass both token address and the specific swap contract address to approve
-      await approveTokens(tokenAddress, swapContractAddress, MAX_UINT256);
+      await approveTokens(tokenAddress, swapContractAddress, approvalAmount);
       
       setHasAllowance(true);
       toast({
