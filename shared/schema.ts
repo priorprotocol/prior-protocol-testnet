@@ -9,12 +9,16 @@ export const users = pgTable("users", {
   lastClaim: timestamp("last_claim"),
   badges: jsonb("badges").default([]).notNull(),  // Array of badge IDs
   totalSwaps: integer("total_swaps").default(0).notNull(),
+  totalClaims: integer("total_claims").default(0).notNull(),
+  points: integer("points").default(0).notNull(),  // Tracks total points for leaderboard
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   badges: true,
   totalSwaps: true,
+  totalClaims: true,
+  points: true,
 });
 
 // Quests table

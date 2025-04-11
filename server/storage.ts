@@ -17,6 +17,9 @@ export interface IStorage {
   getUserBadges(userId: number): Promise<string[]>; 
   addUserBadge(userId: number, badgeId: string): Promise<string[]>;
   incrementUserSwapCount(userId: number): Promise<number>;
+  incrementUserClaimCount(userId: number): Promise<number>;
+  addUserPoints(userId: number, points: number): Promise<number>;
+  getLeaderboard(limit?: number): Promise<User[]>;
   getUserStats(userId: number): Promise<{
     totalFaucetClaims: number;
     totalSwaps: number;
@@ -24,6 +27,7 @@ export interface IStorage {
     totalQuests: number;
     proposalsVoted: number;
     proposalsCreated: number;
+    points: number;
   }>;
   
   // Quest operations
@@ -277,7 +281,9 @@ export class MemStorage implements IStorage {
       id,
       lastClaim: user.lastClaim || null, // Ensure lastClaim is always defined
       badges: [],
-      totalSwaps: 0
+      totalSwaps: 0,
+      totalClaims: 0,
+      points: 0
     };
     
     this.users.set(id, newUser);
@@ -297,6 +303,9 @@ export class MemStorage implements IStorage {
     
     this.users.set(user.id, updatedUser);
     this.usersByAddress.set(address, updatedUser);
+    
+    // Increment claim count and add points when a user claims from the faucet
+    await this.incrementUserClaimCount(user.id);
     
     return updatedUser;
   }
@@ -350,7 +359,60 @@ export class MemStorage implements IStorage {
     this.users.set(userId, updatedUser);
     this.usersByAddress.set(user.address, updatedUser);
     
+    // Add 5 points for each swap
+    await this.addUserPoints(userId, 5);
+    
     return newSwapCount;
+  }
+  
+  async incrementUserClaimCount(userId: number): Promise<number> {
+    const user = this.users.get(userId);
+    if (!user) return 0;
+    
+    const currentClaims = user.totalClaims || 0;
+    const newClaimCount = currentClaims + 1;
+    
+    // Update the user with the new claim count
+    const updatedUser: User = {
+      ...user,
+      totalClaims: newClaimCount
+    };
+    
+    this.users.set(userId, updatedUser);
+    this.usersByAddress.set(user.address, updatedUser);
+    
+    // Add 7 points for each faucet claim
+    await this.addUserPoints(userId, 7);
+    
+    return newClaimCount;
+  }
+  
+  async addUserPoints(userId: number, points: number): Promise<number> {
+    const user = this.users.get(userId);
+    if (!user) return 0;
+    
+    const currentPoints = user.points || 0;
+    const newPoints = currentPoints + points;
+    
+    // Update the user with the new points
+    const updatedUser: User = {
+      ...user,
+      points: newPoints
+    };
+    
+    this.users.set(userId, updatedUser);
+    this.usersByAddress.set(user.address, updatedUser);
+    
+    return newPoints;
+  }
+  
+  async getLeaderboard(limit: number = 15): Promise<User[]> {
+    // Get all users and sort by points (highest first)
+    const sortedUsers = Array.from(this.users.values())
+      .sort((a, b) => (b.points || 0) - (a.points || 0))
+      .slice(0, limit);
+    
+    return sortedUsers;
   }
   
   async getUserStats(userId: number): Promise<{
@@ -360,6 +422,7 @@ export class MemStorage implements IStorage {
     totalQuests: number;
     proposalsVoted: number;
     proposalsCreated: number;
+    points: number;
   }> {
     const user = this.users.get(userId);
     if (!user) {
@@ -370,11 +433,12 @@ export class MemStorage implements IStorage {
         totalQuests: 0,
         proposalsVoted: 0,
         proposalsCreated: 0,
+        points: 0
       };
     }
     
-    // Count of faucet claims is 1 if lastClaim exists, 0 otherwise
-    const totalFaucetClaims = user.lastClaim ? 1 : 0;
+    // Count of faucet claims
+    const totalFaucetClaims = user.totalClaims || 0;
     
     // Get total swaps from user object
     const totalSwaps = user.totalSwaps || 0;
@@ -396,6 +460,9 @@ export class MemStorage implements IStorage {
     // For this example, we're not tracking who created proposals, so it's 0
     const proposalsCreated = 0;
     
+    // Get user points
+    const points = user.points || 0;
+    
     return {
       totalFaucetClaims,
       totalSwaps,
@@ -403,6 +470,7 @@ export class MemStorage implements IStorage {
       totalQuests,
       proposalsVoted,
       proposalsCreated,
+      points
     };
   }
   
