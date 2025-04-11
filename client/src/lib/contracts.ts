@@ -259,14 +259,31 @@ export const getTokenBalance = async (tokenAddress: string, address: string) => 
 };
 
 // Function to approve tokens for swap
-export const approveTokens = async (tokenAddress: string, amount: string) => {
+export const approveTokens = async (tokenAddress: string, amount: string, targetToken: string = 'USDC') => {
   try {
+    // Get the token contract with signer
     const contract = await getTokenContractWithSigner(tokenAddress);
     const decimals = getTokenDecimalsFromAddress(tokenAddress);
     const parsedAmount = ethers.utils.parseUnits(amount, decimals);
     
-    // Approve the swap contract to spend the tokens
-    const tx = await contract.approve(contractAddresses.priorSwap, parsedAmount);
+    // Determine the appropriate swap contract address based on token pair
+    let spenderAddress: string;
+    const fromSymbol = getTokenSymbol(tokenAddress);
+    
+    if ((fromSymbol === 'PRIOR' && targetToken === 'USDC') || (fromSymbol === 'USDC' && targetToken === 'PRIOR')) {
+      spenderAddress = contractAddresses.swapContracts.PRIOR_USDC;
+    } else if ((fromSymbol === 'PRIOR' && targetToken === 'USDT') || (fromSymbol === 'USDT' && targetToken === 'PRIOR')) {
+      spenderAddress = contractAddresses.swapContracts.PRIOR_USDT;
+    } else if ((fromSymbol === 'USDC' && targetToken === 'USDT') || (fromSymbol === 'USDT' && targetToken === 'USDC')) {
+      spenderAddress = contractAddresses.swapContracts.USDC_USDT;
+    } else {
+      throw new Error(`Unsupported token pair for approval: ${fromSymbol}-${targetToken}`);
+    }
+    
+    console.log(`Approving ${amount} ${fromSymbol} tokens for spender: ${spenderAddress}`);
+    
+    // Approve the appropriate swap contract to spend the tokens
+    const tx = await contract.approve(spenderAddress, parsedAmount);
     await tx.wait();
     return true;
   } catch (error) {
@@ -282,40 +299,53 @@ export const swapTokens = async (
   amount: string,
 ) => {
   try {
-    const swapContract = await getSwapContractWithSigner();
     const fromSymbol = getTokenSymbol(fromTokenAddress);
     const toSymbol = getTokenSymbol(toTokenAddress);
     const decimals = getTokenDecimalsFromAddress(fromTokenAddress);
     const parsedAmount = ethers.utils.parseUnits(amount, decimals);
     
+    console.log(`Swapping ${amount} ${fromSymbol} to ${toSymbol}`);
+    console.log(`Using parsed amount: ${parsedAmount.toString()} (${decimals} decimals)`);
+    
+    // Get the specific swap contract for this token pair
+    const swapContract = await getSwapContractWithSigner(fromSymbol, toSymbol);
+    
     let tx;
     
-    // From PRIOR to other tokens
-    if (fromSymbol === "PRIOR") {
-      if (toSymbol === "USDC") {
-        tx = await swapContract.swapPriorForUSDC(parsedAmount);
-      } else if (toSymbol === "USDT") {
-        tx = await swapContract.swapPriorForUSDT(parsedAmount);
-      } else if (toSymbol === "DAI") {
-        tx = await swapContract.swapPriorForDAI(parsedAmount);
-      } else if (toSymbol === "WETH") {
-        tx = await swapContract.swapPriorForWETH(parsedAmount);
+    // Handle each specific swap pair
+    if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
+      console.log("Executing PRIOR -> USDC swap");
+      tx = await swapContract.swapPriorForToken(parsedAmount);
+    } 
+    else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
+      console.log("Executing USDC -> PRIOR swap");
+      tx = await swapContract.swapTokenForPrior(parsedAmount);
+    }
+    else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
+      console.log("Executing PRIOR -> USDT swap");
+      tx = await swapContract.swapPriorForToken(parsedAmount);
+    }
+    else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
+      console.log("Executing USDT -> PRIOR swap");
+      tx = await swapContract.swapTokenForPrior(parsedAmount);
+    }
+    else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
+      // For USDC/USDT swaps, the contract has specific functions
+      if (fromSymbol === "USDC") {
+        console.log("Executing USDC -> USDT swap");
+        tx = await swapContract.swapUSDCForUSDT(parsedAmount);
+      } else {
+        console.log("Executing USDT -> USDC swap");
+        tx = await swapContract.swapUSDTForUSDC(parsedAmount);
       }
     } 
-    // From other tokens to PRIOR
     else {
-      if (fromSymbol === "USDC") {
-        tx = await swapContract.swapUSDCForPrior(parsedAmount);
-      } else if (fromSymbol === "USDT") {
-        tx = await swapContract.swapUSDTForPrior(parsedAmount);
-      } else if (fromSymbol === "DAI") {
-        tx = await swapContract.swapDAIForPrior(parsedAmount);
-      } else if (fromSymbol === "WETH") {
-        tx = await swapContract.swapWETHForPrior(parsedAmount);
-      }
+      throw new Error(`Unsupported swap pair: ${fromSymbol}-${toSymbol}`);
     }
     
+    console.log("Waiting for transaction confirmation...");
     await tx.wait();
+    console.log("Swap transaction confirmed!");
     return true;
   } catch (error) {
     console.error("Error swapping tokens:", error);
@@ -326,13 +356,24 @@ export const swapTokens = async (
 // Function to claim tokens from faucet
 export const claimFromFaucet = async () => {
   try {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    if (!window.ethereum) {
+      throw new Error("Ethereum provider not found");
+    }
+    
+    const provider = new ethers.providers.Web3Provider(window.ethereum as any);
     const signer = provider.getSigner();
-    const faucetAddress = "0x4ec7095749ecc40c9d33c28fA2FafaD1A4FadF3c"; // Replace with actual faucet address
+    
+    // Use the correct faucet address from our contractAddresses
+    const faucetAddress = contractAddresses.priorFaucet;
+    console.log(`Using faucet contract at: ${faucetAddress}`);
+    
     const faucetContract = new ethers.Contract(faucetAddress, faucetAbi, signer);
     
+    console.log("Sending claim transaction to faucet...");
     const tx = await faucetContract.claim();
+    console.log("Waiting for faucet claim transaction to confirm...");
     await tx.wait();
+    console.log("Faucet claim successful!");
     return true;
   } catch (error) {
     console.error("Error claiming from faucet:", error);
@@ -343,16 +384,30 @@ export const claimFromFaucet = async () => {
 // Function to check if user can claim from faucet
 export const getFaucetInfo = async (address: string) => {
   try {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const faucetAddress = "0x4ec7095749ecc40c9d33c28fA2FafaD1A4FadF3c"; // Replace with actual faucet address
+    if (!window.ethereum) {
+      throw new Error("Ethereum provider not found");
+    }
+    
+    const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+    
+    // Use the correct faucet address from our contractAddresses
+    const faucetAddress = contractAddresses.priorFaucet;
+    console.log(`Checking claim eligibility at faucet: ${faucetAddress}`);
+    
     const faucetContract = new ethers.Contract(faucetAddress, faucetAbi, provider);
     
+    // The checkClaim function returns the last claim timestamp
     const lastClaimTime = await faucetContract.checkClaim(address);
+    console.log(`Last claim time for ${address}: ${lastClaimTime.toString()}`);
+    
     const nextClaimTime = Number(lastClaimTime.toString()) + 24 * 60 * 60; // 24 hours in seconds
     const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
     
+    console.log(`Current time: ${currentTime}, Next claim time: ${nextClaimTime}`);
+    const canClaim = currentTime > nextClaimTime;
+    
     return {
-      canClaim: currentTime > nextClaimTime,
+      canClaim: canClaim,
       nextClaimTime: new Date(nextClaimTime * 1000),
       timeRemaining: Math.max(0, nextClaimTime - currentTime)
     };
@@ -366,55 +421,52 @@ export const getFaucetInfo = async (address: string) => {
   }
 };
 
-// Get the exchange rate between PRIOR and USDC (1 PRIOR = x USDC)
+// Get the exchange rate between PRIOR and USDC (1 PRIOR = 10 USDC)
 export const getPriorToUSDCRate = async () => {
   try {
-    const swapContract = await getSwapContract();
-    const rate = await swapContract.PRIOR_TO_USDC_RATE();
-    // Return as a string to handle formatting later in the UI
-    return "0.000005"; // Fixed rate for testnet
+    const swapContract = await getSwapContract('PRIOR', 'USDC');
+    
+    // Since we're using fixed rates for the testnet: 1 PRIOR = 10 USDC
+    // This assumes PRIOR has 18 decimals and USDC has 6 decimals
+    // Convert to proper format for calculations - return the decimal multiplier
+    
+    // 1 PRIOR = 10 USDC, so multiply by 10
+    return "10"; 
   } catch (error) {
     console.error("Error getting PRIOR to USDC rate:", error);
-    return "0.000005"; // Default rate if error
+    // Default rate: 1 PRIOR = 10 USDC
+    return "10"; 
   }
 };
 
-// Get the exchange rate between PRIOR and USDT
+// Get the exchange rate between PRIOR and USDT (1 PRIOR = 10 USDT)
 export const getPriorToUSDTRate = async () => {
   try {
-    const swapContract = await getSwapContract();
-    const rate = await swapContract.PRIOR_TO_USDT_RATE();
-    // Return as a string to handle formatting later in the UI
-    return "0.000005"; // Fixed rate for testnet
+    const swapContract = await getSwapContract('PRIOR', 'USDT');
+    
+    // Since we're using fixed rates for the testnet: 1 PRIOR = 10 USDT
+    // This assumes PRIOR has 18 decimals and USDT has 6 decimals
+    // Convert to proper format for calculations
+    
+    // 1 PRIOR = 10 USDT, so multiply by 10
+    return "10";
   } catch (error) {
     console.error("Error getting PRIOR to USDT rate:", error);
-    return "0.000005"; // Default rate if error
+    // Default rate: 1 PRIOR = 10 USDT
+    return "10";
   }
 };
 
-// Get the exchange rate between PRIOR and DAI
-export const getPriorToDAIRate = async () => {
+// Get the exchange rate between USDC and USDT (1:1 ratio)
+export const getUSDCToUSDTRate = async () => {
   try {
-    const swapContract = await getSwapContract();
-    const rate = await swapContract.PRIOR_TO_DAI_RATE();
-    // Return as a string to handle formatting later in the UI
-    return "0.000005"; // Fixed rate for testnet
+    const swapContract = await getSwapContract('USDC', 'USDT');
+    
+    // USDC and USDT have a 1:1 exchange rate
+    return "1";
   } catch (error) {
-    console.error("Error getting PRIOR to DAI rate:", error);
-    return "0.000005"; // Default rate if error
-  }
-};
-
-// Get the exchange rate between PRIOR and WETH
-export const getPriorToWETHRate = async () => {
-  try {
-    const swapContract = await getSwapContract();
-    const rate = await swapContract.PRIOR_TO_WETH_RATE();
-    // Return as a string to handle formatting later in the UI
-    return "0.0000001"; // Fixed rate for testnet
-  } catch (error) {
-    console.error("Error getting PRIOR to WETH rate:", error);
-    return "0.0000001"; // Default rate if error
+    console.error("Error getting USDC to USDT rate:", error);
+    return "1"; // Default 1:1 ratio
   }
 };
 
@@ -452,37 +504,55 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
     const fromDecimals = getTokenDecimalsFromAddress(fromTokenAddress);
     const toDecimals = getTokenDecimalsFromAddress(toTokenAddress);
     
+    console.log(`Calculating swap: ${amountIn} ${fromSymbol} to ${toSymbol}`);
+    console.log(`From decimals: ${fromDecimals}, To decimals: ${toDecimals}`);
+    
     // Get the appropriate rate based on the token pair
     let rate = "0";
     
     if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
+      // 1 PRIOR = 10 USDC
       rate = await getPriorToUSDCRate();
-    } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
+      console.log(`Using PRIOR to USDC rate: ${rate}`);
+    } 
+    else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
+      // 1 PRIOR = 10 USDT
       rate = await getPriorToUSDTRate();
-    } else if (fromSymbol === "PRIOR" && toSymbol === "DAI") {
-      rate = await getPriorToDAIRate();
-    } else if (fromSymbol === "PRIOR" && toSymbol === "WETH") {
-      rate = await getPriorToWETHRate();
-    } else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
+      console.log(`Using PRIOR to USDT rate: ${rate}`);
+    } 
+    else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
+      // 10 USDC = 1 PRIOR (0.1 PRIOR per USDC)
       rate = (1 / parseFloat(await getPriorToUSDCRate())).toString();
-    } else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
+      console.log(`Using USDC to PRIOR rate: ${rate}`);
+    } 
+    else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
+      // 10 USDT = 1 PRIOR (0.1 PRIOR per USDT)
       rate = (1 / parseFloat(await getPriorToUSDTRate())).toString();
-    } else if (fromSymbol === "DAI" && toSymbol === "PRIOR") {
-      rate = (1 / parseFloat(await getPriorToDAIRate())).toString();
-    } else if (fromSymbol === "WETH" && toSymbol === "PRIOR") {
-      rate = (1 / parseFloat(await getPriorToWETHRate())).toString();
+      console.log(`Using USDT to PRIOR rate: ${rate}`);
+    }
+    else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
+      // USDC and USDT are 1:1
+      rate = "1";
+      console.log(`Using stablecoin 1:1 rate`);
+    }
+    else {
+      throw new Error(`Unsupported token pair: ${fromSymbol}-${toSymbol}`);
     }
     
-    // Get the swap fee
+    // Get the swap fee (default 0.5% if not available from contract)
     const feePercentage = await getSwapFee();
+    console.log(`Using fee percentage: ${feePercentage}%`);
     
     // Calculate the output amount
     const amountOut = parseFloat(amountIn) * parseFloat(rate);
+    console.log(`Raw output amount: ${amountOut}`);
     
     // Apply the fee
     const amountOutAfterFee = amountOut * (1 - feePercentage / 100);
+    console.log(`Output after fee: ${amountOutAfterFee}`);
     
-    return amountOutAfterFee.toFixed(toDecimals);
+    // Return with appropriate decimal precision
+    return amountOutAfterFee.toString();
   } catch (error) {
     console.error("Error calculating swap output:", error);
     return "0";
