@@ -229,15 +229,18 @@ const Faucet = () => {
   const handleClaimTokens = async () => {
     if (!isConnected) {
       try {
-        // Use the connectWithMetaMask function from the wallet context
-        // This leverages the already fixed and optimized wallet connection flow
-        console.log("Connecting via wallet context function...");
-        await connectWithMetaMask();
+        // Import and use the direct connection method
+        console.log("Using direct wallet connection method...");
+        const { connectWalletDirectly } = await import('@/lib/fixWalletConnection');
+        await connectWalletDirectly();
         return;
       } catch (error) {
         console.error("Direct wallet connection failed:", error);
-        // Fallback to the modal
-        openWalletModal();
+        toast({
+          title: "Connection Failed",
+          description: "Please try installing or unlocking MetaMask first",
+          variant: "destructive"
+        });
       }
       return;
     }

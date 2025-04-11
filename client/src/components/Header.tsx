@@ -75,7 +75,16 @@ const Header = () => {
           </div>
         ) : (
           <button 
-            onClick={() => openWalletModal()}
+            onClick={async () => {
+              // Use the direct connection method
+              try {
+                const { connectWalletDirectly } = await import('@/lib/fixWalletConnection');
+                await connectWalletDirectly();
+              } catch (error) {
+                console.error("Direct connection failed:", error);
+                openWalletModal(); // Fallback to modal
+              }
+            }}
             className="hidden md:flex items-center rounded-full bg-[#1A5CFF] px-6 py-2 hover:bg-opacity-90 transition-all font-bold text-sm"
           >
             <span>Connect Wallet</span>
