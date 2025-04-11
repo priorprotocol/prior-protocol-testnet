@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { BadgeCard } from "@/components/BadgeCard";
 import { PioneerBadgeCard } from "@/components/PioneerBadgeCard";
+import { Leaderboard } from "@/components/Leaderboard";
 import { getBadgeInfo } from "@/lib/badges";
-import { FaTrophy, FaLock } from "react-icons/fa";
+import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
 import { UserStats } from "@/types";
 
 const Dashboard = () => {

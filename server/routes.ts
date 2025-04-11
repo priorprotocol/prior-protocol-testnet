@@ -327,6 +327,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(stats);
   });
   
+  // Get leaderboard (top users by points)
+  app.get(`${apiPrefix}/leaderboard`, async (req, res) => {
+    const limitParam = req.query.limit ? parseInt(req.query.limit as string) : 15;
+    const limit = isNaN(limitParam) ? 15 : limitParam;
+    
+    const leaderboard = await storage.getLeaderboard(limit);
+    res.json(leaderboard);
+  });
+  
   // Record a swap for a user
   app.post(`${apiPrefix}/users/:address/swaps`, async (req, res) => {
     const swapSchema = z.object({
