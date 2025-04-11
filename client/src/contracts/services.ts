@@ -328,6 +328,20 @@ export const swapTokens = async (
     let tx;
     
     try {
+      // When swapping FROM stablecoins (USDC/USDT) TO PRIOR, we need to approve the tokens first
+      if ((fromSymbol === "USDC" && toSymbol === "PRIOR") || (fromSymbol === "USDT" && toSymbol === "PRIOR")) {
+        console.log(`Approving ${fromSymbol} tokens for swap contract...`);
+        
+        // We need to approve the tokens before swapping when going from stablecoin to PRIOR
+        const success = await approveTokens(fromTokenAddress, swapContractAddress || "", safeAmount);
+        
+        if (!success) {
+          throw new Error(`Failed to approve ${fromSymbol} tokens for swap`);
+        }
+        
+        console.log(`${fromSymbol} tokens approved successfully!`);
+      }
+      
       // PRIOR/USDC Swap - most reliable pair
       if ((fromSymbol === "PRIOR" && toSymbol === "USDC")) {
         console.log("Executing PRIOR to USDC swap");
