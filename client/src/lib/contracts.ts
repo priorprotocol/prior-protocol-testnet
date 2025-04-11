@@ -251,10 +251,45 @@ export const getTokenBalance = async (tokenAddress: string, address: string) => 
     const decimals = tokenDecimals[symbol as keyof typeof tokenDecimals] || 18;
     console.log(`Using decimals: ${decimals} for ${symbol}`);
     
-    return ethers.utils.formatUnits(balance, decimals);
+    // Special handling for stablecoins (USDC/USDT) which have 6 decimals
+    if (symbol === "USDC" || symbol === "USDT") {
+      try {
+        // Check if this is an abnormally large number for a stablecoin
+        const balanceStr = balance.toString();
+        
+        // For stablecoins with 6 decimals, a balance over 1 trillion (10^12) likely means
+        // we're getting a raw value in 18 decimals instead of 6
+        if (balanceStr.length > 12) {
+          console.log(`Detected large ${symbol} value: ${balanceStr}`);
+          
+          // Divide by 10^12 (difference between 18 and 6 decimals)
+          const adjustedBalance = ethers.BigNumber.from(balanceStr).div(
+            ethers.BigNumber.from(10).pow(12)
+          );
+          console.log(`Adjusted balance: ${adjustedBalance.toString()}`);
+          
+          // Format the result correctly with 6 decimals
+          const formatted = ethers.utils.formatUnits(adjustedBalance, 6);
+          return parseFloat(formatted).toFixed(4);
+        }
+        
+        // Normal case: use the correct 6 decimals
+        const formatted = ethers.utils.formatUnits(balance, 6);
+        return parseFloat(formatted).toFixed(4);
+      } catch (error) {
+        console.error(`Error formatting ${symbol} balance:`, error);
+        // Fallback to basic formatting
+        const formatted = ethers.utils.formatUnits(balance, decimals);
+        return parseFloat(formatted).toFixed(4);
+      }
+    }
+    
+    // For PRIOR with 18 decimals
+    const formatted = ethers.utils.formatUnits(balance, decimals);
+    return parseFloat(formatted).toFixed(4);
   } catch (error) {
     console.error("Error getting token balance:", error);
-    return "0.0";
+    return "0.00";
   }
 };
 
