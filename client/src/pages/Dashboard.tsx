@@ -20,17 +20,15 @@ const Dashboard = () => {
   // Fetch user stats
   const { data: userStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/users/stats", userId],
-    queryFn: async () => apiRequest<UserStats>(`/api/users/${userId}/stats`),
+    queryFn: () => apiRequest<UserStats>(`/api/users/${userId}/stats`),
     enabled: !!userId,
-    refetchOnWindowFocus: false,
   });
 
   // Fetch user badges
   const { data: userBadges, isLoading: badgesLoading } = useQuery({
     queryKey: ["/api/users/badges", userId],
-    queryFn: async () => apiRequest<string[]>(`/api/users/${userId}/badges`),
+    queryFn: () => apiRequest<string[]>(`/api/users/${userId}/badges`),
     enabled: !!userId,
-    refetchOnWindowFocus: false,
   });
 
   // Total badges the user could potentially earn
@@ -334,17 +332,17 @@ const Dashboard = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">Total Points</p>
-                      <p className="text-2xl font-bold">{userStats.points}</p>
+                      <p className="text-2xl font-bold">{userStats?.points || 0}</p>
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Swaps</p>
-                      <p className="text-xl font-bold">{userStats.totalSwaps * 5}</p>
-                      <p className="text-xs text-[#A0AEC0]">({userStats.totalSwaps} swaps × 5 pts)</p>
+                      <p className="text-xl font-bold">{(userStats?.totalSwaps || 0) * 5}</p>
+                      <p className="text-xs text-[#A0AEC0]">({userStats?.totalSwaps || 0} swaps × 5 pts)</p>
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Faucet</p>
-                      <p className="text-xl font-bold">{userStats.totalFaucetClaims * 7}</p>
-                      <p className="text-xs text-[#A0AEC0]">({userStats.totalFaucetClaims} claims × 7 pts)</p>
+                      <p className="text-xl font-bold">{(userStats?.totalFaucetClaims || 0) * 7}</p>
+                      <p className="text-xs text-[#A0AEC0]">({userStats?.totalFaucetClaims || 0} claims × 7 pts)</p>
                     </div>
                   </div>
                 </CardContent>

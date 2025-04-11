@@ -17,8 +17,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
   
   const { data: leaderboard, isLoading } = useQuery({
     queryKey: ["/api/leaderboard", limit],
-    queryFn: async () => apiRequest<User[]>(`/api/leaderboard?limit=${limit}`),
-    refetchOnWindowFocus: false,
+    queryFn: () => apiRequest<User[]>(`/api/leaderboard?limit=${limit}`),
   });
   
   // Badge rendering helper functions
