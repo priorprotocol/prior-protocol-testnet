@@ -28,28 +28,28 @@ const TOKENS = {
     color: "#00df9a"
   },
   USDC: {
-    address: contractAddresses.mockTokens.USDC,
+    address: contractAddresses.tokens.USDC,
     symbol: "USDC",
     decimals: 6,
     logo: "U",
     color: "#2775CA"
   },
   USDT: {
-    address: contractAddresses.mockTokens.USDT,
+    address: contractAddresses.tokens.USDT,
     symbol: "USDT",
     decimals: 6,
     logo: "U",
     color: "#26A17B"
   },
   DAI: {
-    address: contractAddresses.mockTokens.DAI,
+    address: contractAddresses.tokens.DAI,
     symbol: "DAI",
     decimals: 6,
     logo: "D",
     color: "#F5AC37"
   },
   WETH: {
-    address: contractAddresses.mockTokens.WETH,
+    address: contractAddresses.tokens.WETH,
     symbol: "WETH",
     decimals: 18,
     logo: "W",
@@ -408,6 +408,24 @@ export default function Swap() {
     }
   };
 
+  // Get the appropriate swap contract address based on token pair
+  const getSwapContractAddress = (fromTok: string, toTok: string): string => {
+    // Define pairs in a deterministic order (alphabetical)
+    const pair = [fromTok, toTok].sort().join('_');
+    
+    // Map to the correct contract address
+    if (pair === 'PRIOR_USDC') {
+      return contractAddresses.swapContracts.PRIOR_USDC;
+    } else if (pair === 'PRIOR_USDT') {
+      return contractAddresses.swapContracts.PRIOR_USDT;
+    } else if (pair === 'USDC_USDT') {
+      return contractAddresses.swapContracts.USDC_USDT;
+    } else {
+      console.error(`No swap contract found for pair: ${fromTok}-${toTok}`);
+      return '';
+    }
+  };
+
   // Check if the current account has given allowance to the swap contract
   const checkAllowance = async () => {
     const walletAddress = directAddress || address;
@@ -424,7 +442,14 @@ export default function Swap() {
         provider
       );
       
-      const allowance = await tokenContract.allowance(walletAddress, contractAddresses.priorSwap);
+      // Get the appropriate swap contract address for this token pair
+      const swapContractAddress = getSwapContractAddress(fromToken, toToken);
+      if (!swapContractAddress) {
+        setHasAllowance(false);
+        return;
+      }
+      
+      const allowance = await tokenContract.allowance(walletAddress, swapContractAddress);
       const amountWei = ethers.utils.parseUnits(fromAmount, tokenDecimals);
       
       setHasAllowance(allowance.gte(amountWei));

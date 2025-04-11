@@ -6,43 +6,41 @@
  */
 
 // Prior Token (ERC20)
-export const PRIOR_TOKEN = "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD";
+export const PRIOR_TOKEN = "0xBc8697476a56679534b15994C0f1122556bBF9F4";
 
-// DEX / Swap Contract 
-export const PRIOR_SWAP = "0x4e659af0932de50379391794d4dad10f21b9235b";
-
-// Faucet Contract
-export const PRIOR_FAUCET = "0x4ec7095749ecc40c9d33c28fA2FafaD1A4FadF3c";
-
-// NFT Contract
-export const PRIOR_PIONEER_NFT = "0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59";
-
-// Mock tokens (for testing)
-export const MOCK_TOKENS = {
-  USDC: "0xb950C186B2f15D0D85416AC19A16D6F23fD586b7", // 6 decimals
-  USDT: "0xeED9C99a850399F0C408616dc8F9dDCb948aeaA2", // 6 decimals
+// Stablecoin Tokens
+export const TOKENS = {
+  USDC: "0xc6d67115Cf17A55F9F22D29b955654A7c96781C5", // 6 decimals
+  USDT: "0x2B744c80C4895fDC2003108E186aBD7613c0ec7E", // 6 decimals
   DAI: "0x72f30eb1cE25523Ea2Fa63eDe9797481634E496B",  // 6 decimals
   WETH: "0xc413B81c5fb4798b8e4c6053AADd383C4Dc3703B"  // 18 decimals
 };
 
+// DEX / Swap Contracts
+export const SWAP_CONTRACTS = {
+  PRIOR_USDC: "0xaB73D1a2334Bf336DD103d739a239bba1A56b6ED",
+  PRIOR_USDT: "0xdb68d6D064c36d45c92365f61F689FC2d1661F65",
+  USDC_USDT: "0xbbd5997cfA849876289ebab4CddcD4Bc538B0244"
+};
+
+// Faucet Contract
+export const PRIOR_FAUCET = "0xD0CA4219ABFd3A0535cafDCe3FB5707dc66F7cCe";
+
+// NFT Contract
+export const PRIOR_PIONEER_NFT = "0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59";
+
 // All contract addresses grouped as an object for easy importing
 export const CONTRACT_ADDRESSES = {
   priorToken: PRIOR_TOKEN,
-  priorSwap: PRIOR_SWAP,
+  tokens: TOKENS,
+  swapContracts: SWAP_CONTRACTS,
   priorFaucet: PRIOR_FAUCET,
-  priorPioneerNFT: PRIOR_PIONEER_NFT,
-  mockTokens: MOCK_TOKENS
+  priorPioneerNFT: PRIOR_PIONEER_NFT
 };
 
 // Export a function to get all addresses (useful for debugging)
 export function getAllAddresses() {
-  return {
-    PRIOR_TOKEN,
-    PRIOR_SWAP,
-    PRIOR_FAUCET,
-    PRIOR_PIONEER_NFT,
-    MOCK_TOKENS
-  };
+  return CONTRACT_ADDRESSES;
 }
 
 export default CONTRACT_ADDRESSES;

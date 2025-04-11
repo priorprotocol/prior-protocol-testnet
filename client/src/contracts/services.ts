@@ -6,9 +6,16 @@
  */
 
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESSES } from './addresses';
+import { CONTRACT_ADDRESSES, SWAP_CONTRACTS } from './addresses';
 import { TOKEN_DECIMALS, TOKEN_SYMBOLS } from './metadata/tokens';
-import { erc20Abi, swapAbi, faucetAbi, nftAbi } from './abis';
+import { 
+  erc20Abi, 
+  priorUsdcSwapAbi, 
+  priorUsdtSwapAbi, 
+  usdcUsdtSwapAbi,
+  faucetAbi, 
+  nftAbi 
+} from './abis';
 
 // Function to get token contract instance
 export const getTokenContract = async (tokenAddress: string) => {
@@ -25,19 +32,105 @@ export const getTokenContractWithSigner = async (tokenAddress: string) => {
   return new ethers.Contract(tokenAddress, erc20Abi, signer);
 };
 
-// Function to get Swap contract instance
-export const getSwapContract = async () => {
+// Function to get the appropriate swap contract based on token pair
+export const getSwapContract = async (fromToken?: string, toToken?: string) => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
   const provider = new ethers.providers.Web3Provider(window.ethereum);
-  return new ethers.Contract(CONTRACT_ADDRESSES.priorSwap, swapAbi, provider);
+  
+  // If no tokens specified, default to PRIOR-USDC swap contract
+  if (!fromToken || !toToken) {
+    return new ethers.Contract(
+      SWAP_CONTRACTS.PRIOR_USDC, 
+      priorUsdcSwapAbi, 
+      provider
+    );
+  }
+  
+  // Normalize token addresses to lowercase for comparison
+  const from = fromToken.toLowerCase();
+  const to = toToken.toLowerCase();
+  const prior = CONTRACT_ADDRESSES.priorToken.toLowerCase();
+  const usdc = CONTRACT_ADDRESSES.tokens.USDC.toLowerCase();
+  const usdt = CONTRACT_ADDRESSES.tokens.USDT.toLowerCase();
+  
+  // Determine which swap contract to use based on token pair
+  if ((from === prior && to === usdc) || (from === usdc && to === prior)) {
+    return new ethers.Contract(
+      SWAP_CONTRACTS.PRIOR_USDC, 
+      priorUsdcSwapAbi, 
+      provider
+    );
+  } else if ((from === prior && to === usdt) || (from === usdt && to === prior)) {
+    return new ethers.Contract(
+      SWAP_CONTRACTS.PRIOR_USDT, 
+      priorUsdtSwapAbi, 
+      provider
+    );
+  } else if ((from === usdc && to === usdt) || (from === usdt && to === usdc)) {
+    return new ethers.Contract(
+      SWAP_CONTRACTS.USDC_USDT, 
+      usdcUsdtSwapAbi, 
+      provider
+    );
+  }
+  
+  // Default to PRIOR-USDC if no match found
+  return new ethers.Contract(
+    SWAP_CONTRACTS.PRIOR_USDC, 
+    priorUsdcSwapAbi, 
+    provider
+  );
 };
 
-// Function to get Swap contract instance with signer (for transactions)
-export const getSwapContractWithSigner = async () => {
+// Function to get the appropriate swap contract with signer based on token pair
+export const getSwapContractWithSigner = async (fromToken?: string, toToken?: string) => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
-  return new ethers.Contract(CONTRACT_ADDRESSES.priorSwap, swapAbi, signer);
+  
+  // If no tokens specified, default to PRIOR-USDC swap contract
+  if (!fromToken || !toToken) {
+    return new ethers.Contract(
+      SWAP_CONTRACTS.PRIOR_USDC, 
+      priorUsdcSwapAbi, 
+      signer
+    );
+  }
+  
+  // Normalize token addresses to lowercase for comparison
+  const from = fromToken.toLowerCase();
+  const to = toToken.toLowerCase();
+  const prior = CONTRACT_ADDRESSES.priorToken.toLowerCase();
+  const usdc = CONTRACT_ADDRESSES.tokens.USDC.toLowerCase();
+  const usdt = CONTRACT_ADDRESSES.tokens.USDT.toLowerCase();
+  
+  // Determine which swap contract to use based on token pair
+  if ((from === prior && to === usdc) || (from === usdc && to === prior)) {
+    return new ethers.Contract(
+      SWAP_CONTRACTS.PRIOR_USDC, 
+      priorUsdcSwapAbi, 
+      signer
+    );
+  } else if ((from === prior && to === usdt) || (from === usdt && to === prior)) {
+    return new ethers.Contract(
+      SWAP_CONTRACTS.PRIOR_USDT, 
+      priorUsdtSwapAbi, 
+      signer
+    );
+  } else if ((from === usdc && to === usdt) || (from === usdt && to === usdc)) {
+    return new ethers.Contract(
+      SWAP_CONTRACTS.USDC_USDT, 
+      usdcUsdtSwapAbi, 
+      signer
+    );
+  }
+  
+  // Default to PRIOR-USDC if no match found
+  return new ethers.Contract(
+    SWAP_CONTRACTS.PRIOR_USDC, 
+    priorUsdcSwapAbi, 
+    signer
+  );
 };
 
 // Function to get Faucet contract instance
@@ -70,7 +163,7 @@ export const getTokenSymbol = (tokenAddress: string): string => {
     return "PRIOR";
   }
   
-  for (const [symbol, address] of Object.entries(CONTRACT_ADDRESSES.mockTokens)) {
+  for (const [symbol, address] of Object.entries(CONTRACT_ADDRESSES.tokens)) {
     if (lowerCaseAddress === address.toLowerCase()) {
       return symbol;
     }
@@ -107,14 +200,34 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
 };
 
 // Function to approve tokens for swap
-export const approveTokens = async (tokenAddress: string, amount: string): Promise<boolean> => {
+export const approveTokens = async (tokenAddress: string, toTokenAddress: string, amount: string): Promise<boolean> => {
   try {
     const contract = await getTokenContractWithSigner(tokenAddress);
     const decimals = getTokenDecimalsFromAddress(tokenAddress);
     const parsedAmount = ethers.utils.parseUnits(amount, decimals);
     
+    // Get the right swap contract address based on the token pair
+    const fromSymbol = getTokenSymbol(tokenAddress);
+    const toSymbol = getTokenSymbol(toTokenAddress);
+    
+    let swapContractAddress;
+    
+    if ((fromSymbol === 'PRIOR' && toSymbol === 'USDC') || 
+        (fromSymbol === 'USDC' && toSymbol === 'PRIOR')) {
+      swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
+    } else if ((fromSymbol === 'PRIOR' && toSymbol === 'USDT') || 
+               (fromSymbol === 'USDT' && toSymbol === 'PRIOR')) {
+      swapContractAddress = SWAP_CONTRACTS.PRIOR_USDT;
+    } else if ((fromSymbol === 'USDC' && toSymbol === 'USDT') || 
+               (fromSymbol === 'USDT' && toSymbol === 'USDC')) {
+      swapContractAddress = SWAP_CONTRACTS.USDC_USDT;
+    } else {
+      // Default to PRIOR-USDC swap
+      swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
+    }
+    
     // Approve the swap contract to spend the tokens
-    const tx = await contract.approve(CONTRACT_ADDRESSES.priorSwap, parsedAmount);
+    const tx = await contract.approve(swapContractAddress, parsedAmount);
     await tx.wait();
     return true;
   } catch (error) {
@@ -130,7 +243,8 @@ export const swapTokens = async (
   amount: string,
 ): Promise<any> => {
   try {
-    const swapContract = await getSwapContractWithSigner();
+    // Get the appropriate swap contract based on the token pair
+    const swapContract = await getSwapContractWithSigner(fromTokenAddress, toTokenAddress);
     const fromSymbol = getTokenSymbol(fromTokenAddress);
     const toSymbol = getTokenSymbol(toTokenAddress);
     const decimals = getTokenDecimalsFromAddress(fromTokenAddress);
@@ -138,29 +252,25 @@ export const swapTokens = async (
     
     let tx;
     
-    // From PRIOR to other tokens
-    if (fromSymbol === "PRIOR") {
-      if (toSymbol === "USDC") {
-        tx = await swapContract.swapPriorForUSDC(parsedAmount);
-      } else if (toSymbol === "USDT") {
-        tx = await swapContract.swapPriorForUSDT(parsedAmount);
-      } else if (toSymbol === "DAI") {
-        tx = await swapContract.swapPriorForDAI(parsedAmount);
-      } else if (toSymbol === "WETH") {
-        tx = await swapContract.swapPriorForWETH(parsedAmount);
-      }
+    // PRIOR/USDC Swap
+    if ((fromSymbol === "PRIOR" && toSymbol === "USDC")) {
+      tx = await swapContract.swapPriorToUsdc(parsedAmount);
+    } else if ((fromSymbol === "USDC" && toSymbol === "PRIOR")) {
+      tx = await swapContract.swapUsdcToPrior(parsedAmount);
     } 
-    // From other tokens to PRIOR
-    else {
-      if (fromSymbol === "USDC") {
-        tx = await swapContract.swapUSDCForPrior(parsedAmount);
-      } else if (fromSymbol === "USDT") {
-        tx = await swapContract.swapUSDTForPrior(parsedAmount);
-      } else if (fromSymbol === "DAI") {
-        tx = await swapContract.swapDAIForPrior(parsedAmount);
-      } else if (fromSymbol === "WETH") {
-        tx = await swapContract.swapWETHForPrior(parsedAmount);
-      }
+    // PRIOR/USDT Swap
+    else if ((fromSymbol === "PRIOR" && toSymbol === "USDT")) {
+      tx = await swapContract.swapPriorToUsdt(parsedAmount);
+    } else if ((fromSymbol === "USDT" && toSymbol === "PRIOR")) {
+      tx = await swapContract.swapUsdtToPrior(parsedAmount);
+    }
+    // USDC/USDT Swap
+    else if ((fromSymbol === "USDC" && toSymbol === "USDT")) {
+      tx = await swapContract.swapUsdcToUsdt(parsedAmount);
+    } else if ((fromSymbol === "USDT" && toSymbol === "USDC")) {
+      tx = await swapContract.swapUsdtToUsdc(parsedAmount);
+    } else {
+      throw new Error(`Swap pair not supported: ${fromSymbol} to ${toSymbol}`);
     }
     
     return tx.wait();
@@ -293,37 +403,59 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
     const fromDecimals = getTokenDecimalsFromAddress(fromTokenAddress);
     const toDecimals = getTokenDecimalsFromAddress(toTokenAddress);
     
-    // Get the appropriate rate based on the token pair
-    let rate = "0";
+    // Get the appropriate swap contract based on the token pair
+    const swapContract = await getSwapContract(fromTokenAddress, toTokenAddress);
     
-    if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
-      rate = await getPriorToUSDCRate();
-    } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
-      rate = await getPriorToUSDTRate();
-    } else if (fromSymbol === "PRIOR" && toSymbol === "DAI") {
-      rate = await getPriorToDAIRate();
-    } else if (fromSymbol === "PRIOR" && toSymbol === "WETH") {
-      rate = await getPriorToWETHRate();
-    } else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
-      rate = (1 / parseFloat(await getPriorToUSDCRate())).toString();
-    } else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
-      rate = (1 / parseFloat(await getPriorToUSDTRate())).toString();
-    } else if (fromSymbol === "DAI" && toSymbol === "PRIOR") {
-      rate = (1 / parseFloat(await getPriorToDAIRate())).toString();
-    } else if (fromSymbol === "WETH" && toSymbol === "PRIOR") {
-      rate = (1 / parseFloat(await getPriorToWETHRate())).toString();
+    // Parse the input amount with the correct decimals
+    const parsedAmountIn = ethers.utils.parseUnits(amountIn, fromDecimals);
+    let outputAmount;
+    
+    try {
+      // Call the appropriate calculation function based on the swap pair
+      if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
+        outputAmount = await swapContract.calculatePriorToUsdc(parsedAmountIn);
+      } else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
+        outputAmount = await swapContract.calculateUsdcToPrior(parsedAmountIn);
+      } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
+        outputAmount = await swapContract.calculatePriorToUsdt(parsedAmountIn);
+      } else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
+        outputAmount = await swapContract.calculateUsdtToPrior(parsedAmountIn);
+      } else if (fromSymbol === "USDC" && toSymbol === "USDT") {
+        outputAmount = await swapContract.calculateUsdcToUsdt(parsedAmountIn);
+      } else if (fromSymbol === "USDT" && toSymbol === "USDC") {
+        outputAmount = await swapContract.calculateUsdtToUsdc(parsedAmountIn);
+      } else {
+        throw new Error(`Swap calculation not supported for pair: ${fromSymbol}/${toSymbol}`);
+      }
+      
+      // Format the output with the correct decimals
+      return ethers.utils.formatUnits(outputAmount, toDecimals);
+    } catch (error) {
+      console.error("Error calculating swap amount directly from contract:", error);
+      
+      // Fallback to a fixed rate calculation if the contract call fails
+      let rate = "0";
+      
+      if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
+        rate = "0.000005"; // 1 PRIOR = 0.000005 USDC
+      } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
+        rate = "0.000005"; // 1 PRIOR = 0.000005 USDT
+      } else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
+        rate = "200000"; // 1 USDC = 200,000 PRIOR
+      } else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
+        rate = "200000"; // 1 USDT = 200,000 PRIOR
+      } else if (fromSymbol === "USDC" && toSymbol === "USDT") {
+        rate = "1"; // 1 USDC = 1 USDT
+      } else if (fromSymbol === "USDT" && toSymbol === "USDC") {
+        rate = "1"; // 1 USDT = 1 USDC
+      }
+      
+      // Apply a 0.5% swap fee
+      const amountOut = parseFloat(amountIn) * parseFloat(rate);
+      const amountOutAfterFee = amountOut * 0.995; // 0.5% fee
+      
+      return amountOutAfterFee.toFixed(toDecimals);
     }
-    
-    // Get the swap fee
-    const feePercentage = await getSwapFee();
-    
-    // Calculate the output amount
-    const amountOut = parseFloat(amountIn) * parseFloat(rate);
-    
-    // Apply the fee
-    const amountOutAfterFee = amountOut * (1 - feePercentage / 100);
-    
-    return amountOutAfterFee.toFixed(toDecimals);
   } catch (error) {
     console.error("Error calculating swap output:", error);
     return "0";
