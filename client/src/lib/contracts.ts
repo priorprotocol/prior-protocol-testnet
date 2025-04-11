@@ -111,15 +111,26 @@ export const PRIOR_PIONEER_NFT_ADDRESS = "0x2a45dfDbdCfcF72CBE835435eD54f4beE7d0
 
 export const contractAddresses = {
   // Real token addresses on Base Sepolia testnet
-  priorToken: "0x15b5Cca71598A1e2f5C8050ef3431dCA49F8EcbD", // PRIOR token
-  priorSwap: "0x4e659af0932de50379391794d4dad10f21b9235b", // PriorSwap - UPDATED
-  mockTokens: {
-    // Mock token addresses on Base Sepolia
-    USDC: "0xb950C186B2f15D0D85416AC19A16D6F23fD586b7", // mUSDC with 6 decimals
-    USDT: "0xeED9C99a850399F0C408616dc8F9dDCb948aeaA2", // mUSDT with 6 decimals
-    DAI: "0x72f30eb1cE25523Ea2Fa63eDe9797481634E496B",  // mDAI with 6 decimals
-    WETH: "0xc413B81c5fb4798b8e4c6053AADd383C4Dc3703B"  // mWETH with 18 decimals
-  }
+  priorToken: "0xBc8697476a56679534b15994C0f1122556bBF9F4", // PRIOR token
+  
+  // Single swapContracts object to store all token pair swap contracts
+  swapContracts: {
+    PRIOR_USDC: "0xaB73D1a2334Bf336DD103d739a239bba1A56b6ED",
+    PRIOR_USDT: "0xdb68d6D064c36d45c92365f61F689FC2d1661F65",
+    USDC_USDT: "0xbbd5997cfA849876289ebab4CddcD4Bc538B0244"
+  },
+  
+  // Individual token addresses
+  tokens: {
+    USDC: "0xc6d67115Cf17A55F9F22D29b955654A7c96781C5", // USDC with 6 decimals
+    USDT: "0x2B744c80C4895fDC2003108E186aBD7613c0ec7E"  // USDT with 6 decimals
+  },
+  
+  // Faucet contract address
+  priorFaucet: "0xD0CA4219ABFd3A0535cafDCe3FB5707dc66F7cCe",
+  
+  // NFT contract address
+  priorPioneerNFT: PRIOR_PIONEER_NFT_ADDRESS
 };
 
 // Token decimals
@@ -152,27 +163,66 @@ export const getTokenContractWithSigner = async (tokenAddress: string) => {
   return new ethers.Contract(tokenAddress, erc20Abi, signer);
 };
 
-// Function to get Swap contract instance
-export const getSwapContract = async () => {
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  return new ethers.Contract(contractAddresses.priorSwap, swapAbi, provider);
+// Function to get Swap contract instance for specific token pair
+export const getSwapContract = async (fromToken: string = 'PRIOR', toToken: string = 'USDC') => {
+  if (!window.ethereum) {
+    throw new Error("Ethereum provider not found");
+  }
+  
+  const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+  
+  // Determine which swap contract to use based on token pair
+  let swapContractAddress: string;
+  
+  if ((fromToken === 'PRIOR' && toToken === 'USDC') || (fromToken === 'USDC' && toToken === 'PRIOR')) {
+    swapContractAddress = contractAddresses.swapContracts.PRIOR_USDC;
+  } else if ((fromToken === 'PRIOR' && toToken === 'USDT') || (fromToken === 'USDT' && toToken === 'PRIOR')) {
+    swapContractAddress = contractAddresses.swapContracts.PRIOR_USDT;
+  } else if ((fromToken === 'USDC' && toToken === 'USDT') || (fromToken === 'USDT' && toToken === 'USDC')) {
+    swapContractAddress = contractAddresses.swapContracts.USDC_USDT;
+  } else {
+    throw new Error(`Unsupported token pair: ${fromToken}-${toToken}`);
+  }
+  
+  return new ethers.Contract(swapContractAddress, swapAbi, provider);
 };
 
-// Function to get Swap contract instance with signer (for transactions)
-export const getSwapContractWithSigner = async () => {
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+// Function to get Swap contract instance with signer for specific token pair (for transactions)
+export const getSwapContractWithSigner = async (fromToken: string = 'PRIOR', toToken: string = 'USDC') => {
+  if (!window.ethereum) {
+    throw new Error("Ethereum provider not found");
+  }
+  
+  const provider = new ethers.providers.Web3Provider(window.ethereum as any);
   const signer = provider.getSigner();
-  return new ethers.Contract(contractAddresses.priorSwap, swapAbi, signer);
+  
+  // Determine which swap contract to use based on token pair
+  let swapContractAddress: string;
+  
+  if ((fromToken === 'PRIOR' && toToken === 'USDC') || (fromToken === 'USDC' && toToken === 'PRIOR')) {
+    swapContractAddress = contractAddresses.swapContracts.PRIOR_USDC;
+  } else if ((fromToken === 'PRIOR' && toToken === 'USDT') || (fromToken === 'USDT' && toToken === 'PRIOR')) {
+    swapContractAddress = contractAddresses.swapContracts.PRIOR_USDT;
+  } else if ((fromToken === 'USDC' && toToken === 'USDT') || (fromToken === 'USDT' && toToken === 'USDC')) {
+    swapContractAddress = contractAddresses.swapContracts.USDC_USDT;
+  } else {
+    throw new Error(`Unsupported token pair: ${fromToken}-${toToken}`);
+  }
+  
+  return new ethers.Contract(swapContractAddress, swapAbi, signer);
 };
 
 // Get token symbol from address
 export const getTokenSymbol = (tokenAddress: string): string => {
   const lowerCaseAddress = tokenAddress.toLowerCase();
+  
+  // Check if it's the PRIOR token
   if (lowerCaseAddress === contractAddresses.priorToken.toLowerCase()) {
     return "PRIOR";
   }
   
-  for (const [symbol, address] of Object.entries(contractAddresses.mockTokens)) {
+  // Check if it's one of the other tokens (USDC, USDT)
+  for (const [symbol, address] of Object.entries(contractAddresses.tokens)) {
     if (lowerCaseAddress === address.toLowerCase()) {
       return symbol;
     }

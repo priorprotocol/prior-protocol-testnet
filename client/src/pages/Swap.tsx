@@ -587,20 +587,41 @@ export default function Swap() {
       const slippageMultiplier = 1;
       const result = amount * rate * slippageMultiplier;
       
-      // Format based on token decimals
+      // Format based on token decimals - get the correct decimals from token metadata
       const targetDecimals = TOKENS[toToken as keyof typeof TOKENS].decimals;
+      const sourceDecimals = TOKENS[fromToken as keyof typeof TOKENS].decimals;
       
-      // For stablecoins (USDC/USDT), fix to 2 decimals for display clarity
-      // For PRIOR, use 4 decimals to match contract calculations
-      const displayDecimals = targetDecimals === 6 ? 2 : 4;
+      console.log(`Swap calculation: ${amount} ${fromToken} (${sourceDecimals} decimals) to ${toToken} (${targetDecimals} decimals) at rate ${rate}`);
       
-      // For USDC-USDT pairs, they have fixed 1:1 exchange rate, so use exact amount
+      // Special handling for stablecoin pairs (USDC/USDT)
       if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
         // Ensure exact 1:1 ratio for stablecoin pairs
         setToAmount(fromAmount);
-      } else {
-        // For other pairs, format to appropriate decimals
-        const formattedResult = result.toFixed(displayDecimals);
+        console.log(`Stablecoin swap calculation: ${fromAmount} ${fromToken} = ${fromAmount} ${toToken}`);
+      } 
+      // Special handling for PRIOR to stablecoin (USDC/USDT)
+      else if (fromToken === "PRIOR" && (toToken === "USDC" || toToken === "USDT")) {
+        // 1 PRIOR = 10 USDC/USDT, but need to account for decimal differences
+        // PRIOR has 18 decimals, USDC/USDT have 6 decimals
+        // For display clarity, show with 2 decimal places for stablecoins
+        const formattedResult = result.toFixed(2);
+        console.log(`PRIOR to stablecoin swap calculation: ${amount} PRIOR = ${formattedResult} ${toToken}`);
+        setToAmount(formattedResult);
+      }
+      // Special handling for stablecoin (USDC/USDT) to PRIOR
+      else if ((fromToken === "USDC" || fromToken === "USDT") && toToken === "PRIOR") {
+        // 10 USDC/USDT = 1 PRIOR, but need to account for decimal differences
+        // USDC/USDT have 6 decimals, PRIOR has 18 decimals
+        // For display clarity, show with 4 decimal places for PRIOR
+        const formattedResult = result.toFixed(4);
+        console.log(`Stablecoin to PRIOR swap calculation: ${amount} ${fromToken} = ${formattedResult} PRIOR`);
+        setToAmount(formattedResult);
+      }
+      // Default case for any other token pair
+      else {
+        // Use 4 decimal places as default display format
+        const formattedResult = result.toFixed(4);
+        console.log(`Default swap calculation: ${amount} ${fromToken} = ${formattedResult} ${toToken}`);
         setToAmount(formattedResult);
       }
     } catch (error) {
