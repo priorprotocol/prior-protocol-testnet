@@ -10,8 +10,6 @@ import {
   approveTokens,
   getPriorToUSDCRate,
   getPriorToUSDTRate,
-  getPriorToDAIRate,
-  getPriorToWETHRate,
   getTokenBalance as getTokenBalanceFromContract
 } from "@/contracts/services";
 import { CONTRACT_ADDRESSES as contractAddresses } from "@/contracts/addresses";
@@ -40,20 +38,6 @@ const TOKENS = {
     decimals: 6,
     logo: "U",
     color: "#26A17B"
-  },
-  DAI: {
-    address: contractAddresses.tokens.DAI,
-    symbol: "DAI",
-    decimals: 6,
-    logo: "D",
-    color: "#F5AC37"
-  },
-  WETH: {
-    address: contractAddresses.tokens.WETH,
-    symbol: "WETH",
-    decimals: 18,
-    logo: "W",
-    color: "#627EEA"
   }
 };
 
@@ -321,8 +305,6 @@ export default function Swap() {
       console.log("PRIOR:", TOKENS.PRIOR.address);
       console.log("USDC:", TOKENS.USDC.address);
       console.log("USDT:", TOKENS.USDT.address);
-      console.log("DAI:", TOKENS.DAI.address);
-      console.log("WETH:", TOKENS.WETH.address);
       // Debug logs
       console.log("Swap contracts:", contractAddresses.swapContracts);
       
@@ -363,44 +345,32 @@ export default function Swap() {
       // Get the fixed rates from the contract via our service functions
       const [
         priorToUsdcRate, 
-        priorToUsdtRate, 
-        priorToDaiRate, 
-        priorToWethRate
+        priorToUsdtRate
       ] = await Promise.all([
         getPriorToUSDCRate(),
-        getPriorToUSDTRate(),
-        getPriorToDAIRate(),
-        getPriorToWETHRate()
+        getPriorToUSDTRate()
       ]);
       
       console.log("Loaded exchange rates from contract:");
       console.log(`PRIOR to USDC rate: ${priorToUsdcRate}`);
       console.log(`PRIOR to USDT rate: ${priorToUsdtRate}`);
-      console.log(`PRIOR to DAI rate: ${priorToDaiRate}`);
-      console.log(`PRIOR to WETH rate: ${priorToWethRate}`);
 
       // Parse rates - now our contract is returning the correct fixed values
       const priorUsdcValue = typeof priorToUsdcRate === 'string' ? priorToUsdcRate : '10'; // 1 PRIOR = 10 USDC
       const priorUsdtValue = typeof priorToUsdtRate === 'string' ? priorToUsdtRate : '10'; // 1 PRIOR = 10 USDT
-      const priorDaiValue = typeof priorToDaiRate === 'string' ? priorToDaiRate : '10';    // 1 PRIOR = 10 DAI
-      const priorWethValue = typeof priorToWethRate === 'string' ? priorToWethRate : '0.0005'; // Keep WETH rate as is
 
       // Calculate the inverse rates (for X to PRIOR conversions)
       const usdcPriorValue = (1 / parseFloat(priorUsdcValue)).toString(); // 1 USDC = 0.1 PRIOR
       const usdtPriorValue = (1 / parseFloat(priorUsdtValue)).toString(); // 1 USDT = 0.1 PRIOR
-      const daiPriorValue = (1 / parseFloat(priorDaiValue)).toString();   // 1 DAI = 0.1 PRIOR
-      const wethPriorValue = (1 / parseFloat(priorWethValue)).toString(); // Keep WETH inverse rate as is
 
       // Update the rates in our state
       setExchangeRates({
         PRIOR_USDC: parseFloat(priorUsdcValue),  // 10
         PRIOR_USDT: parseFloat(priorUsdtValue),  // 10
-        PRIOR_DAI: parseFloat(priorDaiValue),    // 10
-        PRIOR_WETH: parseFloat(priorWethValue),  // 0.0005
         USDC_PRIOR: parseFloat(usdcPriorValue),  // 0.1
         USDT_PRIOR: parseFloat(usdtPriorValue),  // 0.1
-        DAI_PRIOR: parseFloat(daiPriorValue),    // 0.1
-        WETH_PRIOR: parseFloat(wethPriorValue)   // 2000
+        USDC_USDT: 1,  // 1:1 for stablecoins
+        USDT_USDC: 1   // 1:1 for stablecoins
       });
     } catch (error) {
       console.error("Error loading exchange rates:", error);
@@ -408,12 +378,10 @@ export default function Swap() {
       setExchangeRates({
         PRIOR_USDC: 10, // 1 PRIOR = 10 USDC
         PRIOR_USDT: 10, // 1 PRIOR = 10 USDT
-        PRIOR_DAI: 10, // 1 PRIOR = 10 DAI (assuming same as USDC/USDT)
-        PRIOR_WETH: 0.0005, // Keep WETH rate as is
         USDC_PRIOR: 0.1, // 1 USDC = 0.1 PRIOR
         USDT_PRIOR: 0.1, // 1 USDT = 0.1 PRIOR
-        DAI_PRIOR: 0.1, // 1 DAI = 0.1 PRIOR (assuming same as USDC/USDT)
-        WETH_PRIOR: 2000 // Keep WETH rate as is
+        USDC_USDT: 1,  // 1:1 for stablecoins
+        USDT_USDC: 1   // 1:1 for stablecoins
       });
     }
   };
