@@ -128,3 +128,6 @@ export type Vote = typeof votes.$inferSelect;
 
 export type InsertToken = z.infer<typeof insertTokenSchema>;
 export type Token = typeof tokens.$inferSelect;
+
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type Transaction = typeof transactions.$inferSelect;

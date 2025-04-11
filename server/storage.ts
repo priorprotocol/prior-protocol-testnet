@@ -4,7 +4,8 @@ import {
   userQuests, UserQuest, InsertUserQuest,
   proposals, Proposal, InsertProposal,
   votes, Vote, InsertVote,
-  tokens, Token, InsertToken
+  tokens, Token, InsertToken,
+  transactions, Transaction, InsertTransaction
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -49,6 +50,11 @@ export interface IStorage {
   getAllTokens(): Promise<Token[]>;
   getToken(symbol: string): Promise<Token | undefined>;
   createToken(token: InsertToken): Promise<Token>;
+  
+  // Transaction operations
+  getUserTransactions(userId: number): Promise<Transaction[]>;
+  getUserTransactionsByType(userId: number, type: string): Promise<Transaction[]>;
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
 }
 
 // In-memory implementation of storage
@@ -61,6 +67,7 @@ export class MemStorage implements IStorage {
   private votes: Map<number, Vote>;
   private tokens: Map<number, Token>;
   private tokensBySymbol: Map<string, Token>;
+  private transactions: Map<number, Transaction>;
   
   private userId: number;
   private questId: number;
@@ -68,6 +75,7 @@ export class MemStorage implements IStorage {
   private proposalId: number;
   private voteId: number;
   private tokenId: number;
+  private transactionId: number;
   
   constructor() {
     this.users = new Map();
@@ -78,6 +86,7 @@ export class MemStorage implements IStorage {
     this.votes = new Map();
     this.tokens = new Map();
     this.tokensBySymbol = new Map();
+    this.transactions = new Map();
     
     this.userId = 1;
     this.questId = 1;
@@ -85,6 +94,7 @@ export class MemStorage implements IStorage {
     this.proposalId = 1;
     this.voteId = 1;
     this.tokenId = 1;
+    this.transactionId = 1;
     
     // Initialize with sample tokens
     this.initializeTokens();
@@ -465,6 +475,33 @@ export class MemStorage implements IStorage {
     this.tokensBySymbol.set(token.symbol, newToken);
     
     return newToken;
+  }
+  
+  // Transaction operations
+  async getUserTransactions(userId: number): Promise<Transaction[]> {
+    return Array.from(this.transactions.values())
+      .filter(tx => tx.userId === userId)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
+  
+  async getUserTransactionsByType(userId: number, type: string): Promise<Transaction[]> {
+    return Array.from(this.transactions.values())
+      .filter(tx => tx.userId === userId && tx.type === type)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
+  
+  async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
+    const id = this.transactionId++;
+    const newTransaction: Transaction = {
+      ...transaction,
+      id,
+      timestamp: new Date(),
+      status: transaction.status || 'completed'
+    };
+    
+    this.transactions.set(id, newTransaction);
+    
+    return newTransaction;
   }
 }
 
