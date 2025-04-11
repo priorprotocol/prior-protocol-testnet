@@ -1,3 +1,4 @@
+// This interface must match the return type of the getUserStats function in storage.ts
 export interface UserStats {
   totalFaucetClaims: number;
   totalSwaps: number;
