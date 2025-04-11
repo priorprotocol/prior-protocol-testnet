@@ -6,17 +6,24 @@ import TokenCard from "@/components/TokenCard";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { useWallet } from "@/context/WalletContext";
 import { claimFromFaucet, getFaucetInfo } from "@/contracts/services";
+import { useWalletSync } from "@/hooks/useWalletSync";
 
 const Faucet = () => {
+  // Get all values we need from the wallet context for consistency
+  const walletContext = useWallet();
   const { 
     tokens,
     copyToClipboard,
-    address,
-    isConnected,
-    openWalletModal,
     disconnectWallet,
     getTokenBalance
-  } = useWallet();
+  } = walletContext;
+  
+  // Use the sync hook for better connection management across components
+  const { 
+    address,
+    isConnected,
+    openWalletModal
+  } = useWalletSync();
   
   const { toast } = useToast();
   const [isCopied, setIsCopied] = useState(false);

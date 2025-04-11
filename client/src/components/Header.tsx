@@ -1,20 +1,20 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useWallet } from "@/context/WalletContext";
+import { useWalletSync } from "@/hooks/useWalletSync";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location] = useLocation();
   
-  // Use the wallet context directly
+  // Use the synchronized wallet hook instead of useWallet directly
   const { 
     address, 
     isConnected, 
-    connectWallet, 
     disconnectWallet, 
     copyToClipboard,
     openWalletModal
-  } = useWallet();
+  } = useWalletSync();
   
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
