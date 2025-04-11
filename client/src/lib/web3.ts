@@ -98,11 +98,41 @@ export const switchToBaseSepoliaNetwork = async () => {
 // Function to format token amount with proper decimals
 export const formatTokenAmount = (amount: string, decimals: number): string => {
   try {
-    const formatted = ethers.utils.formatUnits(amount, decimals);
-    // Display up to 4 decimal places max
-    return parseFloat(formatted).toLocaleString(undefined, {
-      maximumFractionDigits: 4,
-    });
+    // Special handling for USDC and USDT (decimals = 6)
+    if (decimals === 6) {
+      // For USDC and USDT, convert directly from the raw amount
+      const value = ethers.BigNumber.from(amount);
+      const divisor = ethers.BigNumber.from(10).pow(6);
+      const integerPart = value.div(divisor);
+      const fractionalPart = value.mod(divisor);
+      
+      // Format with proper decimal places - only show decimals if needed
+      if (fractionalPart.isZero()) {
+        return integerPart.toString();
+      } else {
+        // Pad with leading zeros if needed
+        const fractionalStr = fractionalPart.toString().padStart(6, '0');
+        // Remove trailing zeros
+        const trimmedFractional = fractionalStr.replace(/0+$/, '');
+        if (trimmedFractional) {
+          return `${integerPart}.${trimmedFractional}`;
+        } else {
+          return integerPart.toString();
+        }
+      }
+    } else {
+      // For PRIOR (18 decimals) and other tokens
+      const formatted = ethers.utils.formatUnits(amount, decimals);
+      // Display up to 4 decimal places max, but trim trailing zeros
+      const parsed = parseFloat(formatted);
+      if (Number.isInteger(parsed)) {
+        return parsed.toString();
+      } else {
+        return parsed.toLocaleString(undefined, {
+          maximumFractionDigits: 4,
+        });
+      }
+    }
   } catch (error) {
     console.error("Error formatting token amount:", error);
     return "0.00";

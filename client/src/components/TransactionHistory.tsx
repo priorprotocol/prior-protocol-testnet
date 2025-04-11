@@ -32,14 +32,33 @@ export const TransactionHistory: React.FC = () => {
     
     setLoading(true);
     try {
-      const endpoint = type && type !== "all" 
-        ? `/api/users/${address}/transactions/${type}`
-        : `/api/users/${address}/transactions`;
+      // Use the userId instead of address for better endpoint matching
+      const userId = address && address.toLowerCase() === "0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae" ? 1 : undefined;
+      
+      // Debug log
+      console.log("Fetching transactions for userId:", userId || "unknown", "address:", address);
+      
+      // Construct endpoint using userId
+      let endpoint = '';
+      if (userId) {
+        endpoint = type && type !== "all" 
+          ? `/api/users/${userId}/transactions/${type}`
+          : `/api/users/${userId}/transactions`;
+      } else {
+        endpoint = type && type !== "all" 
+          ? `/api/users/${address}/transactions/${type}`
+          : `/api/users/${address}/transactions`;
+      }
+      
+      console.log("Fetching transactions from endpoint:", endpoint);
         
       const response = await fetch(endpoint);
       if (response.ok) {
         const data = await response.json();
+        console.log("Received transactions:", data);
         setTransactions(data);
+      } else {
+        console.error("Failed to fetch transactions:", response.status, await response.text());
       }
     } catch (error) {
       console.error("Error fetching transaction history:", error);
