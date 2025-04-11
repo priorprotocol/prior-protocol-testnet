@@ -420,17 +420,18 @@ export default function Swap() {
 
   // Get the appropriate swap contract address based on token pair
   const getSwapContractAddress = (fromTok: string, toTok: string): string => {
-    // Define pairs in a deterministic order (alphabetical)
-    const pair = [fromTok, toTok].sort().join('_');
-    
-    // Map to the correct contract address
-    if (pair === 'PRIOR_USDC') {
+    // For PRIOR pairs, check if the pair includes PRIOR and another token
+    if ((fromTok === 'PRIOR' && toTok === 'USDC') || (fromTok === 'USDC' && toTok === 'PRIOR')) {
       return contractAddresses.swapContracts.PRIOR_USDC;
-    } else if (pair === 'PRIOR_USDT') {
+    } 
+    else if ((fromTok === 'PRIOR' && toTok === 'USDT') || (fromTok === 'USDT' && toTok === 'PRIOR')) {
       return contractAddresses.swapContracts.PRIOR_USDT;
-    } else if (pair === 'USDC_USDT') {
+    } 
+    // For USDC-USDT direct swap
+    else if ((fromTok === 'USDC' && toTok === 'USDT') || (fromTok === 'USDT' && toTok === 'USDC')) {
       return contractAddresses.swapContracts.USDC_USDT;
-    } else {
+    } 
+    else {
       console.error(`No swap contract found for pair: ${fromTok}-${toTok}`);
       return '';
     }
@@ -574,14 +575,14 @@ export default function Swap() {
         const suggestedAmount = Math.min(originalAmount * 0.01, 0.01);
         const formattedSuggestion = suggestedAmount.toFixed(4);
         
-        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or switch to the PRIOR→USDC pair.`;
+        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or try the PRIOR→USDC or USDC↔USDT pairs.`;
       } else if (error.message && error.message.includes("Insufficient liquidity")) {
         // Calculate a suggested amount (1% of the original amount)
         const originalAmount = parseFloat(fromAmount);
         const suggestedAmount = Math.min(originalAmount * 0.01, 0.01);
         const formattedSuggestion = suggestedAmount.toFixed(4);
         
-        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or switch to the PRIOR→USDC pair.`;
+        errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or try the PRIOR→USDC or USDC↔USDT pairs.`;
       } else if (error.message && error.message.includes("user rejected")) {
         errorMessage = "Transaction rejected by user.";
       } else if (error.message) {
