@@ -1,27 +1,22 @@
-import { useState, useEffect } from "react";
-import { useWallet } from "@/context/WalletContext";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import TokenCard from "@/components/TokenCard";
 import { TransactionHistory } from "@/components/TransactionHistory";
-import { TokenInfo } from "@/types";
-import { claimFromFaucet, getFaucetInfo, getTokenBalance } from "@/contracts/services";
-import { requestAccounts, switchToBaseSepoliaNetwork } from "@/lib/web3";
+import { useWallet } from "@/context/WalletContext";
+import { claimFromFaucet, getFaucetInfo } from "@/contracts/services";
 
 const Faucet = () => {
-  const wallet = useWallet();
   const { 
     tokens,
-    copyToClipboard
-  } = wallet;
-  
-  // Create a local wallet state that will be used if the global one fails
-  const [localWalletAddress, setLocalWalletAddress] = useState<string | null>(null);
-  
-  // Use either the global wallet address or the local one
-  const address = wallet.address || localWalletAddress;
-  const isConnected = !!address;
+    copyToClipboard,
+    address,
+    isConnected,
+    openWalletModal,
+    disconnectWallet,
+    getTokenBalance
+  } = useWallet();
   
   const { toast } = useToast();
   const [isCopied, setIsCopied] = useState(false);
@@ -111,8 +106,14 @@ const Faucet = () => {
           throw new Error("Claim transaction failed on the blockchain");
         }
         
-        const txHash = txReceipt.transactionHash || txReceipt.hash;
-        const blockNumber = txReceipt.blockNumber;
+        // Handle transaction hash retrieval based on the actual structure
+        let txHash = "";
+        let blockNumber = 0;
+        
+        if (typeof txReceipt === 'object') {
+          txHash = txReceipt.transactionHash || txReceipt.hash || "";
+          blockNumber = txReceipt.blockNumber || 0;
+        }
         
         // Also update our backend to track the claim
         try {
@@ -166,7 +167,7 @@ const Faucet = () => {
       // Refresh the user data and balances
       if (address) {
         queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
-        updateLocalBalances(address);
+        updateLocalBalances();
       }
     },
     onError: (error: any) => {
@@ -191,8 +192,8 @@ const Faucet = () => {
   });
   
   // Add a function to update local balances
-  const updateLocalBalances = async (userAddress: string) => {
-    if (!tokens || tokens.length === 0) return;
+  const updateLocalBalances = async () => {
+    if (!tokens || tokens.length === 0 || !address) return;
     
     try {
       const balances: Record<string, string> = {};
@@ -200,7 +201,7 @@ const Faucet = () => {
       for (const token of tokens) {
         try {
           console.log(`Getting balance for ${token.symbol} at address ${token.address}`);
-          const result = await getTokenBalance(token.address, userAddress);
+          const result = await getTokenBalance(token.symbol);
           console.log(`Balance for ${token.symbol}: ${result}`);
           balances[token.symbol] = result;
         } catch (error) {
@@ -218,95 +219,14 @@ const Faucet = () => {
   // Update local balances when tokens or address changes
   useEffect(() => {
     if (address && tokens.length > 0) {
-      updateLocalBalances(address);
+      updateLocalBalances();
     }
   }, [address, tokens]);
   
-  const directConnectWallet = async () => {
-    try {
-      if (!window.ethereum) {
-        toast({
-          title: "MetaMask Not Found",
-          description: "Please install MetaMask to connect your wallet.",
-          variant: "destructive"
-        });
-        window.open('https://metamask.io/download.html', '_blank');
-        return null;
-      }
-      
-      console.log("Requesting accounts directly...");
-      const account = await requestAccounts();
-      if (!account) {
-        toast({
-          title: "No Account Found",
-          description: "Please connect an account in your MetaMask wallet.",
-          variant: "destructive"
-        });
-        return null;
-      }
-      
-      console.log("Account connected:", account);
-      
-      // Set our local state first
-      setLocalWalletAddress(account);
-      
-      // Try to update the wallet address via global debug methods
-      try {
-        // @ts-ignore
-        if (window.__setWalletAddress) {
-          // @ts-ignore
-          const debugUpdate = window.__setWalletAddress(account);
-          console.log("Global wallet update result:", debugUpdate);
-        }
-      } catch (error) {
-        console.error("Error updating wallet address globally:", error);
-      }
-      
-      // Switch to Base Sepolia
-      try {
-        await switchToBaseSepoliaNetwork();
-      } catch (error) {
-        console.error("Failed to switch network:", error);
-      }
-      
-      // Update token balances
-      await updateLocalBalances(account);
-      
-      toast({
-        title: "Wallet Connected",
-        description: `Connected to ${account.substring(0, 6)}...${account.substring(account.length - 4)}`,
-      });
-      
-      return account;
-    } catch (error) {
-      console.error("Error in direct connect:", error);
-      toast({
-        title: "Connection Failed",
-        description: "Failed to connect to MetaMask. Please try again.",
-        variant: "destructive"
-      });
-      return null;
-    }
-  };
-
   const handleClaimTokens = async () => {
     if (!isConnected) {
-      try {
-        console.log("Trying direct wallet connection...");
-        const account = await directConnectWallet();
-        if (!account) {
-          return;
-        }
-        return;
-      } catch (error) {
-        console.error("Failed to connect wallet:", error);
-        toast({
-          title: "Wallet Connection Failed",
-          description: "Please make sure MetaMask is installed and try again.",
-          variant: "destructive"
-        });
-        return;
-      }
+      openWalletModal();
+      return;
     }
     
     console.log("Claiming tokens...");
@@ -329,11 +249,10 @@ const Faucet = () => {
       console.log("Disconnecting wallet...");
       
       // First, clear local state
-      setLocalWalletAddress(null);
       setLocalBalances({});
       
       // Then call the global disconnect method from wallet context
-      wallet.disconnectWallet();
+      disconnectWallet();
       
       toast({
         title: "Wallet Disconnected",
@@ -443,7 +362,7 @@ const Faucet = () => {
               // Override the token with local balance if available
               const tokenWithLocalBalance = {
                 ...token,
-                balance: localBalances[token.symbol] || wallet.getTokenBalance(token.symbol) || "0.00"
+                balance: localBalances[token.symbol] || getTokenBalance(token.symbol) || "0.00"
               };
               return <TokenCard key={token.symbol} token={tokenWithLocalBalance} />;
             })}
