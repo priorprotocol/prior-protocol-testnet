@@ -524,7 +524,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         description: `Swapping ${fromAmount} ${fromToken.symbol} to ${toToken.symbol}...`,
       });
       
-      await swapTokens(fromTokenAddress, toTokenAddress, parsedAmount, slippage);
+      const txReceipt = await swapTokens(fromTokenAddress, toTokenAddress, parsedAmount, slippage);
+      const txHash = txReceipt.transactionHash || txReceipt.hash;
+      const blockNumber = txReceipt.blockNumber;
       
       const updatedBalances = {...tokenBalances};
       
@@ -549,12 +551,41 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         }
       }
       
-      if (userId) {
+      if (address) {
         try {
-          await apiRequest('POST', `/api/users/${userId}/swap`, { address });
+          // Record the swap in the user's history
+          if (userId) {
+            // Record the swap in the user's activity history
+            await apiRequest('POST', `/api/users/${userId}/swaps`, { 
+              txHash,
+              fromToken: fromToken.symbol,
+              toToken: toToken.symbol,
+              fromAmount,
+              toAmount,
+              blockNumber
+            });
+          }
           
-          const swapQuestId = 1;
-          await apiRequest('POST', `/api/quests/${swapQuestId}/complete`, { userId });
+          // Record the swap in the transaction history
+          await apiRequest('POST', '/api/transactions/swap', {
+            address,
+            txHash,
+            fromToken: fromToken.symbol,
+            toToken: toToken.symbol,
+            fromAmount,
+            toAmount,
+            blockNumber
+          });
+          
+          // Try to complete the swap quest if applicable
+          if (userId) {
+            try {
+              const swapQuestId = 1;
+              await apiRequest('POST', `/api/quests/${swapQuestId}/complete`, { address });
+            } catch (questError) {
+              console.error("Error completing swap quest:", questError);
+            }
+          }
         } catch (error) {
           console.error("Error recording swap:", error);
         }

@@ -111,10 +111,32 @@ const Faucet = () => {
           throw new Error("Claim transaction failed on the blockchain");
         }
         
+        const txHash = txReceipt.transactionHash || txReceipt.hash;
+        const blockNumber = txReceipt.blockNumber;
+        
         // Also update our backend to track the claim
         try {
-          const response = await apiRequest('POST', '/api/claim', { address });
+          // Update the claim record in our backend
+          const response = await apiRequest('POST', '/api/claim', { 
+            address,
+            txHash,
+            amount: '1',
+            blockNumber
+          });
           console.log("Backend claim response:", response);
+          
+          // Record the transaction in our transaction history
+          try {
+            const txResponse = await apiRequest('POST', '/api/transactions/faucet-claim', {
+              address,
+              txHash,
+              amount: '1',
+              blockNumber
+            });
+            console.log("Transaction recorded:", txResponse);
+          } catch (txError) {
+            console.error("Failed to record transaction:", txError);
+          }
           
           // Get the API response directly - apiRequest already handles the JSON parsing
           return {

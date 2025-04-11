@@ -256,7 +256,7 @@ export const swapTokens = async (
   amount: string,
   swapContractAddress?: string,
   minAmountOut?: string,
-): Promise<any> => {
+): Promise<ethers.providers.TransactionReceipt> => {
   try {
     console.log(`Attempting to swap ${amount} from ${fromTokenAddress} to ${toTokenAddress}`);
     console.log(`Using swap contract: ${swapContractAddress}`);
