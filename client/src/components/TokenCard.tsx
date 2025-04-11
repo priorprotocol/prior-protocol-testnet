@@ -25,21 +25,8 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
       return '0.00';
     }
     
-    // For USDC and USDT which should display with less decimals
-    if (token.symbol === 'USDC' || token.symbol === 'USDT') {
-      // Parse the balance and format 
-      const value = parseFloat(rawBalance);
-      // If the value is extremely large, it's likely a decimal formatting issue
-      if (value > 10000) {
-        // Assume we need to divide by 10^12 for proper display (from e18 to e6)
-        return (value / 1000000000000).toFixed(2);
-      }
-      return value.toFixed(2);
-    }
-    
-    // For PRIOR and other tokens, use regular formatting
-    const value = parseFloat(rawBalance);
-    return value.toFixed(4);
+    // Return rawBalance directly as it's already properly formatted in context
+    return rawBalance;
   };
   
   // Use the token's balance if provided, otherwise get it from the wallet context
