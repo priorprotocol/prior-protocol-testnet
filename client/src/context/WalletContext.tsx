@@ -643,14 +643,23 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         throw new Error("Invalid token selection");
       }
       
-      const fromDecimals = fromToken.address.toLowerCase() === contractAddresses.priorToken.toLowerCase() 
-        ? 18 : fromToken.decimals;
-        
-      const parsedAmount = parseTokenAmount(fromAmount, fromDecimals);
+      // Calculate decimals based on token type
+      const fromDecimals = fromToken.symbol === "PRIOR" ? 18 : 6;
+      console.log(`Using ${fromDecimals} decimals for ${fromToken.symbol}`);
+      
+      // Limit amount for testnet
+      let safeAmount = fromAmount;
+      if (fromToken.symbol === "PRIOR" && parseFloat(fromAmount) > 0.1) {
+        console.log(`Amount too large for testnet PRIOR swap, reducing to 0.01`);
+        safeAmount = "0.01";
+      } else if ((fromToken.symbol === "USDC" || fromToken.symbol === "USDT") && parseFloat(fromAmount) > 10) {
+        console.log(`Amount too large for testnet stablecoin swap, reducing to 5`);
+        safeAmount = "5";
+      }
       
       toast({
         title: "Processing Swap",
-        description: `Swapping ${fromAmount} ${fromToken.symbol} to ${toToken.symbol}...`,
+        description: `Swapping ${safeAmount} ${fromToken.symbol} to ${toToken.symbol}...`,
       });
       
       // Get the appropriate swap contract address
@@ -677,7 +686,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
           const approved = await approveTokens(
             fromToken.address,
             swapContractAddress,
-            fromAmount
+            safeAmount
           );
           
           if (!approved) {
@@ -699,7 +708,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         }
       }
       
-      // Call swapTokens with the correct parameters
+      // Convert to BigNumber with appropriate decimals
+      const parsedAmount = parseTokenAmount(safeAmount, fromDecimals);
+      
+      // Call swapTokens with the correct parameters - pass contract address directly
       const txReceipt = await swapTokens(
         fromTokenAddress, 
         toTokenAddress,

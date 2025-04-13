@@ -331,13 +331,18 @@ export const approveTokens = async (tokenAddress: string, amount: string, target
 export const swapTokens = async (
   fromTokenAddress: string,
   toTokenAddress: string,
-  amount: string,
+  amount: ethers.BigNumber | string,
+  swapContractAddress?: string
 ) => {
   try {
     const fromSymbol = getTokenSymbol(fromTokenAddress);
     const toSymbol = getTokenSymbol(toTokenAddress);
     const decimals = getTokenDecimalsFromAddress(fromTokenAddress);
-    const parsedAmount = ethers.utils.parseUnits(amount, decimals);
+    
+    // Convert to BigNumber if it's a string
+    const parsedAmount = typeof amount === 'string' 
+      ? ethers.utils.parseUnits(amount, decimals)
+      : amount;
     
     console.log(`Swapping ${amount} ${fromSymbol} to ${toSymbol}`);
     console.log(`Using parsed amount: ${parsedAmount.toString()} (${decimals} decimals)`);

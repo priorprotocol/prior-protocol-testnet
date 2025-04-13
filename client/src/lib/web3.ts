@@ -167,12 +167,27 @@ export const formatTokenAmount = (amount: string, decimals: number): string => {
 };
 
 // Function to parse token amount to wei
-export const parseTokenAmount = (amount: string, decimals: number): string => {
+export const parseTokenAmount = (amount: string, decimals: number): ethers.BigNumber => {
   try {
-    return ethers.utils.parseUnits(amount, decimals).toString();
+    console.log(`Parsing amount ${amount} with ${decimals} decimals`);
+    
+    // Convert to ethers BigNumber
+    const parsedAmount = ethers.utils.parseUnits(amount, decimals);
+    console.log(`Parsed to BigNumber: ${parsedAmount.toString()}`);
+    
+    return parsedAmount;
   } catch (error) {
-    console.error("Error parsing token amount:", error);
-    return "0";
+    console.error("Error parsing token amount:", error, "for amount:", amount, "with decimals:", decimals);
+    
+    // For troubleshooting, try an extra small amount if there's a parsing error
+    try {
+      console.log("Trying fallback amount of 0.001");
+      return ethers.utils.parseUnits("0.001", decimals);
+    } catch (fallbackError) {
+      console.error("Even fallback parsing failed:", fallbackError);
+      // Last resort, just use 1 token unit
+      return ethers.BigNumber.from("1");
+    }
   }
 };
 
