@@ -31,6 +31,22 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
     // Format based on token type
     if (token.symbol === "PRIOR") {
       // For PRIOR, display with cleaner formatting (no scientific notation)
+      // The raw value from the contract will be in wei (10^-18)
+      
+      // For very small PRIOR balances (less than 0.0001), we need to handle differently
+      // A raw value like 298619984 is actually 0.000000000298619984 PRIOR
+      if (rawBalance && rawBalance.length < 15 && parseFloat(rawBalance) > 0) {
+        // This is likely a very small amount in wei, convert to a proper PRIOR value
+        const weiBalance = BigInt(rawBalance);
+        const etherBalance = Number(weiBalance) / 1e18;
+        
+        // Return a formatted string for very small amounts
+        if (etherBalance < 0.0001) {
+          return etherBalance.toFixed(8);
+        }
+      }
+      
+      // Standard display for normal values
       if (parsedBalance >= 1) {
         return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
       } else {

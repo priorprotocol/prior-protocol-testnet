@@ -598,7 +598,44 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   };
   
   const getTokenBalance = (symbol: string) => {
-    return tokenBalances[symbol] || "0.00";
+    // If we don't have a balance for this token, return 0
+    if (!tokenBalances[symbol]) return "0.00";
+    
+    // Special handling for PRIOR to properly format very small PRIOR amounts
+    if (symbol === "PRIOR" && tokenBalances[symbol]) {
+      // The PRIOR raw balance might be a very small number (e.g., 298619984 wei)
+      // which is actually 0.000000000298619984 PRIOR in decimal form
+      
+      // Check if this looks like a small wei amount (small number of digits)
+      const rawBalance = tokenBalances[symbol];
+      if (rawBalance && rawBalance.length < 15 && parseFloat(rawBalance) > 0) {
+        try {
+          // This likely represents a small amount in wei
+          const weiBalance = BigInt(rawBalance);
+          // Convert from wei to PRIOR (divide by 10^18)
+          const priorBalance = Number(weiBalance) / 1e18;
+          
+          // For tiny amounts, show more precision
+          if (priorBalance < 0.0001) {
+            return priorBalance.toFixed(10);
+          }
+          
+          // For small but not tiny amounts, standard formatting
+          if (priorBalance < 1) {
+            return priorBalance.toFixed(4);
+          }
+          
+          // For larger amounts, less precision
+          return priorBalance.toFixed(2);
+        } catch (error) {
+          console.error("Error formatting small PRIOR balance:", error);
+          // Fall back to regular formatting
+        }
+      }
+    }
+    
+    // For other tokens or if the special handling didn't apply, return as is
+    return tokenBalances[symbol];
   };
   
   const copyToClipboard = (text: string) => {
