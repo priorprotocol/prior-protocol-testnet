@@ -1,0 +1,42 @@
+Fetching token balance for address: 0xf4b08b6C0401c9568f3f3ABF2A10C2950Df98EAE and token: 0x2B744c80C4895fDC2003108E186aBD7613c0ec7E
+Identified address 0x2B744c80C4895fDC2003108E186aBD7613c0ec7E as USDT token
+Token symbol: USDT
+Raw balance result for USDT: 99999999018009998
+Using decimals: 6 for USDT
+Detected large USDT value: 99999999018009998
+USDT as 18 decimals: 0.099999999018009998
+USDT converted to 6 decimals: 99999999018.010010
+USDT alternative conversion: 0.099999
+Detected large USDT value: 99999999018009998
+Adjusted balance: 99999999018.010010
+USDT balance updated: 1
+Fetching token balances for address: 0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae
+Fetching token balance for address: 0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae and token: 0xBc8697476a56679534b15994C0f1122556bBF9F4
+Token symbol: PRIOR
+Raw balance result for PRIOR: 299019984
+Using decimals: 18 for PRIOR
+Error fetching balance for PRIOR: 
+TypeError {}
+
+Fetching token balance for address: 0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae and token: 0xc6d67115Cf17A55F9F22D29b955654A7c96781C5
+Token symbol: USDC
+Raw balance result for USDC: 9899999997991790004
+Using decimals: 6 for USDC
+Error fetching balance for USDC: 
+TypeError {}
+message: "Cannot read properties of undefined (reading 'toString')"
+stack: "TypeError: Cannot read properties of undefined (reading 'toString')↵ at fetchBalances (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/context/WalletContext.tsx?v=hYwg4qdlypVLcXACMZnUo:271:71)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+at t.value (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Fetching token balance for address: 0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae and token: 0x2B744c80C4895fDC2003108E186aBD7613c0ec7E
+Token symbol: USDT
+Raw balance result for USDT: 99999999018009998
+Using decimals: 6 for USDT
+Error fetching balance for USDT: 
+TypeError {}
