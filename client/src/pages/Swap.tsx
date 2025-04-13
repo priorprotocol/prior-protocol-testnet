@@ -490,43 +490,100 @@ export default function Swap() {
       const fromTokenInfo = TOKENS[fromToken as keyof typeof TOKENS];
       const toTokenInfo = TOKENS[toToken as keyof typeof TOKENS];
       
-      const amountIn = fromAmount; // We'll pass the raw amount string to the swapTokens function
+      // Convert to proper token units (wei for PRIOR, micro-units for USDC/USDT)
+      const amountInWei = ethers.utils.parseUnits(fromAmount, fromTokenInfo.decimals);
       
-      // Calculate slippage for minimum amount out
-      const slippageFactor = 1 - (slippage / 100);
-      const minAmountOut = parseFloat(toAmount) * slippageFactor;
-      
-      // Get the appropriate swap contract for this token pair
+      // Get the appropriate swap contract address
       const swapContractAddress = getSwapContractAddress(fromToken, toToken);
       if (!swapContractAddress) {
         throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
       }
       
-      // Perform swap with proper contract address
-      const txReceipt = await swapTokens(
-        fromTokenInfo.address,
-        toTokenInfo.address,
-        amountIn,
-        swapContractAddress,
-        minAmountOut.toString()
-      );
+      // Calculate minimum amount out with slippage
+      const minAmountOut = parseFloat(toAmount) * (1 - (slippage / 100));
+      const minAmountOutWei = ethers.utils.parseUnits(minAmountOut.toString(), toTokenInfo.decimals);
       
-      if (txReceipt) {
-        // Set transaction hash if available
-        const hash = typeof txReceipt === 'object' && txReceipt.transactionHash 
-          ? txReceipt.transactionHash 
-          : '';
-        setTxHash(hash);
+      console.log(`Executing swap: ${fromAmount} ${fromToken} to ${toToken}`);
+      console.log(`Using contract: ${swapContractAddress}`);
+      console.log(`Amount in wei: ${amountInWei.toString()}`);
+      console.log(`Min amount out: ${minAmountOut} ${toToken} (${minAmountOutWei.toString()} wei)`);
+      
+      // Determine which swap function to call
+      let tx;
+      if (fromToken === "PRIOR" && toToken === "USDC") {
+        console.log("Executing PRIOR to USDC swap");
+        tx = await swapTokens(
+          fromTokenInfo.address,
+          toTokenInfo.address,
+          fromAmount,
+          swapContractAddress
+        );
+      } 
+      else if (fromToken === "USDC" && toToken === "PRIOR") {
+        console.log("Executing USDC to PRIOR swap");
+        tx = await swapTokens(
+          fromTokenInfo.address,
+          toTokenInfo.address,
+          fromAmount,
+          swapContractAddress
+        );
+      }
+      else if (fromToken === "PRIOR" && toToken === "USDT") {
+        console.log("Executing PRIOR to USDT swap");
+        tx = await swapTokens(
+          fromTokenInfo.address,
+          toTokenInfo.address,
+          fromAmount,
+          swapContractAddress
+        );
+      }
+      else if (fromToken === "USDT" && toToken === "PRIOR") {
+        console.log("Executing USDT to PRIOR swap");
+        tx = await swapTokens(
+          fromTokenInfo.address,
+          toTokenInfo.address,
+          fromAmount,
+          swapContractAddress
+        );
+      }
+      else if (fromToken === "USDC" && toToken === "USDT") {
+        console.log("Executing USDC to USDT swap");
+        tx = await swapTokens(
+          fromTokenInfo.address,
+          toTokenInfo.address,
+          fromAmount,
+          swapContractAddress
+        );
+      }
+      else if (fromToken === "USDT" && toToken === "USDC") {
+        console.log("Executing USDT to USDC swap");
+        tx = await swapTokens(
+          fromTokenInfo.address,
+          toTokenInfo.address,
+          fromAmount,
+          swapContractAddress
+        );
+      }
+      else {
+        throw new Error(`Swap pair not supported: ${fromToken}-${toToken}`);
+      }
+      
+      if (tx) {
+        // Set transaction hash
+        setTxHash(tx.transactionHash);
+        
         toast({
           title: "Swap Successful",
-          description: `Successfully swapped ${fromAmount} ${fromToken} for approximately ${parseFloat(toAmount).toFixed(6)} ${toToken}`,
+          description: `Swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`,
         });
         
-        // Refresh balances after successful swap
-        const currentAddress = directAddress || address;
-        if (currentAddress) {
-          await loadBalances(currentAddress);
-        }
+        // Refresh balances after 5 seconds to allow for blockchain update
+        setTimeout(async () => {
+          const currentAddress = directAddress || address;
+          if (currentAddress) {
+            await loadBalances(currentAddress);
+          }
+        }, 5000);
         
         // Clear inputs after successful swap
         setFromAmount("");
@@ -576,60 +633,49 @@ export default function Swap() {
 
     try {
       const amount = parseFloat(fromAmount);
-      const rateKey = `${fromToken}_${toToken}`;
-      const rate = exchangeRates[rateKey] || 0;
-      
+      const fromTokenInfo = TOKENS[fromToken as keyof typeof TOKENS];
+      const toTokenInfo = TOKENS[toToken as keyof typeof TOKENS];
+
+      // Fixed rate: 1 PRIOR = 10 USDC/USDT
+      let rate;
+      if (fromToken === "PRIOR" && (toToken === "USDC" || toToken === "USDT")) {
+        rate = 10; // 1 PRIOR = 10 USDC/USDT
+      } else if ((fromToken === "USDC" || fromToken === "USDT") && toToken === "PRIOR") {
+        rate = 0.1; // 1 USDC/USDT = 0.1 PRIOR
+      } else if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
+        rate = 1; // 1:1 for stablecoins
+      } else {
+        rate = 0;
+      }
+
       if (rate <= 0) {
         setToAmount("0");
         return;
       }
 
-      // Apply slippage in the preview (this doesn't affect actual transaction)
-      const slippageMultiplier = 1;
-      const result = amount * rate * slippageMultiplier;
+      // Adjust for decimal differences
+      const decimalAdjustment = Math.pow(10, fromTokenInfo.decimals - toTokenInfo.decimals);
+      let result = amount * rate / decimalAdjustment;
       
-      // Format based on token decimals - get the correct decimals from token metadata
-      const targetDecimals = TOKENS[toToken as keyof typeof TOKENS].decimals;
-      const sourceDecimals = TOKENS[fromToken as keyof typeof TOKENS].decimals;
-      
-      console.log(`Swap calculation: ${amount} ${fromToken} (${sourceDecimals} decimals) to ${toToken} (${targetDecimals} decimals) at rate ${rate}`);
-      
-      // Special handling for stablecoin pairs (USDC/USDT)
-      if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
-        // Ensure exact 1:1 ratio for stablecoin pairs
-        setToAmount(fromAmount);
-        console.log(`Stablecoin swap calculation: ${fromAmount} ${fromToken} = ${fromAmount} ${toToken}`);
-      } 
-      // Special handling for PRIOR to stablecoin (USDC/USDT)
-      else if (fromToken === "PRIOR" && (toToken === "USDC" || toToken === "USDT")) {
-        // 1 PRIOR = 10 USDC/USDT, but need to account for decimal differences
-        // PRIOR has 18 decimals, USDC/USDT have 6 decimals
-        // For display clarity, show with 2 decimal places for stablecoins
-        const formattedResult = result.toFixed(2);
-        console.log(`PRIOR to stablecoin swap calculation: ${amount} PRIOR = ${formattedResult} ${toToken}`);
-        setToAmount(formattedResult);
-      }
-      // Special handling for stablecoin (USDC/USDT) to PRIOR
-      else if ((fromToken === "USDC" || fromToken === "USDT") && toToken === "PRIOR") {
-        // 10 USDC/USDT = 1 PRIOR, but need to account for decimal differences
-        // USDC/USDT have 6 decimals, PRIOR has 18 decimals
-        // For display clarity, show with 4 decimal places for PRIOR
-        const formattedResult = result.toFixed(4);
-        console.log(`Stablecoin to PRIOR swap calculation: ${amount} ${fromToken} = ${formattedResult} PRIOR`);
-        setToAmount(formattedResult);
-      }
-      // Default case for any other token pair
-      else {
-        // Use 4 decimal places as default display format
-        const formattedResult = result.toFixed(4);
-        console.log(`Default swap calculation: ${amount} ${fromToken} = ${formattedResult} ${toToken}`);
-        setToAmount(formattedResult);
+      console.log(`Swap calculation: ${amount} ${fromToken} (${fromTokenInfo.decimals} decimals) to ${toToken} (${toTokenInfo.decimals} decimals) with rate ${rate}`);
+      console.log(`Decimal adjustment: ${decimalAdjustment}, Result: ${result}`);
+
+      // Apply a small fee (0.5%) to the output amount to match the contracts
+      const fee = 0.005; // 0.5%
+      result = result * (1 - fee);
+      console.log(`Result after ${fee * 100}% fee: ${result}`);
+
+      // Format based on token type
+      if (toToken === "USDC" || toToken === "USDT") {
+        setToAmount(result.toFixed(2)); // 2 decimals for stablecoins
+      } else {
+        setToAmount(result.toFixed(4)); // 4 decimals for PRIOR
       }
     } catch (error) {
       console.error("Calculation error:", error);
       setToAmount("0");
     }
-  }, [fromAmount, fromToken, toToken, exchangeRates, slippage]);
+  }, [fromAmount, fromToken, toToken]);
 
   // Check allowance when inputs change
   useEffect(() => {
