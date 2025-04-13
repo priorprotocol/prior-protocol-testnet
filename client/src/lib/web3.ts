@@ -167,51 +167,12 @@ export const formatTokenAmount = (amount: string, decimals: number): string => {
 };
 
 // Function to parse token amount to wei
-export const parseTokenAmount = (amount: string, decimals: number): ethers.BigNumber => {
+export const parseTokenAmount = (amount: string, decimals: number): string => {
   try {
-    console.log(`Parsing amount ${amount} with ${decimals} decimals`);
-    
-    // Clean the input amount, ensuring it has a valid format
-    let cleanAmount = amount.trim();
-    
-    // Handle common format issues
-    if (cleanAmount === '') {
-      cleanAmount = '0';
-    }
-    
-    // Make sure we have a valid decimal format for ethers (no trailing decimal point)
-    if (cleanAmount.endsWith('.')) {
-      cleanAmount = cleanAmount + '0';
-    }
-    
-    // Ensure we have the right number of decimal places
-    const parts = cleanAmount.split('.');
-    if (parts.length > 1 && parts[1].length > decimals) {
-      // Truncate to the number of decimals supported
-      cleanAmount = parts[0] + '.' + parts[1].substring(0, decimals);
-    }
-    
-    console.log(`Cleaned amount: ${cleanAmount}`);
-    
-    // Convert to ethers BigNumber
-    const parsedAmount = ethers.utils.parseUnits(cleanAmount, decimals);
-    console.log(`Parsed to BigNumber: ${parsedAmount.toString()}`);
-    
-    return parsedAmount;
+    return ethers.utils.parseUnits(amount, decimals).toString();
   } catch (error) {
-    console.error("Error parsing token amount:", error, "for amount:", amount, "with decimals:", decimals);
-    
-    // If we can't parse the input amount, generate a minimum amount
-    try {
-      // Use the smallest valid amount for this decimal precision
-      const minAmount = '0.' + '0'.repeat(decimals - 1) + '1';
-      console.log(`Using minimum valid amount: ${minAmount}`);
-      return ethers.utils.parseUnits(minAmount, decimals);
-    } catch (fallbackError) {
-      console.error("Even minimum amount parsing failed:", fallbackError);
-      // Absolute last resort: return 1 in the smallest unit
-      return ethers.BigNumber.from('1');
-    }
+    console.error("Error parsing token amount:", error);
+    return "0";
   }
 };
 

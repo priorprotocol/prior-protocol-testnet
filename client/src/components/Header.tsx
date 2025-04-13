@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useWalletSync } from "@/hooks/useWalletSync";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 import { formatAddress } from "@/lib/formatAddress";
-import { Menu, X } from "lucide-react";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -24,35 +23,6 @@ const Header = () => {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
-  
-  // Set up an effect to handle wallet state changes
-  useEffect(() => {
-    // Make sure the mobile menu is properly initialized on state changes
-    setIsMobileMenuOpen(false);
-  }, [address, isConnected]);
-  
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location]);
-  
-  // Add listener to close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      // Check if the click is outside the mobile menu and not on the toggle button
-      if (isMobileMenuOpen && 
-          !target.closest('.mobile-menu') && 
-          !target.closest('.mobile-menu-button')) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isMobileMenuOpen]);
   
   const navLinks = [
     { name: "Home", path: "/" },
@@ -108,22 +78,14 @@ const Header = () => {
         {/* Mobile menu button */}
         <button 
           onClick={toggleMobileMenu}
-          className="md:hidden text-white focus:outline-none mobile-menu-button"
-          aria-label="Toggle mobile menu"
+          className="md:hidden text-white focus:outline-none"
         >
-          {isMobileMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
+          <i className="fas fa-bars text-xl"></i>
         </button>
       </div>
       
       {/* Mobile Navigation Menu */}
-      <div 
-        className={`mobile-menu md:hidden w-full bg-[#111827] border-t border-[#2D3748] transition-all ${isMobileMenuOpen ? 'block' : 'hidden'}`}
-        style={{ height: isMobileMenuOpen ? 'auto' : '0' }}
-      >
+      <div className={`md:hidden w-full bg-[#111827] border-t border-[#2D3748] ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
         <div className="container mx-auto px-4 py-2">
           <nav className="flex flex-col space-y-4 py-4">
             {navLinks.map(link => (

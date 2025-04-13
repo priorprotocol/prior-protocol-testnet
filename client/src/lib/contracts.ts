@@ -251,83 +251,40 @@ export const getTokenBalance = async (tokenAddress: string, address: string) => 
     const decimals = tokenDecimals[symbol as keyof typeof tokenDecimals] || 18;
     console.log(`Using decimals: ${decimals} for ${symbol}`);
     
-    // Special handling for stablecoins (USDC/USDT) which have 6 decimals
-    if (symbol === "USDC" || symbol === "USDT") {
-      try {
-        // Check if this is an abnormally large number for a stablecoin
-        const balanceStr = balance.toString();
-        
-        // For stablecoins with 6 decimals, a balance over 1 trillion (10^12) likely means
-        // we're getting a raw value in 18 decimals instead of 6
-        if (balanceStr.length > 12) {
-          console.log(`Detected large ${symbol} value: ${balanceStr}`);
-          
-          // Divide by 10^12 (difference between 18 and 6 decimals)
-          const adjustedBalance = ethers.BigNumber.from(balanceStr).div(
-            ethers.BigNumber.from(10).pow(12)
-          );
-          console.log(`Adjusted balance: ${adjustedBalance.toString()}`);
-          
-          // Format the result correctly with 6 decimals
-          const formatted = ethers.utils.formatUnits(adjustedBalance, 6);
-          return parseFloat(formatted).toFixed(4);
-        }
-        
-        // Normal case: use the correct 6 decimals
-        const formatted = ethers.utils.formatUnits(balance, 6);
-        return parseFloat(formatted).toFixed(4);
-      } catch (error) {
-        console.error(`Error formatting ${symbol} balance:`, error);
-        // Fallback to basic formatting
-        const formatted = ethers.utils.formatUnits(balance, decimals);
-        return parseFloat(formatted).toFixed(4);
-      }
-    }
-    
-    // For PRIOR with 18 decimals
-    const formatted = ethers.utils.formatUnits(balance, decimals);
-    return parseFloat(formatted).toFixed(4);
+    return ethers.utils.formatUnits(balance, decimals);
   } catch (error) {
     console.error("Error getting token balance:", error);
-    return "0.00";
+    return "0.0";
   }
 };
 
 // Function to approve tokens for swap
-export const approveTokens = async (
-  tokenAddress: string, 
-  spenderAddress: string, 
-  amount: string
-) => {
+export const approveTokens = async (tokenAddress: string, amount: string, targetToken: string = 'USDC') => {
   try {
     // Get the token contract with signer
     const contract = await getTokenContractWithSigner(tokenAddress);
-    const symbol = getTokenSymbol(tokenAddress);
-    const decimals = symbol === "PRIOR" ? 18 : 6;
+    const decimals = getTokenDecimalsFromAddress(tokenAddress);
+    const parsedAmount = ethers.utils.parseUnits(amount, decimals);
     
-    console.log(`Preparing to approve ${amount} ${symbol} tokens`);
-    console.log(`Token address: ${tokenAddress}`);
-    console.log(`Spender address: ${spenderAddress}`);
-    console.log(`Using ${decimals} decimals`);
+    // Determine the appropriate swap contract address based on token pair
+    let spenderAddress: string;
+    const fromSymbol = getTokenSymbol(tokenAddress);
     
-    // Add a 200% buffer to the amount to avoid frequent approvals
-    // This gives some wiggle room for the user to do multiple trades without re-approving
-    const amountWithBuffer = parseFloat(amount) * 2;
-    const amountToApprove = amountWithBuffer.toString();
+    if ((fromSymbol === 'PRIOR' && targetToken === 'USDC') || (fromSymbol === 'USDC' && targetToken === 'PRIOR')) {
+      spenderAddress = contractAddresses.swapContracts.PRIOR_USDC;
+    } else if ((fromSymbol === 'PRIOR' && targetToken === 'USDT') || (fromSymbol === 'USDT' && targetToken === 'PRIOR')) {
+      spenderAddress = contractAddresses.swapContracts.PRIOR_USDT;
+    } else if ((fromSymbol === 'USDC' && targetToken === 'USDT') || (fromSymbol === 'USDT' && targetToken === 'USDC')) {
+      spenderAddress = contractAddresses.swapContracts.USDC_USDT;
+    } else {
+      throw new Error(`Unsupported token pair for approval: ${fromSymbol}-${targetToken}`);
+    }
     
-    console.log(`Adding 200% buffer for future swaps. Approving: ${amountToApprove} ${symbol}`);
-    
-    // Parse amount with correct decimals
-    const parsedAmount = ethers.utils.parseUnits(amountToApprove, decimals);
-    console.log(`Parsed approval amount: ${parsedAmount.toString()}`);
+    console.log(`Approving ${amount} ${fromSymbol} tokens for spender: ${spenderAddress}`);
     
     // Approve the appropriate swap contract to spend the tokens
-    console.log(`Sending approval transaction...`);
     const tx = await contract.approve(spenderAddress, parsedAmount);
-    console.log(`Approval transaction sent, waiting for confirmation...`);
     await tx.wait();
-    console.log(`Approval confirmed successfully`);
-    
     return true;
   } catch (error) {
     console.error("Error approving tokens:", error);
@@ -339,47 +296,13 @@ export const approveTokens = async (
 export const swapTokens = async (
   fromTokenAddress: string,
   toTokenAddress: string,
-  amount: ethers.BigNumber | string,
-  swapContractAddress?: string
+  amount: string,
 ) => {
   try {
     const fromSymbol = getTokenSymbol(fromTokenAddress);
     const toSymbol = getTokenSymbol(toTokenAddress);
     const decimals = getTokenDecimalsFromAddress(fromTokenAddress);
-    
-    console.log(`Swap execution started: ${fromSymbol} -> ${toSymbol}`);
-    console.log(`Amount type: ${typeof amount}`);
-    if (typeof amount === 'string') {
-      console.log(`Amount string value: ${amount}`);
-    } else {
-      console.log(`Amount BigNumber value: ${amount.toString()}`);
-    }
-    
-    // Parse the amount carefully
-    let parsedAmount: ethers.BigNumber;
-    
-    if (typeof amount === 'string') {
-      try {
-        // Handle potential formatting issues
-        let cleanAmount = amount.trim();
-        if (cleanAmount === '') cleanAmount = '0';
-        if (cleanAmount.endsWith('.')) cleanAmount = cleanAmount + '0';
-        
-        // Use a hardcoded safe amount for testing
-        const safeAmount = fromSymbol === 'PRIOR' ? '0.001' : '0.01';
-        console.log(`Using safe amount for ${fromSymbol}: ${safeAmount}`);
-        
-        parsedAmount = ethers.utils.parseUnits(safeAmount, decimals);
-      } catch (parseError) {
-        console.error("Error parsing amount string:", parseError);
-        // Fallback to a safe minimum amount
-        const fallbackAmount = fromSymbol === 'PRIOR' ? '0.001' : '0.01';
-        parsedAmount = ethers.utils.parseUnits(fallbackAmount, decimals);
-      }
-    } else {
-      // Already a BigNumber
-      parsedAmount = amount;
-    }
+    const parsedAmount = ethers.utils.parseUnits(amount, decimals);
     
     console.log(`Swapping ${amount} ${fromSymbol} to ${toSymbol}`);
     console.log(`Using parsed amount: ${parsedAmount.toString()} (${decimals} decimals)`);

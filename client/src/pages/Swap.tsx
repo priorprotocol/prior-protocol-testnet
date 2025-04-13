@@ -1,24 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import {
-  FiCopy,
-  FiChevronDown,
-  FiArrowDown,
-  FiRefreshCw,
-  FiSettings,
-  FiExternalLink,
-  FiLogOut,
-} from "react-icons/fi";
+import { FiCopy, FiChevronDown, FiArrowDown, FiRefreshCw, FiSettings, FiExternalLink, FiLogOut } from "react-icons/fi";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/context/WalletContext";
+import { TransactionHistory } from "@/components/TransactionHistory";
 
 // Import contract functions and addresses from the reorganized structure
-import {
-  swapTokens,
+import { 
+  swapTokens, 
   approveTokens,
   getPriorToUSDCRate,
   getPriorToUSDTRate,
-  getTokenBalance as getTokenBalanceFromContract,
+  getTokenBalance as getTokenBalanceFromContract
 } from "@/contracts/services";
 import { CONTRACT_ADDRESSES as contractAddresses } from "@/contracts/addresses";
 
@@ -31,34 +24,33 @@ const TOKENS = {
     symbol: "PRIOR",
     decimals: 18,
     logo: "P",
-    color: "#00df9a",
+    color: "#00df9a"
   },
   USDC: {
     address: contractAddresses.tokens.USDC,
     symbol: "USDC",
     decimals: 6,
     logo: "U",
-    color: "#2775CA",
+    color: "#2775CA"
   },
   USDT: {
     address: contractAddresses.tokens.USDT,
     symbol: "USDT",
     decimals: 6,
     logo: "U",
-    color: "#26A17B",
-  },
+    color: "#26A17B"
+  }
 };
 
 // Use a more conservative approval amount to avoid overflow issues
-const MAX_UINT256 =
-  "115792089237316195423570985008687907853269984665640564039457584007913129639935";
+const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
 
 export default function Swap() {
   const { toast } = useToast();
-  const {
-    address,
-    isConnected,
-    connectWallet,
+  const { 
+    address, 
+    isConnected, 
+    connectWallet, 
     disconnectWallet,
     getTokenBalance,
   } = useWallet();
@@ -68,7 +60,7 @@ export default function Swap() {
   const [toToken, setToToken] = useState<string>("USDC");
   const [fromAmount, setFromAmount] = useState<string>("");
   const [toAmount, setToAmount] = useState<string>("0");
-  const [balances, setBalances] = useState<{ [key: string]: string }>({});
+  const [balances, setBalances] = useState<{[key: string]: string}>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isApproving, setIsApproving] = useState<boolean>(false);
   const [isSwapping, setIsSwapping] = useState<boolean>(false);
@@ -76,15 +68,12 @@ export default function Swap() {
   const [slippage, setSlippage] = useState<number>(0.5); // 0.5% default slippage
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [txHash, setTxHash] = useState<string>("");
-  const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>(
-    {},
-  );
+  const [exchangeRates, setExchangeRates] = useState<{[key: string]: number}>({});
   const [showFromDropdown, setShowFromDropdown] = useState<boolean>(false);
   const [showToDropdown, setShowToDropdown] = useState<boolean>(false);
-  const [provider, setProvider] =
-    useState<ethers.providers.Web3Provider | null>(null);
+  const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
-
+  
   // State to store our own wallet address (separate from WalletContext)
   const [directAddress, setDirectAddress] = useState<string | null>(null);
   const [isLocalConnected, setIsLocalConnected] = useState<boolean>(false);
@@ -92,15 +81,15 @@ export default function Swap() {
   // Initialize provider and attempt to get the connected account directly
   useEffect(() => {
     // Safely check if ethereum is available
-    const ethereum = typeof window !== "undefined" && window.ethereum;
-
+    const ethereum = typeof window !== 'undefined' && window.ethereum;
+    
     if (ethereum) {
       try {
         const web3Provider = new ethers.providers.Web3Provider(ethereum);
         setProvider(web3Provider);
 
         // Setup listeners
-        ethereum.on("accountsChanged", (accounts: string[]) => {
+        ethereum.on('accountsChanged', (accounts: string[]) => {
           console.log("Accounts changed directly:", accounts);
           if (accounts && accounts.length > 0) {
             // Store the address in our component state
@@ -113,11 +102,10 @@ export default function Swap() {
           }
         });
 
-        ethereum.on("chainChanged", handleChainChanged);
-
+        ethereum.on('chainChanged', handleChainChanged);
+        
         // First, try direct method which is most reliable
-        ethereum
-          .request({ method: "eth_accounts" })
+        ethereum.request({ method: "eth_accounts" })
           .then((accounts: any) => {
             if (accounts && accounts.length > 0) {
               console.log("Ethereum accounts directly:", accounts[0]);
@@ -125,70 +113,58 @@ export default function Swap() {
               setIsLocalConnected(true);
               // Also load balances
               loadBalances(accounts[0]);
-
+              
               // Try to get a signer
               try {
                 const signerInstance = web3Provider.getSigner();
                 setSigner(signerInstance);
               } catch (signerError) {
-                console.error(
-                  "Error getting signer after direct check:",
-                  signerError,
-                );
+                console.error("Error getting signer after direct check:", signerError);
               }
             }
           })
           .catch((error: any) => {
             console.error("Error checking ethereum accounts directly:", error);
           });
-
+        
         // Backup method using web3Provider
-        web3Provider
-          .listAccounts()
-          .then((accounts) => {
+        web3Provider.listAccounts()
+          .then(accounts => {
             if (accounts && accounts.length > 0) {
-              console.log(
-                "Already connected account found via provider:",
-                accounts[0],
-              );
-
+              console.log("Already connected account found via provider:", accounts[0]);
+              
               // Store in our own state
               setDirectAddress(accounts[0]);
               setIsLocalConnected(true);
-
+              
               // Also pass to handler for balance loading
               handleAccountsChanged(accounts);
-
+              
               // Try to get a signer
               if (!signer) {
                 try {
                   const signerInstance = web3Provider.getSigner();
                   setSigner(signerInstance);
                 } catch (signerError) {
-                  console.error(
-                    "Error getting signer during initialization:",
-                    signerError,
-                  );
+                  console.error("Error getting signer during initialization:", signerError);
                 }
               }
             }
           })
-          .catch((error) => {
+          .catch(error => {
             console.error("Error checking accounts via provider:", error);
           });
-
+        
         // Clean up event listeners
         return () => {
-          ethereum.removeAllListeners("accountsChanged");
-          ethereum.removeAllListeners("chainChanged");
+          ethereum.removeAllListeners('accountsChanged');
+          ethereum.removeAllListeners('chainChanged');
         };
       } catch (error) {
         console.error("Error initializing provider:", error);
       }
     } else {
-      console.log(
-        "No ethereum object found in window. MetaMask may not be installed.",
-      );
+      console.log("No ethereum object found in window. MetaMask may not be installed.");
     }
   }, []);
 
@@ -214,89 +190,77 @@ export default function Swap() {
   const manualConnectWallet = async () => {
     try {
       setIsLoading(true);
-
+      
       // Skip the WalletContext's connect method and go straight to MetaMask
       if (window.ethereum) {
         try {
           // Request accounts directly from MetaMask
-          const accounts = await window.ethereum.request({
-            method: "eth_requestAccounts",
-          });
+          const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
           console.log("Connected accounts directly from MetaMask:", accounts);
-
+          
           if (accounts && accounts.length > 0) {
             // Explicitly set our component state
             const connectedAddress = accounts[0];
             setDirectAddress(connectedAddress);
-
+            
             // Check if we're on the right chain
-            const chainId = await window.ethereum.request({
-              method: "eth_chainId",
-            });
-            const desiredChainId = "0x14a34"; // Base Sepolia chain ID
-
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            const desiredChainId = '0x14a34'; // Base Sepolia chain ID
+            
             if (chainId !== desiredChainId) {
               // Try to switch to Base Sepolia
               try {
                 await window.ethereum.request({
-                  method: "wallet_switchEthereumChain",
+                  method: 'wallet_switchEthereumChain',
                   params: [{ chainId: desiredChainId }],
                 });
               } catch (switchError: any) {
                 // Chain doesn't exist, let's add it
                 if (switchError.code === 4902) {
                   await window.ethereum.request({
-                    method: "wallet_addEthereumChain",
-                    params: [
-                      {
-                        chainId: desiredChainId,
-                        chainName: "Base Sepolia",
-                        nativeCurrency: {
-                          name: "ETH",
-                          symbol: "ETH",
-                          decimals: 18,
-                        },
-                        rpcUrls: ["https://sepolia.base.org"],
-                        blockExplorerUrls: [
-                          "https://sepolia-explorer.base.org",
-                        ],
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                      chainId: desiredChainId,
+                      chainName: 'Base Sepolia',
+                      nativeCurrency: {
+                        name: 'ETH',
+                        symbol: 'ETH',
+                        decimals: 18
                       },
-                    ],
+                      rpcUrls: ['https://sepolia.base.org'],
+                      blockExplorerUrls: ['https://sepolia-explorer.base.org']
+                    }]
                   });
                 }
               }
             }
-
+            
             // Setup a web3 provider and signer using this account
             if (window.ethereum) {
-              const web3Provider = new ethers.providers.Web3Provider(
-                window.ethereum,
-              );
+              const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
               setProvider(web3Provider);
-
+              
               // Get a signer with the connected account
               try {
                 const signerInstance = web3Provider.getSigner();
                 setSigner(signerInstance);
-
+                
                 // Force-load balances to ensure our UI updates
                 await loadBalances(connectedAddress);
                 await loadExchangeRates();
-
+                
                 // Log for debugging
-                console.log(
-                  "Direct connection successful. Address:",
-                  connectedAddress,
-                );
-
+                console.log("Direct connection successful. Address:", connectedAddress);
+                
                 // Show success message
                 toast({
                   title: "Wallet Connected Successfully",
                   description: `Connected to ${connectedAddress.substring(0, 6)}...${connectedAddress.substring(connectedAddress.length - 4)}`,
                 });
-
+                
                 // Force a re-render for the UI to update
                 setIsLocalConnected(true);
+                
               } catch (signerError) {
                 console.error("Error getting signer:", signerError);
               }
@@ -306,18 +270,16 @@ export default function Swap() {
           console.error("Error requesting accounts:", requestError);
           toast({
             title: "Connection Error",
-            description:
-              "MetaMask account request was rejected. Please try again.",
-            variant: "destructive",
+            description: "MetaMask account request was rejected. Please try again.",
+            variant: "destructive"
           });
         }
       } else {
         // MetaMask not installed
         toast({
           title: "MetaMask Not Found",
-          description:
-            "Please install MetaMask extension to connect your wallet.",
-          variant: "destructive",
+          description: "Please install MetaMask extension to connect your wallet.",
+          variant: "destructive"
         });
       }
     } catch (error) {
@@ -325,7 +287,7 @@ export default function Swap() {
       toast({
         title: "Connection Error",
         description: "Failed to connect wallet. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -334,11 +296,11 @@ export default function Swap() {
 
   // Load token balances for selected tokens
   const loadBalances = async (walletAddress: string) => {
-    const newBalances: { [key: string]: string } = {};
-
+    const newBalances: {[key: string]: string} = {};
+    
     try {
       console.log("Fetching token balances for address:", walletAddress);
-
+      
       // Debug: Print out token addresses being used
       console.log("Token addresses being used:");
       console.log("PRIOR:", TOKENS.PRIOR.address);
@@ -346,21 +308,17 @@ export default function Swap() {
       console.log("USDT:", TOKENS.USDT.address);
       // Debug logs
       console.log("Swap contracts:", contractAddresses.swapContracts);
-
+      
       // Properly fetch all token balances from the contract using our improved getTokenBalance function
       if (provider) {
         for (const symbol of Object.keys(TOKENS)) {
           try {
             const tokenAddress = TOKENS[symbol as keyof typeof TOKENS].address;
-            const tokenDecimals =
-              TOKENS[symbol as keyof typeof TOKENS].decimals;
-
+            const tokenDecimals = TOKENS[symbol as keyof typeof TOKENS].decimals;
+            
             // Use the updated contract helper function to get the balance
-            const balance = await getTokenBalanceFromContract(
-              tokenAddress,
-              walletAddress,
-            );
-
+            const balance = await getTokenBalanceFromContract(tokenAddress, walletAddress);
+            
             newBalances[symbol] = balance;
             console.log(`${symbol} balance updated:`, balance);
           } catch (tokenError) {
@@ -375,7 +333,7 @@ export default function Swap() {
           newBalances[symbol] = balance;
         }
       }
-
+      
       setBalances(newBalances);
     } catch (error) {
       console.error("Error loading balances:", error);
@@ -386,20 +344,21 @@ export default function Swap() {
   const loadExchangeRates = async () => {
     try {
       // Get the fixed rates from the contract via our service functions
-      const [priorToUsdcRate, priorToUsdtRate] = await Promise.all([
+      const [
+        priorToUsdcRate, 
+        priorToUsdtRate
+      ] = await Promise.all([
         getPriorToUSDCRate(),
-        getPriorToUSDTRate(),
+        getPriorToUSDTRate()
       ]);
-
+      
       console.log("Loaded exchange rates from contract:");
       console.log(`PRIOR to USDC rate: ${priorToUsdcRate}`);
       console.log(`PRIOR to USDT rate: ${priorToUsdtRate}`);
 
       // Parse rates - now our contract is returning the correct fixed values
-      const priorUsdcValue =
-        typeof priorToUsdcRate === "string" ? priorToUsdcRate : "10"; // 1 PRIOR = 10 USDC
-      const priorUsdtValue =
-        typeof priorToUsdtRate === "string" ? priorToUsdtRate : "10"; // 1 PRIOR = 10 USDT
+      const priorUsdcValue = typeof priorToUsdcRate === 'string' ? priorToUsdcRate : '10'; // 1 PRIOR = 10 USDC
+      const priorUsdtValue = typeof priorToUsdtRate === 'string' ? priorToUsdtRate : '10'; // 1 PRIOR = 10 USDT
 
       // Calculate the inverse rates (for X to PRIOR conversions)
       const usdcPriorValue = (1 / parseFloat(priorUsdcValue)).toString(); // 1 USDC = 0.1 PRIOR
@@ -407,12 +366,12 @@ export default function Swap() {
 
       // Update the rates in our state
       setExchangeRates({
-        PRIOR_USDC: parseFloat(priorUsdcValue), // 10
-        PRIOR_USDT: parseFloat(priorUsdtValue), // 10
-        USDC_PRIOR: parseFloat(usdcPriorValue), // 0.1
-        USDT_PRIOR: parseFloat(usdtPriorValue), // 0.1
-        USDC_USDT: 1, // 1:1 for stablecoins
-        USDT_USDC: 1, // 1:1 for stablecoins
+        PRIOR_USDC: parseFloat(priorUsdcValue),  // 10
+        PRIOR_USDT: parseFloat(priorUsdtValue),  // 10
+        USDC_PRIOR: parseFloat(usdcPriorValue),  // 0.1
+        USDT_PRIOR: parseFloat(usdtPriorValue),  // 0.1
+        USDC_USDT: 1,  // 1:1 for stablecoins
+        USDT_USDC: 1   // 1:1 for stablecoins
       });
     } catch (error) {
       console.error("Error loading exchange rates:", error);
@@ -422,8 +381,8 @@ export default function Swap() {
         PRIOR_USDT: 10, // 1 PRIOR = 10 USDT
         USDC_PRIOR: 0.1, // 1 USDC = 0.1 PRIOR
         USDT_PRIOR: 0.1, // 1 USDT = 0.1 PRIOR
-        USDC_USDT: 1, // 1:1 for stablecoins
-        USDT_USDC: 1, // 1:1 for stablecoins
+        USDC_USDT: 1,  // 1:1 for stablecoins
+        USDT_USDC: 1   // 1:1 for stablecoins
       });
     }
   };
@@ -431,18 +390,18 @@ export default function Swap() {
   // Get the appropriate swap contract address based on token pair
   const getSwapContractAddress = (fromTok: string, toTok: string): string => {
     // Define pairs in a deterministic order (alphabetical)
-    const pair = [fromTok, toTok].sort().join("_");
-
+    const pair = [fromTok, toTok].sort().join('_');
+    
     // Map to the correct contract address
-    if (pair === "PRIOR_USDC") {
+    if (pair === 'PRIOR_USDC') {
       return contractAddresses.swapContracts.PRIOR_USDC;
-    } else if (pair === "PRIOR_USDT") {
+    } else if (pair === 'PRIOR_USDT') {
       return contractAddresses.swapContracts.PRIOR_USDT;
-    } else if (pair === "USDC_USDT") {
+    } else if (pair === 'USDC_USDT') {
       return contractAddresses.swapContracts.USDC_USDT;
     } else {
       console.error(`No swap contract found for pair: ${fromTok}-${toTok}`);
-      return "";
+      return '';
     }
   };
 
@@ -450,7 +409,7 @@ export default function Swap() {
   const checkAllowance = async () => {
     const walletAddress = directAddress || address;
     if (!walletAddress || !fromAmount || !provider) return;
-
+    
     try {
       const tokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
       const tokenDecimals = TOKENS[fromToken as keyof typeof TOKENS].decimals;
@@ -459,22 +418,19 @@ export default function Swap() {
         [
           "function allowance(address owner, address spender) view returns (uint256)",
         ],
-        provider,
+        provider
       );
-
+      
       // Get the appropriate swap contract address for this token pair
       const swapContractAddress = getSwapContractAddress(fromToken, toToken);
       if (!swapContractAddress) {
         setHasAllowance(false);
         return;
       }
-
-      const allowance = await tokenContract.allowance(
-        walletAddress,
-        swapContractAddress,
-      );
+      
+      const allowance = await tokenContract.allowance(walletAddress, swapContractAddress);
       const amountWei = ethers.utils.parseUnits(fromAmount, tokenDecimals);
-
+      
       setHasAllowance(allowance.gte(amountWei));
     } catch (error) {
       console.error("Error checking allowance:", error);
@@ -485,33 +441,29 @@ export default function Swap() {
   // Approve token spending
   const approveToken = async () => {
     if (!signer || !fromAmount) return;
-
+    
     setIsApproving(true);
     try {
       const tokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
       const tokenDecimals = TOKENS[fromToken as keyof typeof TOKENS].decimals;
-
+      
       // Get the appropriate swap contract for the token pair
       const swapContractAddress = getSwapContractAddress(fromToken, toToken);
       if (!swapContractAddress) {
-        throw new Error(
-          `No swap contract available for ${fromToken}-${toToken} pair`,
-        );
+        throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
       }
-
+      
       // Instead of using MAX_UINT256, use a more precise amount
       // Approve 100x the amount being swapped to avoid frequent approvals
       const multiplier = 100;
       const amountToApprove = parseFloat(fromAmount) * multiplier;
       const approvalAmount = amountToApprove.toString();
-
-      console.log(
-        `Approving ${approvalAmount} ${fromToken} for swap contract: ${swapContractAddress}`,
-      );
-
+      
+      console.log(`Approving ${approvalAmount} ${fromToken} for swap contract: ${swapContractAddress}`);
+      
       // Pass both token address and the specific swap contract address to approve
       await approveTokens(tokenAddress, swapContractAddress, approvalAmount);
-
+      
       setHasAllowance(true);
       toast({
         title: "Approval Successful",
@@ -522,7 +474,7 @@ export default function Swap() {
       toast({
         title: "Approval Failed",
         description: error.message || "Failed to approve token for trading.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsApproving(false);
@@ -532,53 +484,50 @@ export default function Swap() {
   // Execute swap
   const executeSwap = async () => {
     if (!signer || !fromAmount || !hasAllowance) return;
-
+    
     setIsSwapping(true);
     try {
       const fromTokenInfo = TOKENS[fromToken as keyof typeof TOKENS];
       const toTokenInfo = TOKENS[toToken as keyof typeof TOKENS];
-
+      
       const amountIn = fromAmount; // We'll pass the raw amount string to the swapTokens function
-
+      
       // Calculate slippage for minimum amount out
-      const slippageFactor = 1 - slippage / 100;
+      const slippageFactor = 1 - (slippage / 100);
       const minAmountOut = parseFloat(toAmount) * slippageFactor;
-
+      
       // Get the appropriate swap contract for this token pair
       const swapContractAddress = getSwapContractAddress(fromToken, toToken);
       if (!swapContractAddress) {
-        throw new Error(
-          `No swap contract available for ${fromToken}-${toToken} pair`,
-        );
+        throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
       }
-
+      
       // Perform swap with proper contract address
       const txReceipt = await swapTokens(
         fromTokenInfo.address,
         toTokenInfo.address,
         amountIn,
         swapContractAddress,
-        minAmountOut.toString(),
+        minAmountOut.toString()
       );
-
+      
       if (txReceipt) {
         // Set transaction hash if available
-        const hash =
-          typeof txReceipt === "object" && txReceipt.transactionHash
-            ? txReceipt.transactionHash
-            : "";
+        const hash = typeof txReceipt === 'object' && txReceipt.transactionHash 
+          ? txReceipt.transactionHash 
+          : '';
         setTxHash(hash);
         toast({
           title: "Swap Successful",
           description: `Successfully swapped ${fromAmount} ${fromToken} for approximately ${parseFloat(toAmount).toFixed(6)} ${toToken}`,
         });
-
+        
         // Refresh balances after successful swap
         const currentAddress = directAddress || address;
         if (currentAddress) {
           await loadBalances(currentAddress);
         }
-
+        
         // Clear inputs after successful swap
         setFromAmount("");
         setToAmount("0");
@@ -587,34 +536,31 @@ export default function Swap() {
       console.error("Error executing swap:", error);
       // Handle specific error messages with more user-friendly text
       let errorMessage = "Failed to execute swap. Please try again.";
-
+      
       if (error.reason && error.reason.includes("Insufficient liquidity")) {
         // Calculate a suggested amount (1% of the original amount)
         const originalAmount = parseFloat(fromAmount);
         const suggestedAmount = Math.min(originalAmount * 0.01, 0.01);
         const formattedSuggestion = suggestedAmount.toFixed(4);
-
+        
         errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or switch to the PRIOR→USDC pair.`;
-      } else if (
-        error.message &&
-        error.message.includes("Insufficient liquidity")
-      ) {
+      } else if (error.message && error.message.includes("Insufficient liquidity")) {
         // Calculate a suggested amount (1% of the original amount)
         const originalAmount = parseFloat(fromAmount);
         const suggestedAmount = Math.min(originalAmount * 0.01, 0.01);
         const formattedSuggestion = suggestedAmount.toFixed(4);
-
+        
         errorMessage = `Insufficient liquidity in the pool for ${fromAmount} ${fromToken}. Try using a very small amount (e.g. ${formattedSuggestion} ${fromToken}) or switch to the PRIOR→USDC pair.`;
       } else if (error.message && error.message.includes("user rejected")) {
         errorMessage = "Transaction rejected by user.";
       } else if (error.message) {
         errorMessage = error.message;
       }
-
+      
       toast({
         title: "Swap Failed",
         description: errorMessage,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsSwapping(false);
@@ -632,7 +578,7 @@ export default function Swap() {
       const amount = parseFloat(fromAmount);
       const rateKey = `${fromToken}_${toToken}`;
       const rate = exchangeRates[rateKey] || 0;
-
+      
       if (rate <= 0) {
         setToAmount("0");
         return;
@@ -641,61 +587,42 @@ export default function Swap() {
       // Apply slippage in the preview (this doesn't affect actual transaction)
       const slippageMultiplier = 1;
       const result = amount * rate * slippageMultiplier;
-
+      
       // Format based on token decimals - get the correct decimals from token metadata
       const targetDecimals = TOKENS[toToken as keyof typeof TOKENS].decimals;
       const sourceDecimals = TOKENS[fromToken as keyof typeof TOKENS].decimals;
-
-      console.log(
-        `Swap calculation: ${amount} ${fromToken} (${sourceDecimals} decimals) to ${toToken} (${targetDecimals} decimals) at rate ${rate}`,
-      );
-
+      
+      console.log(`Swap calculation: ${amount} ${fromToken} (${sourceDecimals} decimals) to ${toToken} (${targetDecimals} decimals) at rate ${rate}`);
+      
       // Special handling for stablecoin pairs (USDC/USDT)
-      if (
-        (fromToken === "USDC" && toToken === "USDT") ||
-        (fromToken === "USDT" && toToken === "USDC")
-      ) {
+      if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
         // Ensure exact 1:1 ratio for stablecoin pairs
         setToAmount(fromAmount);
-        console.log(
-          `Stablecoin swap calculation: ${fromAmount} ${fromToken} = ${fromAmount} ${toToken}`,
-        );
-      }
+        console.log(`Stablecoin swap calculation: ${fromAmount} ${fromToken} = ${fromAmount} ${toToken}`);
+      } 
       // Special handling for PRIOR to stablecoin (USDC/USDT)
-      else if (
-        fromToken === "PRIOR" &&
-        (toToken === "USDC" || toToken === "USDT")
-      ) {
+      else if (fromToken === "PRIOR" && (toToken === "USDC" || toToken === "USDT")) {
         // 1 PRIOR = 10 USDC/USDT, but need to account for decimal differences
         // PRIOR has 18 decimals, USDC/USDT have 6 decimals
         // For display clarity, show with 2 decimal places for stablecoins
         const formattedResult = result.toFixed(2);
-        console.log(
-          `PRIOR to stablecoin swap calculation: ${amount} PRIOR = ${formattedResult} ${toToken}`,
-        );
+        console.log(`PRIOR to stablecoin swap calculation: ${amount} PRIOR = ${formattedResult} ${toToken}`);
         setToAmount(formattedResult);
       }
       // Special handling for stablecoin (USDC/USDT) to PRIOR
-      else if (
-        (fromToken === "USDC" || fromToken === "USDT") &&
-        toToken === "PRIOR"
-      ) {
+      else if ((fromToken === "USDC" || fromToken === "USDT") && toToken === "PRIOR") {
         // 10 USDC/USDT = 1 PRIOR, but need to account for decimal differences
         // USDC/USDT have 6 decimals, PRIOR has 18 decimals
         // For display clarity, show with 4 decimal places for PRIOR
         const formattedResult = result.toFixed(4);
-        console.log(
-          `Stablecoin to PRIOR swap calculation: ${amount} ${fromToken} = ${formattedResult} PRIOR`,
-        );
+        console.log(`Stablecoin to PRIOR swap calculation: ${amount} ${fromToken} = ${formattedResult} PRIOR`);
         setToAmount(formattedResult);
       }
       // Default case for any other token pair
       else {
         // Use 4 decimal places as default display format
         const formattedResult = result.toFixed(4);
-        console.log(
-          `Default swap calculation: ${amount} ${fromToken} = ${formattedResult} ${toToken}`,
-        );
+        console.log(`Default swap calculation: ${amount} ${fromToken} = ${formattedResult} ${toToken}`);
         setToAmount(formattedResult);
       }
     } catch (error) {
@@ -713,14 +640,11 @@ export default function Swap() {
   useEffect(() => {
     // Try using our direct address first, then fall back to global address
     const currentAddress = directAddress || address;
-
+    
     if (currentAddress) {
-      console.log(
-        "Address detected in useEffect, loading balances:",
-        currentAddress,
-      );
+      console.log("Address detected in useEffect, loading balances:", currentAddress);
       loadBalances(currentAddress);
-
+      
       // Also ensure we have a signer if we have an address
       if (provider && !signer) {
         try {
@@ -762,7 +686,7 @@ export default function Swap() {
     const temp = fromToken;
     setFromToken(toToken);
     setToToken(temp);
-
+    
     // Also switch amounts if possible
     if (toAmount && toAmount !== "0") {
       setFromAmount(toAmount);
@@ -778,16 +702,16 @@ export default function Swap() {
   const formatBalance = (balance: string, tokenSymbol?: string) => {
     const token = tokenSymbol || "PRIOR"; // Default to PRIOR if no token specified
     const decimals = TOKENS[token as keyof typeof TOKENS]?.decimals || 18;
-
+    
     // For stablecoins use 2 decimals, for PRIOR use 4
     const displayDecimals = decimals === 6 ? 2 : 4;
-
+    
     return parseFloat(balance || "0").toFixed(displayDecimals);
   };
 
   // Get available tokens for dropdown
   const getAvailableTokens = (excludeToken: string) => {
-    return Object.keys(TOKENS).filter((token) => token !== excludeToken);
+    return Object.keys(TOKENS).filter(token => token !== excludeToken);
   };
 
   // Verify if the pair is supported
@@ -796,15 +720,12 @@ export default function Swap() {
     if (fromToken === "PRIOR" || toToken === "PRIOR") {
       return true;
     }
-
+    
     // USDC-USDT pair is also supported
-    if (
-      (fromToken === "USDC" && toToken === "USDT") ||
-      (fromToken === "USDT" && toToken === "USDC")
-    ) {
+    if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
       return true;
     }
-
+    
     return false;
   };
 
@@ -815,7 +736,7 @@ export default function Swap() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">PRIOR Swap</h1>
           <div className="flex items-center space-x-2">
-            <button
+            <button 
               onClick={() => setShowSettings(!showSettings)}
               className="p-2 rounded-full hover:bg-gray-800 transition-colors"
             >
@@ -824,14 +745,14 @@ export default function Swap() {
             {directAddress || isLocalConnected || isConnected || address ? (
               <div className="flex items-center bg-gray-800 rounded-full px-3 py-1">
                 <span className="text-sm mr-2">
-                  {directAddress
+                  {directAddress 
                     ? `${directAddress.substring(0, 6)}...${directAddress.substring(38)}`
-                    : address
-                      ? `${address.substring(0, 6)}...${address.substring(38)}`
+                    : address 
+                      ? `${address.substring(0, 6)}...${address.substring(38)}` 
                       : "Connected"}
                 </span>
                 <div className="flex items-center gap-1">
-                  <button
+                  <button 
                     onClick={() => {
                       if (directAddress) {
                         navigator.clipboard.writeText(directAddress);
@@ -862,9 +783,9 @@ export default function Swap() {
                       // Display toast
                       toast({
                         title: "Wallet Disconnected",
-                        description: "Your wallet has been disconnected",
+                        description: "Your wallet has been disconnected"
                       });
-
+                      
                       // If there's a global disconnect in WalletContext, try to use it
                       if (disconnectWallet) {
                         disconnectWallet();
@@ -892,16 +813,10 @@ export default function Swap() {
         {/* Testnet Notice */}
         <div className="bg-indigo-900/70 border border-indigo-700 rounded-xl p-3 mb-4 text-sm">
           <p className="text-indigo-200 font-medium mb-2">
-            <span className="text-indigo-400 font-bold">
-              ⚠️ Testnet Notice:
-            </span>{" "}
-            This is a testnet environment with extremely limited liquidity. Try
-            swapping with very small amounts (0.01-0.1 PRIOR or 1-10 USDC/USDT
-            recommended).
+            <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment with extremely limited liquidity. Try swapping with very small amounts (0.01-0.1 PRIOR or 1-10 USDC/USDT recommended).
           </p>
           <p className="text-yellow-300 text-xs">
-            <span className="font-bold">Supported pairs:</span> PRIOR ↔
-            USDC/USDT and USDC ↔ USDT. Best results with small amounts.
+            <span className="font-bold">Supported pairs:</span> PRIOR ↔ USDC/USDT and USDC ↔ USDT. Best results with small amounts.
           </p>
         </div>
 
@@ -913,15 +828,13 @@ export default function Swap() {
               <h3 className="font-medium mb-3">Transaction Settings</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">
-                    Slippage Tolerance
-                  </label>
+                  <label className="block text-sm text-gray-400 mb-1">Slippage Tolerance</label>
                   <div className="flex space-x-2">
                     {[0.1, 0.5, 1].map((value) => (
                       <button
                         key={value}
                         onClick={() => setSlippage(value)}
-                        className={`px-3 py-1 rounded-lg text-sm ${slippage === value ? "bg-[#00df9a] text-black" : "bg-gray-600 hover:bg-gray-500"}`}
+                        className={`px-3 py-1 rounded-lg text-sm ${slippage === value ? 'bg-[#00df9a] text-black' : 'bg-gray-600 hover:bg-gray-500'}`}
                       >
                         {value}%
                       </button>
@@ -939,9 +852,7 @@ export default function Swap() {
                         max="100"
                         step="0.1"
                       />
-                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-300">
-                        %
-                      </span>
+                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-300">%</span>
                     </div>
                   </div>
                 </div>
@@ -955,7 +866,7 @@ export default function Swap() {
               <span className="text-sm text-gray-400">From</span>
               <div className="flex space-x-1">
                 {fromToken === "PRIOR" && toToken === "USDC" && (
-                  <button
+                  <button 
                     onClick={() => setFromAmount("0.01")}
                     className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
                     title="Use recommended test amount for PRIOR→USDC"
@@ -963,8 +874,8 @@ export default function Swap() {
                     Try: 0.01
                   </button>
                 )}
-                {fromToken === "USDC" && toToken === "USDT" && (
-                  <button
+                {(fromToken === "USDC" && toToken === "USDT") && (
+                  <button 
                     onClick={() => setFromAmount("1")}
                     className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
                     title="Use recommended test amount for USDC→USDT"
@@ -972,8 +883,8 @@ export default function Swap() {
                     Try: 1
                   </button>
                 )}
-                {fromToken === "USDT" && toToken === "USDC" && (
-                  <button
+                {(fromToken === "USDT" && toToken === "USDC") && (
+                  <button 
                     onClick={() => setFromAmount("1")}
                     className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
                     title="Use recommended test amount for USDT→USDC"
@@ -981,7 +892,7 @@ export default function Swap() {
                     Try: 1
                   </button>
                 )}
-                <button
+                <button 
                   onClick={setMaxAmount}
                   className="text-xs bg-gray-600 hover:bg-gray-500 px-2 py-0.5 rounded"
                 >
@@ -998,42 +909,26 @@ export default function Swap() {
                 className="bg-transparent text-2xl w-full outline-none"
               />
               <div className="relative">
-                <button
+                <button 
                   onClick={() => setShowFromDropdown(!showFromDropdown)}
                   className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-3 py-2 rounded-lg ml-2 transition-colors"
                 >
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{
-                      backgroundColor:
-                        TOKENS[fromToken as keyof typeof TOKENS].color,
-                    }}
-                  >
-                    <span className="text-white text-sm font-bold">
-                      {TOKENS[fromToken as keyof typeof TOKENS].logo}
-                    </span>
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: TOKENS[fromToken as keyof typeof TOKENS].color }}>
+                    <span className="text-white text-sm font-bold">{TOKENS[fromToken as keyof typeof TOKENS].logo}</span>
                   </div>
                   <span>{fromToken}</span>
                   <FiChevronDown className="text-gray-300" />
                 </button>
                 {showFromDropdown && (
                   <div className="absolute right-0 mt-2 w-full bg-gray-800 rounded-xl shadow-lg z-10 border border-gray-700 max-h-60 overflow-auto">
-                    {getAvailableTokens(toToken).map((token) => (
+                    {getAvailableTokens(toToken).map(token => (
                       <button
                         key={token}
                         onClick={() => handleFromTokenSelect(token)}
                         className="w-full text-left px-4 py-3 hover:bg-gray-700 flex items-center gap-3"
                       >
-                        <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center"
-                          style={{
-                            backgroundColor:
-                              TOKENS[token as keyof typeof TOKENS].color,
-                          }}
-                        >
-                          <span className="text-white text-sm font-bold">
-                            {TOKENS[token as keyof typeof TOKENS].logo}
-                          </span>
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: TOKENS[token as keyof typeof TOKENS].color }}>
+                          <span className="text-white text-sm font-bold">{TOKENS[token as keyof typeof TOKENS].logo}</span>
                         </div>
                         <span>{token}</span>
                       </button>
@@ -1070,42 +965,26 @@ export default function Swap() {
                 className="bg-transparent text-2xl w-full outline-none"
               />
               <div className="relative">
-                <button
+                <button 
                   onClick={() => setShowToDropdown(!showToDropdown)}
                   className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-3 py-2 rounded-lg ml-2 transition-colors"
                 >
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{
-                      backgroundColor:
-                        TOKENS[toToken as keyof typeof TOKENS].color,
-                    }}
-                  >
-                    <span className="text-white text-sm font-bold">
-                      {TOKENS[toToken as keyof typeof TOKENS].logo}
-                    </span>
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: TOKENS[toToken as keyof typeof TOKENS].color }}>
+                    <span className="text-white text-sm font-bold">{TOKENS[toToken as keyof typeof TOKENS].logo}</span>
                   </div>
                   <span>{toToken}</span>
                   <FiChevronDown className="text-gray-300" />
                 </button>
                 {showToDropdown && (
                   <div className="absolute right-0 mt-2 w-full bg-gray-800 rounded-xl shadow-lg z-10 border border-gray-700 max-h-60 overflow-auto">
-                    {getAvailableTokens(fromToken).map((token) => (
+                    {getAvailableTokens(fromToken).map(token => (
                       <button
                         key={token}
                         onClick={() => handleToTokenSelect(token)}
                         className="w-full text-left px-4 py-3 hover:bg-gray-700 flex items-center gap-3"
                       >
-                        <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center"
-                          style={{
-                            backgroundColor:
-                              TOKENS[token as keyof typeof TOKENS].color,
-                          }}
-                        >
-                          <span className="text-white text-sm font-bold">
-                            {TOKENS[token as keyof typeof TOKENS].logo}
-                          </span>
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: TOKENS[token as keyof typeof TOKENS].color }}>
+                          <span className="text-white text-sm font-bold">{TOKENS[token as keyof typeof TOKENS].logo}</span>
                         </div>
                         <span>{token}</span>
                       </button>
@@ -1121,29 +1000,21 @@ export default function Swap() {
             <div className="flex justify-between">
               <span>Rate</span>
               <span>
-                1 {fromToken} ={" "}
-                {exchangeRates[`${fromToken}_${toToken}`]?.toFixed(6) || "0"}{" "}
-                {toToken}
+                1 {fromToken} = {exchangeRates[`${fromToken}_${toToken}`]?.toFixed(6) || '0'} {toToken}
               </span>
             </div>
             <div className="flex justify-between mt-1">
               <span>Slippage</span>
               <span>{slippage}%</span>
             </div>
-
+            
             {/* Testnet Notice */}
             <div className="mt-3 p-2 bg-gray-700 rounded-lg text-xs">
-              <span className="block text-yellow-300 mb-1">
-                🚧 Testnet Environment
-              </span>
+              <span className="block text-yellow-300 mb-1">🚧 Testnet Environment</span>
               <span className="text-gray-300">
                 Try swapping small amounts for best results:
-                <span className="block mt-1 ml-2">
-                  • PRIOR pairs: 0.01-0.1 PRIOR
-                </span>
-                <span className="block ml-2">
-                  • USDC/USDT pairs: 1-10 USDC/USDT
-                </span>
+                <span className="block mt-1 ml-2">• PRIOR pairs: 0.01-0.1 PRIOR</span>
+                <span className="block ml-2">• USDC/USDT pairs: 1-10 USDC/USDT</span>
               </span>
             </div>
           </div>
@@ -1158,53 +1029,44 @@ export default function Swap() {
                 Connect Wallet
               </button>
             ) : !isPairSupported() ? (
-              <button
+              <button 
                 disabled
                 className="w-full bg-gray-700 text-gray-400 font-medium py-3 rounded-xl"
               >
                 Unsupported token pair
               </button>
-            ) : parseFloat(fromAmount) >
-              parseFloat(balances[fromToken] || "0") ? (
-              <button
+            ) : parseFloat(fromAmount) > parseFloat(balances[fromToken] || "0") ? (
+              <button 
                 disabled
                 className="w-full bg-gray-700 text-gray-400 font-medium py-3 rounded-xl"
               >
                 Insufficient {fromToken} balance
               </button>
             ) : !hasAllowance ? (
-              <button
+              <button 
                 onClick={approveToken}
-                disabled={
-                  isApproving || !fromAmount || parseFloat(fromAmount) <= 0
-                }
-                className={`w-full ${isApproving ? "bg-gray-600" : "bg-gradient-to-r from-blue-600 to-blue-500"} text-white font-medium py-3 rounded-xl transition-colors`}
+                disabled={isApproving || !fromAmount || parseFloat(fromAmount) <= 0}
+                className={`w-full ${isApproving ? 'bg-gray-600' : 'bg-gradient-to-r from-blue-600 to-blue-500'} text-white font-medium py-3 rounded-xl transition-colors`}
               >
                 {isApproving ? (
                   <span className="flex items-center justify-center">
                     <FiRefreshCw className="animate-spin mr-2" />
                     Approving...
                   </span>
-                ) : (
-                  `Approve ${fromToken}`
-                )}
+                ) : `Approve ${fromToken}`}
               </button>
             ) : (
               <button
                 onClick={executeSwap}
-                disabled={
-                  isSwapping || !fromAmount || parseFloat(fromAmount) <= 0
-                }
-                className={`w-full ${isSwapping ? "bg-gray-600" : "bg-gradient-to-r from-[#00df9a] to-blue-500"} text-black font-medium py-3 rounded-xl transition-colors`}
+                disabled={isSwapping || !fromAmount || parseFloat(fromAmount) <= 0}
+                className={`w-full ${isSwapping ? 'bg-gray-600' : 'bg-gradient-to-r from-[#00df9a] to-blue-500'} text-black font-medium py-3 rounded-xl transition-colors`}
               >
                 {isSwapping ? (
                   <span className="flex items-center justify-center">
                     <FiRefreshCw className="animate-spin mr-2" />
                     Swapping...
                   </span>
-                ) : (
-                  `Swap to ${toToken}`
-                )}
+                ) : `Swap to ${toToken}`}
               </button>
             )}
           </div>
@@ -1224,6 +1086,13 @@ export default function Swap() {
           </div>
         )}
       </div>
+      
+      {/* Transaction History */}
+      {(directAddress || isConnected || isLocalConnected) && (
+        <div className="mt-10">
+          <TransactionHistory />
+        </div>
+      )}
     </div>
   );
 }

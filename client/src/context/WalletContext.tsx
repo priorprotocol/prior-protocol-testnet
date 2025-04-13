@@ -14,10 +14,10 @@ import {
 } from "@/lib/web3";
 import { 
   getTokenBalance as getTokenBalanceFromContract, 
+  swapTokens, 
   contractAddresses,
   checkPriorPioneerNFT
 } from "@/lib/contracts";
-import { swapTokens, approveTokens } from "@/contracts/services";
 
 // Global wallet update function for compatibility with older code
 // Create a custom event for wallet connection
@@ -352,8 +352,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
           if (!isMounted) return;
           
           try {
-            // getTokenBalanceFromContract now returns a formatted string directly
-            const formattedBalance = await getTokenBalanceFromContract(token.address, address);
+            const result = await getTokenBalanceFromContract(token.address, address);
+            const formattedBalance = formatTokenAmount(result.balance.toString(), result.decimals);
             
             // Only update if the balance has actually changed to avoid re-renders
             if (newBalances[token.symbol] !== formattedBalance) {
@@ -635,7 +635,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       throw new Error("Please switch to Base Sepolia network");
     }
     
-    try {      
+    try {
       const fromToken = tokens.find(t => t.address.toLowerCase() === fromTokenAddress.toLowerCase());
       const toToken = tokens.find(t => t.address.toLowerCase() === toTokenAddress.toLowerCase());
       
@@ -643,68 +643,38 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         throw new Error("Invalid token selection");
       }
       
-      // Using original amount for display only
+      const fromDecimals = fromToken.address.toLowerCase() === contractAddresses.priorToken.toLowerCase() 
+        ? 18 : fromToken.decimals;
+        
+      const parsedAmount = parseTokenAmount(fromAmount, fromDecimals);
+      
       toast({
         title: "Processing Swap",
         description: `Swapping ${fromAmount} ${fromToken.symbol} to ${toToken.symbol}...`,
       });
       
-      console.log(`Attempting to swap from ${fromToken.symbol} to ${toToken.symbol}`);
-      console.log(`Using direct swap implementation to avoid BigNumber formatting issues`);
-      
-      // Import the direct swap function from utils
-      const { directSwap } = await import('../utils/swap-helper');
-      
-      // Execute the swap with our hardcoded safe values
-      const success = await directSwap(fromTokenAddress, toTokenAddress, fromAmount);
-      
-      if (!success) {
-        throw new Error(`Failed to swap ${fromToken.symbol} to ${toToken.symbol}`);
-      }
-      
-      // Simulate a transaction receipt for the rest of the function
-      const txReceipt = {
-        hash: 'swap-successful-' + Date.now(),
-        blockNumber: 0
-      };
-      
-      // Get transaction hash and block number from receipt
-      // ethers.js TransactionReceipt should have these properties
-      // Use type assertion to handle TypeScript issues
-      const receipt = txReceipt as any;
-      const txHash = receipt.transactionHash || receipt.hash || 'unknown';
-      const blockNumber = receipt.blockNumber || 0;
+      const txReceipt = await swapTokens(fromTokenAddress, toTokenAddress, parsedAmount, slippage);
+      const txHash = txReceipt.transactionHash || txReceipt.hash;
+      const blockNumber = txReceipt.blockNumber;
       
       const updatedBalances = {...tokenBalances};
       
-      // Add a longer delay to ensure the blockchain state is updated before we fetch new balances
-      console.log("Waiting for blockchain state to update...");
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
       if (address) {
         try {
-          console.log("Refreshing token balances after swap...");
+          const fromTokenContract = await getTokenBalanceFromContract(fromTokenAddress, address);
+          const toTokenContract = await getTokenBalanceFromContract(toTokenAddress, address);
           
-          // Create a fresh copy of all token balances
-          const newBalances: Record<string, string> = {};
+          updatedBalances[fromToken.symbol] = formatTokenAmount(
+            fromTokenContract.balance.toString(), 
+            fromTokenContract.decimals
+          );
           
-          // Fetch all token balances again to ensure everything is fully updated
-          for (const token of tokens) {
-            try {
-              console.log(`Re-fetching balance for ${token.symbol}...`);
-              const refreshedBalance = await getTokenBalanceFromContract(token.address, address);
-              newBalances[token.symbol] = refreshedBalance;
-              console.log(`Updated ${token.symbol} balance: ${refreshedBalance}`);
-            } catch (balanceError) {
-              console.error(`Error refreshing ${token.symbol} balance:`, balanceError);
-              // Keep the old balance if there's an error
-              newBalances[token.symbol] = tokenBalances[token.symbol] || "0.00";
-            }
-          }
+          updatedBalances[toToken.symbol] = formatTokenAmount(
+            toTokenContract.balance.toString(), 
+            toTokenContract.decimals
+          );
           
-          // Set all token balances at once to avoid partial updates
-          setTokenBalances(newBalances);
-          console.log("All token balances refreshed successfully");
+          setTokenBalances(updatedBalances);
         } catch (error) {
           console.error("Error refreshing balances:", error);
         }
