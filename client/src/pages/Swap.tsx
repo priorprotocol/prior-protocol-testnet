@@ -490,8 +490,8 @@ export default function Swap() {
       const fromTokenInfo = TOKENS[fromToken as keyof typeof TOKENS];
       const toTokenInfo = TOKENS[toToken as keyof typeof TOKENS];
       
-      // Convert to proper token units (wei for PRIOR, micro-units for USDC/USDT)
-      const amountInWei = ethers.utils.parseUnits(fromAmount, fromTokenInfo.decimals);
+      // Format amount - parse with appropriate decimals
+      const parsedAmount = ethers.utils.parseUnits(fromAmount, fromTokenInfo.decimals);
       
       // Get the appropriate swap contract address
       const swapContractAddress = getSwapContractAddress(fromToken, toToken);
@@ -499,73 +499,34 @@ export default function Swap() {
         throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
       }
       
-      // Calculate minimum amount out with slippage
-      const minAmountOut = parseFloat(toAmount) * (1 - (slippage / 100));
-      const minAmountOutWei = ethers.utils.parseUnits(minAmountOut.toString(), toTokenInfo.decimals);
-      
       console.log(`Executing swap: ${fromAmount} ${fromToken} to ${toToken}`);
       console.log(`Using contract: ${swapContractAddress}`);
-      console.log(`Amount in wei: ${amountInWei.toString()}`);
-      console.log(`Min amount out: ${minAmountOut} ${toToken} (${minAmountOutWei.toString()} wei)`);
+      console.log(`Amount in wei: ${parsedAmount.toString()}`);
       
-      // Determine which swap function to call
+      // Create swap contract instance
       let tx;
-      if (fromToken === "PRIOR" && toToken === "USDC") {
-        console.log("Executing PRIOR to USDC swap");
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress
+      try {
+        // Define the swap contract instance using the correct ABI
+        const swapContract = new ethers.Contract(
+          swapContractAddress,
+          [
+            "function swap(uint256 amount) external returns (bool)",
+            "function getAmountOut(uint256 amountIn) external view returns (uint256)"
+          ],
+          signer
         );
-      } 
-      else if (fromToken === "USDC" && toToken === "PRIOR") {
-        console.log("Executing USDC to PRIOR swap");
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress
-        );
-      }
-      else if (fromToken === "PRIOR" && toToken === "USDT") {
-        console.log("Executing PRIOR to USDT swap");
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress
-        );
-      }
-      else if (fromToken === "USDT" && toToken === "PRIOR") {
-        console.log("Executing USDT to PRIOR swap");
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress
-        );
-      }
-      else if (fromToken === "USDC" && toToken === "USDT") {
-        console.log("Executing USDC to USDT swap");
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress
-        );
-      }
-      else if (fromToken === "USDT" && toToken === "USDC") {
-        console.log("Executing USDT to USDC swap");
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress
-        );
-      }
-      else {
-        throw new Error(`Swap pair not supported: ${fromToken}-${toToken}`);
+        
+        // Call the swap function - simple interface that takes amount as parameter
+        console.log(`Calling swap with amount: ${parsedAmount.toString()}`);
+        const txResponse = await swapContract.swap(parsedAmount);
+        
+        // Wait for transaction to be mined
+        console.log("Waiting for transaction to be mined...");
+        tx = await txResponse.wait();
+        console.log("Transaction mined:", tx);
+      } catch (error) {
+        console.error("Swap execution error:", error);
+        throw error;
       }
       
       if (tx) {
@@ -574,16 +535,19 @@ export default function Swap() {
         
         toast({
           title: "Swap Successful",
-          description: `Swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`,
+          description: `Successfully swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`,
         });
         
-        // Refresh balances after 5 seconds to allow for blockchain update
-        setTimeout(async () => {
-          const currentAddress = directAddress || address;
-          if (currentAddress) {
+        // Refresh balances immediately and again after a delay
+        const currentAddress = directAddress || address;
+        if (currentAddress) {
+          await loadBalances(currentAddress);
+          
+          // Do another balance refresh after 5 seconds to ensure we have the latest balances
+          setTimeout(async () => {
             await loadBalances(currentAddress);
-          }
-        }, 5000);
+          }, 5000);
+        }
         
         // Clear inputs after successful swap
         setFromAmount("");
@@ -655,10 +619,10 @@ export default function Swap() {
 
       // Adjust for decimal differences
       const decimalAdjustment = Math.pow(10, fromTokenInfo.decimals - toTokenInfo.decimals);
-      let result = amount * rate / decimalAdjustment;
+      let result = amount * rate * decimalAdjustment;
       
       console.log(`Swap calculation: ${amount} ${fromToken} (${fromTokenInfo.decimals} decimals) to ${toToken} (${toTokenInfo.decimals} decimals) with rate ${rate}`);
-      console.log(`Decimal adjustment: ${decimalAdjustment}, Result: ${result}`);
+      console.log(`Decimal adjustment: ${Math.pow(10, fromTokenInfo.decimals - toTokenInfo.decimals)}, Result: ${result}`);
 
       // Apply a small fee (0.5%) to the output amount to match the contracts
       const fee = 0.005; // 0.5%
