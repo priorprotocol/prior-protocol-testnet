@@ -301,14 +301,6 @@ export default function Swap() {
     try {
       console.log("Fetching token balances for address:", walletAddress);
       
-      // Debug: Print out token addresses being used
-      console.log("Token addresses being used:");
-      console.log("PRIOR:", TOKENS.PRIOR.address);
-      console.log("USDC:", TOKENS.USDC.address);
-      console.log("USDT:", TOKENS.USDT.address);
-      // Debug logs
-      console.log("Swap contracts:", contractAddresses.swapContracts);
-      
       // Properly fetch all token balances from the contract using our improved getTokenBalance function
       if (provider) {
         for (const symbol of Object.keys(TOKENS)) {
@@ -317,10 +309,29 @@ export default function Swap() {
             const tokenDecimals = TOKENS[symbol as keyof typeof TOKENS].decimals;
             
             // Use the updated contract helper function to get the balance
-            const balance = await getTokenBalanceFromContract(tokenAddress, walletAddress);
+            const rawBalance = await getTokenBalanceFromContract(tokenAddress, walletAddress);
             
-            newBalances[symbol] = balance;
-            console.log(`${symbol} balance updated:`, balance);
+            // Format the balance nicely for display based on token type
+            let formattedBalance;
+            
+            if (symbol === "PRIOR") {
+              // For PRIOR, display with cleaner formatting (no scientific notation)
+              const parsedBalance = parseFloat(rawBalance);
+              if (parsedBalance >= 1) {
+                formattedBalance = parsedBalance.toFixed(2);
+              } else {
+                formattedBalance = parsedBalance.toFixed(4);
+              }
+              // Remove trailing zeros
+              formattedBalance = formattedBalance.replace(/\.?0+$/, '');
+            } else {
+              // For stablecoins, display with 2 decimal places
+              const parsedBalance = parseFloat(rawBalance);
+              formattedBalance = parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+            }
+            
+            newBalances[symbol] = formattedBalance;
+            console.log(`${symbol} balance updated:`, formattedBalance);
           } catch (tokenError) {
             console.error(`Error getting ${symbol} balance:`, tokenError);
             newBalances[symbol] = "0";
@@ -687,11 +698,24 @@ export default function Swap() {
       result = result * (1 - fee);
       console.log(`Result after ${fee * 100}% fee: ${result}`);
 
-      // Format based on token type
+      // Format for display with correct precision, showing exact 1:10 ratio
+      // when possible, and removing unnecessary trailing zeros
       if (toToken === "USDC" || toToken === "USDT") {
-        setToAmount(result.toFixed(2)); // 2 decimals for stablecoins
+        // For stablecoins, show with 2 decimal places without trailing zeros
+        const cleanResult = parseFloat(result.toFixed(2)).toString();
+        setToAmount(cleanResult);
       } else {
-        setToAmount(result.toFixed(4)); // 4 decimals for PRIOR
+        // For PRIOR token
+        // Use appropriate precision based on token value
+        if (result >= 1) {
+          // Higher values show with fewer decimals
+          const cleanResult = parseFloat(result.toFixed(2)).toString();
+          setToAmount(cleanResult);
+        } else {
+          // Lower values need more precision
+          const cleanResult = parseFloat(result.toFixed(4)).toString();
+          setToAmount(cleanResult);
+        }
       }
     } catch (error) {
       console.error("Calculation error:", error);
@@ -769,12 +793,23 @@ export default function Swap() {
   // Format balance display based on token decimals
   const formatBalance = (balance: string, tokenSymbol?: string) => {
     const token = tokenSymbol || "PRIOR"; // Default to PRIOR if no token specified
-    const decimals = TOKENS[token as keyof typeof TOKENS]?.decimals || 18;
     
-    // For stablecoins use 2 decimals, for PRIOR use 4
-    const displayDecimals = decimals === 6 ? 2 : 4;
+    // Parse the balance to a number
+    const parsedBalance = parseFloat(balance || "0");
     
-    return parseFloat(balance || "0").toFixed(displayDecimals);
+    // Use cleaner display formats based on token type
+    if (token === "PRIOR") {
+      // PRIOR token - show with at most 4 decimal places
+      // Avoid showing trailing zeros
+      if (parsedBalance >= 1) {
+        return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+      } else {
+        return parsedBalance.toFixed(4).replace(/\.?0+$/, '');
+      }
+    } else {
+      // USDC/USDT stablecoins - show with at most 2 decimal places
+      return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+    }
   };
 
   // Get available tokens for dropdown
@@ -1068,7 +1103,16 @@ export default function Swap() {
             <div className="flex justify-between">
               <span>Rate</span>
               <span>
-                1 {fromToken} = {exchangeRates[`${fromToken}_${toToken}`]?.toFixed(6) || '0'} {toToken}
+                {fromToken === "PRIOR" && (toToken === "USDC" || toToken === "USDT") ? (
+                  // PRIOR to stablecoins: 1 PRIOR = 10 USDC/USDT
+                  `1 PRIOR = 10 ${toToken}`
+                ) : (toToken === "PRIOR" && (fromToken === "USDC" || fromToken === "USDT")) ? (
+                  // Stablecoins to PRIOR: 10 USDC/USDT = 1 PRIOR
+                  `10 ${fromToken} = 1 PRIOR`
+                ) : (
+                  // Other pairs (like USDC-USDT): 1:1
+                  `1 ${fromToken} = 1 ${toToken}`
+                )}
               </span>
             </div>
             <div className="flex justify-between mt-1">

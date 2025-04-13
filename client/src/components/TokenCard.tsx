@@ -25,8 +25,21 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
       return '0.00';
     }
     
-    // Return rawBalance directly as it's already properly formatted in context
-    return rawBalance;
+    // Parse the balance
+    const parsedBalance = parseFloat(rawBalance);
+    
+    // Format based on token type
+    if (token.symbol === "PRIOR") {
+      // For PRIOR, display with cleaner formatting (no scientific notation)
+      if (parsedBalance >= 1) {
+        return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+      } else {
+        return parsedBalance.toFixed(4).replace(/\.?0+$/, '');
+      }
+    } else {
+      // For stablecoins (USDC, USDT), display with 2 decimal places
+      return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+    }
   };
   
   // Use the token's balance if provided, otherwise get it from the wallet context
