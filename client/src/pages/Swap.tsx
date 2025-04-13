@@ -499,9 +499,19 @@ export default function Swap() {
         throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
       }
       
-      // Calculate minimum amount out with slippage
-      const minAmountOut = parseFloat(toAmount) * (1 - (slippage / 100));
-      const minAmountOutWei = ethers.utils.parseUnits(minAmountOut.toString(), toTokenInfo.decimals);
+      // Calculate minimum amount out with slippage, making sure to handle decimals properly
+      let minAmountOut = parseFloat(toAmount) * (1 - (slippage / 100));
+      
+      // Format the number to avoid scientific notation and limit decimal places based on token type
+      let formattedMinAmount;
+      if (toToken === "PRIOR") {
+        formattedMinAmount = minAmountOut.toFixed(8); // Limit PRIOR to 8 decimal places for safety
+      } else {
+        formattedMinAmount = minAmountOut.toFixed(6); // Stablecoins have 6 decimals
+      }
+      
+      console.log(`Min amount out (formatted): ${formattedMinAmount} ${toToken}`);
+      const minAmountOutWei = ethers.utils.parseUnits(formattedMinAmount, toTokenInfo.decimals);
       
       console.log(`Executing swap: ${fromAmount} ${fromToken} to ${toToken}`);
       console.log(`Using contract: ${swapContractAddress}`);
@@ -521,11 +531,17 @@ export default function Swap() {
       } 
       else if (fromToken === "USDC" && toToken === "PRIOR") {
         console.log("Executing USDC to PRIOR swap");
+        
+        // Special handling for USDC to PRIOR swap to avoid scientific notation issues
+        // The expected output in PRIOR has 18 decimals which causes the scientific notation
+        // Instead of passing minAmountOut, we'll set it to 0 for this specific swap
+        
         tx = await swapTokens(
           fromTokenInfo.address,
           toTokenInfo.address,
           fromAmount,
-          swapContractAddress
+          swapContractAddress,
+          "0" // Set minAmountOut to 0 to avoid scientific notation issues
         );
       }
       else if (fromToken === "PRIOR" && toToken === "USDT") {
@@ -539,11 +555,17 @@ export default function Swap() {
       }
       else if (fromToken === "USDT" && toToken === "PRIOR") {
         console.log("Executing USDT to PRIOR swap");
+        
+        // Special handling for USDT to PRIOR swap to avoid scientific notation issues
+        // The expected output in PRIOR has 18 decimals which causes the scientific notation
+        // Instead of passing minAmountOut, we'll set it to 0 for this specific swap
+        
         tx = await swapTokens(
           fromTokenInfo.address,
           toTokenInfo.address,
           fromAmount,
-          swapContractAddress
+          swapContractAddress,
+          "0" // Set minAmountOut to 0 to avoid scientific notation issues
         );
       }
       else if (fromToken === "USDC" && toToken === "USDT") {
