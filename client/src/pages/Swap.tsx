@@ -551,75 +551,15 @@ export default function Swap() {
       
       // Determine which swap function to call
       let tx;
-      if (fromToken === "PRIOR" && toToken === "USDC") {
-        console.log("Executing PRIOR to USDC swap");
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress
-        );
-      } 
-      else if (fromToken === "USDC" && toToken === "PRIOR") {
-        console.log("Executing USDC to PRIOR swap");
-        
-        // Special handling for USDC to PRIOR swap to avoid scientific notation issues
-        // The expected output in PRIOR has 18 decimals which causes the scientific notation
-        // Instead of passing minAmountOut, we'll set it to 0 for this specific swap
-        
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress,
-          "0" // Set minAmountOut to 0 to avoid scientific notation issues
-        );
-      }
-      else if (fromToken === "PRIOR" && toToken === "USDT") {
-        console.log("Executing PRIOR to USDT swap");
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress
-        );
-      }
-      else if (fromToken === "USDT" && toToken === "PRIOR") {
-        console.log("Executing USDT to PRIOR swap");
-        
-        // Special handling for USDT to PRIOR swap to avoid scientific notation issues
-        // The expected output in PRIOR has 18 decimals which causes the scientific notation
-        // Instead of passing minAmountOut, we'll set it to 0 for this specific swap
-        
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress,
-          "0" // Set minAmountOut to 0 to avoid scientific notation issues
-        );
-      }
-      else if (fromToken === "USDC" && toToken === "USDT") {
-        console.log("Executing USDC to USDT swap");
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress
-        );
-      }
-      else if (fromToken === "USDT" && toToken === "USDC") {
-        console.log("Executing USDT to USDC swap");
-        tx = await swapTokens(
-          fromTokenInfo.address,
-          toTokenInfo.address,
-          fromAmount,
-          swapContractAddress
-        );
-      }
-      else {
-        throw new Error(`Swap pair not supported: ${fromToken}-${toToken}`);
-      }
+      // For all pairs, use the simplified swap function with minAmountOut=0
+      console.log(`Executing ${fromToken} to ${toToken} swap`);
+      tx = await swapTokens(
+        fromTokenInfo.address,
+        toTokenInfo.address,
+        fromAmount,
+        swapContractAddress,
+        "0" // Set minAmountOut to 0 to avoid scientific notation issues and allow easier swapping
+      );
       
       if (tx) {
         // Set transaction hash
@@ -706,36 +646,59 @@ export default function Swap() {
         return;
       }
 
-      // Adjust for decimal differences
-      const decimalAdjustment = Math.pow(10, fromTokenInfo.decimals - toTokenInfo.decimals);
-      let result = amount * rate / decimalAdjustment;
+      // Calculate the result directly without decimal adjustment
+      // The decimal adjustment is handled by the smart contract when making the actual swap
+      let result = amount * rate;
       
-      console.log(`Swap calculation: ${amount} ${fromToken} (${fromTokenInfo.decimals} decimals) to ${toToken} (${toTokenInfo.decimals} decimals) with rate ${rate}`);
-      console.log(`Decimal adjustment: ${decimalAdjustment}, Result: ${result}`);
+      console.log(`Swap calculation: ${amount} ${fromToken} to ${toToken} with rate ${rate}`);
+      console.log(`Result before fee: ${result}`);
 
       // Apply a small fee (0.5%) to the output amount to match the contracts
       const fee = 0.005; // 0.5%
       result = result * (1 - fee);
       console.log(`Result after ${fee * 100}% fee: ${result}`);
 
-      // Format for display with correct precision, showing exact 1:10 ratio
-      // when possible, and removing unnecessary trailing zeros
+      // Format for display with correct precision and avoid displaying zero for small values
       if (toToken === "USDC" || toToken === "USDT") {
-        // For stablecoins, show with 2 decimal places without trailing zeros
-        const cleanResult = parseFloat(result.toFixed(2)).toString();
-        setToAmount(cleanResult);
-      } else {
-        // For PRIOR token
-        // Use appropriate precision based on token value
-        if (result >= 1) {
-          // Higher values show with fewer decimals
-          const cleanResult = parseFloat(result.toFixed(2)).toString();
-          setToAmount(cleanResult);
-        } else {
-          // Lower values need more precision
-          const cleanResult = parseFloat(result.toFixed(4)).toString();
-          setToAmount(cleanResult);
+        // For stablecoins, show with 2 decimal places
+        let formatted = result.toFixed(2);
+        
+        // Ensure we don't show "0.00" for very small values greater than zero
+        if (result > 0 && parseFloat(formatted) === 0) {
+          formatted = "0.01"; // Show a minimum value
         }
+        
+        setToAmount(formatted);
+      } else if (toToken === "PRIOR") {
+        // For PRIOR token coming from stablecoins
+        let formatted;
+        
+        if (result >= 1) {
+          // For values >= 1, show with 2 decimal places
+          formatted = result.toFixed(2);
+        } else if (result >= 0.01) {
+          // For values between 0.01 and 1, show with 3 decimal places
+          formatted = result.toFixed(3);
+        } else {
+          // For smaller values, show with 4 decimal places
+          formatted = result.toFixed(4);
+        }
+        
+        // Ensure we don't show "0.0000" for very small values greater than zero
+        if (result > 0 && parseFloat(formatted) === 0) {
+          formatted = "0.0001"; // Show a minimum value
+        }
+        
+        // Remove trailing zeros but keep at least one digit after decimal
+        if (formatted.includes('.')) {
+          const parts = formatted.split('.');
+          if (parts[1]) {
+            const decimalPart = parts[1].replace(/0+$/, '');
+            formatted = parts[0] + (decimalPart ? '.' + decimalPart : '');
+          }
+        }
+        
+        setToAmount(formatted);
       }
     } catch (error) {
       console.error("Calculation error:", error);
@@ -1010,6 +973,24 @@ export default function Swap() {
                     title="Use recommended test amount for PRIOR→USDC"
                   >
                     Try: 0.01
+                  </button>
+                )}
+                {(fromToken === "USDC" && toToken === "PRIOR") && (
+                  <button 
+                    onClick={() => setFromAmount("1")}
+                    className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
+                    title="Use recommended test amount for USDC→PRIOR"
+                  >
+                    Try: 1
+                  </button>
+                )}
+                {(fromToken === "USDT" && toToken === "PRIOR") && (
+                  <button 
+                    onClick={() => setFromAmount("1")}
+                    className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
+                    title="Use recommended test amount for USDT→PRIOR"
+                  >
+                    Try: 1
                   </button>
                 )}
                 {(fromToken === "USDC" && toToken === "USDT") && (
