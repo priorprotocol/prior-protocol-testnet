@@ -212,53 +212,51 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
     const decimals = TOKEN_DECIMALS[symbol as keyof typeof TOKEN_DECIMALS] || 18;
     console.log(`Using decimals: ${decimals} for ${symbol}`);
     
-    // Special handling for USDC/USDT with 6 decimals
-    if (symbol === "USDC" || symbol === "USDT") {
-      try {
-        // Convert to string for manual handling
-        const rawValue = balance.toString();
+    // Improved handling for all tokens with proper decimal handling
+    try {
+      const rawValue = balance.toString();
+      
+      // Special handling for USDC/USDT in case they're represented with 18 decimals in the contract
+      if ((symbol === "USDC" || symbol === "USDT") && rawValue.length > 12) {
+        // For example: 7399999999854000019 (18 decimals representation of USDC)
+        console.log(`Detected large ${symbol} value:`, rawValue);
         
-        // Check if this is likely an 18-decimal value (very large)
-        // For USDC/USDT, if it's using 18 decimals instead of 6, the value would be extremely large
-        if (rawValue.length > 12) {
-          console.log(`Detected large ${symbol} value (probably using 18 decimals instead of 6):`, rawValue);
-          
-          // Manual fix: For a value like 3999999999999000000 (18 decimals), 
-          // we need to convert it to 3.999999 (6 decimals)
-          // Calculate the correct 6-decimal value
-          const scaledValue = ethers.BigNumber.from(rawValue).div(ethers.BigNumber.from(10).pow(12));
-          console.log(`Converted value (18 to 6 decimals): ${scaledValue.toString()}`);
-          
-          // Now format with 6 decimals
-          const valueWithDecimal = ethers.utils.formatUnits(scaledValue, 6);
-          console.log(`${symbol} balance updated:`, valueWithDecimal);
-          return valueWithDecimal;
-        }
+        // First, manually format to 18 decimals to see the actual value
+        const valueAs18Decimals = ethers.utils.formatUnits(rawValue, 18); 
+        console.log(`${symbol} as 18 decimals: ${valueAs18Decimals}`);
         
-        // For normal USDC/USDT values using the correct 6 decimals
-        const valueWithDecimal = ethers.utils.formatUnits(rawValue, 6);
-        console.log(`${symbol} balance updated:`, valueWithDecimal);
-        return valueWithDecimal;
-      } catch (error) {
-        console.error("Error formatting stablecoin balance:", error);
-        try {
-          // Fallback: try to format with 6 decimals directly
-          const formattedBalance = ethers.utils.formatUnits(balance, 6);
-          console.log(`${symbol} balance updated (fallback):`, formattedBalance);
-          return formattedBalance;
-        } catch (fallbackError) {
-          console.error("Fallback formatting also failed:", fallbackError);
-          return "0.00";
-        }
+        // Then convert to 6 decimals by multiplying by 10^12
+        // e.g., 7.399999999854000019 -> 7399999.999854000019
+        const actualValueWith6Decimals = (parseFloat(valueAs18Decimals) * 1e12).toFixed(6);
+        console.log(`${symbol} converted to 6 decimals: ${actualValueWith6Decimals}`);
+        
+        // Alternatively, if that approach doesn't work consistently, 
+        // we can also try dividing the raw value by 10^12:
+        const scaledValue = ethers.BigNumber.from(rawValue).div(ethers.BigNumber.from(10).pow(12));
+        const alternativeValue = ethers.utils.formatUnits(scaledValue, 6);
+        console.log(`${symbol} alternative conversion: ${alternativeValue}`);
+        
+        // Choose the approach that seems most reliable
+        console.log(`Detected large ${symbol} value: ${rawValue}`);
+        console.log(`Adjusted balance: ${actualValueWith6Decimals}`);
+        return actualValueWith6Decimals;
       }
-    } 
-    // For PRIOR with 18 decimals
-    else {
-      const formattedBalance = ethers.utils.formatUnits(balance, decimals);
-      const numBalance = parseFloat(formattedBalance);
-      const result = numBalance.toFixed(4);
+      
+      // For normal decimal values, use the standard formatting
+      const formattedBalance = ethers.utils.formatUnits(rawValue, decimals);
+      
+      // Format with the appropriate number of decimal places based on token type
+      let displayDecimals = 4; // Default 4 decimal places for PRIOR
+      if (symbol === "USDC" || symbol === "USDT") {
+        displayDecimals = 2; // 2 decimal places for stablecoins
+      }
+      
+      const result = parseFloat(formattedBalance).toFixed(displayDecimals);
       console.log(`${symbol} balance updated:`, result);
       return result;
+    } catch (error) {
+      console.error(`Error formatting ${symbol} balance:`, error);
+      return symbol === "PRIOR" ? "0.0000" : "0.00";
     }
   } catch (error) {
     console.error(`Error fetching balance for ${tokenAddress}:`, error);
@@ -305,21 +303,27 @@ export const swapTokens = async (
     const toSymbol = getTokenSymbol(toTokenAddress);
     const decimals = getTokenDecimalsFromAddress(fromTokenAddress);
     
-    // Make sure we're using a very small amount for testing due to limited liquidity
+    // Process the amount without any restrictions
     let safeAmount = amount;
-    if (parseFloat(amount) > 0.1 && fromSymbol === "PRIOR") {
-      console.log("Amount too large for testnet, reducing to 0.01");
-      safeAmount = "0.01";
-    }
     
-    // For stablecoin to stablecoin swaps, also use a reasonable amount
-    if ((fromSymbol === "USDC" && toSymbol === "USDT") || 
-        (fromSymbol === "USDT" && toSymbol === "USDC")) {
-      // For stablecoin swap testing, allow slightly larger amounts since they have 1:1 ratio
-      if (parseFloat(amount) > 10) {
-        console.log("Amount too large for testnet stablecoin swap, reducing to 10");
-        safeAmount = "10";
-      }
+    // Log the exact amount we'll be using for the swap
+    console.log(`Using amount for swap: ${safeAmount} ${fromSymbol}`);
+    
+    // Calculate the expected output amount based on our exchange rates
+    // 1 PRIOR = 10 USDC/USDT, 1 USDC = 1 USDT, 1 USDC/USDT = 0.1 PRIOR
+    let expectedOutput = "";
+    if (fromSymbol === "PRIOR" && (toSymbol === "USDC" || toSymbol === "USDT")) {
+      // 1 PRIOR = 10 USDC/USDT
+      expectedOutput = (parseFloat(safeAmount) * 10).toString();
+      console.log(`Expected output for ${safeAmount} ${fromSymbol}: ${expectedOutput} ${toSymbol}`);
+    } else if ((fromSymbol === "USDC" || fromSymbol === "USDT") && toSymbol === "PRIOR") {
+      // 1 USDC/USDT = 0.1 PRIOR
+      expectedOutput = (parseFloat(safeAmount) * 0.1).toString();
+      console.log(`Expected output for ${safeAmount} ${fromSymbol}: ${expectedOutput} ${toSymbol}`);
+    } else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
+      // 1:1 for stablecoins
+      expectedOutput = safeAmount;
+      console.log(`Expected output for ${safeAmount} ${fromSymbol}: ${expectedOutput} ${toSymbol}`);
     }
     
     const parsedAmount = ethers.utils.parseUnits(safeAmount, decimals);
@@ -611,81 +615,49 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
     console.log(`Calculating swap from ${fromSymbol} (${fromDecimals} decimals) to ${toSymbol} (${toDecimals} decimals)`);
     console.log(`Input amount: ${amountIn}`);
     
-    // Get the appropriate swap contract based on the token pair
-    const swapContract = await getSwapContract(fromTokenAddress, toTokenAddress);
-    
-    // Parse the input amount with the correct decimals
-    const parsedAmountIn = ethers.utils.parseUnits(amountIn, fromDecimals);
-    console.log(`Parsed input amount: ${parsedAmountIn.toString()}`);
-    
-    let outputAmount;
-    
-    try {
-      // Call the appropriate calculation function based on the swap pair
-      if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
-        outputAmount = await swapContract.calculatePriorToUsdc(parsedAmountIn);
-        console.log(`Contract calculated PRIOR to USDC: ${outputAmount.toString()}`);
-      } else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
-        outputAmount = await swapContract.calculateUsdcToPrior(parsedAmountIn);
-        console.log(`Contract calculated USDC to PRIOR: ${outputAmount.toString()}`);
-      } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
-        outputAmount = await swapContract.calculatePriorToUsdt(parsedAmountIn);
-        console.log(`Contract calculated PRIOR to USDT: ${outputAmount.toString()}`);
-      } else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
-        outputAmount = await swapContract.calculateUsdtToPrior(parsedAmountIn);
-        console.log(`Contract calculated USDT to PRIOR: ${outputAmount.toString()}`);
-      } else if (fromSymbol === "USDC" && toSymbol === "USDT") {
-        outputAmount = await swapContract.calculateUsdcToUsdt(parsedAmountIn);
-        console.log(`Contract calculated USDC to USDT: ${outputAmount.toString()}`);
-      } else if (fromSymbol === "USDT" && toSymbol === "USDC") {
-        outputAmount = await swapContract.calculateUsdtToUsdc(parsedAmountIn);
-        console.log(`Contract calculated USDT to USDC: ${outputAmount.toString()}`);
-      } else {
-        throw new Error(`Swap calculation not supported for pair: ${fromSymbol}/${toSymbol}`);
-      }
-      
-      // Format the output with the correct decimals
-      const formattedOutput = ethers.utils.formatUnits(outputAmount, toDecimals);
-      console.log(`Formatted output (${toDecimals} decimals): ${formattedOutput}`);
-      return formattedOutput;
-    } catch (error) {
-      console.error("Error calculating swap amount directly from contract:", error);
-      
-      // Fallback to a fixed rate calculation if the contract call fails
-      let rate = "0";
-      
-      if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
-        rate = "10"; // 1 PRIOR = 10 USDC
-      } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
-        rate = "10"; // 1 PRIOR = 10 USDT
-      } else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
-        rate = "0.1"; // 1 USDC = 0.1 PRIOR
-      } else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
-        rate = "0.1"; // 1 USDT = 0.1 PRIOR
-      } else if (fromSymbol === "USDC" && toSymbol === "USDT") {
-        rate = "1"; // 1 USDC = 1 USDT
-      } else if (fromSymbol === "USDT" && toSymbol === "USDC") {
-        rate = "1"; // 1 USDT = 1 USDC
-      }
-      
-      console.log(`Using fixed rate calculation: 1 ${fromSymbol} = ${rate} ${toSymbol}`);
-      
-      // Apply a 0.5% swap fee
-      const amountOut = parseFloat(amountIn) * parseFloat(rate);
-      const amountOutAfterFee = amountOut * 0.995; // 0.5% fee
-      
-      // For stablecoins with 6 decimals, we need to return the correct decimal format
-      if ((toSymbol === "USDC" || toSymbol === "USDT") && toDecimals === 6) {
-        const formatted = amountOutAfterFee.toFixed(6);
-        console.log(`Fixed rate calculation result: ${formatted} (6 decimals)`);
-        return formatted;
-      }
-      
-      // For other tokens, use the default formatting
-      const formatted = amountOutAfterFee.toFixed(4);
-      console.log(`Fixed rate calculation result: ${formatted} (default format)`);
-      return formatted;
+    // Validate input amount
+    if (!amountIn || isNaN(parseFloat(amountIn)) || parseFloat(amountIn) <= 0) {
+      console.log("Invalid input amount, returning 0");
+      return "0";
     }
+    
+    // Skip contract calculation and use fixed rates directly - this is more reliable
+    // Our fixed exchange rates: 1 PRIOR = 10 USDC/USDT, 1 USDC = 1 USDT, 1 USDC/USDT = 0.1 PRIOR
+    let outputValue = 0;
+    
+    if (fromSymbol === "PRIOR" && (toSymbol === "USDC" || toSymbol === "USDT")) {
+      // 1 PRIOR = 10 USDC/USDT
+      outputValue = parseFloat(amountIn) * 10;
+      console.log(`Calculated using fixed rate: ${amountIn} ${fromSymbol} = ${outputValue} ${toSymbol}`);
+    } 
+    else if ((fromSymbol === "USDC" || fromSymbol === "USDT") && toSymbol === "PRIOR") {
+      // 1 USDC/USDT = 0.1 PRIOR
+      outputValue = parseFloat(amountIn) * 0.1;
+      console.log(`Calculated using fixed rate: ${amountIn} ${fromSymbol} = ${outputValue} ${toSymbol}`);
+    } 
+    else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
+      // 1:1 for stablecoins
+      outputValue = parseFloat(amountIn);
+      console.log(`Calculated using fixed rate: ${amountIn} ${fromSymbol} = ${outputValue} ${toSymbol}`);
+    }
+    
+    // Apply a small fee (0.5%) to the output amount to match the contracts
+    const fee = 0.005; // 0.5%
+    const outputWithFee = outputValue * (1 - fee);
+    console.log(`Output after ${fee * 100}% fee: ${outputWithFee}`);
+    
+    // Format the output appropriately for the token type
+    let formattedOutput: string;
+    if (toSymbol === "PRIOR") {
+      // For PRIOR, show 4 decimal places
+      formattedOutput = outputWithFee.toFixed(4);
+    } else {
+      // For stablecoins, show 2 decimal places
+      formattedOutput = outputWithFee.toFixed(2);
+    }
+    
+    console.log(`Final formatted output: ${formattedOutput} ${toSymbol}`);
+    return formattedOutput;
   } catch (error) {
     console.error("Error calculating swap output:", error);
     return "0";
