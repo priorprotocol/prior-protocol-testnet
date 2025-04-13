@@ -1,7 +1,32 @@
 import { ethers } from 'ethers';
 import { contractAddresses } from '../lib/contracts';
 
-// A simple and direct swap implementation that avoids the BigNumber formatting issues
+// Utility function to convert from human-readable decimal to the proper format for contract calls
+function parseUnits(amount: string, decimals: number): string {
+  try {
+    // Remove any commas from input
+    const cleanAmount = amount.replace(/,/g, '');
+    
+    // For safety, limit amount in testnet
+    let safeAmount = cleanAmount;
+    if (decimals === 18 && parseFloat(cleanAmount) > 0.1) {
+      safeAmount = '0.01';
+      console.log(`Amount too large for testnet PRIOR, limiting to ${safeAmount}`);
+    } else if (decimals === 6 && parseFloat(cleanAmount) > 10) {
+      safeAmount = '5';
+      console.log(`Amount too large for testnet stablecoin, limiting to ${safeAmount}`);
+    }
+    
+    // Use ethers.js parseUnits which correctly handles decimal conversion
+    return ethers.utils.parseUnits(safeAmount, decimals).toString();
+  } catch (error) {
+    console.error('Error parsing amount:', error);
+    // Return a safe default value based on decimals
+    return decimals === 18 ? '10000000000000000' : '1000000'; // 0.01 token for either decimals
+  }
+}
+
+// A direct swap implementation that properly formats amounts for the blockchain
 export async function directSwap(fromToken: string, toToken: string, amount: string): Promise<boolean> {
   try {
     if (!window.ethereum) {
@@ -29,11 +54,11 @@ export async function directSwap(fromToken: string, toToken: string, amount: str
       if (toToken.toLowerCase() === USDC_TOKEN.toLowerCase()) {
         toSymbol = 'USDC';
         swapContractAddress = contractAddresses.swapContracts.PRIOR_USDC;
-        methodName = 'swapPriorForToken';
+        methodName = 'swapPriorToUsdc'; // Fixed method name
       } else if (toToken.toLowerCase() === USDT_TOKEN.toLowerCase()) {
         toSymbol = 'USDT';
         swapContractAddress = contractAddresses.swapContracts.PRIOR_USDT;
-        methodName = 'swapPriorForToken';
+        methodName = 'swapPriorToUsdc'; // Fixed method name
       }
     } else if (fromToken.toLowerCase() === USDC_TOKEN.toLowerCase()) {
       fromSymbol = 'USDC';
@@ -42,11 +67,11 @@ export async function directSwap(fromToken: string, toToken: string, amount: str
       if (toToken.toLowerCase() === PRIOR_TOKEN.toLowerCase()) {
         toSymbol = 'PRIOR';
         swapContractAddress = contractAddresses.swapContracts.PRIOR_USDC;
-        methodName = 'swapTokenForPrior';
+        methodName = 'swapUsdcToPrior'; // Fixed method name
       } else if (toToken.toLowerCase() === USDT_TOKEN.toLowerCase()) {
         toSymbol = 'USDT';
         swapContractAddress = contractAddresses.swapContracts.USDC_USDT;
-        methodName = 'swapUSDCForUSDT';
+        methodName = 'swapUsdcToUsdt'; // Fixed method name
       }
     } else if (fromToken.toLowerCase() === USDT_TOKEN.toLowerCase()) {
       fromSymbol = 'USDT';
@@ -55,11 +80,11 @@ export async function directSwap(fromToken: string, toToken: string, amount: str
       if (toToken.toLowerCase() === PRIOR_TOKEN.toLowerCase()) {
         toSymbol = 'PRIOR';
         swapContractAddress = contractAddresses.swapContracts.PRIOR_USDT;
-        methodName = 'swapTokenForPrior';
+        methodName = 'swapUsdcToPrior'; // Fixed method name
       } else if (toToken.toLowerCase() === USDC_TOKEN.toLowerCase()) {
         toSymbol = 'USDC';
         swapContractAddress = contractAddresses.swapContracts.USDC_USDT;
-        methodName = 'swapUSDTForUSDC';
+        methodName = 'swapUsdtToUsdc'; // Fixed method name
       }
     }
     
@@ -72,51 +97,39 @@ export async function directSwap(fromToken: string, toToken: string, amount: str
       return false;
     }
     
+    // Parse user input amount to blockchain format with proper decimals
+    const parsedAmount = parseUnits(amount, decimals);
+    console.log(`Parsed amount with ${decimals} decimals: ${parsedAmount}`);
+    
     // Get signer
     const provider = new ethers.providers.Web3Provider(window.ethereum as any);
     const signer = provider.getSigner();
     
-    // Create contract interface with just the function we need
-    const abi = [
-      `function ${methodName}(uint256 amount) public returns (bool)`,
-      'function allowance(address owner, address spender) view returns (uint256)',
-      'function approve(address spender, uint256 amount) returns (bool)'
-    ];
-    
-    // For tokens, we need approve first (PRIOR is already approved)
+    // For tokens, we need approve first
     if (fromSymbol === 'USDC' || fromSymbol === 'USDT') {
       const tokenContract = new ethers.Contract(fromToken, [
         'function approve(address spender, uint256 amount) returns (bool)',
         'function allowance(address owner, address spender) view returns (uint256)'
       ], signer);
       
-      // Use a safe test amount for testnet
-      const safeAmount = '10000'; // Just 0.01 for stablecoins (6 decimals)
+      // Approve a bit more than needed to cover the transaction
+      const amountToApprove = ethers.BigNumber.from(parsedAmount).mul(2).toString();
       
-      console.log(`Approving ${safeAmount} tokens (lowest denomination) for ${swapContractAddress}`);
-      const approveTx = await tokenContract.approve(swapContractAddress, safeAmount);
+      console.log(`Approving ${amountToApprove} tokens for ${swapContractAddress}`);
+      const approveTx = await tokenContract.approve(swapContractAddress, amountToApprove);
       await approveTx.wait();
       console.log('Approval successful');
     }
     
     // Now create the swap contract
-    const swapContract = new ethers.Contract(swapContractAddress, abi, signer);
+    const swapContract = new ethers.Contract(swapContractAddress, [
+      `function ${methodName}(uint256 amount) public returns (bool)`,
+    ], signer);
     
-    // Use very small safe amount for testnet to avoid issues
-    let amountToSwap = '0';
+    console.log(`Executing swap with amount: ${parsedAmount}`);
     
-    if (fromSymbol === 'PRIOR') {
-      // For PRIOR with 18 decimals, use 1000 wei (very small amount)
-      amountToSwap = '1000';
-    } else {
-      // For stablecoins with 6 decimals, use 1 (0.000001 token)
-      amountToSwap = '1';
-    }
-    
-    console.log(`Executing swap with amount: ${amountToSwap}`);
-    
-    // Execute the swap with hardcoded amount
-    const swapTx = await swapContract[methodName](amountToSwap);
+    // Execute the swap with the proper amount
+    const swapTx = await swapContract[methodName](parsedAmount);
     console.log('Waiting for swap confirmation...');
     await swapTx.wait();
     console.log('Swap completed successfully!');
