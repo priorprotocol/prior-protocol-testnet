@@ -267,9 +267,9 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
 };
 
 // Function to approve tokens for swap
-export const approveTokens = async (tokenAddress: string, spenderAddress: string, amount: string): Promise<boolean> => {
+export const approveTokens = async (tokenAddress: string, spenderAddress: string, amount: ethers.BigNumber | string): Promise<boolean> => {
   try {
-    console.log(`Approving tokens for swap: ${amount} from address ${tokenAddress} to spender ${spenderAddress}`);
+    console.log(`Approving tokens for swap from address ${tokenAddress} to spender ${spenderAddress}`);
     
     // Get the token contract with signer
     const contract = await getTokenContractWithSigner(tokenAddress);
@@ -278,8 +278,22 @@ export const approveTokens = async (tokenAddress: string, spenderAddress: string
     
     console.log(`Using ${decimals} decimals for ${fromSymbol}`);
     
-    // Parse amount with correct decimals
-    const parsedAmount = ethers.utils.parseUnits(amount, decimals);
+    // Handle either BigNumber or string amount
+    let parsedAmount: ethers.BigNumber;
+    
+    if (typeof amount === 'string') {
+      console.log(`Approving string amount: ${amount}`);
+      try {
+        parsedAmount = ethers.utils.parseUnits(amount, decimals);
+      } catch (parseError) {
+        console.error("Error parsing string amount:", parseError);
+        // Use a safe fallback amount
+        parsedAmount = ethers.utils.parseUnits("0.1", decimals);
+      }
+    } else {
+      console.log(`Approving BigNumber amount: ${amount.toString()}`);
+      parsedAmount = amount;
+    }
     
     // Add buffer for approvals (200%)
     const bufferedAmount = parsedAmount.mul(2);
