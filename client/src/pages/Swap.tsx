@@ -313,10 +313,10 @@ export default function Swap() {
             
             // Format the balance nicely for display based on token type
             let formattedBalance;
+            const parsedBalance = parseFloat(rawBalance);
             
             if (symbol === "PRIOR") {
               // For PRIOR, display with cleaner formatting (no scientific notation)
-              const parsedBalance = parseFloat(rawBalance);
               if (parsedBalance >= 1) {
                 formattedBalance = parsedBalance.toFixed(2);
               } else {
@@ -325,9 +325,17 @@ export default function Swap() {
               // Remove trailing zeros
               formattedBalance = formattedBalance.replace(/\.?0+$/, '');
             } else {
-              // For stablecoins, display with 2 decimal places
-              const parsedBalance = parseFloat(rawBalance);
-              formattedBalance = parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+              // For stablecoins (USDC, USDT), handle large values specially
+              // Check if this is a testnet with very large values (more than 1 million)
+              if (parsedBalance > 1000000) {
+                // For extremely large testnet values, show a more reasonable representation
+                // Divide by 10^8 to convert from testnet large value to a reasonable display value
+                const displayValue = parsedBalance / 100000000;
+                formattedBalance = displayValue.toFixed(2).replace(/\.?0+$/, '');
+              } else {
+                // Normal case for reasonable stablecoin values, display with 2 decimal places
+                formattedBalance = parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+              }
             }
             
             newBalances[symbol] = formattedBalance;
@@ -807,8 +815,17 @@ export default function Swap() {
         return parsedBalance.toFixed(4).replace(/\.?0+$/, '');
       }
     } else {
-      // USDC/USDT stablecoins - show with at most 2 decimal places
-      return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+      // For stablecoins (USDC, USDT), handle large values specially
+      // Check if this is a testnet with very large values (more than 1 million)
+      if (parsedBalance > 1000000) {
+        // For extremely large testnet values, show a more reasonable representation
+        // Divide by 10^8 to convert from testnet large value to a reasonable display value
+        const displayValue = parsedBalance / 100000000;
+        return displayValue.toFixed(2).replace(/\.?0+$/, '');
+      } else {
+        // Normal case for reasonable stablecoin values, display with 2 decimal places
+        return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+      }
     }
   };
 

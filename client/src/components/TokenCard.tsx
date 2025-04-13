@@ -37,13 +37,22 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
         return parsedBalance.toFixed(4).replace(/\.?0+$/, '');
       }
     } else {
-      // For stablecoins (USDC, USDT), display with 2 decimal places
-      return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+      // For stablecoins (USDC, USDT), handle large values specially
+      // Check if this is a testnet with very large values (more than 1 million)
+      if (parsedBalance > 1000000) {
+        // For extremely large testnet values, show a more reasonable representation
+        // Divide by 10^8 to convert from testnet large value to a reasonable display value
+        const displayValue = parsedBalance / 100000000;
+        return displayValue.toFixed(2).replace(/\.?0+$/, '');
+      } else {
+        // Normal case for reasonable stablecoin values, display with 2 decimal places
+        return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+      }
     }
   };
   
-  // Use the token's balance if provided, otherwise get it from the wallet context
-  const rawBalance = token.balance || getTokenBalance(token.symbol);
+  // Get the token balance from the wallet context
+  const rawBalance = getTokenBalance(token.symbol);
   const balance = formatBalance(rawBalance);
 
   return (
