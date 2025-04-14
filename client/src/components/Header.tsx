@@ -96,7 +96,7 @@ const Header = () => {
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center py-3 mb-2 border-b border-gray-700">
             <img 
-              src="/assets/prior-logo.png" 
+              src={logoPath} 
               alt="Prior Protocol Logo" 
               className="w-8 h-8 mr-2" 
             />
