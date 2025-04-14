@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/context/WalletContext";
 import { useToast } from "@/hooks/use-toast";
-import { CONTRACT_ADDRESSES as contractAddresses } from "@/contracts/addresses";
+import { CONTRACT_ADDRESSES as contractAddresses, SWAP_CONTRACTS } from "@/contracts/addresses";
 import {
   FiArrowDown,
   FiSettings,
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ethers } from "ethers";
 import TokenCard from "@/components/TokenCard";
 import { getTokenContract, swapTokens, approveTokens, getTokenBalance, 
-  getPriorToUSDCRate, getPriorToUSDTRate, calculateSimpleSwapOutput } from "@/contracts/services";
+  getPriorToUSDCRate, getPriorToUSDTRate, calculateSimpleSwapOutput, getTokenContractWithSigner } from "@/contracts/services";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 
 // Token definitions with symbol, color, logo, decimals, and address
@@ -343,6 +343,164 @@ export default function Swap() {
   // Set the maximum available amount
   const setMaxAmount = () => {
     setFromAmount(balances[fromToken] || "0");
+  };
+  
+  // Get the Base Sepolia explorer URL for transaction
+  const getExplorerLink = (txHash: string) => {
+    return `https://sepolia.basescan.org/tx/${txHash}`;
+  };
+  
+  // Function to handle token approval for swapping
+  const handleApproveToken = async () => {
+    if (!signer || !provider || !fromAmount || parseFloat(fromAmount) <= 0) {
+      toast({
+        title: "Error",
+        description: "Please connect your wallet and enter a valid amount",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsApproving(true);
+      setSwapStatus("Approving tokens...");
+      
+      // Get the swap contract address based on the token pair
+      let swapContractAddress = "";
+      if ((fromToken === "PRIOR" && toToken === "USDC") || (fromToken === "USDC" && toToken === "PRIOR")) {
+        swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
+      } else if ((fromToken === "PRIOR" && toToken === "USDT") || (fromToken === "USDT" && toToken === "PRIOR")) {
+        swapContractAddress = SWAP_CONTRACTS.PRIOR_USDT;
+      } else if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
+        swapContractAddress = SWAP_CONTRACTS.USDC_USDT;
+      }
+      
+      const fromTokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
+      
+      // Get the token decimals
+      const decimals = TOKENS[fromToken as keyof typeof TOKENS].decimals;
+      
+      // Approve tokens using the services function
+      const result = await approveTokens(
+        fromTokenAddress,
+        swapContractAddress,
+        fromAmount
+      );
+      
+      if (result) {
+        setHasAllowance(true);
+        setSwapStatus("Approval successful! You can now swap.");
+        toast({
+          title: "Approval Successful",
+          description: `You can now swap ${fromAmount} ${fromToken}`,
+        });
+      } else {
+        setSwapStatus("Approval failed. Please try again.");
+        toast({
+          title: "Approval Failed",
+          description: "Could not approve tokens. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error approving tokens:", error);
+      setSwapStatus("Approval failed. Please try again.");
+      toast({
+        title: "Approval Error",
+        description: "An error occurred during token approval.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsApproving(false);
+    }
+  };
+  
+  // Function to handle the actual token swap
+  const handleExecuteSwap = async () => {
+    if (!signer || !provider || !fromAmount || parseFloat(fromAmount) <= 0) {
+      toast({
+        title: "Error",
+        description: "Please connect your wallet and enter a valid amount",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsSwapping(true);
+      setSwapStatus("Swapping tokens...");
+      
+      // Get token addresses
+      const fromTokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
+      const toTokenAddress = TOKENS[toToken as keyof typeof TOKENS].address;
+      
+      // Determine which swap contract to use
+      let swapContractAddress = "";
+      if ((fromToken === "PRIOR" && toToken === "USDC") || (fromToken === "USDC" && toToken === "PRIOR")) {
+        swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
+      } else if ((fromToken === "PRIOR" && toToken === "USDT") || (fromToken === "USDT" && toToken === "PRIOR")) {
+        swapContractAddress = SWAP_CONTRACTS.PRIOR_USDT;
+      } else if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
+        swapContractAddress = SWAP_CONTRACTS.USDC_USDT;
+      }
+      
+      // Execute the swap through the service function
+      const receipt = await swapTokens(
+        fromTokenAddress,
+        toTokenAddress,
+        fromAmount,
+        swapContractAddress
+      );
+      
+      // Store the transaction hash
+      setTxHash(receipt.transactionHash);
+      
+      // Record the swap in the database and update UI
+      setSwapStatus("Swap successful!");
+      toast({
+        title: "Swap Successful",
+        description: `You swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`,
+      });
+      
+      // Update balances after swap (still use local balance tracking for immediate feedback)
+      const fromCurrentBalance = parseFloat(balances[fromToken] || "0");
+      const toCurrentBalance = parseFloat(balances[toToken] || "0");
+      const fromAmount_num = parseFloat(fromAmount);
+      const toAmount_num = parseFloat(toAmount);
+      
+      // Calculate new balances
+      const newFromBalance = fromCurrentBalance - fromAmount_num;
+      const newToBalance = toCurrentBalance + toAmount_num;
+      
+      // Update balances
+      setBalances({
+        ...balances,
+        [fromToken]: newFromBalance.toString(),
+        [toToken]: newToBalance.toString()
+      });
+      
+      // Also update forced balances for TokenCard display
+      setForcedBalances({
+        ...forcedBalances,
+        [fromToken]: formatBalance(newFromBalance.toString(), fromToken),
+        [toToken]: formatBalance(newToBalance.toString(), toToken)
+      });
+      
+      // Reset form
+      setFromAmount("");
+      setToAmount("");
+      setHasAllowance(false);
+    } catch (error) {
+      console.error("Error executing swap:", error);
+      setSwapStatus("Swap failed. Please try again.");
+      toast({
+        title: "Swap Failed",
+        description: "Could not complete the swap. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSwapping(false);
+    }
   };
 
   return (
