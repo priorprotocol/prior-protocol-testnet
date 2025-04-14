@@ -4,6 +4,7 @@ import { FiCopy, FiChevronDown, FiArrowDown, FiRefreshCw, FiSettings, FiExternal
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/context/WalletContext";
 import { TransactionHistory } from "@/components/TransactionHistory";
+import TokenCard from "@/components/TokenCard";
 
 // Import contract functions and addresses from the reorganized structure
 import { 
