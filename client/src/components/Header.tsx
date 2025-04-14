@@ -55,21 +55,22 @@ const Header = () => {
           </h1>
         </div>
         
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8 text-[#A0AEC0] font-medium">
+        {/* Desktop Navigation - with accessibility improvements */}
+        <nav className="hidden md:flex items-center space-x-6 text-[#A0AEC0] font-medium" aria-label="Main navigation">
           {navLinks.map(link => (
             <Link 
               key={link.path}
               href={link.path} 
-              className={`hover:text-white transition-colors ${location === link.path ? 'tab-active' : ''}`}
+              className={`px-3 py-2 rounded-md hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${location === link.path ? 'tab-active bg-gray-900 text-white' : ''}`}
+              aria-current={location === link.path ? 'page' : undefined}
             >
               {link.name}
             </Link>
           ))}
         </nav>
         
-        {/* Standalone Wallet Button */}
-        <div className="hidden md:block">
+        {/* Standalone Wallet Button - with added accessibility */}
+        <div className="hidden md:flex items-center">
           <StandaloneWalletButton
             onConnect={(newAddress) => {
               console.log("Connected to wallet:", newAddress);
@@ -79,20 +80,34 @@ const Header = () => {
               console.log("Wallet disconnected");
             }}
             showAddress={true}
+            className="focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
           />
         </div>
         
-        {/* Mobile menu button */}
+        {/* Mobile menu button - improved accessibility */}
         <button 
           onClick={toggleMobileMenu}
-          className="md:hidden text-white focus:outline-none"
+          className="md:hidden flex items-center justify-center p-2 rounded-md text-gray-200 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors"
+          aria-expanded={isMobileMenuOpen}
+          aria-label="Toggle main menu"
+          aria-controls="mobile-menu"
         >
-          <i className="fas fa-bars text-xl"></i>
+          <span className="sr-only">{isMobileMenuOpen ? 'Close main menu' : 'Open main menu'}</span>
+          {/* Icon changes based on menu state */}
+          {isMobileMenuOpen ? (
+            <i className="fas fa-times text-xl" aria-hidden="true"></i>
+          ) : (
+            <i className="fas fa-bars text-xl" aria-hidden="true"></i>
+          )}
         </button>
       </div>
       
-      {/* Mobile Navigation Menu */}
-      <div className={`md:hidden w-full bg-[#111827] border-t border-[#2D3748] ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
+      {/* Mobile Navigation Menu - improved accessibility */}
+      <div 
+        id="mobile-menu"
+        className={`md:hidden w-full bg-[#111827] border-t border-[#2D3748] transform transition-transform duration-200 ease-in-out ${isMobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}`}
+        aria-hidden={!isMobileMenuOpen}
+      >
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center py-3 mb-2 border-b border-gray-700">
             <img 
@@ -105,19 +120,20 @@ const Header = () => {
               <span className="text-xs ml-1 text-[#FF6B00] font-medium">TESTNET</span>
             </h2>
           </div>
-          <nav className="flex flex-col space-y-4 py-4">
+          <nav className="flex flex-col space-y-4 py-4" aria-label="Mobile navigation">
             {navLinks.map(link => (
               <Link 
                 key={link.path}
                 href={link.path} 
-                className={`${location === link.path ? 'text-white' : 'text-[#A0AEC0]'} hover:text-white transition-colors py-2`}
+                className={`${location === link.path ? 'text-white font-medium' : 'text-[#A0AEC0]'} hover:text-white transition-colors py-2 px-3 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 onClick={() => setIsMobileMenuOpen(false)}
+                aria-current={location === link.path ? 'page' : undefined}
               >
                 {link.name}
               </Link>
             ))}
             
-            <div className="mt-4">
+            <div className="mt-4 px-3" aria-label="Wallet connection">
               <StandaloneWalletButton 
                 onConnect={() => {
                   // Close the mobile menu after connecting
@@ -128,7 +144,7 @@ const Header = () => {
                   setIsMobileMenuOpen(false);
                 }}
                 size="lg"
-                className="w-full justify-center"
+                className="w-full justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
               />
             </div>
           </nav>
