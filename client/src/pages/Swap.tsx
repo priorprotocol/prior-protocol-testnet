@@ -538,6 +538,29 @@ export default function Swap() {
       console.log(`Using swap contract address: ${swapContractAddress}`);
       setSwapStatus(`Finding best swap route for ${fromToken} to ${toToken}...`);
       
+      // For USDC→PRIOR swaps, let's update the UI immediately for better UX
+      // This creates the impression of immediate execution
+      if (fromToken === "USDC" && toToken === "PRIOR" || fromToken === "USDT" && toToken === "PRIOR") {
+        console.log(`Pre-updating UI for ${fromToken}→${toToken} swap`);
+        // Immediately update the expected PRIOR balance
+        // Note: this is just a UI update, the blockchain will still process normally
+        const currentPriorBalance = parseFloat(balances.PRIOR || "0");
+        const expectedAmount = parseFloat(toAmount);
+        
+        if (!isNaN(expectedAmount) && expectedAmount > 0) {
+          const newPriorBalance = currentPriorBalance + expectedAmount;
+          const formattedBalance = newPriorBalance.toFixed(4);
+          
+          console.log(`Pre-updating PRIOR balance from ${currentPriorBalance} to ${formattedBalance}`);
+          
+          // Update the balance immediately in the UI
+          setBalances(prev => ({
+            ...prev,
+            PRIOR: formattedBalance
+          }));
+        }
+      }
+      
       // Format minimum amount output - don't use scientific notation for small numbers
       let minAmountOut = parseFloat(toAmount) * (1 - (slippage / 100));
       
@@ -582,15 +605,24 @@ export default function Swap() {
       if (tx) {
         // Set transaction hash
         setTxHash(tx.transactionHash);
-        setSwapStatus(`Swap complete! Received ${toAmount} ${toToken}`);
+        
+        // Show a specific message for USDC-to-PRIOR swaps mentioning the 1:10 ratio
+        if ((fromToken === "USDC" || fromToken === "USDT") && toToken === "PRIOR") {
+          setSwapStatus(`Swap complete! Received ${toAmount} ${toToken} (1:10 ratio)`);
+        } else if (fromToken === "PRIOR" && (toToken === "USDC" || toToken === "USDT")) {
+          setSwapStatus(`Swap complete! Received ${toAmount} ${toToken} (10:1 ratio)`);
+        } else {
+          setSwapStatus(`Swap complete! Received ${toAmount} ${toToken}`);
+        }
         
         toast({
           title: "Swap Successful",
           description: `Swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`,
         });
         
-        // IMPORTANT: For PRIOR token swaps, update the UI immediately without waiting
-        if (toToken === "PRIOR") {
+        // For non-PRIOR to PRIOR swaps, we may not have updated the UI yet, so do it here
+        // Only update again if we didn't already pre-update it earlier
+        if (toToken === "PRIOR" && fromToken !== "PRIOR" && (fromToken !== "USDC" && fromToken !== "USDT")) {
           // Update our local balances state with the expected token amount
           const currentPriorBalance = parseFloat(balances.PRIOR || "0");
           const swapAmount = parseFloat(toAmount);
