@@ -88,20 +88,62 @@ export const getSwapContractWithSigner = async (fromToken?: string, toToken?: st
   const provider = new ethers.providers.Web3Provider(window.ethereum as any);
   const signer = provider.getSigner();
   
+  // Improved logging for debugging
+  console.log(`Getting swap contract with signer: fromToken=${fromToken}, toToken=${toToken}, specific=${specificContractAddress}`);
+  
   // If a specific contract address is provided, use that
   if (specificContractAddress) {
+    console.log(`Using specific contract address: ${specificContractAddress}`);
+    
     // Determine which ABI to use based on the contract address
     if (specificContractAddress === SWAP_CONTRACTS.PRIOR_USDC) {
+      console.log("Using PRIOR_USDC ABI for specified contract");
       return new ethers.Contract(specificContractAddress, priorUsdcSwapAbi, signer);
     } else if (specificContractAddress === SWAP_CONTRACTS.PRIOR_USDT) {
+      console.log("Using PRIOR_USDT ABI for specified contract");
       return new ethers.Contract(specificContractAddress, priorUsdtSwapAbi, signer);
     } else if (specificContractAddress === SWAP_CONTRACTS.USDC_USDT) {
+      console.log("Using USDC_USDT ABI for specified contract");
       return new ethers.Contract(specificContractAddress, usdcUsdtSwapAbi, signer);
     }
+    
+    // If we don't specifically recognize the address, try to determine the right ABI
+    console.log("Contract address not directly matched, determining ABI");
+    
+    // Determine token symbols if provided, to help select the right ABI
+    let fromSymbol = "";
+    let toSymbol = "";
+    
+    if (fromToken && toToken) {
+      try {
+        fromSymbol = getTokenSymbol(fromToken);
+        toSymbol = getTokenSymbol(toToken);
+        console.log(`Derived symbols: ${fromSymbol} to ${toSymbol}`);
+      } catch (error) {
+        console.warn("Could not determine token symbols for ABI selection:", error);
+      }
+      
+      // Select appropriate ABI based on token symbols
+      if ((fromSymbol === "PRIOR" && toSymbol === "USDC") || (fromSymbol === "USDC" && toSymbol === "PRIOR")) {
+        console.log("Using PRIOR-USDC ABI based on token symbols");
+        return new ethers.Contract(specificContractAddress, priorUsdcSwapAbi, signer);
+      } else if ((fromSymbol === "PRIOR" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "PRIOR")) {
+        console.log("Using PRIOR-USDT ABI based on token symbols");
+        return new ethers.Contract(specificContractAddress, priorUsdtSwapAbi, signer);
+      } else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
+        console.log("Using USDC-USDT ABI based on token symbols");
+        return new ethers.Contract(specificContractAddress, usdcUsdtSwapAbi, signer);
+      }
+    }
+    
+    // Default if we can't determine: try PRIOR-USDC ABI
+    console.log("Defaulting to PRIOR-USDC ABI for unknown contract");
+    return new ethers.Contract(specificContractAddress, priorUsdcSwapAbi, signer);
   }
   
   // If no tokens specified, default to PRIOR-USDC swap contract
   if (!fromToken || !toToken) {
+    console.log("No tokens specified, defaulting to PRIOR-USDC contract");
     return new ethers.Contract(
       SWAP_CONTRACTS.PRIOR_USDC, 
       priorUsdcSwapAbi, 
@@ -109,27 +151,35 @@ export const getSwapContractWithSigner = async (fromToken?: string, toToken?: st
     );
   }
   
+  // Now handle the normal case - determine contract by token addresses
   // Normalize token addresses to lowercase for comparison
+  console.log("Determining contract from token addresses");
   const from = fromToken.toLowerCase();
   const to = toToken.toLowerCase();
   const prior = CONTRACT_ADDRESSES.priorToken.toLowerCase();
   const usdc = CONTRACT_ADDRESSES.tokens.USDC.toLowerCase();
   const usdt = CONTRACT_ADDRESSES.tokens.USDT.toLowerCase();
   
+  console.log(`Comparing: from=${from}, to=${to}`);
+  console.log(`References: prior=${prior}, usdc=${usdc}, usdt=${usdt}`);
+  
   // Determine which swap contract to use based on token pair
   if ((from === prior && to === usdc) || (from === usdc && to === prior)) {
+    console.log("Using PRIOR-USDC contract");
     return new ethers.Contract(
       SWAP_CONTRACTS.PRIOR_USDC, 
       priorUsdcSwapAbi, 
       signer
     );
   } else if ((from === prior && to === usdt) || (from === usdt && to === prior)) {
+    console.log("Using PRIOR-USDT contract");
     return new ethers.Contract(
       SWAP_CONTRACTS.PRIOR_USDT, 
       priorUsdtSwapAbi, 
       signer
     );
   } else if ((from === usdc && to === usdt) || (from === usdt && to === usdc)) {
+    console.log("Using USDC-USDT contract"); 
     return new ethers.Contract(
       SWAP_CONTRACTS.USDC_USDT, 
       usdcUsdtSwapAbi, 
@@ -137,7 +187,25 @@ export const getSwapContractWithSigner = async (fromToken?: string, toToken?: st
     );
   }
   
+  // If we can't directly match by address, try deriving from symbols
+  const fromSymbol = getTokenSymbol(fromToken);
+  const toSymbol = getTokenSymbol(toToken);
+  
+  console.log(`Derived token symbols: ${fromSymbol} to ${toSymbol}`);
+  
+  if ((fromSymbol === "PRIOR" && toSymbol === "USDC") || (fromSymbol === "USDC" && toSymbol === "PRIOR")) {
+    console.log("Using PRIOR-USDC contract based on symbols");
+    return new ethers.Contract(SWAP_CONTRACTS.PRIOR_USDC, priorUsdcSwapAbi, signer);
+  } else if ((fromSymbol === "PRIOR" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "PRIOR")) {
+    console.log("Using PRIOR-USDT contract based on symbols");
+    return new ethers.Contract(SWAP_CONTRACTS.PRIOR_USDT, priorUsdtSwapAbi, signer);
+  } else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
+    console.log("Using USDC-USDT contract based on symbols");
+    return new ethers.Contract(SWAP_CONTRACTS.USDC_USDT, usdcUsdtSwapAbi, signer);
+  }
+  
   // Default to PRIOR-USDC if no match found
+  console.log("No matching contract found, defaulting to PRIOR-USDC contract");
   return new ethers.Contract(
     SWAP_CONTRACTS.PRIOR_USDC, 
     priorUsdcSwapAbi, 
@@ -332,28 +400,43 @@ export const swapTokens = async (
     let tx;
     
     try {
+      // Add strong error logging to catch any issues
+      console.log(`About to execute ${fromSymbol} to ${toSymbol} swap with contract:`, swapContract);
+      
       // PRIOR/USDC Swap - most reliable pair
       if ((fromSymbol === "PRIOR" && toSymbol === "USDC")) {
         console.log("Executing PRIOR to USDC swap");
+        // Get contract methods to verify they exist
+        console.log("Available contract methods:", Object.keys(swapContract.functions));
         tx = await swapContract.swapPriorToUsdc(parsedAmount);
       } else if ((fromSymbol === "USDC" && toSymbol === "PRIOR")) {
         console.log("Executing USDC to PRIOR swap");
+        // Get contract methods to verify they exist
+        console.log("Available contract methods:", Object.keys(swapContract.functions));
         tx = await swapContract.swapUsdcToPrior(parsedAmount);
       } 
       // PRIOR/USDT Swap
       else if ((fromSymbol === "PRIOR" && toSymbol === "USDT")) {
         console.log("Executing PRIOR to USDT swap");
+        // Get contract methods to verify they exist
+        console.log("Available contract methods:", Object.keys(swapContract.functions));
         tx = await swapContract.swapPriorToUsdt(parsedAmount);
       } else if ((fromSymbol === "USDT" && toSymbol === "PRIOR")) {
         console.log("Executing USDT to PRIOR swap");
+        // Get contract methods to verify they exist
+        console.log("Available contract methods:", Object.keys(swapContract.functions));
         tx = await swapContract.swapUsdtToPrior(parsedAmount);
       }
       // USDC/USDT Swap
       else if ((fromSymbol === "USDC" && toSymbol === "USDT")) {
         console.log("Executing USDC to USDT swap");
+        // Get contract methods to verify they exist
+        console.log("Available contract methods:", Object.keys(swapContract.functions));
         tx = await swapContract.swapUsdcToUsdt(parsedAmount);
       } else if ((fromSymbol === "USDT" && toSymbol === "USDC")) {
         console.log("Executing USDT to USDC swap");
+        // Get contract methods to verify they exist
+        console.log("Available contract methods:", Object.keys(swapContract.functions));
         tx = await swapContract.swapUsdtToUsdc(parsedAmount);
       } else {
         throw new Error(`Swap pair not supported: ${fromSymbol} to ${toSymbol}`);

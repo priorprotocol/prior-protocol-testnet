@@ -517,12 +517,16 @@ export default function Swap() {
     if (!signer || !fromAmount || !hasAllowance) return;
     
     setIsSwapping(true);
+    setTxHash(""); // Clear any previous transaction hash
+    setSwapStatus("Preparing swap...");
+    
     try {
       const fromTokenInfo = TOKENS[fromToken as keyof typeof TOKENS];
       const toTokenInfo = TOKENS[toToken as keyof typeof TOKENS];
       
-      // Convert to proper token units (wei for PRIOR, micro-units for USDC/USDT)
-      const amountInWei = ethers.utils.parseUnits(fromAmount, fromTokenInfo.decimals);
+      // Log detailed information about the tokens for debugging
+      console.log(`Swap details - From token:`, fromTokenInfo);
+      console.log(`Swap details - To token:`, toTokenInfo);
       
       // Get the appropriate swap contract address
       const swapContractAddress = getSwapContractAddress(fromToken, toToken);
@@ -530,35 +534,48 @@ export default function Swap() {
         throw new Error(`No swap contract available for ${fromToken}-${toToken} pair`);
       }
       
-      // Calculate minimum amount out with slippage, making sure to handle decimals properly
+      console.log(`Using swap contract address: ${swapContractAddress}`);
+      setSwapStatus(`Finding best swap route for ${fromToken} to ${toToken}...`);
+      
+      // Format minimum amount output - don't use scientific notation for small numbers
       let minAmountOut = parseFloat(toAmount) * (1 - (slippage / 100));
       
-      // Format the number to avoid scientific notation and limit decimal places based on token type
+      // Use toFixed with enough precision to avoid scientific notation issues
+      // For PRIOR, use more decimal places (18 decimals total)
+      // For stablecoins, use fewer (6 decimals total)
       let formattedMinAmount;
       if (toToken === "PRIOR") {
-        formattedMinAmount = minAmountOut.toFixed(8); // Limit PRIOR to 8 decimal places for safety
+        // For tiny PRIOR amounts, ensure we show enough decimal places
+        if (minAmountOut < 0.0001) {
+          // Use a very precise representation for tiny amounts
+          formattedMinAmount = minAmountOut.toFixed(18).replace(/\.?0+$/, "");
+          console.log(`Using high precision format for tiny PRIOR amount: ${formattedMinAmount}`);
+        } else {
+          formattedMinAmount = minAmountOut.toFixed(8);
+        }
       } else {
-        formattedMinAmount = minAmountOut.toFixed(6); // Stablecoins have 6 decimals
+        // For stablecoins (USDC/USDT), use 6 decimal places
+        formattedMinAmount = minAmountOut.toFixed(6);
       }
       
       console.log(`Min amount out (formatted): ${formattedMinAmount} ${toToken}`);
-      const minAmountOutWei = ethers.utils.parseUnits(formattedMinAmount, toTokenInfo.decimals);
       
+      // Debug logs to understand what's happening
       console.log(`Executing swap: ${fromAmount} ${fromToken} to ${toToken}`);
       console.log(`Using contract: ${swapContractAddress}`);
-      console.log(`Amount in wei: ${amountInWei.toString()}`);
-      console.log(`Min amount out: ${minAmountOut} ${toToken} (${minAmountOutWei.toString()} wei)`);
+      console.log(`Slippage tolerance: ${slippage}%`);
+      console.log(`Expected output: ${toAmount} ${toToken}`);
+      console.log(`Min output with slippage: ${formattedMinAmount} ${toToken}`);
       
-      // Determine which swap function to call
-      let tx;
-      // For all pairs, use the simplified swap function with minAmountOut=0
-      console.log(`Executing ${fromToken} to ${toToken} swap`);
-      tx = await swapTokens(
+      setSwapStatus(`Executing ${fromToken} to ${toToken} swap...`);
+      
+      // Call swapTokens with the correct parameters
+      let tx = await swapTokens(
         fromTokenInfo.address,
         toTokenInfo.address,
         fromAmount,
         swapContractAddress,
-        "0" // Set minAmountOut to 0 to avoid scientific notation issues and allow easier swapping
+        "0" // Set minAmountOut to 0 to avoid scientific notation issues
       );
       
       if (tx) {
