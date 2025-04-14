@@ -4,11 +4,12 @@ import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import QuestCard from "@/components/QuestCard";
 import { Button } from "@/components/ui/button";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
+import { LogOut } from "lucide-react";
 
 const Quest = () => {
   // Use both wallet systems for compatibility during transition
   const { address: contextAddress } = useWallet();
-  const { address: standaloneAddress, isConnected } = useStandaloneWallet();
+  const { address: standaloneAddress, isConnected, disconnect } = useStandaloneWallet();
   
   // Prefer standalone address but fall back to context address
   const address = standaloneAddress || contextAddress;
@@ -67,10 +68,10 @@ const Quest = () => {
                 <div>
                   <h4 className="font-semibold">Swap Tokens</h4>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-green-400">2 points</span> per swap when you make 10+ swaps per day
+                    <span className="text-green-400">2 points</span> for each swap when you reach 10+ daily swaps
                   </p>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-gray-400">0 points</span> for less than 10 swaps per day
+                    <span className="text-gray-400">0 points</span> if you make fewer than 10 swaps per day
                   </p>
                   <p className="text-[#A0AEC0] text-sm mt-1">
                     <span className="text-yellow-400">Points convert to PRIOR</span> at TGE
@@ -173,9 +174,21 @@ const Quest = () => {
         )}
         
         <div className="mt-12 text-center">
-          <p className="text-[#A0AEC0] max-w-2xl mx-auto">
+          <p className="text-[#A0AEC0] max-w-2xl mx-auto mb-6">
             More quests will be added as the protocol evolves. Complete the available quests to earn rewards and learn about Prior Protocol features.
           </p>
+          
+          {isConnected && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={disconnect}
+              className="mx-auto mt-2"
+            >
+              <LogOut size={16} className="mr-2" />
+              Disconnect Wallet
+            </Button>
+          )}
         </div>
       </div>
     </section>
