@@ -1020,6 +1020,31 @@ export default function Swap() {
           </div>
         </div>
 
+        {/* Token Balances Cards */}
+        <div className="mb-4 grid grid-cols-3 gap-2">
+          {Object.keys(TOKENS).map(tokenSymbol => {
+            // Create a token object with complete information for TokenCard
+            const token = {
+              ...TOKENS[tokenSymbol as keyof typeof TOKENS],
+              id: 0, // Not used in this context
+              name: tokenSymbol === "PRIOR" ? "Prior Protocol Token" : 
+                    tokenSymbol === "USDC" ? "USD Coin" : "Tether USD",
+              logoColor: TOKENS[tokenSymbol as keyof typeof TOKENS].color
+            };
+            
+            // Use forcedBalances if available, otherwise use the regular balance
+            const forceBalance = forcedBalances[tokenSymbol];
+            
+            return (
+              <TokenCard 
+                key={tokenSymbol} 
+                token={token} 
+                forceBalance={forceBalance}
+              />
+            );
+          })}
+        </div>
+        
         {/* Testnet Notice */}
         <div className="bg-indigo-900/70 border border-indigo-700 rounded-xl p-3 mb-4 text-sm">
           <p className="text-indigo-200 font-medium mb-2">
