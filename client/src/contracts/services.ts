@@ -616,38 +616,68 @@ export const getFaucetInfo = async (address: string) => {
 
 // Get the exchange rate between PRIOR and USDC (1 PRIOR = x USDC)
 export const getPriorToUSDCRate = async (): Promise<string> => {
-  try {
-    const swapContract = await getSwapContract();
-    // Updated rate: 1 PRIOR = 10 USDC
-    return "10"; // Fixed rate for testnet
-  } catch (error) {
-    console.error("Error getting PRIOR to USDC rate:", error);
-    return "10"; // Default rate if error
-  }
+  // Fixed rate: 1 PRIOR = 10 USDC for the testnet
+  return "10";
 };
 
 // Get the exchange rate between PRIOR and USDT
 export const getPriorToUSDTRate = async (): Promise<string> => {
-  try {
-    const swapContract = await getSwapContract();
-    // Updated rate: 1 PRIOR = 10 USDT
-    return "10"; // Fixed rate for testnet
-  } catch (error) {
-    console.error("Error getting PRIOR to USDT rate:", error);
-    return "10"; // Default rate if error
-  }
+  // Fixed rate: 1 PRIOR = 10 USDT for the testnet
+  return "10";
 };
 
-// Get the exchange rate between PRIOR and DAI
-export const getPriorToDAIRate = async (): Promise<string> => {
-  try {
-    const swapContract = await getSwapContract();
-    // Updated rate: 1 PRIOR = 10 DAI (same as USDC/USDT)
-    return "10"; // Fixed rate for testnet
-  } catch (error) {
-    console.error("Error getting PRIOR to DAI rate:", error);
-    return "10"; // Default rate if error
+// Get the exchange rate between USDC and USDT
+export const getUSDCToUSDTRate = async (): Promise<string> => {
+  // Fixed rate: 1 USDC = 1 USDT for the testnet
+  return "1";
+};
+
+// Helper function to calculate output amount for any swap
+export const calculateSimpleSwapOutput = (
+  fromSymbol: string, 
+  toSymbol: string, 
+  amount: string
+): string => {
+  // Parse the input amount
+  const inputAmount = parseFloat(amount);
+  
+  if (isNaN(inputAmount)) {
+    return "0";
   }
+  
+  // PRIOR to stablecoins: 1 PRIOR = 10 USDC/USDT
+  if (fromSymbol === "PRIOR" && (toSymbol === "USDC" || toSymbol === "USDT")) {
+    console.log(`Swap calculation: ${amount} PRIOR to ${toSymbol} with rate 10`);
+    const result = inputAmount * 10;
+    console.log(`Result: ${result}`);
+    return result.toString();
+  }
+  
+  // Stablecoins to PRIOR: 10 USDC/USDT = 1 PRIOR
+  if ((fromSymbol === "USDC" || fromSymbol === "USDT") && toSymbol === "PRIOR") {
+    console.log(`Swap calculation: ${amount} ${fromSymbol} to PRIOR with rate 0.1`);
+    // Calculate with a 0.5% fee (typical DEX fee)
+    const resultBeforeFee = inputAmount * 0.1;
+    console.log(`Result before fee: ${resultBeforeFee}`);
+    const resultAfterFee = resultBeforeFee * 0.995; // 0.5% fee
+    console.log(`Result after 0.5% fee: ${resultAfterFee.toFixed(3)}`);
+    return resultAfterFee.toFixed(4);
+  }
+  
+  // Between stablecoins: 1:1 ratio with a small fee
+  if ((fromSymbol === "USDC" && toSymbol === "USDT") || 
+      (fromSymbol === "USDT" && toSymbol === "USDC")) {
+    console.log(`Swap calculation: ${amount} ${fromSymbol} to ${toSymbol} with rate 1`);
+    const resultBeforeFee = inputAmount;
+    console.log(`Result before fee: ${resultBeforeFee}`);
+    const resultAfterFee = resultBeforeFee * 0.997; // 0.3% fee
+    console.log(`Result after 0.3% fee: ${resultAfterFee.toFixed(2)}`);
+    return resultAfterFee.toFixed(2);
+  }
+  
+  // Default case (should not happen with our token set)
+  console.warn(`Unsupported swap pair: ${fromSymbol} to ${toSymbol}`);
+  return "0";
 };
 
 // Get the exchange rate between PRIOR and WETH
