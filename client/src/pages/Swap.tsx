@@ -69,6 +69,7 @@ export default function Swap() {
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [txHash, setTxHash] = useState<string>("");
   const [exchangeRates, setExchangeRates] = useState<{[key: string]: number}>({});
+  const [forcedBalances, setForcedBalances] = useState<{[key: string]: string}>({});
   const [showFromDropdown, setShowFromDropdown] = useState<boolean>(false);
   const [swapStatus, setSwapStatus] = useState<string>("");
   const [showToDropdown, setShowToDropdown] = useState<boolean>(false);
