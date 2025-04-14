@@ -717,8 +717,8 @@ export const checkPriorPioneerNFT = async (address: string): Promise<boolean> =>
   }
 };
 
-// Function to calculate the expected output amount for a swap
-export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddress: string, amountIn: string): Promise<string> => {
+// Function to calculate the expected output amount for a swap (using addresses)
+export const calculateSwapOutputFromAddresses = async (fromTokenAddress: string, toTokenAddress: string, amountIn: string): Promise<string> => {
   try {
     const fromSymbol = getTokenSymbol(fromTokenAddress);
     const toSymbol = getTokenSymbol(toTokenAddress);
@@ -728,49 +728,8 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
     console.log(`Calculating swap from ${fromSymbol} (${fromDecimals} decimals) to ${toSymbol} (${toDecimals} decimals)`);
     console.log(`Input amount: ${amountIn}`);
     
-    // Validate input amount
-    if (!amountIn || isNaN(parseFloat(amountIn)) || parseFloat(amountIn) <= 0) {
-      console.log("Invalid input amount, returning 0");
-      return "0";
-    }
-    
-    // Skip contract calculation and use fixed rates directly - this is more reliable
-    // Our fixed exchange rates: 1 PRIOR = 10 USDC/USDT, 1 USDC = 1 USDT, 1 USDC/USDT = 0.1 PRIOR
-    let outputValue = 0;
-    
-    if (fromSymbol === "PRIOR" && (toSymbol === "USDC" || toSymbol === "USDT")) {
-      // 1 PRIOR = 10 USDC/USDT
-      outputValue = parseFloat(amountIn) * 10;
-      console.log(`Calculated using fixed rate: ${amountIn} ${fromSymbol} = ${outputValue} ${toSymbol}`);
-    } 
-    else if ((fromSymbol === "USDC" || fromSymbol === "USDT") && toSymbol === "PRIOR") {
-      // 1 USDC/USDT = 0.1 PRIOR
-      outputValue = parseFloat(amountIn) * 0.1;
-      console.log(`Calculated using fixed rate: ${amountIn} ${fromSymbol} = ${outputValue} ${toSymbol}`);
-    } 
-    else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
-      // 1:1 for stablecoins
-      outputValue = parseFloat(amountIn);
-      console.log(`Calculated using fixed rate: ${amountIn} ${fromSymbol} = ${outputValue} ${toSymbol}`);
-    }
-    
-    // Apply a small fee (0.5%) to the output amount to match the contracts
-    const fee = 0.005; // 0.5%
-    const outputWithFee = outputValue * (1 - fee);
-    console.log(`Output after ${fee * 100}% fee: ${outputWithFee}`);
-    
-    // Format the output appropriately for the token type
-    let formattedOutput: string;
-    if (toSymbol === "PRIOR") {
-      // For PRIOR, show 4 decimal places
-      formattedOutput = outputWithFee.toFixed(4);
-    } else {
-      // For stablecoins, show 2 decimal places
-      formattedOutput = outputWithFee.toFixed(2);
-    }
-    
-    console.log(`Final formatted output: ${formattedOutput} ${toSymbol}`);
-    return formattedOutput;
+    // Use the simple calculation function
+    return calculateSimpleSwapOutput(fromSymbol, toSymbol, amountIn);
   } catch (error) {
     console.error("Error calculating swap output:", error);
     return "0";
