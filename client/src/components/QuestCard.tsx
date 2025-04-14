@@ -79,8 +79,8 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
       return;
     }
     
-    // Special handling for First Swap quest - redirect to swap page
-    if (quest.title === "First Swap") {
+    // Special handling for different quests with page redirections
+    if (quest.title === "First Swap" || quest.title.includes("Swap")) {
       // First start the quest
       if (!userQuest) {
         await startQuestMutation.mutateAsync();
@@ -88,6 +88,17 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
       
       // Redirect to swap page
       window.location.href = '/swap';
+      return;
+    }
+    
+    if (quest.title.includes("Governance") || quest.title.includes("Vote") || quest.title.includes("Proposal")) {
+      // First start the quest
+      if (!userQuest) {
+        await startQuestMutation.mutateAsync();
+      }
+      
+      // Redirect to governance page
+      window.location.href = '/governance';
       return;
     }
     
@@ -103,6 +114,21 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
     if (completeQuestMutation.isPending) return "Completing...";
     
     if (quest.status === 'coming_soon') return "Coming Soon";
+    
+    // Special button text for swap and governance quests
+    if (quest.title === "First Swap" || quest.title.includes("Swap")) {
+      if (!userQuest) return "Go to Swap";
+      if (userQuest.status === 'in_progress') return "Go to Swap";
+      if (userQuest.status === 'completed') return "Visit Swap Page";
+    }
+    
+    if (quest.title.includes("Governance") || quest.title.includes("Vote") || quest.title.includes("Proposal")) {
+      if (!userQuest) return "Go to Governance";
+      if (userQuest.status === 'in_progress') return "Go to Governance";
+      if (userQuest.status === 'completed') return "Visit Governance Page";
+    }
+    
+    // Default button text
     if (!userQuest) return "Start Quest";
     if (userQuest.status === 'in_progress') return "Complete Quest";
     if (userQuest.status === 'completed') return "Completed";
@@ -111,6 +137,13 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
   };
   
   const isButtonDisabled = () => {
+    // For swap and governance quests, we want to keep buttons enabled even when completed
+    if ((quest.title === "First Swap" || quest.title.includes("Swap") || 
+         quest.title.includes("Governance") || quest.title.includes("Vote") || quest.title.includes("Proposal")) &&
+        userQuest?.status === 'completed') {
+      return false;
+    }
+    
     return (
       quest.status === 'coming_soon' ||
       userQuest?.status === 'completed' ||
@@ -124,7 +157,12 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
       return "w-full rounded-lg bg-[#A0AEC0] bg-opacity-20 text-[#A0AEC0] cursor-not-allowed font-bold text-sm px-6 py-3 uppercase tracking-wide";
     }
     
+    // Special styling for completed quests that can still be clicked
     if (userQuest?.status === 'completed') {
+      if ((quest.title === "First Swap" || quest.title.includes("Swap") || 
+           quest.title.includes("Governance") || quest.title.includes("Vote") || quest.title.includes("Proposal"))) {
+        return "w-full rounded-lg bg-green-600 hover:bg-green-700 transition-all font-bold text-sm px-6 py-3 uppercase tracking-wide";
+      }
       return "w-full rounded-lg bg-green-600 font-bold text-sm px-6 py-3 uppercase tracking-wide";
     }
     
