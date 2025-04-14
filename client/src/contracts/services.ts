@@ -313,8 +313,29 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
       // For normal decimal values, use the standard formatting
       const formattedBalance = ethers.utils.formatUnits(rawValue, decimals);
       
-      // Format with the appropriate number of decimal places based on token type
-      let displayDecimals = 4; // Default 4 decimal places for PRIOR
+      // Special handling for PRIOR token to properly format balance
+      if (symbol === "PRIOR") {
+        // For PRIOR, directly format to a clean string
+        const priorValue = parseFloat(formattedBalance);
+        
+        // Use different precision based on the size of the value
+        if (priorValue >= 1) {
+          const formatted = priorValue.toFixed(2); // 2 decimal places for larger values
+          console.log(`PRIOR balance formatted (≥1): ${formatted}`);
+          return formatted;
+        } else if (priorValue >= 0.01) {
+          const formatted = priorValue.toFixed(3); // 3 decimal places for medium values
+          console.log(`PRIOR balance formatted (≥0.01): ${formatted}`);
+          return formatted;
+        } else {
+          const formatted = priorValue.toFixed(5); // 5 decimal places for smaller values
+          console.log(`PRIOR balance formatted (<0.01): ${formatted}`);
+          return formatted;
+        }
+      }
+      
+      // For other tokens, use standard formatting
+      let displayDecimals = 4; // Default for other tokens
       if (symbol === "USDC" || symbol === "USDT") {
         displayDecimals = 2; // 2 decimal places for stablecoins
       }
