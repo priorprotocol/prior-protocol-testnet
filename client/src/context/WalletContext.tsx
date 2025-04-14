@@ -139,87 +139,19 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     const initWallet = async () => {
       if (!mounted) return;
       
-      // Check for saved wallet state
-      try {
-        const savedWalletState = localStorage.getItem('walletState');
-        if (savedWalletState) {
-          const { address: savedAddress, timestamp } = JSON.parse(savedWalletState);
-          
-          // Session timeout after 24 hours
-          const isExpired = Date.now() - timestamp > 24 * 60 * 60 * 1000;
-          
-          if (savedAddress && !isExpired) {
-            // If we have a saved state, try to reconnect automatically
-            console.log("Restoring wallet connection from saved state...");
-            
-            // Try to verify the connection is still valid
-            if (window.ethereum) {
-              const accounts = await window.ethereum.request({ method: "eth_accounts" });
-              if (accounts && accounts.length > 0 && accounts[0].toLowerCase() === savedAddress.toLowerCase()) {
-                // Still connected!
-                setAddress(accounts[0]);
-              } else {
-                // Account changed or disconnected, clear localStorage
-                localStorage.removeItem('walletState');
-              }
-            }
-          } else {
-            // Expired session, clear localStorage
-            localStorage.removeItem('walletState');
-          }
-        }
-      } catch (e) {
-        console.error("Error restoring wallet state:", e);
-        localStorage.removeItem('walletState');
-      }
+      // Clear any existing wallet state to prevent auto-connection
+      localStorage.removeItem('walletState');
       
-      // Check if window.ethereum exists safely
+      // Setup event listeners only - no automatic connection on page load
+      console.log("Wallet auto-connection disabled. User must manually connect.");
+      
+      // Check if window.ethereum exists safely, but don't automatically connect
       if (typeof window === 'undefined' || !window.ethereum) {
         console.log("No ethereum provider detected");
         return;
       }
       
-      try {
-        // Get already connected accounts
-        const accounts = await window.ethereum.request({ method: "eth_accounts" });
-        
-        if (!mounted) return;
-        
-        if (accounts && accounts.length > 0) {
-          setAddress(accounts[0]);
-          
-          // Save to localStorage for persistence across page reloads
-          localStorage.setItem('walletState', JSON.stringify({
-            address: accounts[0],
-            timestamp: Date.now()
-          }));
-          
-          try {
-            // Get the chain ID
-            const provider = getProvider();
-            if (provider) {
-              const network = await provider.getNetwork();
-              const chainId = network.chainId;
-              
-              if (!mounted) return;
-              
-              setChainId(chainId);
-              
-              if (chainId !== 84532) {
-                toast({
-                  title: "Wrong Network",
-                  description: "Please switch to Base Sepolia Testnet",
-                  variant: "destructive"
-                });
-              }
-            }
-          } catch (error) {
-            console.error("Error getting chain ID:", error);
-          }
-        }
-      } catch (error) {
-        console.error("Error initializing wallet:", error);
-      }
+      // No automatic connection on page load or refresh - user must explicitly connect
     };
     
     // Setup event listeners for wallet
@@ -318,9 +250,19 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       return true;
     };
     
+    // Add event listener to automatically disconnect wallet on page refresh/close
+    const handleUnload = () => {
+      console.log("Page closing/refreshing - clearing wallet state");
+      localStorage.removeItem('walletState');
+      sessionStorage.removeItem('walletState');
+    };
+    
+    window.addEventListener('beforeunload', handleUnload);
+    
     return () => {
       // @ts-ignore
       delete window.__setWalletAddress;
+      window.removeEventListener('beforeunload', handleUnload);
     };
   }, []);
   
@@ -575,13 +517,21 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   };
   
   const disconnectWallet = () => {
+    // Clear React state
     setAddress(null);
     setChainId(null);
     setTokenBalances({});
     queryClient.clear();
     
-    // Clear the saved wallet state
+    // Thoroughly clean up any stored wallet state
     localStorage.removeItem('walletState');
+    sessionStorage.removeItem('walletState');
+    
+    // Ensure MetaMask doesn't reconnect on reload 
+    // by notifying any listeners of the disconnect
+    notifyWalletChange(null);
+    
+    console.log("Wallet completely disconnected");
     
     toast({
       title: "Wallet Disconnected",
