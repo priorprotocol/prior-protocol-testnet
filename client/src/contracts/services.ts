@@ -318,6 +318,12 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
         // For PRIOR, directly format to a clean string
         const priorValue = parseFloat(formattedBalance);
         
+        // Ensure we never display "0" for PRIOR if it's a positive number
+        if (priorValue > 0 && priorValue < 0.00001) {
+          console.log(`Very small PRIOR value detected: ${priorValue}, showing minimum display value`);
+          return "0.00001"; // Show a minimum display value for tiny amounts
+        }
+        
         // Use different precision based on the size of the value
         if (priorValue >= 1) {
           const formatted = priorValue.toFixed(2); // 2 decimal places for larger values
