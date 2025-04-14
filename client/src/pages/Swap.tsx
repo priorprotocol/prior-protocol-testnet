@@ -1235,7 +1235,7 @@ export default function Swap() {
                 {isSwapping ? (
                   <span className="flex items-center justify-center">
                     <FiRefreshCw className="animate-spin mr-2" />
-                    Swapping...
+                    {swapStatus || "Swapping..."}
                   </span>
                 ) : `Swap to ${toToken}`}
               </button>
