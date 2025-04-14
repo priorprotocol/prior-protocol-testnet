@@ -107,26 +107,50 @@ const Dashboard = () => {
                     <div className="animate-pulse h-4 bg-[#2D3748] rounded w-1/2"></div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span className="text-[#A0AEC0]">Total Swaps:</span>
-                      <span className="font-bold">{userStats?.totalSwaps || 0}</span>
+                  <div>
+                    {/* Points highlight */}
+                    <div className="bg-blue-900/30 border border-blue-800/50 rounded-md p-3 mb-5">
+                      <div className="flex justify-between items-center">
+                        <span className="text-blue-300 font-medium">Total Points:</span>
+                        <span className="text-xl font-bold text-blue-300">{userStats?.points || 0}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#A0AEC0]">Faucet Claims:</span>
-                      <span className="font-bold">{userStats?.totalFaucetClaims || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#A0AEC0]">Quests Completed:</span>
-                      <span className="font-bold">{userStats?.completedQuests || 0} / {userStats?.totalQuests || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#A0AEC0]">Proposals Voted:</span>
-                      <span className="font-bold">{userStats?.proposalsVoted || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#A0AEC0]">Proposals Created:</span>
-                      <span className="font-bold">{userStats?.proposalsCreated || 0}</span>
+                    
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-[#A0AEC0]">Total Swaps:</span>
+                        <div className="flex flex-col items-end">
+                          <span className="font-bold">{userStats?.totalSwaps || 0}</span>
+                          {userStats?.totalSwaps ? (
+                            <span className="text-xs text-green-400">
+                              {userStats.totalSwaps === 1 
+                                ? "20 pts earned" 
+                                : `${20 + (userStats.totalSwaps - 1) * 2} pts earned`}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#A0AEC0]">Faucet Claims:</span>
+                        <div className="flex flex-col items-end">
+                          <span className="font-bold">{userStats?.totalFaucetClaims || 0}</span>
+                          {userStats?.totalFaucetClaims ? (
+                            <span className="text-xs text-green-400">{userStats.totalFaucetClaims * 7} pts earned</span>
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#A0AEC0]">Quests Completed:</span>
+                        <span className="font-bold">{userStats?.completedQuests || 0} / {userStats?.totalQuests || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#A0AEC0]">Proposals Voted:</span>
+                        <span className="font-bold">{userStats?.proposalsVoted || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#A0AEC0]">Proposals Created:</span>
+                        <span className="font-bold">{userStats?.proposalsCreated || 0}</span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -336,7 +360,7 @@ const Dashboard = () => {
             <div className="px-1">
               <h3 className="text-xl font-semibold mb-1">Prior Protocol Leaderboard</h3>
               <p className="text-[#A0AEC0]">
-                Top users ranked by points from protocol activity. Earn points by swapping tokens (5 points) 
+                Top users ranked by points from protocol activity. Earn points by swapping tokens (20 points for first swap, 2 points for subsequent swaps) 
                 and claiming from the faucet (7 points).
               </p>
             </div>
@@ -355,8 +379,17 @@ const Dashboard = () => {
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Swaps</p>
-                      <p className="text-xl font-bold">{(userStats?.totalSwaps || 0) * 5}</p>
-                      <p className="text-xs text-[#A0AEC0]">({userStats?.totalSwaps || 0} swaps × 5 pts)</p>
+                      <p className="text-xl font-bold">
+                        {userStats?.totalSwaps ? 
+                          (userStats.totalSwaps === 1 ? 20 : 20 + (userStats.totalSwaps - 1) * 2) : 0}
+                      </p>
+                      <p className="text-xs text-[#A0AEC0]">
+                        {userStats?.totalSwaps ? 
+                          (userStats.totalSwaps === 1 ? 
+                            "1 swap (20 pts)" : 
+                            `First swap (20 pts) + ${userStats.totalSwaps - 1} more (${(userStats.totalSwaps - 1) * 2} pts)`) : 
+                          "No swaps yet"}
+                      </p>
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Faucet</p>
