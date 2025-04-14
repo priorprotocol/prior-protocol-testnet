@@ -14,9 +14,9 @@ A cutting-edge testnet DApp for Prior Protocol on Base Sepolia chain, designed t
 ## Points System
 
 - 20 points for first swap, 2 points for subsequent swaps
-- 7 points per faucet claim
-- 300 points for governance participation (requires NFT)
-- 5 points for liquidity staking
+- No points for faucet claims
+- 10 points per governance vote (300 additional points if you have Prior Pioneer NFT)
+- 5 points for liquidity staking (coming soon)
 
 All points will be converted to PRIOR tokens at TGE (Token Generation Event).
 

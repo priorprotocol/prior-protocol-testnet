@@ -134,9 +134,7 @@ const Dashboard = () => {
                         <span className="text-[#A0AEC0]">Faucet Claims:</span>
                         <div className="flex flex-col items-end">
                           <span className="font-bold">{userStats?.totalFaucetClaims || 0}</span>
-                          {userStats?.totalFaucetClaims ? (
-                            <span className="text-xs text-green-400">{userStats.totalFaucetClaims * 7} pts earned</span>
-                          ) : null}
+                          {/* No points for faucet claims */}
                         </div>
                       </div>
                       <div className="flex justify-between">
@@ -361,7 +359,7 @@ const Dashboard = () => {
               <h3 className="text-xl font-semibold mb-1">Prior Protocol Leaderboard</h3>
               <p className="text-[#A0AEC0]">
                 Top users ranked by Prior Points from protocol activity. Earn points by swapping tokens (20 points for first swap, 2 points for subsequent swaps), 
-                claiming from the faucet (7 points), voting on governance proposals (10 points), and completing quests (various rewards). 
+                voting on governance proposals (10 points), and completing quests (various rewards). 
                 <strong>All points will be converted to PRIOR tokens at Token Generation Event (TGE).</strong>
               </p>
             </div>
@@ -397,8 +395,8 @@ const Dashboard = () => {
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Faucet</p>
-                      <p className="text-xl font-bold">{(userStats?.totalFaucetClaims || 0) * 7}</p>
-                      <p className="text-xs text-[#A0AEC0]">({userStats?.totalFaucetClaims || 0} claims × 7 pts)</p>
+                      <p className="text-xl font-bold">0</p>
+                      <p className="text-xs text-[#A0AEC0]">({userStats?.totalFaucetClaims || 0} claims × 0 pts)</p>
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Governance</p>

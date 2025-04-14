@@ -383,8 +383,7 @@ export class MemStorage implements IStorage {
     this.users.set(userId, updatedUser);
     this.usersByAddress.set(user.address, updatedUser);
     
-    // Add 7 points for each faucet claim
-    await this.addUserPoints(userId, 7);
+    // No points are awarded for faucet claims
     
     return newClaimCount;
   }

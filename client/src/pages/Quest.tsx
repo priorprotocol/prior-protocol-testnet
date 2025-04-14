@@ -85,7 +85,10 @@ const Quest = () => {
                 <div>
                   <h4 className="font-semibold">Faucet Claims</h4>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-green-400">7 points</span> for each daily faucet claim
+                    Claim free PRIOR tokens for testing
+                  </p>
+                  <p className="text-[#A0AEC0] text-sm italic">
+                    No points awarded for faucet claims
                   </p>
                 </div>
               </div>
