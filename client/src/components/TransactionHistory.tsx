@@ -166,16 +166,26 @@ export const TransactionHistory: React.FC = () => {
             <div>
               To: {formatAmount(tx.toAmount, tx.toToken)}
             </div>
+            <div className="mt-1">
+              {tx.points && tx.points > 0 ? (
+                <Badge className="bg-green-600">+{tx.points} points</Badge>
+              ) : (
+                <Badge variant="outline" className="text-gray-400">No points</Badge>
+              )}
+            </div>
           </div>
         )}
         
         {tx.type === "faucet_claim" && (
           <div className="text-sm">
-            Received: {formatAmount(tx.toAmount, tx.toToken)}
+            <div>Received: {formatAmount(tx.toAmount, tx.toToken)}</div>
+            <div className="mt-1">
+              <Badge variant="outline" className="text-gray-400">No points</Badge>
+            </div>
           </div>
         )}
         
-        <div className="text-xs text-gray-500 truncate">
+        <div className="text-xs text-gray-500 truncate mt-1">
           Tx: {tx.txHash.substring(0, 10)}...{tx.txHash.substring(tx.txHash.length - 8)}
         </div>
         
@@ -206,7 +216,7 @@ export const TransactionHistory: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={() => fetchTransactions(activeTab !== "all" ? activeTab : undefined)}
+          onClick={() => fetchTransactions(activeTab !== "all" ? activeTab : undefined, currentPage)}
           disabled={loading}
         >
           <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
@@ -226,10 +236,40 @@ export const TransactionHistory: React.FC = () => {
               <div className="flex justify-center py-8">
                 <RefreshCw size={24} className="animate-spin text-gray-500" />
               </div>
-            ) : transactions.length > 0 ? (
-              <div>
-                {transactions.map(renderTransactionItem)}
-              </div>
+            ) : transactionData.transactions.length > 0 ? (
+              <>
+                <div>
+                  {transactionData.transactions.map(renderTransactionItem)}
+                </div>
+                
+                {/* Pagination Controls */}
+                <div className="flex justify-between items-center mt-6">
+                  <div className="text-sm text-gray-500">
+                    Showing {transactionData.transactions.length} of {transactionData.total} transactions
+                    {transactionData.total > 0 && ` (Page ${currentPage})`}
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handlePrevPage}
+                      disabled={currentPage <= 1 || loading}
+                    >
+                      <ChevronLeft size={16} />
+                      <span className="ml-1">Previous</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleNextPage}
+                      disabled={!transactionData.hasMore || loading}
+                    >
+                      <span className="mr-1">Next</span>
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
+                </div>
+              </>
             ) : (
               <p className="text-center py-8 text-gray-500">
                 No {activeTab !== "all" ? getTransactionLabel(activeTab).toLowerCase() : ""} transactions found
