@@ -79,6 +79,18 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
       return;
     }
     
+    // Special handling for First Swap quest - redirect to swap page
+    if (quest.title === "First Swap") {
+      // First start the quest
+      if (!userQuest) {
+        await startQuestMutation.mutateAsync();
+      }
+      
+      // Redirect to swap page
+      window.location.href = '/swap';
+      return;
+    }
+    
     if (!userQuest) {
       startQuestMutation.mutate();
     } else if (userQuest.status === 'in_progress') {

@@ -72,10 +72,13 @@ const Quest = () => {
                   <p className="text-[#A0AEC0] text-sm">
                     <span className="text-green-400">2 points</span> for each subsequent swap
                   </p>
+                  <p className="text-[#A0AEC0] text-sm mt-1">
+                    <span className="text-yellow-400">+ 50 PRIOR</span> token reward for completing the quest
+                  </p>
                 </div>
               </div>
               
-              <div className="flex items-center">
+              <div className="flex items-center mb-3">
                 <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
                   <span className="text-white font-bold text-sm">💧</span>
                 </div>
@@ -83,6 +86,36 @@ const Quest = () => {
                   <h4 className="font-semibold">Faucet Claims</h4>
                   <p className="text-[#A0AEC0] text-sm">
                     <span className="text-green-400">7 points</span> for each daily faucet claim
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-sm">🗳️</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Governance Voting</h4>
+                  <p className="text-[#A0AEC0] text-sm">
+                    <span className="text-green-400">10 points</span> for each proposal vote
+                  </p>
+                  <p className="text-[#A0AEC0] text-sm mt-1">
+                    <span className="text-yellow-400">+ 100 PRIOR</span> token reward for completing the quest
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-sm">📈</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Liquidity Provider</h4>
+                  <p className="text-[#A0AEC0] text-sm">
+                    <span className="text-green-400">50 points</span> for becoming a LP
+                  </p>
+                  <p className="text-[#A0AEC0] text-sm mt-1">
+                    <span className="text-yellow-400">+ 200 PRIOR</span> token reward (Coming soon)
                   </p>
                 </div>
               </div>
