@@ -360,11 +360,9 @@ export class MemStorage implements IStorage {
     this.usersByAddress.set(user.address, updatedUser);
     
     // Add 20 points for first swap or 2 points for subsequent swaps
-    if (newSwapCount === 1) {
-      await this.addUserPoints(userId, 20);
-    } else {
-      await this.addUserPoints(userId, 2);
-    }
+    // First swap gives 20 points, subsequent swaps give 2 points each
+    const pointsToAdd = newSwapCount === 1 ? 20 : 2;
+    await this.addUserPoints(userId, pointsToAdd);
     
     return newSwapCount;
   }
@@ -602,7 +600,8 @@ export class MemStorage implements IStorage {
     // This would normally query the blockchain, but for this demo we'll
     // check if the user has the 'pioneer' badge
     const user = this.users.get(vote.userId);
-    if (user && user.badges && user.badges.includes('pioneer')) {
+    const userBadges = user?.badges;
+    if (user && userBadges && Array.isArray(userBadges) && userBadges.indexOf('pioneer') >= 0) {
       await this.addUserPoints(vote.userId, 300);
     }
     

@@ -373,10 +373,13 @@ const Dashboard = () => {
                   <CardTitle className="text-lg">Your Performance</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-2">
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">Total Points</p>
                       <p className="text-2xl font-bold">{userStats?.points || 0}</p>
+                      <p className="text-xs text-[#A0AEC0] mt-1 italic">
+                        All points convert to PRIOR at TGE
+                      </p>
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Swaps</p>
@@ -396,6 +399,18 @@ const Dashboard = () => {
                       <p className="text-xs text-[#A0AEC0] mb-1">From Faucet</p>
                       <p className="text-xl font-bold">{(userStats?.totalFaucetClaims || 0) * 7}</p>
                       <p className="text-xs text-[#A0AEC0]">({userStats?.totalFaucetClaims || 0} claims × 7 pts)</p>
+                    </div>
+                    <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
+                      <p className="text-xs text-[#A0AEC0] mb-1">From Governance</p>
+                      <p className="text-xl font-bold">{userStats?.proposalsVoted ? userStats.proposalsVoted * 10 : 0}</p>
+                      <p className="text-xs text-[#A0AEC0]">
+                        {userStats?.proposalsVoted ? 
+                          `${userStats.proposalsVoted} votes (${userStats.proposalsVoted * 10} pts)` : 
+                          "No votes yet"}
+                      </p>
+                      <p className="text-xs text-[#A0AEC0] mt-1">
+                        <span className="text-purple-400">+300</span> with Prior NFT
+                      </p>
                     </div>
                   </div>
                 </CardContent>
