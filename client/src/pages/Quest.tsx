@@ -70,7 +70,10 @@ const Quest = () => {
                     <span className="text-green-400 font-bold">20 points</span> for your first swap
                   </p>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-green-400">2 points</span> for each subsequent swap
+                    <span className="text-green-400">2 points</span> per swap when you make 10+ swaps per day
+                  </p>
+                  <p className="text-[#A0AEC0] text-sm">
+                    <span className="text-gray-400">0 points</span> for less than 10 swaps per day
                   </p>
                   <p className="text-[#A0AEC0] text-sm mt-1">
                     <span className="text-yellow-400">Points convert to PRIOR</span> at TGE

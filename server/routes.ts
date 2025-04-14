@@ -457,35 +457,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's transaction history (all types)
+  // Get user's transaction history (all types) with pagination
   app.get(`${apiPrefix}/users/:address/transactions`, async (req, res) => {
     const { address } = req.params;
+    const page = parseInt(req.query.page as string || '1');
+    const limit = parseInt(req.query.limit as string || '10');
     
     const user = await storage.getUser(address);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
     
-    const transactions = await storage.getUserTransactions(user.id);
-    res.json(transactions);
+    const result = await storage.getUserTransactions(user.id, page, limit);
+    
+    // Add points information to each transaction
+    const transactionsWithPoints = await Promise.all(
+      result.transactions.map(async (tx) => {
+        const points = await storage.getTransactionPoints(tx);
+        return {
+          ...tx,
+          points
+        };
+      })
+    );
+    
+    res.json({
+      ...result,
+      transactions: transactionsWithPoints
+    });
   });
 
-  // Get user's transaction history by type
+  // Get user's transaction history by type with pagination
   app.get(`${apiPrefix}/users/:address/transactions/:type`, async (req, res) => {
     const { address, type } = req.params;
+    const page = parseInt(req.query.page as string || '1');
+    const limit = parseInt(req.query.limit as string || '10');
     
     const user = await storage.getUser(address);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
     
-    const transactions = await storage.getUserTransactionsByType(user.id, type);
-    res.json(transactions);
+    const result = await storage.getUserTransactionsByType(user.id, type, page, limit);
+    
+    // Add points information to each transaction
+    const transactionsWithPoints = await Promise.all(
+      result.transactions.map(async (tx) => {
+        const points = await storage.getTransactionPoints(tx);
+        return {
+          ...tx,
+          points
+        };
+      })
+    );
+    
+    res.json({
+      ...result,
+      transactions: transactionsWithPoints
+    });
   });
   
-  // Get user's transaction history by user ID (for internal use)
+  // Get user's transaction history by user ID (for internal use) with pagination
   app.get(`${apiPrefix}/users/:userId/transactions`, async (req, res) => {
     const userId = parseInt(req.params.userId);
+    const page = parseInt(req.query.page as string || '1');
+    const limit = parseInt(req.query.limit as string || '10');
     
     if (isNaN(userId)) {
       return res.status(400).json({ message: "Invalid user ID" });
@@ -494,18 +530,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Since we can't access the private 'users' Map directly, we'll just proceed with
     // the transaction lookup and handle not finding any as an empty result
     try {
-      const transactions = await storage.getUserTransactions(userId);
-      res.json(transactions);
+      const result = await storage.getUserTransactions(userId, page, limit);
+      
+      // Add points information to each transaction
+      const transactionsWithPoints = await Promise.all(
+        result.transactions.map(async (tx) => {
+          const points = await storage.getTransactionPoints(tx);
+          return {
+            ...tx,
+            points
+          };
+        })
+      );
+      
+      res.json({
+        ...result,
+        transactions: transactionsWithPoints
+      });
     } catch (error) {
       console.error("Error fetching transactions for userId:", userId, error);
       res.status(500).json({ message: "Error fetching transactions" });
     }
   });
   
-  // Get user's transaction history by user ID and type (for internal use)
+  // Get user's transaction history by user ID and type (for internal use) with pagination
   app.get(`${apiPrefix}/users/:userId/transactions/:type`, async (req, res) => {
     const userId = parseInt(req.params.userId);
     const { type } = req.params;
+    const page = parseInt(req.query.page as string || '1');
+    const limit = parseInt(req.query.limit as string || '10');
     
     if (isNaN(userId)) {
       return res.status(400).json({ message: "Invalid user ID" });
@@ -514,8 +567,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Since we can't access the private 'users' Map directly, we'll just proceed with
     // the transaction lookup by type and handle not finding any as an empty result
     try {
-      const transactions = await storage.getUserTransactionsByType(userId, type);
-      res.json(transactions);
+      const result = await storage.getUserTransactionsByType(userId, type, page, limit);
+      
+      // Add points information to each transaction
+      const transactionsWithPoints = await Promise.all(
+        result.transactions.map(async (tx) => {
+          const points = await storage.getTransactionPoints(tx);
+          return {
+            ...tx,
+            points
+          };
+        })
+      );
+      
+      res.json({
+        ...result,
+        transactions: transactionsWithPoints
+      });
     } catch (error) {
       console.error("Error fetching transactions for userId:", userId, "type:", type, error);
       res.status(500).json({ message: "Error fetching transactions" });

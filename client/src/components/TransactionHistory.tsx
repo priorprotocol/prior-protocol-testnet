@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, RefreshCw } from "lucide-react";
+import { ExternalLink, RefreshCw, ChevronRight, ChevronLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 
@@ -19,15 +19,29 @@ interface Transaction {
   timestamp: string;
   status: string;
   blockNumber: number | null;
+  points?: number; // Points allocated for this transaction
+}
+
+interface TransactionResponse {
+  transactions: Transaction[];
+  total: number;
+  page: number;
+  hasMore: boolean;
 }
 
 export const TransactionHistory: React.FC = () => {
   const { address, isConnected } = useWallet();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactionData, setTransactionData] = useState<TransactionResponse>({
+    transactions: [],
+    total: 0,
+    page: 1,
+    hasMore: false
+  });
   const [activeTab, setActiveTab] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const fetchTransactions = async (type?: string) => {
+  const fetchTransactions = async (type?: string, page: number = 1, limit: number = 10) => {
     if (!address) return;
     
     setLoading(true);
@@ -35,19 +49,16 @@ export const TransactionHistory: React.FC = () => {
       // Use the userId instead of address for better endpoint matching
       const userId = address && address.toLowerCase() === "0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae" ? 1 : undefined;
       
-      // Debug log
-      console.log("Fetching transactions for userId:", userId || "unknown", "address:", address);
-      
       // Construct endpoint using userId
       let endpoint = '';
       if (userId) {
         endpoint = type && type !== "all" 
-          ? `/api/users/${userId}/transactions/${type}`
-          : `/api/users/${userId}/transactions`;
+          ? `/api/users/${userId}/transactions/${type}?page=${page}&limit=${limit}`
+          : `/api/users/${userId}/transactions?page=${page}&limit=${limit}`;
       } else {
         endpoint = type && type !== "all" 
-          ? `/api/users/${address}/transactions/${type}`
-          : `/api/users/${address}/transactions`;
+          ? `/api/users/${address}/transactions/${type}?page=${page}&limit=${limit}`
+          : `/api/users/${address}/transactions?page=${page}&limit=${limit}`;
       }
       
       console.log("Fetching transactions from endpoint:", endpoint);
@@ -56,7 +67,7 @@ export const TransactionHistory: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         console.log("Received transactions:", data);
-        setTransactions(data);
+        setTransactionData(data);
       } else {
         console.error("Failed to fetch transactions:", response.status, await response.text());
       }
@@ -69,12 +80,25 @@ export const TransactionHistory: React.FC = () => {
 
   useEffect(() => {
     if (isConnected && address) {
-      fetchTransactions(activeTab !== "all" ? activeTab : undefined);
+      fetchTransactions(activeTab !== "all" ? activeTab : undefined, currentPage);
     }
-  }, [isConnected, address, activeTab]);
+  }, [isConnected, address, activeTab, currentPage]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    setCurrentPage(1); // Reset to page 1 when changing tabs
+  };
+  
+  const handleNextPage = () => {
+    if (transactionData.hasMore) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+  
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
   };
 
   const getTransactionLabel = (type: string) => {
