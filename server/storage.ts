@@ -29,6 +29,7 @@ export interface IStorage {
     proposalsCreated: number;
     points: number;
   }>;
+  getDailySwapCount(userId: number): Promise<number>; // New method to track daily swap count
   
   // Quest operations
   getAllQuests(): Promise<Quest[]>;
@@ -56,9 +57,20 @@ export interface IStorage {
   createToken(token: InsertToken): Promise<Token>;
   
   // Transaction operations
-  getUserTransactions(userId: number): Promise<Transaction[]>;
-  getUserTransactionsByType(userId: number, type: string): Promise<Transaction[]>;
+  getUserTransactions(userId: number, page?: number, limit?: number): Promise<{
+    transactions: Transaction[];
+    total: number;
+    page: number;
+    hasMore: boolean;
+  }>;
+  getUserTransactionsByType(userId: number, type: string, page?: number, limit?: number): Promise<{
+    transactions: Transaction[];
+    total: number;
+    page: number;
+    hasMore: boolean;
+  }>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  getTransactionPoints(transaction: Transaction): Promise<number>; // New method to get points for a transaction
 }
 
 // In-memory implementation of storage
@@ -359,10 +371,26 @@ export class MemStorage implements IStorage {
     this.users.set(userId, updatedUser);
     this.usersByAddress.set(user.address, updatedUser);
     
-    // Add 20 points for first swap or 2 points for subsequent swaps
-    // First swap gives 20 points, subsequent swaps give 2 points each
-    const pointsToAdd = newSwapCount === 1 ? 20 : 2;
-    await this.addUserPoints(userId, pointsToAdd);
+    // Get current daily swap count
+    const dailySwapCount = await this.getDailySwapCount(userId);
+    
+    // Add points according to the new reward system:
+    // 1. First swap ever still gives 20 points
+    // 2. Only award 2 points per swap if user has 10+ swaps per day
+    // 3. No points for swaps if daily count is below 10
+    
+    let pointsToAdd = 0;
+    if (newSwapCount === 1) {
+      // First swap ever
+      pointsToAdd = 20;
+    } else if (dailySwapCount >= 10) {
+      // If user has made 10 or more swaps today, award 2 points per swap
+      pointsToAdd = 2;
+    }
+    
+    if (pointsToAdd > 0) {
+      await this.addUserPoints(userId, pointsToAdd);
+    }
     
     return newSwapCount;
   }
@@ -627,16 +655,108 @@ export class MemStorage implements IStorage {
   }
   
   // Transaction operations
-  async getUserTransactions(userId: number): Promise<Transaction[]> {
-    return Array.from(this.transactions.values())
+  async getUserTransactions(userId: number, page: number = 1, limit: number = 10): Promise<{
+    transactions: Transaction[];
+    total: number;
+    page: number;
+    hasMore: boolean;
+  }> {
+    const allTransactions = Array.from(this.transactions.values())
       .filter(tx => tx.userId === userId)
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    // Enforce a hard limit of 50 for maximum historical transactions
+    const maxTransactions = allTransactions.slice(0, 50);
+    const total = maxTransactions.length;
+    
+    // Calculate pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = Math.min(startIndex + limit, total);
+    const paginatedTransactions = maxTransactions.slice(startIndex, endIndex);
+    
+    return {
+      transactions: paginatedTransactions,
+      total,
+      page,
+      hasMore: endIndex < total
+    };
   }
   
-  async getUserTransactionsByType(userId: number, type: string): Promise<Transaction[]> {
-    return Array.from(this.transactions.values())
+  async getUserTransactionsByType(userId: number, type: string, page: number = 1, limit: number = 10): Promise<{
+    transactions: Transaction[];
+    total: number;
+    page: number;
+    hasMore: boolean;
+  }> {
+    const allTransactions = Array.from(this.transactions.values())
       .filter(tx => tx.userId === userId && tx.type === type)
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    // Enforce a hard limit of 50 for maximum historical transactions
+    const maxTransactions = allTransactions.slice(0, 50);
+    const total = maxTransactions.length;
+    
+    // Calculate pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = Math.min(startIndex + limit, total);
+    const paginatedTransactions = maxTransactions.slice(startIndex, endIndex);
+    
+    return {
+      transactions: paginatedTransactions,
+      total,
+      page,
+      hasMore: endIndex < total
+    };
+  }
+  
+  // Method to get points awarded for a transaction
+  async getTransactionPoints(transaction: Transaction): Promise<number> {
+    if (transaction.type !== 'swap') return 0;
+    
+    // Get all swaps by this user on the same day
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    
+    const userSwapsToday = Array.from(this.transactions.values())
+      .filter(tx => 
+        tx.userId === transaction.userId && 
+        tx.type === 'swap' &&
+        new Date(tx.timestamp) >= todayStart
+      );
+    
+    // Count how many swaps the user has made today
+    const swapCountToday = userSwapsToday.length;
+    
+    // For the first swap ever (based on ID comparison), award 20 points
+    if (transaction.id === userSwapsToday[0]?.id) {
+      const user = this.users.get(transaction.userId);
+      if (user && user.totalSwaps === 1) {
+        return 20; // First swap ever gets 20 points
+      }
+    }
+    
+    // If user has made 10 or more swaps today, award 2 points per swap
+    if (swapCountToday >= 10) {
+      return 2;
+    }
+    
+    // Otherwise, no points
+    return 0;
+  }
+  
+  // Method to get daily swap count for a user
+  async getDailySwapCount(userId: number): Promise<number> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    
+    const userSwapsToday = Array.from(this.transactions.values())
+      .filter(tx => 
+        tx.userId === userId && 
+        tx.type === 'swap' &&
+        new Date(tx.timestamp) >= todayStart
+      );
+    
+    return userSwapsToday.length;
   }
   
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
