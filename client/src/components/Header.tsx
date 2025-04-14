@@ -40,7 +40,16 @@ const Header = () => {
   
   
   return (
-    <header className="border-b border-[#2D3748] sticky top-0 bg-[#0B1118] z-50">
+    <header className="border-b border-[#2D3748] sticky top-0 bg-[#0B1118] z-40">
+      {/* Background overlay - shows when menu is open */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 z-40"
+          onClick={toggleMobileMenu}
+          aria-hidden="true"
+        />
+      )}
+      
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         {/* Logo */}
         <div className="flex items-center">
@@ -102,52 +111,62 @@ const Header = () => {
         </button>
       </div>
       
-      {/* Mobile Navigation Menu - improved accessibility */}
+      {/* Mobile Navigation Menu - slides in from right */}
       <div 
         id="mobile-menu"
-        className={`md:hidden w-full bg-[#111827] border-t border-[#2D3748] transform transition-transform duration-200 ease-in-out ${isMobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}`}
+        className={`md:hidden fixed top-0 right-0 h-full w-3/4 max-w-sm bg-[#111827] border-l border-[#2D3748] shadow-xl transform transition-transform duration-300 ease-in-out z-50 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
         aria-hidden={!isMobileMenuOpen}
       >
-        <div className="container mx-auto px-4 py-2">
-          <div className="flex items-center py-3 mb-2 border-b border-gray-700">
-            <img 
-              src={logoPath} 
-              alt="Prior Protocol Logo" 
-              className="w-8 h-8 mr-2" 
-            />
-            <h2 className="text-xl font-bold">
-              <span className="text-[#1A5CFF]">Prior</span><span className="text-white">Protocol</span>
-              <span className="text-xs ml-1 text-[#FF6B00] font-medium">TESTNET</span>
-            </h2>
+        <div className="h-full flex flex-col overflow-y-auto">
+          <div className="flex items-center justify-between py-4 px-6 border-b border-gray-700">
+            <div className="flex items-center">
+              <img 
+                src={logoPath} 
+                alt="Prior Protocol Logo" 
+                className="w-8 h-8 mr-2" 
+              />
+              <h2 className="text-xl font-bold">
+                <span className="text-[#1A5CFF]">Prior</span><span className="text-white">Protocol</span>
+                <span className="text-xs ml-1 text-[#FF6B00] font-medium">TESTNET</span>
+              </h2>
+            </div>
+            <button 
+              onClick={toggleMobileMenu}
+              className="text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 p-2 rounded-md"
+              aria-label="Close menu"
+            >
+              <i className="fas fa-times text-xl" aria-hidden="true"></i>
+            </button>
           </div>
-          <nav className="flex flex-col space-y-4 py-4" aria-label="Mobile navigation">
+          
+          <nav className="flex flex-col space-y-3 py-6 px-6 flex-grow" aria-label="Mobile navigation">
             {navLinks.map(link => (
               <Link 
                 key={link.path}
                 href={link.path} 
-                className={`${location === link.path ? 'text-white font-medium' : 'text-[#A0AEC0]'} hover:text-white transition-colors py-2 px-3 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`${location === link.path ? 'text-white font-medium bg-gray-800' : 'text-[#A0AEC0]'} hover:text-white transition-colors py-3 px-4 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 onClick={() => setIsMobileMenuOpen(false)}
                 aria-current={location === link.path ? 'page' : undefined}
               >
                 {link.name}
               </Link>
             ))}
-            
-            <div className="mt-4 px-3" aria-label="Wallet connection">
-              <StandaloneWalletButton 
-                onConnect={() => {
-                  // Close the mobile menu after connecting
-                  setIsMobileMenuOpen(false);
-                }}
-                onDisconnect={() => {
-                  // Close the mobile menu after disconnecting
-                  setIsMobileMenuOpen(false);
-                }}
-                size="lg"
-                className="w-full justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-              />
-            </div>
           </nav>
+          
+          <div className="px-6 py-4 border-t border-gray-700 mt-auto" aria-label="Wallet connection">
+            <StandaloneWalletButton 
+              onConnect={() => {
+                // Close the mobile menu after connecting
+                setIsMobileMenuOpen(false);
+              }}
+              onDisconnect={() => {
+                // Close the mobile menu after disconnecting
+                setIsMobileMenuOpen(false);
+              }}
+              size="lg"
+              className="w-full justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+            />
+          </div>
         </div>
       </div>
     </header>
