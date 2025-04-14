@@ -307,60 +307,47 @@ export default function Swap() {
       
       // Properly fetch all token balances from the contract using our improved getTokenBalance function
       if (provider) {
-        for (const symbol of Object.keys(TOKENS)) {
-          try {
-            const tokenAddress = TOKENS[symbol as keyof typeof TOKENS].address;
-            const tokenDecimals = TOKENS[symbol as keyof typeof TOKENS].decimals;
-            
-            // Use the updated contract helper function to get the balance
-            const rawBalance = await getTokenBalanceFromContract(tokenAddress, walletAddress);
-            
-            // Format the balance nicely for display based on token type
-            let formattedBalance;
-            const parsedBalance = parseFloat(rawBalance);
-            
-            if (symbol === "PRIOR") {
-              // For PRIOR, display with cleaner formatting (no scientific notation)
+        // Load all token balances in parallel for better performance
+        const symbols = Object.keys(TOKENS);
+        const balancePromises = symbols.map(symbol => {
+          const tokenAddress = TOKENS[symbol as keyof typeof TOKENS].address;
+          return getTokenBalance(tokenAddress, walletAddress)
+            .catch(err => {
+              console.error(`Error getting ${symbol} balance:`, err);
+              return symbol === "PRIOR" ? "0.0000" : "0.00";
+            });
+        });
+        
+        const balanceResults = await Promise.all(balancePromises);
+        
+        // Create the balances object and ensure proper formatting
+        symbols.forEach((symbol, index) => {
+          let balance = balanceResults[index];
+          
+          // Special case handling for specific balance values
+          if (symbol === "PRIOR") {
+            // For PRIOR, ensure consistent decimal formatting based on value
+            const parsedBalance = parseFloat(balance);
+            if (parsedBalance > 0) {
               if (parsedBalance >= 1) {
-                formattedBalance = parsedBalance.toFixed(2);
+                balance = parsedBalance.toFixed(2);
+              } else if (parsedBalance >= 0.01) {
+                balance = parsedBalance.toFixed(3);
               } else {
-                formattedBalance = parsedBalance.toFixed(4);
-              }
-              // Remove trailing zeros
-              formattedBalance = formattedBalance.replace(/\.?0+$/, '');
-            } else {
-              // For stablecoins (USDC, USDT) we need to handle the very large testnet values
-              
-              // Detect and fix the testnet values - these are much larger than normal values
-              if (parsedBalance > 1000000) {
-                // Handle extra large testnet values directly
-                const rawValueStr = rawBalance.toString();
-                
-                // For USDC (raw value around 199999998000790004)
-                if (symbol === "USDC") {
-                  formattedBalance = "2"; // Fixed display value for USDC: 2
-                } 
-                // For USDT (raw value around 99999999020009998)
-                else if (symbol === "USDT") {
-                  formattedBalance = "1"; // Fixed display value for USDT: 1
-                }
-                // Fallback for any other token with large value
-                else {
-                  formattedBalance = "2"; // Just show a reasonable value
-                }
-              } else {
-                // Normal case for reasonable stablecoin values, display with 2 decimal places
-                formattedBalance = parsedBalance.toFixed(2).replace(/\.?0+$/, '');
+                balance = parsedBalance.toFixed(5);
               }
             }
-            
-            newBalances[symbol] = formattedBalance;
-            console.log(`${symbol} balance updated:`, formattedBalance);
-          } catch (tokenError) {
-            console.error(`Error getting ${symbol} balance:`, tokenError);
-            newBalances[symbol] = "0";
+          } else {
+            // For stablecoins, always use 2 decimal places
+            const parsedBalance = parseFloat(balance);
+            if (!isNaN(parsedBalance)) {
+              balance = parsedBalance.toFixed(2);
+            }
           }
-        }
+          
+          newBalances[symbol] = balance;
+          console.log(`${symbol} balance updated:`, balance);
+        });
       } else {
         // Fallback to context's token balance getter
         for (const symbol of Object.keys(TOKENS)) {
@@ -369,7 +356,9 @@ export default function Swap() {
         }
       }
       
+      // Update both the regular balances and forced balances to ensure UI updates
       setBalances(newBalances);
+      setForcedBalances({...newBalances});
     } catch (error) {
       console.error("Error loading balances:", error);
     }
