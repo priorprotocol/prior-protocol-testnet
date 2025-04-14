@@ -634,6 +634,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Failed to record transaction" });
     }
   });
+  
+  // Increment user swap count
+  app.post(`${apiPrefix}/users/:userIdOrAddress/increment-swap-count`, async (req, res) => {
+    try {
+      const { userIdOrAddress } = req.params;
+      let userId: number;
+      
+      // Check if this is a wallet address or a numeric ID
+      if (userIdOrAddress && userIdOrAddress.toString().startsWith('0x')) {
+        // It's a wallet address
+        const user = await storage.getUser(userIdOrAddress);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        userId = user.id;
+      } else {
+        // It's a numeric ID
+        userId = parseInt(userIdOrAddress, 10);
+        if (isNaN(userId)) {
+          return res.status(400).json({ message: "Invalid user ID" });
+        }
+      }
+      
+      // Increment the swap count
+      const newSwapCount = await storage.incrementUserSwapCount(userId);
+      
+      res.json({ userId, swapCount: newSwapCount });
+    } catch (error) {
+      console.error("Error incrementing swap count:", error);
+      res.status(500).json({ message: "Error incrementing swap count" });
+    }
+  });
+  
+  // Add points to user
+  app.post(`${apiPrefix}/users/:userIdOrAddress/add-points`, async (req, res) => {
+    try {
+      const { userIdOrAddress } = req.params;
+      let userId: number;
+      
+      // Parse points from request body
+      const points = parseInt(req.body.points || "0", 10);
+      if (isNaN(points) || points <= 0) {
+        return res.status(400).json({ message: "Invalid points value" });
+      }
+      
+      // Check if this is a wallet address or a numeric ID
+      if (userIdOrAddress && userIdOrAddress.toString().startsWith('0x')) {
+        // It's a wallet address
+        const user = await storage.getUser(userIdOrAddress);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        userId = user.id;
+      } else {
+        // It's a numeric ID
+        userId = parseInt(userIdOrAddress, 10);
+        if (isNaN(userId)) {
+          return res.status(400).json({ message: "Invalid user ID" });
+        }
+      }
+      
+      // Add points to the user
+      const newPointsTotal = await storage.addUserPoints(userId, points);
+      
+      // Check if the user deserves new badges based on points
+      const currentBadges = await storage.getUserBadges(userId);
+      
+      // Award "power_user" badge at 100 points
+      if (newPointsTotal >= 100 && !currentBadges.includes("power_user")) {
+        await storage.addUserBadge(userId, "power_user");
+      }
+      
+      // Award "expert_trader" badge at 500 points
+      if (newPointsTotal >= 500 && !currentBadges.includes("expert_trader")) {
+        await storage.addUserBadge(userId, "expert_trader");
+      }
+      
+      res.json({ userId, points: newPointsTotal, added: points });
+    } catch (error) {
+      console.error("Error adding points:", error);
+      res.status(500).json({ message: "Error adding points" });
+    }
+  });
 
   const httpServer = createServer(app);
 
