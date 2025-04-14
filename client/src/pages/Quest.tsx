@@ -67,9 +67,6 @@ const Quest = () => {
                 <div>
                   <h4 className="font-semibold">Swap Tokens</h4>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-green-400 font-bold">20 points</span> for your first swap
-                  </p>
-                  <p className="text-[#A0AEC0] text-sm">
                     <span className="text-green-400">2 points</span> per swap when you make 10+ swaps per day
                   </p>
                   <p className="text-[#A0AEC0] text-sm">
