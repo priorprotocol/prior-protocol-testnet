@@ -123,9 +123,9 @@ const Dashboard = () => {
                           <span className="font-bold">{userStats?.totalSwaps || 0}</span>
                           {userStats?.totalSwaps ? (
                             <span className="text-xs text-green-400">
-                              {userStats.totalSwaps === 1 
-                                ? "20 pts earned" 
-                                : `${20 + (userStats.totalSwaps - 1) * 2} pts earned`}
+                              {userStats.totalSwaps >= 10 
+                                ? `${userStats.totalSwaps * 2} pts earned` 
+                                : "Earn points with 10+ daily swaps"}
                             </span>
                           ) : null}
                         </div>
@@ -358,7 +358,7 @@ const Dashboard = () => {
             <div className="px-1">
               <h3 className="text-xl font-semibold mb-1">Prior Protocol Leaderboard</h3>
               <p className="text-[#A0AEC0]">
-                Top users ranked by Prior Points from protocol activity. Earn points by swapping tokens (20 points for first swap, 2 points for subsequent swaps), 
+                Top users ranked by Prior Points from protocol activity. Earn points by swapping tokens (2 points per swap when you make 10+ daily swaps), 
                 voting on governance proposals (10 points), and completing quests (various rewards). 
                 <strong>All points will be converted to PRIOR tokens at Token Generation Event (TGE).</strong>
               </p>
@@ -382,14 +382,14 @@ const Dashboard = () => {
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Swaps</p>
                       <p className="text-xl font-bold">
-                        {userStats?.totalSwaps ? 
-                          (userStats.totalSwaps === 1 ? 20 : 20 + (userStats.totalSwaps - 1) * 2) : 0}
+                        {userStats?.totalSwaps && userStats.totalSwaps >= 10 ? 
+                          userStats.totalSwaps * 2 : 0}
                       </p>
                       <p className="text-xs text-[#A0AEC0]">
                         {userStats?.totalSwaps ? 
-                          (userStats.totalSwaps === 1 ? 
-                            "1 swap (20 pts)" : 
-                            `First swap (20 pts) + ${userStats.totalSwaps - 1} more (${(userStats.totalSwaps - 1) * 2} pts)`) : 
+                          (userStats.totalSwaps >= 10 ? 
+                            `${userStats.totalSwaps} swaps × 2 pts each` : 
+                            `${userStats.totalSwaps} swaps (need 10+ daily swaps for points)`) : 
                           "No swaps yet"}
                       </p>
                     </div>

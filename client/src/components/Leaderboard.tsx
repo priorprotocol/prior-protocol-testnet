@@ -89,26 +89,46 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                 return (
                   <div 
                     key={index} 
-                    className={`flex justify-between items-center p-3 rounded-md ${
+                    className={`flex flex-col p-3 rounded-md ${
                       isCurrentUser ? 'bg-[#1A3C5F] border border-[#1A5CFF]' : 'bg-[#1E2A3B]'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex-shrink-0 w-8 h-8 bg-[#2D3748] rounded-full flex items-center justify-center">
-                        <span className="text-sm font-semibold">{index + 1}</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">
-                          {formatAddress(user.address)}
-                          {isCurrentUser && <span className="ml-2 text-xs text-[#1A5CFF]">(You)</span>}
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-[#2D3748] rounded-full flex items-center justify-center">
+                          <span className="text-sm font-semibold">{index + 1}</span>
                         </div>
-                        {rankBadge && <div className="mt-1">{rankBadge}</div>}
+                        <div>
+                          <div className="font-medium">
+                            {formatAddress(user.address)}
+                            {isCurrentUser && <span className="ml-2 text-xs text-[#1A5CFF]">(You)</span>}
+                          </div>
+                          {rankBadge && <div className="mt-1">{rankBadge}</div>}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-lg">{user.points}</div>
+                        <div className="text-xs text-[#A0AEC0]">points</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-lg">{user.points}</div>
-                      <div className="text-xs text-[#A0AEC0]">points</div>
-                    </div>
+                    
+                    {/* Activity details - only shown for top 5 or current user */}
+                    {(index < 5 || isCurrentUser) && (
+                      <div className="mt-2 grid grid-cols-3 gap-2 text-xs border-t border-[#2D3748] pt-2">
+                        <div className="text-center">
+                          <span className="text-[#A0AEC0] block">Swaps</span>
+                          <span className="font-medium">{user.totalSwaps || 0}</span>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-[#A0AEC0] block">Claims</span>
+                          <span className="font-medium">{user.totalClaims || 0}</span>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-[#A0AEC0] block">Badges</span>
+                          <span className="font-medium">{user.badges?.length || 0}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })
