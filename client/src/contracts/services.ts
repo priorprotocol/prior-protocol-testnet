@@ -377,21 +377,18 @@ export const swapTokens = async (
     // Log the exact amount we'll be using for the swap
     console.log(`Using amount for swap: ${safeAmount} ${fromSymbol}`);
     
-    // Calculate the expected output amount based on our exchange rates
-    // 1 PRIOR = 10 USDC/USDT, 1 USDC = 1 USDT, 1 USDC/USDT = 0.1 PRIOR
-    let expectedOutput = "";
-    if (fromSymbol === "PRIOR" && (toSymbol === "USDC" || toSymbol === "USDT")) {
-      // 1 PRIOR = 10 USDC/USDT
-      expectedOutput = (parseFloat(safeAmount) * 10).toString();
-      console.log(`Expected output for ${safeAmount} ${fromSymbol}: ${expectedOutput} ${toSymbol}`);
-    } else if ((fromSymbol === "USDC" || fromSymbol === "USDT") && toSymbol === "PRIOR") {
-      // 1 USDC/USDT = 0.1 PRIOR
-      expectedOutput = (parseFloat(safeAmount) * 0.1).toString();
-      console.log(`Expected output for ${safeAmount} ${fromSymbol}: ${expectedOutput} ${toSymbol}`);
-    } else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
-      // 1:1 for stablecoins
-      expectedOutput = safeAmount;
-      console.log(`Expected output for ${safeAmount} ${fromSymbol}: ${expectedOutput} ${toSymbol}`);
+    // Calculate the expected output amount using our improved calculation function
+    const expectedOutput = calculateSimpleSwapOutput(fromSymbol, toSymbol, safeAmount);
+    console.log(`Expected output for ${safeAmount} ${fromSymbol}: ${expectedOutput} ${toSymbol}`);
+    
+    // Apply slippage tolerance if minAmountOut isn't provided
+    let minOut = minAmountOut;
+    if (!minOut && expectedOutput !== "0") {
+      // Default to 1% slippage protection
+      const slippageTolerance = 0.01; // 1%
+      const minOutValue = parseFloat(expectedOutput) * (1 - slippageTolerance);
+      minOut = minOutValue.toString();
+      console.log(`Using calculated minimum output with ${slippageTolerance * 100}% slippage: ${minOut} ${toSymbol}`);
     }
     
     const parsedAmount = ethers.utils.parseUnits(safeAmount, decimals);
@@ -648,9 +645,14 @@ export const calculateSimpleSwapOutput = (
   // PRIOR to stablecoins: 1 PRIOR = 10 USDC/USDT
   if (fromSymbol === "PRIOR" && (toSymbol === "USDC" || toSymbol === "USDT")) {
     console.log(`Swap calculation: ${amount} PRIOR to ${toSymbol} with rate 10`);
-    const result = inputAmount * 10;
-    console.log(`Result: ${result}`);
-    return result.toString();
+    const resultBeforeFee = inputAmount * 10;
+    console.log(`Result before fee: ${resultBeforeFee}`);
+    // Apply a small fee (0.5%) to match contract behavior
+    const resultAfterFee = resultBeforeFee * 0.995; // 0.5% fee
+    console.log(`Result after 0.5% fee: ${resultAfterFee.toFixed(2)}`);
+    
+    // For stablecoins, display with 2 decimal places
+    return resultAfterFee.toFixed(2);
   }
   
   // Stablecoins to PRIOR: 10 USDC/USDT = 1 PRIOR
@@ -660,8 +662,16 @@ export const calculateSimpleSwapOutput = (
     const resultBeforeFee = inputAmount * 0.1;
     console.log(`Result before fee: ${resultBeforeFee}`);
     const resultAfterFee = resultBeforeFee * 0.995; // 0.5% fee
-    console.log(`Result after 0.5% fee: ${resultAfterFee.toFixed(3)}`);
-    return resultAfterFee.toFixed(4);
+    console.log(`Result after 0.5% fee: ${resultAfterFee.toFixed(4)}`);
+    
+    // For PRIOR, use appropriate decimal precision based on value
+    if (resultAfterFee >= 1) {
+      return resultAfterFee.toFixed(2);
+    } else if (resultAfterFee >= 0.01) {
+      return resultAfterFee.toFixed(3);
+    } else {
+      return resultAfterFee.toFixed(4);
+    }
   }
   
   // Between stablecoins: 1:1 ratio with a small fee
