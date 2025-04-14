@@ -118,14 +118,21 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                         <div className="text-center">
                           <span className="text-[#A0AEC0] block">Swaps</span>
                           <span className="font-medium">{user.totalSwaps || 0}</span>
+                          {user.totalSwaps >= 10 && (
+                            <span className="text-xs text-green-500">+{user.totalSwaps * 2} pts</span>
+                          )}
                         </div>
                         <div className="text-center">
                           <span className="text-[#A0AEC0] block">Claims</span>
                           <span className="font-medium">{user.totalClaims || 0}</span>
+                          <span className="text-xs text-gray-500">0 pts</span>
                         </div>
                         <div className="text-center">
                           <span className="text-[#A0AEC0] block">Badges</span>
                           <span className="font-medium">{user.badges?.length || 0}</span>
+                          {user.badges?.includes('prior_pioneer') && (
+                            <span className="text-xs text-purple-400">+NFT</span>
+                          )}
                         </div>
                       </div>
                     )}
