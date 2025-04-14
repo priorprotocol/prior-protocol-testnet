@@ -489,20 +489,36 @@ export default function Swap() {
             console.error('Failed to record transaction in database:', await response.text());
           }
           
-          // Increment swap count and add points (5 points per swap)
-          await fetch(`/api/users/${userId}/increment-swap-count`, {
+          // Get user data to check if this is the first swap
+          const userResponse = await fetch(`/api/users/${userId}`);
+          const userData = await userResponse.json();
+          
+          // Increment swap count 
+          const swapCountResponse = await fetch(`/api/users/${userId}/increment-swap-count`, {
             method: 'POST',
           });
+          const swapCountResult = await swapCountResponse.json();
           
-          // Add points for the swap (5 points per swap)
+          // Add points based on whether this is the first swap (20 points) or a subsequent swap (2 points)
+          const isFirstSwap = userData.totalSwaps === 0;
+          const pointsToAdd = isFirstSwap ? 20 : 2;
+          
           await fetch(`/api/users/${userId}/add-points`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              points: 5
+              points: pointsToAdd
             }),
+          });
+          
+          // Show a toast notification about points earned
+          toast({
+            title: `Points Earned: ${pointsToAdd}`,
+            description: isFirstSwap 
+              ? "You earned 20 points for your first swap! Check the Quest page for more ways to earn points." 
+              : "You earned 2 points for this swap!",
           });
         }
       } catch (error) {

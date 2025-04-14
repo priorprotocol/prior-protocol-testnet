@@ -47,11 +47,74 @@ const Quest = () => {
   return (
     <section id="quest" className="py-16">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl font-space font-bold mb-4">Quests</h2>
-          <p className="text-[#A0AEC0] max-w-2xl mx-auto">
+          <p className="text-[#A0AEC0] max-w-2xl mx-auto mb-4">
             Complete testnet quests to earn additional PRIOR tokens and learn about the protocol's features.
           </p>
+        </div>
+        
+        {/* Points System Card */}
+        <div className="bg-[#1A1E2A] border border-[#2D3748] rounded-lg p-6 max-w-3xl mx-auto mb-12">
+          <h3 className="font-space font-semibold text-xl mb-4 text-center">Points System</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col">
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-sm">↔️</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Swap Tokens</h4>
+                  <p className="text-[#A0AEC0] text-sm">
+                    <span className="text-green-400 font-bold">20 points</span> for your first swap
+                  </p>
+                  <p className="text-[#A0AEC0] text-sm">
+                    <span className="text-green-400">2 points</span> for each subsequent swap
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-sm">💧</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Faucet Claims</h4>
+                  <p className="text-[#A0AEC0] text-sm">
+                    <span className="text-green-400">7 points</span> for each daily faucet claim
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-[#141D29] rounded-lg p-4 border border-[#2D3748]">
+              <h4 className="font-semibold mb-2">Earn Special Badges</h4>
+              <ul className="text-sm space-y-2">
+                <li className="flex items-center">
+                  <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center mr-2">
+                    <span className="text-white font-bold text-xs">⭐</span>
+                  </div>
+                  <span>
+                    <span className="font-medium text-purple-400">Power User</span>
+                    <span className="text-[#A0AEC0]"> - Earn 100 points</span>
+                  </span>
+                </li>
+                <li className="flex items-center">
+                  <div className="w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center mr-2">
+                    <span className="text-white font-bold text-xs">🏆</span>
+                  </div>
+                  <span>
+                    <span className="font-medium text-yellow-400">Expert Trader</span>
+                    <span className="text-[#A0AEC0]"> - Earn 500 points</span>
+                  </span>
+                </li>
+                <li className="text-[#A0AEC0] mt-2 italic">
+                  View your earned badges and points in your Dashboard
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         {!isConnected ? (
