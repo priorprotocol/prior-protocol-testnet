@@ -4,6 +4,7 @@ import { useWalletSync } from "@/hooks/useWalletSync";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 import { formatAddress } from "@/lib/formatAddress";
+import priorLogo from "@/assets/prior-protocol-logo.png";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -42,6 +43,11 @@ const Header = () => {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         {/* Logo */}
         <div className="flex items-center">
+          <img 
+            src={priorLogo} 
+            alt="Prior Protocol Logo" 
+            className="w-10 h-10 mr-2"
+          />
           <h1 className="text-2xl font-space font-bold">
             <span className="text-[#1A5CFF]">Prior</span><span className="text-white">Protocol</span>
             <span className="text-xs ml-1 text-[#FF6B00] font-medium">TESTNET</span>
@@ -87,6 +93,17 @@ const Header = () => {
       {/* Mobile Navigation Menu */}
       <div className={`md:hidden w-full bg-[#111827] border-t border-[#2D3748] ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
         <div className="container mx-auto px-4 py-2">
+          <div className="flex items-center py-3 mb-2 border-b border-gray-700">
+            <img 
+              src={priorLogo} 
+              alt="Prior Protocol Logo" 
+              className="w-8 h-8 mr-2" 
+            />
+            <h2 className="text-xl font-bold">
+              <span className="text-[#1A5CFF]">Prior</span><span className="text-white">Protocol</span>
+              <span className="text-xs ml-1 text-[#FF6B00] font-medium">TESTNET</span>
+            </h2>
+          </div>
           <nav className="flex flex-col space-y-4 py-4">
             {navLinks.map(link => (
               <Link 
