@@ -525,23 +525,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Record a transaction
   app.post(`${apiPrefix}/transactions`, async (req, res) => {
     try {
-      const transactionData = insertTransactionSchema.parse(req.body);
+      // Check if we received userId or userAddress
+      let userId = req.body.userId;
+      let user = null;
       
-      // Verify user exists
-      const user = await storage.getUser(req.body.userAddress);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      // If we have a wallet address instead of userId
+      if (!userId && req.body.userAddress) {
+        user = await storage.getUser(req.body.userAddress);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        userId = user.id;
       }
       
-      // Create the transaction with user ID
-      const transaction = await storage.createTransaction({
-        ...transactionData,
-        userId: user.id
+      // If we have a direct userId (e.g. from Swap.tsx)
+      else if (typeof userId === 'string' && userId.startsWith('0x')) {
+        // If userId is actually a wallet address
+        user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        userId = user.id;
+      }
+      
+      // Validate the transaction data
+      const transactionData = insertTransactionSchema.parse({
+        ...req.body,
+        userId: userId
       });
+      
+      // Create the transaction with user ID
+      const transaction = await storage.createTransaction(transactionData);
       
       res.status(201).json(transaction);
     } catch (error) {
-      res.status(400).json({ message: "Invalid transaction data" });
+      console.error("Error creating transaction:", error);
+      res.status(400).json({ message: "Invalid transaction data", error: String(error) });
     }
   });
 

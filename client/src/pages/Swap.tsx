@@ -462,6 +462,53 @@ export default function Swap() {
         description: `You swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`,
       });
       
+      // Create a transaction record in the database and update user stats
+      try {
+        const userId = directAddress || address;
+        if (userId) {
+          // Create a transaction record through the API
+          const response = await fetch('/api/transactions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: userId,
+              type: 'swap',
+              txHash: receipt.transactionHash,
+              fromToken: fromToken,
+              toToken: toToken,
+              fromAmount: fromAmount,
+              toAmount: toAmount,
+              status: 'completed',
+              blockNumber: receipt.blockNumber
+            }),
+          });
+          
+          if (!response.ok) {
+            console.error('Failed to record transaction in database:', await response.text());
+          }
+          
+          // Increment swap count and add points (5 points per swap)
+          await fetch(`/api/users/${userId}/increment-swap-count`, {
+            method: 'POST',
+          });
+          
+          // Add points for the swap (5 points per swap)
+          await fetch(`/api/users/${userId}/add-points`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              points: 5
+            }),
+          });
+        }
+      } catch (error) {
+        console.error('Error recording transaction and updating stats:', error);
+      }
+      
       // Update balances after swap (still use local balance tracking for immediate feedback)
       const fromCurrentBalance = parseFloat(balances[fromToken] || "0");
       const toCurrentBalance = parseFloat(balances[toToken] || "0");
@@ -801,46 +848,45 @@ export default function Swap() {
               Connect Wallet
             </Button>
           ) : (
-            <Button 
-              className="w-full bg-gradient-to-r from-[#00df9a] to-blue-500 text-black hover:opacity-90"
-              onClick={() => {
-                toast({
-                  title: "Swap Executed",
-                  description: `You swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`
-                });
-                
-                // Update balances after "swap"
-                const fromCurrentBalance = parseFloat(balances[fromToken] || "0");
-                const toCurrentBalance = parseFloat(balances[toToken] || "0");
-                const fromAmount_num = parseFloat(fromAmount);
-                const toAmount_num = parseFloat(toAmount);
-                
-                // Calculate new balances
-                const newFromBalance = fromCurrentBalance - fromAmount_num;
-                const newToBalance = toCurrentBalance + toAmount_num;
-                
-                // Update balances
-                setBalances({
-                  ...balances,
-                  [fromToken]: newFromBalance.toString(),
-                  [toToken]: newToBalance.toString()
-                });
-                
-                // Also update forced balances for TokenCard display
-                setForcedBalances({
-                  ...forcedBalances,
-                  [fromToken]: formatBalance(newFromBalance.toString(), fromToken),
-                  [toToken]: formatBalance(newToBalance.toString(), toToken)
-                });
-                
-                // Reset form
-                setFromAmount("");
-                setToAmount("");
-              }}
-              disabled={!fromAmount || !toAmount || !isPairSupported()}
-            >
-              Swap Now
-            </Button>
+            <div className="space-y-2">
+              {/* Transaction Status */}
+              {swapStatus && (
+                <div className="bg-gray-700 rounded-lg p-2 text-sm">
+                  <p className="font-medium">{swapStatus}</p>
+                  {txHash && (
+                    <div className="flex items-center mt-1 text-xs text-blue-400">
+                      <a 
+                        href={getExplorerLink(txHash)} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center hover:underline"
+                      >
+                        View on Base Sepolia Explorer <FiExternalLink className="ml-1" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Two-step process: First approve, then swap */}
+              {!hasAllowance ? (
+                <Button 
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-black"
+                  onClick={handleApproveToken}
+                  disabled={isApproving || !fromAmount || parseFloat(fromAmount) <= 0 || !isPairSupported()}
+                >
+                  {isApproving ? "Approving..." : "Approve"}
+                </Button>
+              ) : (
+                <Button 
+                  className="w-full bg-gradient-to-r from-[#00df9a] to-blue-500 text-black hover:opacity-90"
+                  onClick={handleExecuteSwap}
+                  disabled={isSwapping || !fromAmount || parseFloat(fromAmount) <= 0 || !isPairSupported()}
+                >
+                  {isSwapping ? "Swapping..." : "Swap Now"}
+                </Button>
+              )}
+            </div>
           )}
           
           {/* Exchange rate explanation */}
