@@ -12,7 +12,8 @@ import {
   approveTokens,
   getPriorToUSDCRate,
   getPriorToUSDTRate,
-  getTokenBalance as getTokenBalanceFromContract
+  getTokenBalance as getTokenBalanceFromContract,
+  calculateSimpleSwapOutput
 } from "@/contracts/services";
 import { CONTRACT_ADDRESSES as contractAddresses } from "@/contracts/addresses";
 
@@ -818,68 +819,31 @@ export default function Swap() {
     }
 
     try {
-      const amount = parseFloat(fromAmount);
-      const fromTokenInfo = TOKENS[fromToken as keyof typeof TOKENS];
-      const toTokenInfo = TOKENS[toToken as keyof typeof TOKENS];
-
-      // Fixed rate: 1 PRIOR = 10 USDC/USDT
-      let rate;
-      if (fromToken === "PRIOR" && (toToken === "USDC" || toToken === "USDT")) {
-        rate = 10; // 1 PRIOR = 10 USDC/USDT
-      } else if ((fromToken === "USDC" || fromToken === "USDT") && toToken === "PRIOR") {
-        rate = 0.1; // 1 USDC/USDT = 0.1 PRIOR
-      } else if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
-        rate = 1; // 1:1 for stablecoins
-      } else {
-        rate = 0;
-      }
-
-      if (rate <= 0) {
+      // Use our new simplified swap calculation function
+      const result = calculateSimpleSwapOutput(fromToken, toToken, fromAmount);
+      
+      if (result === "0") {
         setToAmount("0");
         return;
       }
 
-      // Calculate the result directly without decimal adjustment
-      // The decimal adjustment is handled by the smart contract when making the actual swap
-      let result = amount * rate;
+      // Format the result for display with appropriate decimal precision
+      const numResult = parseFloat(result);
       
-      console.log(`Swap calculation: ${amount} ${fromToken} to ${toToken} with rate ${rate}`);
-      console.log(`Result before fee: ${result}`);
-
-      // Apply a small fee (0.5%) to the output amount to match the contracts
-      const fee = 0.005; // 0.5%
-      result = result * (1 - fee);
-      console.log(`Result after ${fee * 100}% fee: ${result}`);
-
-      // Format for display with correct precision and avoid displaying zero for small values
       if (toToken === "USDC" || toToken === "USDT") {
-        // For stablecoins, show with 2 decimal places
-        let formatted = result.toFixed(2);
-        
-        // Ensure we don't show "0.00" for very small values greater than zero
-        if (result > 0 && parseFloat(formatted) === 0) {
-          formatted = "0.01"; // Show a minimum value
-        }
-        
-        setToAmount(formatted);
-      } else if (toToken === "PRIOR") {
-        // For PRIOR token coming from stablecoins
-        let formatted;
-        
-        if (result >= 1) {
-          // For values >= 1, show with 2 decimal places
-          formatted = result.toFixed(2);
-        } else if (result >= 0.01) {
-          // For values between 0.01 and 1, show with 3 decimal places
-          formatted = result.toFixed(3);
+        // For stablecoins, ensure we don't show "0.00" for very small values
+        if (numResult > 0 && numResult < 0.01) {
+          setToAmount("0.01"); // Minimum display value for stablecoins
         } else {
-          // For smaller values, show with 4 decimal places
-          formatted = result.toFixed(4);
+          setToAmount(result);
         }
+      } else if (toToken === "PRIOR") {
+        // For PRIOR token
+        let formatted = result;
         
         // Ensure we don't show "0.0000" for very small values greater than zero
-        if (result > 0 && parseFloat(formatted) === 0) {
-          formatted = "0.0001"; // Show a minimum value
+        if (numResult > 0 && numResult < 0.0001) {
+          formatted = "0.0001"; // Minimum display value for PRIOR
         }
         
         // Remove trailing zeros but keep at least one digit after decimal
@@ -892,6 +856,8 @@ export default function Swap() {
         }
         
         setToAmount(formatted);
+      } else {
+        setToAmount("0");
       }
     } catch (error) {
       console.error("Calculation error:", error);
