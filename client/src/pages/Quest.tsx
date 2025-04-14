@@ -78,20 +78,7 @@ const Quest = () => {
                 </div>
               </div>
               
-              <div className="flex items-center mb-3">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-white font-bold text-sm">💧</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold">Faucet Claims</h4>
-                  <p className="text-[#A0AEC0] text-sm">
-                    Claim free PRIOR tokens for testing
-                  </p>
-                  <p className="text-[#A0AEC0] text-sm italic">
-                    No points awarded for faucet claims
-                  </p>
-                </div>
-              </div>
+
               
               <div className="flex items-center mb-3">
                 <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
