@@ -151,24 +151,24 @@ export class MemStorage implements IStorage {
     const initialQuests: InsertQuest[] = [
       {
         title: "First Swap",
-        description: "Complete your first token swap on PriorSwap to earn 50 PRIOR tokens.",
-        reward: 50,
+        description: "Complete your first token swap on PriorSwap to earn 20 Prior Points (convertible at TGE).",
+        reward: 20,
         difficulty: "Beginner",
         status: "active",
         icon: "exchange-alt"
       },
       {
         title: "Governance Vote",
-        description: "Participate in a test governance proposal to earn 100 PRIOR tokens.",
-        reward: 100,
+        description: "Participate in a test governance proposal with your NFT to earn 300 Prior Points (convertible at TGE).",
+        reward: 300,
         difficulty: "Intermediate",
         status: "active",
         icon: "vote-yea"
       },
       {
         title: "Liquidity Provider",
-        description: "Add liquidity to a trading pair and maintain it for 24 hours.",
-        reward: 200,
+        description: "Add liquidity to a trading pair to earn 5 Prior Points (convertible at TGE).",
+        reward: 5,
         difficulty: "Advanced",
         status: "coming_soon",
         icon: "chart-line"
@@ -347,8 +347,8 @@ export class MemStorage implements IStorage {
     const user = this.users.get(userId);
     if (!user) return 0;
     
-    const currentSwaps = user.totalSwaps || 0;
-    const newSwapCount = currentSwaps + 1;
+    const currentSwapsCount = user.totalSwaps || 0;
+    const newSwapCount = currentSwapsCount + 1;
     
     // Update the user with the new swap count
     const updatedUser: User = {
@@ -359,8 +359,12 @@ export class MemStorage implements IStorage {
     this.users.set(userId, updatedUser);
     this.usersByAddress.set(user.address, updatedUser);
     
-    // Add 5 points for each swap
-    await this.addUserPoints(userId, 5);
+    // Add 20 points for first swap or 2 points for subsequent swaps
+    if (newSwapCount === 1) {
+      await this.addUserPoints(userId, 20);
+    } else {
+      await this.addUserPoints(userId, 2);
+    }
     
     return newSwapCount;
   }
@@ -590,6 +594,17 @@ export class MemStorage implements IStorage {
     
     // Update the proposal's vote count
     await this.updateProposalVotes(vote.proposalId, vote.vote, 1);
+    
+    // Add 10 points for each vote
+    await this.addUserPoints(vote.userId, 10);
+    
+    // Check if user has a Prior Pioneer NFT and award 300 additional points
+    // This would normally query the blockchain, but for this demo we'll
+    // check if the user has the 'pioneer' badge
+    const user = this.users.get(vote.userId);
+    if (user && user.badges && user.badges.includes('pioneer')) {
+      await this.addUserPoints(vote.userId, 300);
+    }
     
     return newVote;
   }

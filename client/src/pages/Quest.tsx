@@ -73,7 +73,7 @@ const Quest = () => {
                     <span className="text-green-400">2 points</span> for each subsequent swap
                   </p>
                   <p className="text-[#A0AEC0] text-sm mt-1">
-                    <span className="text-yellow-400">+ 50 PRIOR</span> token reward for completing the quest
+                    <span className="text-yellow-400">Points convert to PRIOR</span> at TGE
                   </p>
                 </div>
               </div>
@@ -100,7 +100,7 @@ const Quest = () => {
                     <span className="text-green-400">10 points</span> for each proposal vote
                   </p>
                   <p className="text-[#A0AEC0] text-sm mt-1">
-                    <span className="text-yellow-400">+ 100 PRIOR</span> token reward for completing the quest
+                    <span className="text-green-400">300 points</span> for voting with Prior Pioneer NFT
                   </p>
                 </div>
               </div>
@@ -112,10 +112,10 @@ const Quest = () => {
                 <div>
                   <h4 className="font-semibold">Liquidity Provider</h4>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-green-400">50 points</span> for becoming a LP
+                    <span className="text-green-400">5 points</span> for liquidity staking
                   </p>
                   <p className="text-[#A0AEC0] text-sm mt-1">
-                    <span className="text-yellow-400">+ 200 PRIOR</span> token reward (Coming soon)
+                    <span className="text-yellow-400">Coming soon</span>
                   </p>
                 </div>
               </div>

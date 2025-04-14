@@ -360,8 +360,9 @@ const Dashboard = () => {
             <div className="px-1">
               <h3 className="text-xl font-semibold mb-1">Prior Protocol Leaderboard</h3>
               <p className="text-[#A0AEC0]">
-                Top users ranked by points from protocol activity. Earn points by swapping tokens (20 points for first swap, 2 points for subsequent swaps), 
-                claiming from the faucet (7 points), voting on governance proposals (10 points), and completing quests (various rewards).
+                Top users ranked by Prior Points from protocol activity. Earn points by swapping tokens (20 points for first swap, 2 points for subsequent swaps), 
+                claiming from the faucet (7 points), voting on governance proposals (10 points), and completing quests (various rewards). 
+                <strong>All points will be converted to PRIOR tokens at Token Generation Event (TGE).</strong>
               </p>
             </div>
             

@@ -153,7 +153,10 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
       </p>
       <div className="flex justify-between items-center text-sm mb-4">
         <span className="text-[#A0AEC0]">Reward</span>
-        <span className="font-bold">{quest.reward} PRIOR</span>
+        <span className="font-bold">{quest.reward} Points</span>
+      </div>
+      <div className="flex justify-between items-center text-xs mb-4">
+        <span className="text-[#A0AEC0]">Convertible to PRIOR at TGE</span>
       </div>
       <button 
         onClick={handleQuestAction}
