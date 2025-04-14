@@ -70,6 +70,7 @@ export default function Swap() {
   const [txHash, setTxHash] = useState<string>("");
   const [exchangeRates, setExchangeRates] = useState<{[key: string]: number}>({});
   const [showFromDropdown, setShowFromDropdown] = useState<boolean>(false);
+  const [swapStatus, setSwapStatus] = useState<string>("");
   const [showToDropdown, setShowToDropdown] = useState<boolean>(false);
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
@@ -581,19 +582,44 @@ export default function Swap() {
       if (tx) {
         // Set transaction hash
         setTxHash(tx.transactionHash);
+        setSwapStatus(`Swap complete! Received ${toAmount} ${toToken}`);
         
         toast({
           title: "Swap Successful",
           description: `Swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`,
         });
         
-        // Refresh balances after 5 seconds to allow for blockchain update
-        setTimeout(async () => {
-          const currentAddress = directAddress || address;
-          if (currentAddress) {
-            await loadBalances(currentAddress);
-          }
-        }, 5000);
+        // IMPORTANT: For PRIOR token swaps, update the UI immediately without waiting
+        if (toToken === "PRIOR") {
+          // Update our local balances state with the expected token amount
+          const currentPriorBalance = parseFloat(balances.PRIOR || "0");
+          const swapAmount = parseFloat(toAmount);
+          const newPriorBalance = currentPriorBalance + swapAmount;
+          
+          // Immediately update the balance display
+          console.log(`Immediately updating PRIOR balance: ${currentPriorBalance} + ${swapAmount} = ${newPriorBalance}`);
+          const formattedNewBalance = newPriorBalance.toFixed(4);
+          
+          // Update both in our component state
+          setBalances(prev => ({
+            ...prev,
+            PRIOR: formattedNewBalance
+          }));
+        }
+        
+        // Real blockchain update - run immediately but also schedule a follow-up refresh
+        const currentAddress = directAddress || address;
+        if (currentAddress) {
+          // Load balances from blockchain right away
+          await loadBalances(currentAddress);
+          
+          // Also schedule another refresh after a few seconds for confirmation
+          setTimeout(async () => {
+            if (currentAddress) {
+              await loadBalances(currentAddress);
+            }
+          }, 3000);
+        }
         
         // Clear inputs after successful swap
         setFromAmount("");

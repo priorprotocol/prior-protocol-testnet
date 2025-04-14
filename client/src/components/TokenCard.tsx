@@ -22,7 +22,7 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
   const formatBalance = (rawBalance: string): string => {
     // If no balance or invalid, return 0
     if (!rawBalance || isNaN(parseFloat(rawBalance))) {
-      return '0.00';
+      return token.symbol === "PRIOR" ? '0.0000' : '0.00';
     }
     
     // Parse the balance
@@ -30,27 +30,56 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
     
     // Format based on token type
     if (token.symbol === "PRIOR") {
-      // For PRIOR, display with cleaner formatting (no scientific notation)
-      // The raw value from the contract will be in wei (10^-18)
+      // Enhanced debugging for PRIOR token balances
+      console.log(`TokenCard PRIOR raw balance: ${rawBalance}`);
       
-      // For very small PRIOR balances (less than 0.0001), we need to handle differently
-      // A raw value like 298619984 is actually 0.000000000298619984 PRIOR
-      if (rawBalance && rawBalance.length < 15 && parseFloat(rawBalance) > 0) {
-        // This is likely a very small amount in wei, convert to a proper PRIOR value
-        const weiBalance = BigInt(rawBalance);
-        const etherBalance = Number(weiBalance) / 1e18;
-        
-        // Return a formatted string for very small amounts
-        if (etherBalance < 0.0001) {
-          return etherBalance.toFixed(8);
+      // Special case for tiny PRIOR amounts (which often come from token swaps)
+      // These may be too small to show properly with normal formatting
+      if (rawBalance && rawBalance.length < 15 && parsedBalance > 0 && parsedBalance < 0.001) {
+        try {
+          // If we have a tiny wei amount directly from chain
+          // Try to convert it manually to ether units
+          console.log(`Processing tiny PRIOR amount: ${rawBalance}`);
+          
+          // Check if we're dealing with a raw wei value
+          if (rawBalance.indexOf('.') === -1) {
+            // No decimal point, probably a raw wei value (e.g., "299619984")
+            const weiBalance = BigInt(rawBalance);
+            const etherBalance = Number(weiBalance) / 1e18;
+            console.log(`Converted wei to ether: ${etherBalance}`);
+            
+            // For values from swaps (around 0.2), use a different format
+            if (etherBalance >= 0.1 && etherBalance < 1) {
+              return etherBalance.toFixed(3); // Show like 0.200
+            } else if (etherBalance >= 0.01 && etherBalance < 0.1) {
+              return etherBalance.toFixed(4); // Show like 0.0250
+            } else if (etherBalance > 0) {
+              // For very small amounts, still show something
+              return etherBalance.toFixed(6); // Show tiny amounts with precision
+            }
+          }
+        } catch (error) {
+          console.error("Error handling tiny PRIOR amount:", error);
         }
       }
       
-      // Standard display for normal values
+      // For expected PRIOR values from swaps (like 0.2 PRIOR from 2 USDC)
+      // Make sure these display properly
+      if (parsedBalance >= 0.1 && parsedBalance < 1) {
+        console.log(`Displaying PRIOR value in 0.1-1 range: ${parsedBalance}`);
+        return parsedBalance.toFixed(3); // Show 3 decimal places (0.200)
+      }
+      
+      // Standard display for other values
       if (parsedBalance >= 1) {
         return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
-      } else {
+      } else if (parsedBalance >= 0.01) {
         return parsedBalance.toFixed(4).replace(/\.?0+$/, '');
+      } else if (parsedBalance > 0) {
+        // For very small non-zero values, show something meaningful
+        return parsedBalance.toFixed(6).replace(/\.?0+$/, '');
+      } else {
+        return '0.0000';
       }
     } else {
       // For stablecoins (USDC, USDT) we need to handle the very large testnet values
