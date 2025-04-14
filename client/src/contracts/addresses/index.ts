@@ -16,9 +16,9 @@ export const TOKENS = {
 
 // DEX / Swap Contracts
 export const SWAP_CONTRACTS = {
-  PRIOR_USDC: "0xaB73D1a2334Bf336DD103d739a239bba1A56b6ED",
-  PRIOR_USDT: "0xdb68d6D064c36d45c92365f61F689FC2d1661F65",
-  USDC_USDT: "0xbbd5997cfA849876289ebab4CddcD4Bc538B0244"
+  PRIOR_USDC: "", // Will be filled in later
+  PRIOR_USDT: "", // Will be filled in later
+  USDC_USDT: ""   // Will be filled in later
 };
 
 // Faucet Contract
