@@ -37,6 +37,7 @@ const Dashboard = () => {
     totalTransactions,
     isLoadingTransactions,
     isSyncing,
+    lastSyncTime,
     syncTransactions
   } = useDashboardStats(address);
 
@@ -417,15 +418,10 @@ const Dashboard = () => {
                   <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
                   {isSyncing ? 'Syncing...' : 'Sync Blockchain Activity'}
                 </Button>
-                {lastSyncTime && (
+                {lastSyncTime instanceof Date && (
                   <p className="text-[#A0AEC0] text-xs mt-1 text-right">
                     Last synced: {lastSyncTime.toLocaleTimeString()}
                   </p>
-                )}
-                {syncStats && (
-                  <div className="text-xs text-green-400 mt-1 text-right">
-                    +{syncStats.points} points from {syncStats.newTransactions} new transactions
-                  </div>
                 )}
               </div>
             </CardHeader>
