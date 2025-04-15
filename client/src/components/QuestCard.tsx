@@ -224,7 +224,7 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
         <span className="text-[#A0AEC0]">Convertible to PRIOR at TGE</span>
       </div>
       
-      {/* Action button */}
+      {/* Standard quest button */}
       <button 
         onClick={handleButtonClick}
         disabled={isButtonDisabled()}
@@ -232,6 +232,27 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
       >
         {getButtonText()}
       </button>
+      
+      {/* Additional direct navigation buttons for specific quests */}
+      {quest.title.toLowerCase().includes("swap") && (
+        <a 
+          href="/swap" 
+          className="block w-full rounded-lg bg-green-600 hover:bg-green-700 transition-all font-bold text-sm px-6 py-3 uppercase tracking-wide text-center mt-2"
+        >
+          Go to Swap Page
+        </a>
+      )}
+      
+      {(quest.title.toLowerCase().includes("governance") || 
+       quest.title.toLowerCase().includes("vote") || 
+       quest.title.toLowerCase().includes("proposal")) && (
+        <a 
+          href="/governance" 
+          className="block w-full rounded-lg bg-green-600 hover:bg-green-700 transition-all font-bold text-sm px-6 py-3 uppercase tracking-wide text-center mt-2"
+        >
+          Go to Governance Page
+        </a>
+      )}
     </div>
   );
 };
