@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/context/WalletContext";
+import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -48,21 +49,24 @@ export const TransactionHistory: React.FC = () => {
 
   const fetchTransactions = async (type?: string, page: number = 1, limit: number = 10) => {
     // If we don't have an address or userId, we can't fetch transactions
-    if (!address && !userId) return;
+    if (!userAddress && !userId) {
+      console.log("No user address or ID available");
+      return;
+    }
     
     setLoading(true);
     try {
       // Prefer using userId if available for consistent tracking
       const apiPath = userId 
         ? `/api/users/${userId}/transactions` 
-        : `/api/users/${address}/transactions`;
+        : `/api/users/${userAddress}/transactions`;
       
       const typeSegment = type && type !== "all" ? `/${type}` : "";
       const queryParams = `?page=${page}&limit=${limit}`;
       
       const apiUrl = `${apiPath}${typeSegment}${queryParams}`;
       
-      console.log("Fetching transactions from endpoint:", apiUrl);
+      console.log("Fetching transactions from endpoint:", apiUrl, "for user:", userAddress || userId);
       
       try {
         const data = await apiRequest<TransactionResponse>(apiUrl);
@@ -99,8 +103,8 @@ export const TransactionHistory: React.FC = () => {
   // Load transactions when component mounts or wallet changes
   useEffect(() => {
     if (isConnected) {
-      if (address || userId) {
-        console.log("TransactionHistory: Wallet connected, fetching transactions");
+      if (userAddress || userId) {
+        console.log("TransactionHistory: Wallet connected, fetching transactions for:", userAddress || userId);
         fetchTransactions(activeTab !== "all" ? activeTab : undefined, currentPage);
       } else {
         console.log("TransactionHistory: Wallet connected but no address or userId");
@@ -108,7 +112,7 @@ export const TransactionHistory: React.FC = () => {
     } else {
       console.log("TransactionHistory: Wallet not connected");
     }
-  }, [isConnected, address, userId, activeTab, currentPage]);
+  }, [isConnected, address, standaloneAddress, userAddress, userId, activeTab, currentPage]);
   
   // Manual refresh button
   const handleRefresh = () => {
