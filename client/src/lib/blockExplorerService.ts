@@ -1,4 +1,30 @@
-import { formatUnits } from 'ethers/lib/utils';
+// Simple function to format token values based on decimals
+function formatTokenValue(value: string, decimals: number = 18): string {
+  if (!value) return '0';
+  const valueNum = BigInt(value);
+  
+  // Calculate divisor without using ** operator on BigInt
+  let divisor = BigInt(1);
+  for (let i = 0; i < decimals; i++) {
+    divisor = divisor * BigInt(10);
+  }
+  
+  const wholePart = valueNum / divisor;
+  const fractionalPart = valueNum % divisor;
+  
+  // Convert to string and pad with leading zeros
+  let fractionalStr = fractionalPart.toString();
+  fractionalStr = fractionalStr.padStart(decimals, '0');
+  
+  // Trim trailing zeros
+  fractionalStr = fractionalStr.replace(/0+$/, '');
+  
+  if (fractionalStr.length > 0) {
+    return `${wholePart.toString()}.${fractionalStr}`;
+  } else {
+    return wholePart.toString();
+  }
+}
 
 // Constants for Base Sepolia Explorer APIs and smart contracts
 const BASE_EXPLORER_API = 'https://sepolia.basescan.org/api';
@@ -182,7 +208,7 @@ function parseFaucetTransaction(tx: any): ParsedTransaction {
     fromToken: null,
     toToken: 'PRIOR',
     fromAmount: null,
-    toAmount: tx.value ? formatUnits(tx.value, parseInt(tx.tokenDecimal || '18')) : '1',
+    toAmount: tx.value ? formatTokenValue(tx.value, parseInt(tx.tokenDecimal || '18')) : '1',
     status: 'completed'
   };
 }
@@ -212,8 +238,8 @@ function parseSwapTransaction(tx: any, otherTxs: any[]): ParsedTransaction | nul
         type: 'swap',
         fromToken: relatedTx.tokenSymbol,
         toToken: tx.tokenSymbol,
-        fromAmount: relatedTx.value ? formatUnits(relatedTx.value, parseInt(relatedTx.tokenDecimal || '18')) : null,
-        toAmount: tx.value ? formatUnits(tx.value, parseInt(tx.tokenDecimal || '18')) : null,
+        fromAmount: relatedTx.value ? formatTokenValue(relatedTx.value, parseInt(relatedTx.tokenDecimal || '18')) : null,
+        toAmount: tx.value ? formatTokenValue(tx.value, parseInt(tx.tokenDecimal || '18')) : null,
         status: 'completed'
       };
     }
@@ -227,7 +253,7 @@ function parseSwapTransaction(tx: any, otherTxs: any[]): ParsedTransaction | nul
       type: 'swap',
       fromToken: tx.tokenSymbol,
       toToken: null, // We don't know the output token yet
-      fromAmount: tx.value ? formatUnits(tx.value, parseInt(tx.tokenDecimal || '18')) : null,
+      fromAmount: tx.value ? formatTokenValue(tx.value, parseInt(tx.tokenDecimal || '18')) : null,
       toAmount: null,
       status: 'completed'
     };
