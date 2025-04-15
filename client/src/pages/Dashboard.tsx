@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useWallet } from "@/context/WalletContext";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import useBlockExplorerSync from "@/hooks/useBlockExplorerSync";
+import useDashboardStats from "@/hooks/useDashboardStats";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";

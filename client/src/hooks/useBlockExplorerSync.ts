@@ -45,7 +45,7 @@ export function useBlockExplorerSync() {
       console.log(`Found ${transactions.length} transactions in block explorer`);
       
       // Step 2: Send transactions to our backend for processing
-      const response = await apiRequest('/sync-transactions', {
+      const response = await apiRequest('/api/sync-transactions', {
         method: 'POST',
         body: JSON.stringify({
           address,
