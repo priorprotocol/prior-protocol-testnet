@@ -3,7 +3,6 @@ import { useWallet } from "@/context/WalletContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
-import { useLocation, Link } from "wouter";
 
 interface QuestCardProps {
   quest: {
@@ -24,10 +23,7 @@ interface QuestCardProps {
 
 const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
   // Use the wallet context directly
-  const { address, isConnected, connectWallet, openWalletModal } = useWallet();
-  
-  // Use wouter's location hook for proper SPA navigation
-  const [currentLocation, setLocation] = useLocation();
+  const { address, isConnected, openWalletModal } = useWallet();
   
   const { toast } = useToast();
   
@@ -73,39 +69,51 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
     }
   });
   
+  // Simple navigation function
+  const navigateToPage = (path: string) => {
+    window.location.href = path;
+  };
+
+  // Handle all quest actions
   const handleQuestAction = async () => {
     if (!isConnected) {
       openWalletModal();
-      return; // Open wallet modal and wait for user to connect
+      return;
     }
     
     if (quest.status === 'coming_soon') {
       return;
     }
     
-    // Special handling for different quests with page redirections
+    // Special handling for swap quests
     if (quest.title === "First Swap" || quest.title.includes("Swap")) {
-      // First start the quest
       if (!userQuest) {
-        await startQuestMutation.mutateAsync();
+        try {
+          await startQuestMutation.mutateAsync();
+        } catch (error) {
+          // Error is already handled in the mutation
+          return;
+        }
       }
-      
-      // Redirect to swap page using wouter navigation
-      setLocation('/swap');
+      navigateToPage('/swap');
       return;
     }
     
+    // Special handling for governance quests
     if (quest.title.includes("Governance") || quest.title.includes("Vote") || quest.title.includes("Proposal")) {
-      // First start the quest
       if (!userQuest) {
-        await startQuestMutation.mutateAsync();
+        try {
+          await startQuestMutation.mutateAsync();
+        } catch (error) {
+          // Error is already handled in the mutation
+          return;
+        }
       }
-      
-      // Redirect to governance page using wouter navigation
-      setLocation('/governance');
+      navigateToPage('/governance');
       return;
     }
     
+    // Regular quest actions
     if (!userQuest) {
       startQuestMutation.mutate();
     } else if (userQuest.status === 'in_progress') {
@@ -172,50 +180,6 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
     
     return "w-full rounded-lg bg-[#1A5CFF] hover:bg-opacity-90 transition-all font-bold text-sm px-6 py-3 uppercase tracking-wide";
   };
-  
-  // Determine if we should use a direct link or a regular button
-  const shouldUseDirectLink = () => {
-    return (quest.title === "First Swap" || quest.title.includes("Swap") || 
-            quest.title.includes("Governance") || quest.title.includes("Vote") || quest.title.includes("Proposal"));
-  };
-  
-  // Get the link path for quests that should redirect
-  const getLinkPath = () => {
-    if (quest.title === "First Swap" || quest.title.includes("Swap")) {
-      return "/swap";
-    }
-    if (quest.title.includes("Governance") || quest.title.includes("Vote") || quest.title.includes("Proposal")) {
-      return "/governance";
-    }
-    return "#"; // Fallback
-  };
-  
-  // Handler for starting a quest before redirecting
-  const handleStartBeforeRedirect = async (e: React.MouseEvent) => {
-    if (!isConnected) {
-      e.preventDefault();
-      openWalletModal();
-      return;
-    }
-    
-    if (quest.status === 'coming_soon') {
-      e.preventDefault();
-      return;
-    }
-    
-    // Start quest if not already started
-    if (!userQuest) {
-      e.preventDefault(); // Prevent navigation until quest is started
-      try {
-        await startQuestMutation.mutateAsync();
-        // Now navigate using wouter setLocation for more reliable navigation
-        setLocation(getLinkPath());
-      } catch (error) {
-        // Error is already handled by the mutation
-      }
-    }
-    // If quest is already started or completed, the link will work normally
-  };
 
   return (
     <div className={`gradient-border bg-[#141D29] p-6 shadow-lg ${quest.status === 'coming_soon' ? 'opacity-75' : ''}`}>
@@ -245,25 +209,13 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
         <span className="text-[#A0AEC0]">Convertible to PRIOR at TGE</span>
       </div>
       
-      {shouldUseDirectLink() ? (
-        // Use Link for special navigation quests
-        <Link 
-          href={getLinkPath()}
-          onClick={handleStartBeforeRedirect}
-          className={getButtonClass() + " flex items-center justify-center no-underline"}
-        >
-          {getButtonText()}
-        </Link>
-      ) : (
-        // Use button for standard quests
-        <button 
-          onClick={handleQuestAction}
-          disabled={isButtonDisabled()}
-          className={getButtonClass()}
-        >
-          {getButtonText()}
-        </button>
-      )}
+      <button 
+        onClick={handleQuestAction}
+        disabled={isButtonDisabled()}
+        className={getButtonClass()}
+      >
+        {getButtonText()}
+      </button>
     </div>
   );
 };
