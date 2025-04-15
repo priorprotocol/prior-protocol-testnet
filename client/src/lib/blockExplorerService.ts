@@ -1,28 +1,13 @@
 // Simple function to format token values based on decimals
 function formatTokenValue(value: string, decimals: number = 18): string {
   if (!value) return '0';
-  const valueNum = BigInt(value);
-  
-  // Calculate divisor without using ** operator on BigInt
-  let divisor = BigInt(1);
-  for (let i = 0; i < decimals; i++) {
-    divisor = divisor * BigInt(10);
-  }
-  
-  const wholePart = valueNum / divisor;
-  const fractionalPart = valueNum % divisor;
-  
-  // Convert to string and pad with leading zeros
-  let fractionalStr = fractionalPart.toString();
-  fractionalStr = fractionalStr.padStart(decimals, '0');
-  
-  // Trim trailing zeros
-  fractionalStr = fractionalStr.replace(/0+$/, '');
-  
-  if (fractionalStr.length > 0) {
-    return `${wholePart.toString()}.${fractionalStr}`;
-  } else {
-    return wholePart.toString();
+  try {
+    // Simple implementation that avoids BigInt
+    const num = parseFloat(value) / Math.pow(10, decimals);
+    return num.toString();
+  } catch (error) {
+    console.error('Error formatting token value:', error);
+    return '0';
   }
 }
 
