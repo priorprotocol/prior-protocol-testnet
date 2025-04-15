@@ -5,7 +5,7 @@ import { formatAddress } from "@/lib/formatAddress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FaTrophy, FaMedal, FaAward } from "react-icons/fa";
+import { FaTrophy, FaMedal, FaAward, FaExchangeAlt, FaShieldAlt } from "react-icons/fa";
 import { useWallet } from "@/context/WalletContext";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 
@@ -59,13 +59,35 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
     }
   };
   
+  // Special badges for top swap users
+  const getSpecialBadge = (user: User, index: number) => {
+    if (user.totalSwaps >= 20) { // Has enough swaps for consideration
+      if (index < 5) { // Top 5 users get Prior Swap badge
+        return (
+          <Badge className="bg-purple-600 hover:bg-purple-500 ml-1">
+            <FaExchangeAlt className="mr-1" /> Prior Swap
+          </Badge>
+        );
+      } else if (index < 20) { // Top 6-20 get Prior Verified badge
+        return (
+          <Badge className="bg-blue-600 hover:bg-blue-500 ml-1">
+            <FaShieldAlt className="mr-1" /> Prior Verified
+          </Badge>
+        );
+      }
+    }
+    return null;
+  };
+  
   return (
     <Card className="bg-[#111827] border-[#2D3748]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FaTrophy className="text-amber-500" /> Leaderboard
+          <FaTrophy className="text-amber-500" /> Prior Protocol Leaderboard
         </CardTitle>
-        <CardDescription>Top {limit} users ranked by points</CardDescription>
+        <CardDescription>
+          Top {limit} users ranked by points - Highest swap activity highlighted
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -103,7 +125,10 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                             {formatAddress(user.address)}
                             {isCurrentUser && <span className="ml-2 text-xs text-[#1A5CFF]">(You)</span>}
                           </div>
-                          {rankBadge && <div className="mt-1">{rankBadge}</div>}
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {rankBadge}
+                            {getSpecialBadge(user, index)}
+                          </div>
                         </div>
                       </div>
                       <div className="text-right">
@@ -112,30 +137,33 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                       </div>
                     </div>
                     
-                    {/* Activity details - only shown for top 5 or current user */}
-                    {(index < 5 || isCurrentUser) && (
-                      <div className="mt-2 grid grid-cols-3 gap-2 text-xs border-t border-[#2D3748] pt-2">
-                        <div className="text-center">
-                          <span className="text-[#A0AEC0] block">Swaps</span>
-                          <span className="font-medium">{user.totalSwaps || 0}</span>
-                          {user.totalSwaps >= 10 && (
-                            <span className="text-xs text-green-500">+{user.totalSwaps * 2} pts</span>
-                          )}
-                        </div>
-                        <div className="text-center">
-                          <span className="text-[#A0AEC0] block">Claims</span>
-                          <span className="font-medium">{user.totalClaims || 0}</span>
-                          <span className="text-xs text-gray-500">0 pts</span>
-                        </div>
-                        <div className="text-center">
-                          <span className="text-[#A0AEC0] block">Badges</span>
-                          <span className="font-medium">{user.badges?.length || 0}</span>
-                          {user.badges?.includes('prior_pioneer') && (
-                            <span className="text-xs text-purple-400">+NFT</span>
-                          )}
-                        </div>
+                    {/* Activity details - shown for all users for better transparency */}
+                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs border-t border-[#2D3748] pt-2">
+                      <div className="text-center">
+                        <span className="text-[#A0AEC0] block">Daily Swaps</span>
+                        <span className="font-medium">{user.totalSwaps || 0}</span>
+                        {user.totalSwaps >= 10 ? (
+                          <span className="text-xs text-green-500">+{user.totalSwaps * 2} pts</span>
+                        ) : (
+                          <span className="text-xs text-gray-500">Need 10+ for pts</span>
+                        )}
                       </div>
-                    )}
+                      <div className="text-center">
+                        <span className="text-[#A0AEC0] block">Claims</span>
+                        <span className="font-medium">{user.totalClaims || 0}</span>
+                        <span className="text-xs text-gray-500">0 pts</span>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-[#A0AEC0] block">
+                          {user.totalSwaps >= 20 ? "Badge Status" : "Badge Progress"}
+                        </span>
+                        {user.totalSwaps >= 20 ? (
+                          <span className="font-medium text-green-500">Eligible</span>
+                        ) : (
+                          <span className="font-medium">{user.totalSwaps}/20 swaps</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 );
               })

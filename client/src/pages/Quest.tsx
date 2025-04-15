@@ -91,7 +91,7 @@ const Quest = () => {
                     <span className="text-green-400">10 points</span> for each proposal vote
                   </p>
                   <p className="text-[#A0AEC0] text-sm mt-1">
-                    <span className="text-green-400">300 points</span> for voting with Prior Pioneer NFT
+                    <span className="text-yellow-400">Feature coming soon</span>
                   </p>
                 </div>
               </div>
@@ -113,28 +113,31 @@ const Quest = () => {
             </div>
             
             <div className="bg-[#141D29] rounded-lg p-4 border border-[#2D3748]">
-              <h4 className="font-semibold mb-2">Earn Special Badges</h4>
-              <ul className="text-sm space-y-2">
-                <li className="flex items-center">
-                  <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center mr-2">
-                    <span className="text-white font-bold text-xs">⭐</span>
+              <h4 className="font-semibold mb-2">How Points Work</h4>
+              <ul className="text-sm space-y-3">
+                <li className="flex items-start">
+                  <div className="min-w-6 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-2 mt-0.5">
+                    <span className="text-white font-bold text-xs">1</span>
                   </div>
-                  <span>
-                    <span className="font-medium text-purple-400">Power User</span>
-                    <span className="text-[#A0AEC0]"> - Earn 100 points</span>
+                  <span className="text-[#A0AEC0]">
+                    Complete activities to earn points
                   </span>
                 </li>
-                <li className="flex items-center">
-                  <div className="w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center mr-2">
-                    <span className="text-white font-bold text-xs">🏆</span>
+                <li className="flex items-start">
+                  <div className="min-w-6 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-2 mt-0.5">
+                    <span className="text-white font-bold text-xs">2</span>
                   </div>
-                  <span>
-                    <span className="font-medium text-yellow-400">Expert Trader</span>
-                    <span className="text-[#A0AEC0]"> - Earn 500 points</span>
+                  <span className="text-[#A0AEC0]">
+                    Track your progress in the Dashboard
                   </span>
                 </li>
-                <li className="text-[#A0AEC0] mt-2 italic">
-                  View your earned badges and points in your Dashboard
+                <li className="flex items-start">
+                  <div className="min-w-6 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-2 mt-0.5">
+                    <span className="text-white font-bold text-xs">3</span>
+                  </div>
+                  <span className="text-[#A0AEC0]">
+                    All points will be converted to PRIOR tokens at TGE
+                  </span>
                 </li>
               </ul>
             </div>
