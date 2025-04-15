@@ -30,7 +30,7 @@ interface TransactionResponse {
 }
 
 export const TransactionHistory: React.FC = () => {
-  const { address, isConnected } = useWallet();
+  const { address, isConnected, userId } = useWallet();
   const [transactionData, setTransactionData] = useState<TransactionResponse>({
     transactions: [],
     total: 0,
@@ -42,28 +42,23 @@ export const TransactionHistory: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const fetchTransactions = async (type?: string, page: number = 1, limit: number = 10) => {
-    if (!address) return;
+    if (!address && !userId) return;
     
     setLoading(true);
     try {
-      // Use the userId instead of address for better endpoint matching
-      const userId = address && address.toLowerCase() === "0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae" ? 1 : undefined;
+      // Build the endpoint URL based on available data
+      const apiPath = userId 
+        ? `/api/users/${userId}/transactions` 
+        : `/api/users/${address}/transactions`;
       
-      // Construct endpoint using userId
-      let endpoint = '';
-      if (userId) {
-        endpoint = type && type !== "all" 
-          ? `/api/users/${userId}/transactions/${type}?page=${page}&limit=${limit}`
-          : `/api/users/${userId}/transactions?page=${page}&limit=${limit}`;
-      } else {
-        endpoint = type && type !== "all" 
-          ? `/api/users/${address}/transactions/${type}?page=${page}&limit=${limit}`
-          : `/api/users/${address}/transactions?page=${page}&limit=${limit}`;
-      }
+      const typeSegment = type && type !== "all" ? `/${type}` : "";
+      const queryParams = `?page=${page}&limit=${limit}`;
       
-      console.log("Fetching transactions from endpoint:", endpoint);
+      const apiUrl = `${apiPath}${typeSegment}${queryParams}`;
+      
+      console.log("Fetching transactions from endpoint:", apiUrl);
         
-      const response = await fetch(endpoint);
+      const response = await fetch(apiUrl);
       if (response.ok) {
         const data = await response.json();
         console.log("Received transactions:", data);

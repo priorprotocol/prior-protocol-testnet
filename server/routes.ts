@@ -314,7 +314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
-  // Get user's stats
+  // Get user's stats by address
   app.get(`${apiPrefix}/users/:address/stats`, async (req, res) => {
     const { address } = req.params;
     
@@ -325,6 +325,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     const stats = await storage.getUserStats(user.id);
     res.json(stats);
+  });
+  
+  // Get user's stats by userId
+  app.get(`${apiPrefix}/users/:userId/stats`, async (req, res) => {
+    const userId = parseInt(req.params.userId);
+    
+    if (isNaN(userId)) {
+      // If userId is not a number, assume it's an address and forward to address endpoint
+      return res.redirect(`${apiPrefix}/users/${req.params.userId}/stats`);
+    }
+    
+    try {
+      const stats = await storage.getUserStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching stats for userId:", userId, error);
+      res.status(500).json({ message: "Error fetching user stats" });
+    }
   });
   
   // Get leaderboard (top users by points)
