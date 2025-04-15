@@ -4,7 +4,8 @@ import {
   userQuests, UserQuest, InsertUserQuest,
   proposals, Proposal, InsertProposal,
   votes, Vote, InsertVote,
-  tokens, Token, InsertToken
+  tokens, Token, InsertToken,
+  transactions, Transaction, InsertTransaction
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
@@ -70,12 +71,43 @@ export class DatabaseStorage implements IStorage {
     const currentSwaps = user.totalSwaps || 0;
     const newSwapCount = currentSwaps + 1;
     
-    // Update the user with the new swap count
+    // Check if user has reached 10+ daily swaps to award points (2 points per swap)
+    const dailySwaps = await this.getDailySwapCount(userId);
+    
+    // Calculate points to award - only if user has 10 or more daily swaps
+    let pointsToAdd = 0;
+    if (dailySwaps >= 9) { // This will be the 10th swap
+      pointsToAdd = 2; // Award 2 points for this swap
+      
+      // Add Prior Swap badge if user reaches 20+ total swaps
+      if (newSwapCount >= 20) {
+        const userBadges = await this.getUserBadges(userId);
+        if (!userBadges.includes('prior_swap')) {
+          await this.addUserBadge(userId, 'prior_swap');
+        }
+      }
+    } else if (dailySwaps >= 10) {
+      pointsToAdd = 2; // Continue to award 2 points per swap after reaching 10
+    }
+    
+    // Update the user with the new swap count and add points if earned
     const [updatedUser] = await db
       .update(users)
-      .set({ totalSwaps: newSwapCount })
+      .set({ 
+        totalSwaps: newSwapCount,
+        points: user.points + pointsToAdd 
+      })
       .where(eq(users.id, userId))
       .returning();
+    
+    // Record this transaction with points information
+    await this.createTransaction({
+      userId,
+      type: 'swap',
+      txHash: `swap_${Date.now()}`, // Placeholder for actual transaction hash
+      status: 'completed',
+      points: pointsToAdd
+    });
     
     return updatedUser.totalSwaps || 0;
   }
@@ -87,6 +119,7 @@ export class DatabaseStorage implements IStorage {
     totalQuests: number;
     proposalsVoted: number;
     proposalsCreated: number;
+    points: number;
   }> {
     // Get user
     const [user] = await db.select().from(users).where(eq(users.id, userId));
@@ -97,15 +130,26 @@ export class DatabaseStorage implements IStorage {
         completedQuests: 0,
         totalQuests: 0,
         proposalsVoted: 0,
-        proposalsCreated: 0
+        proposalsCreated: 0,
+        points: 0
       };
     }
     
-    // Count of faucet claims is 1 if lastClaim exists, 0 otherwise
-    const totalFaucetClaims = user.lastClaim ? 1 : 0;
+    // Get count of faucet claims from transaction history
+    const [faucetClaimsResult] = await db
+      .select({ count: count() })
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        eq(transactions.type, 'faucet_claim')
+      ));
+    const totalFaucetClaims = faucetClaimsResult?.count || (user.lastClaim ? 1 : 0);
     
     // Get total swaps from user object
     const totalSwaps = user.totalSwaps || 0;
+    
+    // Get daily swaps for point calculation
+    const dailySwaps = await this.getDailySwapCount(userId);
     
     // Count completed quests for this user
     const [completedQuestsResult] = await db
@@ -133,13 +177,17 @@ export class DatabaseStorage implements IStorage {
     // For now, we're not tracking who created proposals, so it's 0
     const proposalsCreated = 0;
     
+    // Get total points from user record
+    const points = user.points || 0;
+    
     return {
       totalFaucetClaims,
       totalSwaps,
       completedQuests,
       totalQuests,
       proposalsVoted,
-      proposalsCreated
+      proposalsCreated,
+      points
     };
   }
   
@@ -258,6 +306,183 @@ export class DatabaseStorage implements IStorage {
   async createToken(token: InsertToken): Promise<Token> {
     const [newToken] = await db.insert(tokens).values(token).returning();
     return newToken;
+  }
+  
+  // Transaction operations
+  async getUserTransactions(userId: number, page: number = 1, limit: number = 10): Promise<{
+    transactions: Transaction[];
+    total: number;
+    page: number;
+    hasMore: boolean;
+  }> {
+    const offset = (page - 1) * limit;
+    
+    // Get transactions for this user
+    const transactionsList = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.userId, userId))
+      .orderBy(sql`${transactions.timestamp} DESC`)
+      .limit(limit)
+      .offset(offset);
+    
+    // Count total transactions
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(transactions)
+      .where(eq(transactions.userId, userId));
+    
+    const total = totalResult?.count || 0;
+    const hasMore = total > (page * limit);
+    
+    return {
+      transactions: transactionsList,
+      total,
+      page,
+      hasMore
+    };
+  }
+  
+  async getUserTransactionsByType(userId: number, type: string, page: number = 1, limit: number = 10): Promise<{
+    transactions: Transaction[];
+    total: number;
+    page: number;
+    hasMore: boolean;
+  }> {
+    const offset = (page - 1) * limit;
+    
+    // Get transactions for this user with specific type
+    const transactionsList = await db
+      .select()
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        eq(transactions.type, type)
+      ))
+      .orderBy(sql`${transactions.timestamp} DESC`)
+      .limit(limit)
+      .offset(offset);
+    
+    // Count total transactions of this type
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        eq(transactions.type, type)
+      ));
+    
+    const total = totalResult?.count || 0;
+    const hasMore = total > (page * limit);
+    
+    return {
+      transactions: transactionsList,
+      total,
+      page,
+      hasMore
+    };
+  }
+  
+  async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
+    const [newTransaction] = await db
+      .insert(transactions)
+      .values({
+        ...transaction,
+        timestamp: new Date()
+      })
+      .returning();
+    
+    return newTransaction;
+  }
+  
+  async getTransactionPoints(transaction: Transaction): Promise<number> {
+    // Calculate points based on transaction type
+    if (transaction.type === 'swap') {
+      // Check if user has 10+ daily swaps
+      const userId = transaction.userId;
+      const dailySwaps = await this.getDailySwapCount(userId);
+      
+      if (dailySwaps >= 10) {
+        return 2; // 2 points per swap when user has 10+ daily swaps
+      }
+    } else if (transaction.type === 'governance_vote') {
+      return 10; // 10 points per governance vote
+    }
+    
+    return 0; // Default: 0 points
+  }
+  
+  async getDailySwapCount(userId: number): Promise<number> {
+    // Get today's date at midnight
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Query transactions for swaps made today
+    const [result] = await db
+      .select({ count: count() })
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        eq(transactions.type, 'swap'),
+        sql`${transactions.timestamp} >= ${today}`
+      ));
+    
+    return result?.count || 0;
+  }
+  
+  async incrementUserClaimCount(userId: number): Promise<number> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) return 0;
+    
+    const currentClaims = user.totalClaims || 0;
+    const newClaimCount = currentClaims + 1;
+    
+    // Update the user with the new claim count
+    const [updatedUser] = await db
+      .update(users)
+      .set({ 
+        totalClaims: newClaimCount,
+        lastClaim: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    // Record this transaction
+    await this.createTransaction({
+      userId,
+      type: 'faucet_claim',
+      txHash: `claim_${Date.now()}`, // Placeholder for actual transaction hash
+      status: 'completed',
+      points: 0  // No points for faucet claims
+    });
+    
+    return updatedUser.totalClaims || 0;
+  }
+  
+  async addUserPoints(userId: number, points: number): Promise<number> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) return 0;
+    
+    const currentPoints = user.points || 0;
+    const newPoints = currentPoints + points;
+    
+    // Update the user with the new points total
+    const [updatedUser] = await db
+      .update(users)
+      .set({ points: newPoints })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser.points || 0;
+  }
+  
+  async getLeaderboard(limit: number = 20): Promise<User[]> {
+    // Get top users by points, ensuring we get the top 20 swap users highlighted
+    return await db
+      .select()
+      .from(users)
+      .orderBy(sql`${users.points} DESC, ${users.totalSwaps} DESC`)
+      .limit(limit);
   }
   
   // Function to seed the database with initial data
