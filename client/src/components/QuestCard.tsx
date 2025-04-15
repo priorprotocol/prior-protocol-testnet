@@ -3,6 +3,7 @@ import { useWallet } from "@/context/WalletContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 
 interface QuestCardProps {
   quest: {
@@ -24,6 +25,9 @@ interface QuestCardProps {
 const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
   // Use the wallet context directly
   const { address, isConnected, connectWallet, openWalletModal } = useWallet();
+  
+  // Add wouter's location hook for proper SPA navigation
+  const [_, setLocation] = useLocation();
   
   const { toast } = useToast();
   
@@ -86,8 +90,8 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
         await startQuestMutation.mutateAsync();
       }
       
-      // Redirect to swap page
-      window.location.href = '/swap';
+      // Redirect to swap page using wouter navigation
+      setLocation('/swap');
       return;
     }
     
@@ -97,8 +101,8 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
         await startQuestMutation.mutateAsync();
       }
       
-      // Redirect to governance page
-      window.location.href = '/governance';
+      // Redirect to governance page using wouter navigation
+      setLocation('/governance');
       return;
     }
     
