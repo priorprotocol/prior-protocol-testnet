@@ -162,17 +162,17 @@ export class MemStorage implements IStorage {
   private initializeQuests() {
     const initialQuests: InsertQuest[] = [
       {
-        title: "First Swap",
-        description: "Complete your first token swap on PriorSwap to earn 20 Prior Points (convertible at TGE).",
-        reward: 20,
+        title: "Daily Swap Quest",
+        description: "Complete 10+ swaps in a day to earn 2 points per swap (convertible to PRIOR at TGE).",
+        reward: 2,
         difficulty: "Beginner",
         status: "active",
         icon: "exchange-alt"
       },
       {
-        title: "Governance Vote",
-        description: "Participate in a test governance proposal with your NFT to earn 300 Prior Points (convertible at TGE).",
-        reward: 300,
+        title: "Governance Participation",
+        description: "Participate in governance proposals to earn 10 points per vote (feature coming soon).",
+        reward: 10,
         difficulty: "Intermediate",
         status: "active",
         icon: "vote-yea"

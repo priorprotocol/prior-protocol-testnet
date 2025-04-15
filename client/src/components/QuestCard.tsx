@@ -22,11 +22,12 @@ interface QuestCardProps {
 }
 
 const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
-  // Use the wallet context directly
+  // Use the wallet context for connection status
   const { address, isConnected, openWalletModal } = useWallet();
   
   const { toast } = useToast();
   
+  // Mutation for starting a quest
   const startQuestMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest('POST', `/api/quests/${quest.id}/start`, { address });
@@ -48,6 +49,7 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
     }
   });
   
+  // Mutation for completing a quest
   const completeQuestMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest('POST', `/api/quests/${quest.id}/complete`, { address });
@@ -69,78 +71,82 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
     }
   });
   
-  // Simple navigation function
-  const navigateToPage = (path: string) => {
-    window.location.href = path;
+  // Get the target page URL based on quest title
+  const getTargetPage = () => {
+    if (quest.title.toLowerCase().includes("swap")) {
+      return "/swap";
+    }
+    if (quest.title.toLowerCase().includes("governance") || 
+        quest.title.toLowerCase().includes("vote") || 
+        quest.title.toLowerCase().includes("proposal")) {
+      return "/governance";
+    }
+    return null;
   };
 
-  // Handle all quest actions
-  const handleQuestAction = async () => {
+  // Main function to handle the button click
+  const handleButtonClick = async () => {
+    // If not connected, show wallet modal
     if (!isConnected) {
       openWalletModal();
       return;
     }
     
+    // Don't do anything for coming soon quests
     if (quest.status === 'coming_soon') {
       return;
     }
     
-    // Special handling for swap quests
-    if (quest.title === "First Swap" || quest.title.includes("Swap")) {
+    const targetPage = getTargetPage();
+
+    // If this is a quest that redirects to another page
+    if (targetPage) {
+      // Start the quest if not already started
       if (!userQuest) {
         try {
           await startQuestMutation.mutateAsync();
         } catch (error) {
-          // Error is already handled in the mutation
-          return;
+          return; // Stop if there was an error starting the quest
         }
       }
-      navigateToPage('/swap');
+      
+      // Use a reliable navigation method - direct URL change
+      window.location.href = targetPage;
       return;
     }
     
-    // Special handling for governance quests
-    if (quest.title.includes("Governance") || quest.title.includes("Vote") || quest.title.includes("Proposal")) {
-      if (!userQuest) {
-        try {
-          await startQuestMutation.mutateAsync();
-        } catch (error) {
-          // Error is already handled in the mutation
-          return;
-        }
-      }
-      navigateToPage('/governance');
-      return;
-    }
-    
-    // Regular quest actions
+    // For standard quests without redirection
     if (!userQuest) {
+      // Start a new quest
       startQuestMutation.mutate();
     } else if (userQuest.status === 'in_progress') {
+      // Complete an in-progress quest
       completeQuestMutation.mutate();
     }
   };
   
+  // Get the appropriate button text
   const getButtonText = () => {
+    // Show loading states
     if (startQuestMutation.isPending) return "Starting...";
     if (completeQuestMutation.isPending) return "Completing...";
     
+    // For coming soon quests
     if (quest.status === 'coming_soon') return "Coming Soon";
     
-    // Special button text for swap and governance quests
-    if (quest.title === "First Swap" || quest.title.includes("Swap")) {
-      if (!userQuest) return "Go to Swap";
-      if (userQuest.status === 'in_progress') return "Go to Swap";
-      if (userQuest.status === 'completed') return "Visit Swap Page";
+    const targetPage = getTargetPage();
+    
+    // For quests with redirection
+    if (targetPage) {
+      // Differentiate based on quest title and status
+      const type = targetPage === "/swap" ? "Swap" : "Governance";
+      
+      if (!userQuest) return `Go to ${type}`;
+      if (userQuest.status === 'in_progress') return `Go to ${type}`;
+      if (userQuest.status === 'completed') return `Visit ${type} Page`;
     }
     
-    if (quest.title.includes("Governance") || quest.title.includes("Vote") || quest.title.includes("Proposal")) {
-      if (!userQuest) return "Go to Governance";
-      if (userQuest.status === 'in_progress') return "Go to Governance";
-      if (userQuest.status === 'completed') return "Visit Governance Page";
-    }
-    
-    // Default button text
+    // For standard quests
     if (!userQuest) return "Start Quest";
     if (userQuest.status === 'in_progress') return "Complete Quest";
     if (userQuest.status === 'completed') return "Completed";
@@ -148,14 +154,14 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
     return "Start Quest";
   };
   
+  // Check if the button should be disabled
   const isButtonDisabled = () => {
-    // For swap and governance quests, we want to keep buttons enabled even when completed
-    if ((quest.title === "First Swap" || quest.title.includes("Swap") || 
-         quest.title.includes("Governance") || quest.title.includes("Vote") || quest.title.includes("Proposal")) &&
-        userQuest?.status === 'completed') {
+    // Always enable redirection quests (even when completed)
+    if (getTargetPage() && userQuest?.status === 'completed') {
       return false;
     }
     
+    // Otherwise disable for coming soon, completed quests or during loading
     return (
       quest.status === 'coming_soon' ||
       userQuest?.status === 'completed' ||
@@ -164,25 +170,30 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
     );
   };
   
+  // Get the appropriate button styling class
   const getButtonClass = () => {
+    // Different style for coming soon quests
     if (quest.status === 'coming_soon') {
       return "w-full rounded-lg bg-[#A0AEC0] bg-opacity-20 text-[#A0AEC0] cursor-not-allowed font-bold text-sm px-6 py-3 uppercase tracking-wide";
     }
     
-    // Special styling for completed quests that can still be clicked
+    // Different style for completed quests
     if (userQuest?.status === 'completed') {
-      if ((quest.title === "First Swap" || quest.title.includes("Swap") || 
-           quest.title.includes("Governance") || quest.title.includes("Vote") || quest.title.includes("Proposal"))) {
+      // Completed redirection quests get hover effects
+      if (getTargetPage()) {
         return "w-full rounded-lg bg-green-600 hover:bg-green-700 transition-all font-bold text-sm px-6 py-3 uppercase tracking-wide";
       }
       return "w-full rounded-lg bg-green-600 font-bold text-sm px-6 py-3 uppercase tracking-wide";
     }
     
+    // Standard button style
     return "w-full rounded-lg bg-[#1A5CFF] hover:bg-opacity-90 transition-all font-bold text-sm px-6 py-3 uppercase tracking-wide";
   };
 
+  // The component render function
   return (
     <div className={`gradient-border bg-[#141D29] p-6 shadow-lg ${quest.status === 'coming_soon' ? 'opacity-75' : ''}`}>
+      {/* Header with icon and difficulty */}
       <div className="flex justify-between items-start mb-4">
         <div className="w-12 h-12 rounded-full bg-[#1A5CFF] flex items-center justify-center">
           <i className={`fas fa-${quest.icon} text-xl`}></i>
@@ -197,10 +208,14 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
           {quest.difficulty}
         </div>
       </div>
+      
+      {/* Quest title and description */}
       <h3 className="font-space font-semibold text-xl mb-2">{quest.title}</h3>
       <p className="text-[#A0AEC0] text-sm mb-4">
         {quest.description}
       </p>
+      
+      {/* Reward information */}
       <div className="flex justify-between items-center text-sm mb-4">
         <span className="text-[#A0AEC0]">Reward</span>
         <span className="font-bold">{quest.reward} Points</span>
@@ -209,8 +224,9 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
         <span className="text-[#A0AEC0]">Convertible to PRIOR at TGE</span>
       </div>
       
+      {/* Action button */}
       <button 
-        onClick={handleQuestAction}
+        onClick={handleButtonClick}
         disabled={isButtonDisabled()}
         className={getButtonClass()}
       >
