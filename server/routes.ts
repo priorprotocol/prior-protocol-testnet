@@ -614,24 +614,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if we received userId or userAddress
       let userId = req.body.userId;
       let user = null;
+      let address = null;
       
       // If we have a wallet address instead of userId
       if (!userId && req.body.userAddress) {
-        user = await storage.getUser(req.body.userAddress);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
+        address = req.body.userAddress;
+        user = await storage.getUser(address);
+      }
+      // If we have a direct userId that looks like a wallet address (e.g. from Swap.tsx)
+      else if (typeof userId === 'string' && userId.startsWith('0x')) {
+        address = userId;
+        user = await storage.getUser(address);
+      }
+      
+      // If the user doesn't exist, create a new user account
+      if (address && !user) {
+        console.log(`User with address ${address} not found, creating new user account`);
+        user = await storage.createUser({ address, lastClaim: null });
+        console.log(`Created new user:`, user);
+      }
+      
+      // Ensure we have a valid userId
+      if (user) {
         userId = user.id;
       }
       
-      // If we have a direct userId (e.g. from Swap.tsx)
-      else if (typeof userId === 'string' && userId.startsWith('0x')) {
-        // If userId is actually a wallet address
-        user = await storage.getUser(userId);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
-        userId = user.id;
+      // If we still don't have a valid userId, return an error
+      if (!userId || typeof userId !== 'number') {
+        return res.status(400).json({ message: "Invalid user ID or address" });
       }
       
       // Validate the transaction data
@@ -730,10 +740,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if this is a wallet address or a numeric ID
       if (userIdOrAddress && userIdOrAddress.toString().startsWith('0x')) {
         // It's a wallet address
-        const user = await storage.getUser(userIdOrAddress);
+        let user = await storage.getUser(userIdOrAddress);
+        
+        // If user doesn't exist, create a new user
         if (!user) {
-          return res.status(404).json({ message: "User not found" });
+          console.log(`User with address ${userIdOrAddress} not found, creating new user account`);
+          user = await storage.createUser({ address: userIdOrAddress, lastClaim: null });
+          console.log(`Created new user:`, user);
         }
+        
         userId = user.id;
       } else {
         // It's a numeric ID
@@ -768,10 +783,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if this is a wallet address or a numeric ID
       if (userIdOrAddress && userIdOrAddress.toString().startsWith('0x')) {
         // It's a wallet address
-        const user = await storage.getUser(userIdOrAddress);
+        let user = await storage.getUser(userIdOrAddress);
+        
+        // If user doesn't exist, create a new user
         if (!user) {
-          return res.status(404).json({ message: "User not found" });
+          console.log(`User with address ${userIdOrAddress} not found, creating new user account`);
+          user = await storage.createUser({ address: userIdOrAddress, lastClaim: null });
+          console.log(`Created new user:`, user);
         }
+        
         userId = user.id;
       } else {
         // It's a numeric ID

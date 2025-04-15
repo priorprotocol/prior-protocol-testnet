@@ -32,6 +32,10 @@ interface TransactionResponse {
 
 export const TransactionHistory: React.FC = () => {
   const { address, isConnected, userId } = useWallet();
+  const { address: standaloneAddress } = useStandaloneWallet();
+  
+  // Use whichever address is available
+  const userAddress = address || standaloneAddress;
   const [transactionData, setTransactionData] = useState<TransactionResponse>({
     transactions: [],
     total: 0,
