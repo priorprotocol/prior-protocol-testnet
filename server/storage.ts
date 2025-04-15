@@ -761,7 +761,8 @@ export class MemStorage implements IStorage {
       toToken: transaction.toToken || null,
       fromAmount: transaction.fromAmount || null,
       toAmount: transaction.toAmount || null,
-      blockNumber: transaction.blockNumber || null
+      blockNumber: transaction.blockNumber || null,
+      points: transaction.points !== undefined ? transaction.points : null
     };
     
     this.transactions.set(id, newTransaction);

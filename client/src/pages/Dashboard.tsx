@@ -414,6 +414,7 @@ const Dashboard = () => {
               <CardDescription>Track all your interactions with the Prior Protocol testnet</CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Pass the address explicitly to ensure consistency */}
               <TransactionHistory />
             </CardContent>
           </Card>
