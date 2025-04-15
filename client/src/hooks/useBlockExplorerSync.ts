@@ -35,13 +35,16 @@ export function useBlockExplorerSync(address: string | null) {
       
       console.log(`Found ${transactions.length} transactions on blockchain, syncing with database...`);
       
-      // Send transactions to backend for storage
-      const response = await apiRequest('/sync-transactions', {
+      // Send transactions to backend for storage using our API endpoint
+      const response = await apiRequest('/api/sync-transactions', {
         method: 'POST',
         body: JSON.stringify({
           address: walletAddress,
           transactions
-        })
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       // Invalidate relevant queries to update UI

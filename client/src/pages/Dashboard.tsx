@@ -17,6 +17,7 @@ import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
 import { RefreshCw } from "lucide-react";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 import { UserStats } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   // Use both wallet systems for compatibility during transition
