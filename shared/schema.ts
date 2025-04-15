@@ -107,6 +107,7 @@ export const transactions = pgTable("transactions", {
   timestamp: timestamp("timestamp").notNull().defaultNow(),
   status: text("status").notNull().default("completed"), // 'completed', 'pending', 'failed'
   blockNumber: integer("block_number"),
+  points: integer("points").default(0), // Points earned for this transaction
 });
 
 export const insertTransactionSchema = createInsertSchema(transactions).omit({

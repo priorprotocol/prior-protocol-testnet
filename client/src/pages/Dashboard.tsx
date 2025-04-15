@@ -145,10 +145,10 @@ const Dashboard = () => {
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-xl">
-                            {userStats?.totalSwaps && userStats.totalSwaps >= 10 ? userStats.totalSwaps * 2 : 0}
+                            {userStats && userStats.totalSwaps && userStats.totalSwaps >= 10 ? userStats.totalSwaps * 2 : 0}
                           </div>
                           <p className="text-xs text-green-400">
-                            {userStats?.totalSwaps >= 10 ? '2 pts per swap' : 'Need 10+ daily swaps'}
+                            {userStats && userStats.totalSwaps && userStats.totalSwaps >= 10 ? '2 pts per swap' : 'Need 10+ daily swaps'}
                           </p>
                         </div>
                       </div>
