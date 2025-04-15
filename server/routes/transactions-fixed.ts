@@ -1,244 +1,304 @@
-import { Router, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import { storage } from '../storage';
 import { insertTransactionSchema } from '@shared/schema';
 import { z } from 'zod';
-import { log } from '../vite';
 
-const router = Router();
+// Create a router instance
+const router = express.Router();
 
-// Get all user transactions
+// Validate and parse transaction type
+const validateTransactionType = (type: string): string => {
+  const validTypes = ['swap', 'faucet_claim', 'governance_vote', 'liquidity_stake', 'nft_mint'];
+  return validTypes.includes(type) ? type : 'other';
+};
+
+// Get transaction points based on type and user context
+const getTransactionPoints = async (userId: number, type: string, txData: any): Promise<number> => {
+  // Daily swap threshold
+  const DAILY_SWAP_THRESHOLD = 10;
+  
+  if (type === 'swap') {
+    // Check if user has done 10+ swaps in the current day
+    const dailySwapCount = await storage.getDailySwapCount(userId);
+    
+    // Award 2 points per swap ONLY if they've done 10+ swaps today
+    if (dailySwapCount >= DAILY_SWAP_THRESHOLD) {
+      return 2;
+    }
+    return 0;
+  } 
+  else if (type === 'governance_vote') {
+    // 10 points for each governance vote
+    return 10;
+  }
+  else if (type === 'liquidity_stake') {
+    // 5 points for liquidity staking
+    return 5;
+  }
+  else if (type === 'nft_mint') {
+    // Special handling for NFTs could be added here
+    return 0;
+  }
+  
+  // No points for faucet claims or other transaction types
+  return 0;
+};
+
+// Get user's transaction history (all types) with pagination
 router.get('/users/:identifier/transactions', async (req: Request, res: Response) => {
+  const { identifier } = req.params;
+  const page = parseInt(req.query.page as string || '1');
+  const limit = parseInt(req.query.limit as string || '10');
+  
   try {
-    const { identifier } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    
-    // Identifier can be either userId (number) or wallet address (string)
-    const isAddress = isNaN(parseInt(identifier));
-    
     let userId: number;
     
-    if (isAddress) {
-      // Handle case where identifier is a wallet address
-      const address = identifier.toLowerCase();
-      let user = await storage.getUser(address);
-      
+    // Check if identifier is a wallet address or a user ID
+    if (identifier.startsWith('0x')) {
+      // It's an address, get or create the user
+      let user = await storage.getUser(identifier);
       if (!user) {
-        // Auto-create user account if address is provided but not found
-        log(`Creating new user for address: ${address}`);
-        user = await storage.createUser({ 
-          address,
-          lastClaim: null 
-        });
+        // Auto-create user if not exists
+        user = await storage.createUser({ address: identifier, lastClaim: null });
       }
-      
       userId = user.id;
     } else {
-      // If identifier is numeric, treat as userId
+      // It's a user ID
       userId = parseInt(identifier);
-    }
-    
-    const transactionData = await storage.getUserTransactions(userId, page, limit);
-    
-    res.json(transactionData);
-  } catch (error) {
-    console.error('Error getting user transactions:', error);
-    res.status(500).json({ error: 'Failed to get user transactions' });
-  }
-});
-
-// Get transactions by type for a user
-router.get('/users/:identifier/transactions/:type', async (req: Request, res: Response) => {
-  try {
-    const { identifier, type } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    
-    // Identifier can be either userId (number) or wallet address (string)
-    const isAddress = isNaN(parseInt(identifier));
-    
-    let userId: number;
-    
-    if (isAddress) {
-      // Handle case where identifier is a wallet address
-      const address = identifier.toLowerCase();
-      let user = await storage.getUser(address);
-      
-      if (!user) {
-        // Auto-create user account if address is provided but not found
-        log(`Creating new user for address: ${address}`);
-        user = await storage.createUser({
-          address,
-          lastClaim: null
-        });
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user identifier" });
       }
-      
-      userId = user.id;
-    } else {
-      // If identifier is numeric, treat as userId
-      userId = parseInt(identifier);
     }
     
-    const transactionData = await storage.getUserTransactionsByType(userId, type, page, limit);
+    // Get paginated transactions
+    const result = await storage.getUserTransactions(userId, page, limit);
     
-    res.json(transactionData);
-  } catch (error) {
-    console.error('Error getting user transactions by type:', error);
-    res.status(500).json({ error: 'Failed to get user transactions by type' });
-  }
-});
-
-// Sync transactions from block explorer
-router.post('/sync-transactions', async (req: Request, res: Response) => {
-  try {
-    const schema = z.object({
-      address: z.string().min(1),
-      transactions: z.array(z.object({
-        txHash: z.string(),
-        type: z.string(),
-        status: z.string(),
-        fromToken: z.string().nullable().optional(),
-        toToken: z.string().nullable().optional(),
-        fromAmount: z.string().nullable().optional(),
-        toAmount: z.string().nullable().optional(),
-        timestamp: z.string(),
-        blockNumber: z.number().optional(),
-        points: z.number().optional()
-      }))
+    // Add points information to each transaction
+    const transactionsWithPoints = await Promise.all(
+      result.transactions.map(async (tx) => {
+        const points = await storage.getTransactionPoints(tx);
+        return { ...tx, points };
+      })
+    );
+    
+    res.json({
+      transactions: transactionsWithPoints,
+      total: result.total,
+      page: result.page,
+      hasMore: result.hasMore
     });
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    res.status(500).json({ message: "Error fetching transaction history" });
+  }
+});
 
-    const { address, transactions } = schema.parse(req.body);
+// Get user's transaction history by type with pagination
+router.get('/users/:identifier/transactions/:type', async (req: Request, res: Response) => {
+  const { identifier, type } = req.params;
+  const page = parseInt(req.query.page as string || '1');
+  const limit = parseInt(req.query.limit as string || '10');
+  
+  try {
+    let userId: number;
     
-    let user = await storage.getUser(address);
-    
-    // Auto-create user if needed
-    if (!user) {
-      user = await storage.createUser({
-        address: address.toLowerCase(),
-        lastClaim: null
-      });
+    // Check if identifier is a wallet address or a user ID
+    if (identifier.startsWith('0x')) {
+      // It's an address, get or create the user
+      let user = await storage.getUser(identifier);
+      if (!user) {
+        // Auto-create user if not exists
+        user = await storage.createUser({ address: identifier, lastClaim: null });
+      }
+      userId = user.id;
+    } else {
+      // It's a user ID
+      userId = parseInt(identifier);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user identifier" });
+      }
     }
     
-    // Track stats for update
-    let totalSwaps = 0;
-    let totalClaims = 0;
-    let totalPoints = 0;
+    // Validate transaction type or use 'all'
+    const validatedType = validateTransactionType(type);
+    
+    // Get paginated transactions by type
+    const result = await storage.getUserTransactionsByType(userId, validatedType, page, limit);
+    
+    // Add points information to each transaction
+    const transactionsWithPoints = await Promise.all(
+      result.transactions.map(async (tx) => {
+        const points = await storage.getTransactionPoints(tx);
+        return { ...tx, points };
+      })
+    );
+    
+    res.json({
+      transactions: transactionsWithPoints,
+      total: result.total,
+      page: result.page,
+      hasMore: result.hasMore
+    });
+  } catch (error) {
+    console.error("Error fetching transactions by type:", error);
+    res.status(500).json({ message: "Error fetching transaction history" });
+  }
+});
+
+// Synchronize blockchain transactions with our database
+router.post('/sync-transactions', async (req: Request, res: Response) => {
+  const syncSchema = z.object({
+    address: z.string().min(42).max(42),
+    transactions: z.array(z.object({
+      txHash: z.string(),
+      blockNumber: z.number(),
+      timestamp: z.string(),
+      type: z.string(),
+      fromToken: z.string().nullable().optional(),
+      toToken: z.string().nullable().optional(),
+      fromAmount: z.string().nullable().optional(),
+      toAmount: z.string().nullable().optional(),
+      status: z.string()
+    }))
+  });
+  
+  try {
+    const { address, transactions } = syncSchema.parse(req.body);
+    
+    // Get or create user
+    let user = await storage.getUser(address);
+    if (!user) {
+      user = await storage.createUser({ address, lastClaim: null });
+    }
+    
+    console.log(`Syncing ${transactions.length} transactions for user ${user.id} (${address})`);
+    
+    // Track stats for response
+    const stats = {
+      newTransactions: 0,
+      swaps: 0,
+      claims: 0,
+      points: 0
+    };
     
     // Process each transaction
     for (const tx of transactions) {
-      try {
-        // Check if transaction already exists (avoid duplicates)
-        const existingTxData = await storage.getUserTransactions(user.id, 1, 100);
-        const existingTx = existingTxData.transactions.find(t => t.txHash === tx.txHash);
+      // Check if transaction already exists
+      const existingTxs = await storage.getUserTransactions(user.id);
+      const txExists = existingTxs.transactions.some(
+        existingTx => existingTx.txHash === tx.txHash
+      );
+      
+      if (!txExists) {
+        // Create a new transaction record
+        const newTx = await storage.createTransaction({
+          userId: user.id,
+          type: tx.type,
+          txHash: tx.txHash,
+          fromToken: tx.fromToken,
+          toToken: tx.toToken,
+          fromAmount: tx.fromAmount,
+          toAmount: tx.toAmount,
+          status: 'completed',
+          blockNumber: tx.blockNumber
+        });
         
-        if (!existingTx && tx.status === 'completed') {
-          // Create the transaction record
-          const newTx = await storage.createTransaction({
-            userId: user.id,
-            type: tx.type,
-            txHash: tx.txHash,
-            status: tx.status,
-            fromToken: tx.fromToken || null,
-            toToken: tx.toToken || null, 
-            fromAmount: tx.fromAmount || null,
-            toAmount: tx.toAmount || null,
-            blockNumber: tx.blockNumber || null
-          });
+        stats.newTransactions++;
+        
+        // Track transaction type
+        if (tx.type === 'swap') {
+          stats.swaps++;
           
-          // Update stats based on transaction type
-          if (tx.type === 'swap') {
-            totalSwaps++;
-            
-            // Calculate points for this transaction
-            const swapPoints = await storage.getTransactionPoints(newTx);
-            totalPoints += swapPoints;
-          } else if (tx.type === 'faucet_claim') {
-            totalClaims++;
+          // If it's a swap, increment the user's swap count
+          await storage.incrementUserSwapCount(user.id);
+          
+          // Award swap badge if this is their first swap
+          const userStats = await storage.getUserStats(user.id);
+          if (userStats.totalSwaps === 1) {
+            await storage.addUserBadge(user.id, "swap_completed");
+          }
+        } else if (tx.type === 'faucet_claim') {
+          stats.claims++;
+          
+          // Award token_claimed badge if they don't have it
+          const badges = await storage.getUserBadges(user.id);
+          if (!badges.includes('token_claimed')) {
+            await storage.addUserBadge(user.id, "token_claimed");
           }
         }
-      } catch (txError) {
-        console.error(`Error processing transaction ${tx.txHash}:`, txError);
-        // Continue with other transactions even if one fails
+        
+        // Calculate and add points
+        const points = await getTransactionPoints(user.id, tx.type, tx);
+        if (points > 0) {
+          await storage.addUserPoints(user.id, points);
+          stats.points += points;
+          console.log(`Awarded ${points} points for transaction ${tx.txHash}`);
+        }
       }
     }
     
-    // Update user stats if we processed any new transactions
-    if (totalSwaps > 0 || totalClaims > 0 || totalPoints > 0) {
-      // Update total swaps count
-      if (totalSwaps > 0) {
-        for (let i = 0; i < totalSwaps; i++) {
-          await storage.incrementUserSwapCount(user.id);
-        }
-      }
-      
-      // Update total claims count
-      if (totalClaims > 0) {
-        for (let i = 0; i < totalClaims; i++) {
-          await storage.incrementUserClaimCount(user.id);
-        }
-      }
-      
-      // Add points if earned
-      if (totalPoints > 0) {
-        await storage.addUserPoints(user.id, totalPoints);
-      }
-    }
-    
-    res.json({ 
-      success: true, 
-      user: await storage.getUser(address),
-      stats: {
-        newTransactions: totalSwaps + totalClaims,
-        swaps: totalSwaps,
-        claims: totalClaims,
-        points: totalPoints
-      }
+    res.json({
+      success: true,
+      message: `Synced ${stats.newTransactions} new transactions`,
+      stats
     });
+    
   } catch (error) {
-    console.error('Error syncing transactions:', error);
-    res.status(500).json({ error: 'Failed to sync transactions' });
+    console.error("Error syncing transactions:", error);
+    res.status(400).json({ 
+      success: false,
+      message: "Error syncing transactions" 
+    });
   }
 });
 
 // Create a new transaction
 router.post('/transactions', async (req: Request, res: Response) => {
   try {
-    const transactionData = insertTransactionSchema.parse(req.body);
-    const address = transactionData.userAddress;
-    delete (transactionData as any).userAddress; // Remove userAddress as it's not in the model
+    const payload = insertTransactionSchema.parse(req.body);
     
-    // Get the user first
-    const user = await storage.getUser(address);
+    // Create the transaction
+    const transaction = await storage.createTransaction(payload);
     
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    // Calculate points based on transaction type
+    const points = await getTransactionPoints(
+      payload.userId, 
+      payload.type, 
+      payload
+    );
+    
+    // Add points to user if applicable
+    if (points > 0) {
+      await storage.addUserPoints(payload.userId, points);
     }
     
-    // Add userId to the transaction
-    const transaction = await storage.createTransaction({
-      ...transactionData,
-      userId: user.id
-    });
-    
-    // Update user stats based on transaction type
-    if (transaction.type === 'swap') {
-      await storage.incrementUserSwapCount(user.id);
+    // Handle specific transaction types
+    if (payload.type === 'swap') {
+      // Increment swap count
+      await storage.incrementUserSwapCount(payload.userId);
       
-      // Calculate and award points based on transaction
-      const points = await storage.getTransactionPoints(transaction);
-      if (points > 0) {
-        await storage.addUserPoints(user.id, points);
+      // Award swap badge if this is their first swap
+      const userStats = await storage.getUserStats(payload.userId);
+      if (userStats.totalSwaps === 1) {
+        await storage.addUserBadge(payload.userId, "swap_completed");
       }
-    } else if (transaction.type === 'faucet_claim') {
-      await storage.incrementUserClaimCount(user.id);
-      // Note: No points for faucet claims as per requirements
+    } else if (payload.type === 'faucet_claim') {
+      // Increment claim count
+      await storage.incrementUserClaimCount(payload.userId);
+      
+      // Award token_claimed badge
+      await storage.addUserBadge(payload.userId, "token_claimed");
     }
     
-    res.status(201).json(transaction);
+    res.status(201).json({ 
+      transaction, 
+      points 
+    });
   } catch (error) {
-    console.error('Error creating transaction:', error);
-    res.status(400).json({ error: 'Failed to create transaction' });
+    console.error("Error creating transaction:", error);
+    res.status(400).json({ message: "Invalid transaction data" });
   }
 });
 
+// Export the router
 export default router;

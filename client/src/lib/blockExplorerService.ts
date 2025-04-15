@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { formatUnits } from 'ethers/lib/utils';
 
 // Constants for Base Sepolia Explorer APIs and smart contracts
 const BASE_EXPLORER_API = 'https://sepolia.basescan.org/api';
@@ -182,7 +182,7 @@ function parseFaucetTransaction(tx: any): ParsedTransaction {
     fromToken: null,
     toToken: 'PRIOR',
     fromAmount: null,
-    toAmount: tx.value ? ethers.formatUnits(tx.value, parseInt(tx.tokenDecimal || '18')) : '1',
+    toAmount: tx.value ? formatUnits(tx.value, parseInt(tx.tokenDecimal || '18')) : '1',
     status: 'completed'
   };
 }
@@ -212,8 +212,8 @@ function parseSwapTransaction(tx: any, otherTxs: any[]): ParsedTransaction | nul
         type: 'swap',
         fromToken: relatedTx.tokenSymbol,
         toToken: tx.tokenSymbol,
-        fromAmount: relatedTx.value ? ethers.formatUnits(relatedTx.value, parseInt(relatedTx.tokenDecimal || '18')) : null,
-        toAmount: tx.value ? ethers.formatUnits(tx.value, parseInt(tx.tokenDecimal || '18')) : null,
+        fromAmount: relatedTx.value ? formatUnits(relatedTx.value, parseInt(relatedTx.tokenDecimal || '18')) : null,
+        toAmount: tx.value ? formatUnits(tx.value, parseInt(tx.tokenDecimal || '18')) : null,
         status: 'completed'
       };
     }
@@ -227,7 +227,7 @@ function parseSwapTransaction(tx: any, otherTxs: any[]): ParsedTransaction | nul
       type: 'swap',
       fromToken: tx.tokenSymbol,
       toToken: null, // We don't know the output token yet
-      fromAmount: tx.value ? ethers.formatUnits(tx.value, parseInt(tx.tokenDecimal || '18')) : null,
+      fromAmount: tx.value ? formatUnits(tx.value, parseInt(tx.tokenDecimal || '18')) : null,
       toAmount: null,
       status: 'completed'
     };
