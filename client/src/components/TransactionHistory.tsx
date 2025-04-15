@@ -31,12 +31,16 @@ interface TransactionResponse {
   hasMore: boolean;
 }
 
-export const TransactionHistory: React.FC = () => {
+interface TransactionHistoryProps {
+  address?: string;
+}
+
+export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address: propAddress }) => {
   const { address, isConnected, userId } = useWallet();
   const { address: standaloneAddress } = useStandaloneWallet();
   
-  // Use whichever address is available
-  const userAddress = address || standaloneAddress;
+  // Use passed-in address, fallback to context addresses
+  const userAddress = propAddress || address || standaloneAddress;
   const [transactionData, setTransactionData] = useState<TransactionResponse>({
     transactions: [],
     total: 0,
@@ -146,19 +150,18 @@ export const TransactionHistory: React.FC = () => {
     }
   };
 
-  // Load transactions when component mounts or wallet changes
+  // Load transactions when component mounts or when addresses change
   useEffect(() => {
-    if (isConnected) {
-      if (userAddress || userId) {
-        console.log("TransactionHistory: Wallet connected, fetching transactions for:", userAddress || userId);
-        fetchTransactions(activeTab !== "all" ? activeTab : undefined, currentPage);
-      } else {
-        console.log("TransactionHistory: Wallet connected but no address or userId");
-      }
+    // If we have an address from any source, fetch transactions
+    if (userAddress || userId) {
+      console.log("TransactionHistory: Fetching transactions for:", userAddress || userId);
+      fetchTransactions(activeTab !== "all" ? activeTab : undefined, currentPage);
+    } else if (isConnected) {
+      console.log("TransactionHistory: Wallet connected but no address or userId");
     } else {
       console.log("TransactionHistory: Wallet not connected");
     }
-  }, [isConnected, address, standaloneAddress, userAddress, userId, activeTab, currentPage]);
+  }, [isConnected, address, standaloneAddress, propAddress, userAddress, userId, activeTab, currentPage]);
   
   // Manual refresh button
   const handleRefresh = () => {
@@ -276,8 +279,8 @@ export const TransactionHistory: React.FC = () => {
     );
   };
 
-  // Show content if either wallet context is connected or standalone wallet is available
-  if (!isConnected && !standaloneAddress) {
+  // Show content if either wallet context is connected, standalone wallet is available, or prop address is provided
+  if (!isConnected && !standaloneAddress && !propAddress) {
     return (
       <Card>
         <CardHeader>

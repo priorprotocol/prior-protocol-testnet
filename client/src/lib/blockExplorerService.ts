@@ -1,10 +1,35 @@
-// Simple function to format token values based on decimals
+// Format token values based on decimals with better precision
 function formatTokenValue(value: string, decimals: number = 18): string {
   if (!value) return '0';
   try {
-    // Simple implementation that avoids BigInt
-    const num = parseFloat(value) / Math.pow(10, decimals);
-    return num.toString();
+    // Handle extreme values better than parseFloat
+    const isNegative = value.startsWith('-');
+    const absValue = isNegative ? value.substring(1) : value;
+    
+    // If the value is too small or zero, return 0
+    if (absValue === '0' || absValue === '') return '0';
+    
+    // Cut the value into two parts: integer and decimal
+    let intPart = '0';
+    let decPart = absValue;
+    
+    // If value is longer than decimals, split it
+    if (absValue.length > decimals) {
+      intPart = absValue.slice(0, absValue.length - decimals) || '0';
+      decPart = absValue.slice(absValue.length - decimals);
+    }
+    
+    // Add leading zeros to decimal part if needed
+    decPart = decPart.padStart(decimals, '0');
+    
+    // Combine the parts with decimal point
+    let result = `${intPart}.${decPart}`;
+    
+    // Remove trailing zeros and decimal point if not needed
+    result = result.replace(/\.?0+$/, '');
+    
+    // Add the negative sign back if needed
+    return isNegative ? `-${result}` : result;
   } catch (error) {
     console.error('Error formatting token value:', error);
     return '0';
@@ -62,57 +87,114 @@ export interface ParsedTransaction {
 }
 
 /**
- * Fetches normal transactions for an address from Base Sepolia Explorer API
+ * Simple sleep function to wait between retries
+ */
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Fetches normal transactions for an address from Base Sepolia Explorer API with retry logic
  * @param address Wallet address to fetch transactions for
  */
 async function fetchNormalTransactions(address: string): Promise<any[]> {
-  try {
-    console.log('Fetching normal transactions for address:', address);
-    
-    // Real API call to Base Sepolia explorer with API key
-    const url = `${BASE_EXPLORER_API}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${BASESCAN_API_KEY}`;
-    
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    if (data.status === '1' && Array.isArray(data.result)) {
-      console.log(`Found ${data.result.length} normal transactions`);
-      return data.result;
-    } else {
-      console.warn('No normal transactions found or API error:', data.message);
-      return [];
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000; // 1 second
+  
+  let retries = 0;
+  
+  while (retries < MAX_RETRIES) {
+    try {
+      console.log(`Fetching normal transactions for address: ${address} (attempt ${retries + 1}/${MAX_RETRIES})`);
+      
+      // Real API call to Base Sepolia explorer with API key
+      const url = `${BASE_EXPLORER_API}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${BASESCAN_API_KEY}`;
+      
+      const response = await fetch(url);
+      
+      // Check for network failure
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status} - ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === '1' && Array.isArray(data.result)) {
+        console.log(`Found ${data.result.length} normal transactions`);
+        return data.result;
+      } else if (data.status === '0' && data.message === 'No transactions found') {
+        // This is a valid "empty" response, not an error
+        console.log('No normal transactions found for this address');
+        return [];
+      } else {
+        // Other API errors like rate limiting or invalid API key
+        console.warn('API error fetching normal transactions:', data.message);
+        throw new Error(`API error: ${data.message}`);
+      }
+    } catch (error) {
+      console.error(`Error fetching normal transactions (attempt ${retries + 1}/${MAX_RETRIES}):`, error);
+      
+      retries++;
+      if (retries < MAX_RETRIES) {
+        console.log(`Retrying in ${RETRY_DELAY/1000}s...`);
+        await sleep(RETRY_DELAY);
+      }
     }
-  } catch (error) {
-    console.error('Error fetching normal transactions:', error);
-    return [];
   }
+  
+  console.log('All retry attempts failed for normal transactions');
+  return [];  // Return empty array after all retries failed
 }
 
 /**
- * Fetches ERC-20 token transactions for an address from Base Sepolia Explorer API
+ * Fetches ERC-20 token transactions for an address from Base Sepolia Explorer API with retry logic
  * @param address Wallet address to fetch transactions for
  */
 async function fetchTokenTransactions(address: string): Promise<any[]> {
-  try {
-    console.log('Fetching token transactions for address:', address);
-    
-    // Real API call to Base Sepolia explorer for token transactions with API key
-    const url = `${BASE_EXPLORER_API}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${BASESCAN_API_KEY}`;
-    
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    if (data.status === '1' && Array.isArray(data.result)) {
-      console.log(`Found ${data.result.length} token transactions`);
-      return data.result;
-    } else {
-      console.warn('No token transactions found or API error:', data.message);
-      return [];
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000; // 1 second
+  
+  let retries = 0;
+  
+  while (retries < MAX_RETRIES) {
+    try {
+      console.log(`Fetching token transactions for address: ${address} (attempt ${retries + 1}/${MAX_RETRIES})`);
+      
+      // Real API call to Base Sepolia explorer for token transactions with API key
+      const url = `${BASE_EXPLORER_API}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${BASESCAN_API_KEY}`;
+      
+      const response = await fetch(url);
+      
+      // Check for network failure
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status} - ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === '1' && Array.isArray(data.result)) {
+        console.log(`Found ${data.result.length} token transactions`);
+        return data.result;
+      } else if (data.status === '0' && data.message === 'No transactions found') {
+        // This is a valid "empty" response, not an error
+        console.log('No token transactions found for this address');
+        return [];
+      } else {
+        // Other API errors like rate limiting or invalid API key
+        console.warn('API error fetching token transactions:', data.message);
+        throw new Error(`API error: ${data.message}`);
+      }
+    } catch (error) {
+      console.error(`Error fetching token transactions (attempt ${retries + 1}/${MAX_RETRIES}):`, error);
+      
+      retries++;
+      if (retries < MAX_RETRIES) {
+        console.log(`Retrying in ${RETRY_DELAY/1000}s...`);
+        await sleep(RETRY_DELAY);
+      }
     }
-  } catch (error) {
-    console.error('Error fetching token transactions:', error);
-    return [];
   }
+  
+  console.log('All retry attempts failed for token transactions');
+  return [];  // Return empty array after all retries failed
 }
 
 /**

@@ -427,7 +427,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               {/* Pass the address explicitly to ensure consistency */}
-              <TransactionHistory />
+              <TransactionHistory address={address} />
             </CardContent>
           </Card>
         </TabsContent>
