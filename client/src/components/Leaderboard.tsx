@@ -61,20 +61,21 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
   
   // Special badges for top swap users
   const getSpecialBadge = (user: User, index: number) => {
-    if (user.totalSwaps >= 20) { // Has enough swaps for consideration
-      if (index < 5) { // Top 5 users get Prior Swap badge
-        return (
-          <Badge className="bg-purple-600 hover:bg-purple-500 ml-1">
-            <FaExchangeAlt className="mr-1" /> Prior Swap
-          </Badge>
-        );
-      } else if (index < 20) { // Top 6-20 get Prior Verified badge
-        return (
-          <Badge className="bg-blue-600 hover:bg-blue-500 ml-1">
-            <FaShieldAlt className="mr-1" /> Prior Verified
-          </Badge>
-        );
-      }
+    // If the user is in the top 5 of the leaderboard, they get Prior Swap badge
+    if (index < 5) {
+      return (
+        <Badge className="bg-purple-600 hover:bg-purple-500 ml-1">
+          <FaExchangeAlt className="mr-1" /> Prior Swap
+        </Badge>
+      );
+    } 
+    // Otherwise if they have at least 10 swaps, they get Prior Verified badge
+    else if (user.totalSwaps >= 10) {
+      return (
+        <Badge className="bg-blue-600 hover:bg-blue-500 ml-1">
+          <FaShieldAlt className="mr-1" /> Prior Verified
+        </Badge>
+      );
     }
     return null;
   };
@@ -155,12 +156,12 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                       </div>
                       <div className="text-center">
                         <span className="text-[#A0AEC0] block">
-                          {user.totalSwaps >= 20 ? "Badge Status" : "Badge Progress"}
+                          {user.totalSwaps >= 10 ? "Badge Status" : "Badge Progress"}
                         </span>
-                        {user.totalSwaps >= 20 ? (
+                        {user.totalSwaps >= 10 ? (
                           <span className="font-medium text-green-500">Eligible</span>
                         ) : (
-                          <span className="font-medium">{user.totalSwaps}/20 swaps</span>
+                          <span className="font-medium">{user.totalSwaps}/10 swaps</span>
                         )}
                       </div>
                     </div>

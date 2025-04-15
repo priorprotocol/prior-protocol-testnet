@@ -12,7 +12,8 @@ function formatTokenValue(value: string, decimals: number = 18): string {
 }
 
 // Constants for Base Sepolia Explorer APIs and smart contracts
-const BASE_EXPLORER_API = 'https://sepolia.basescan.org/api';
+const BASE_EXPLORER_API = 'https://api-sepolia.basescan.org/api';
+const BASESCAN_API_KEY = import.meta.env.VITE_BASESCAN_API_KEY || '';
 const TOKEN_CONTRACTS = {
   PRIOR: '0xBc8697476a56679534b15994C0f1122556bBF9F4',
   USDC: '0xc6d67115Cf17A55F9F22D29b955654A7c96781C5',
@@ -66,30 +67,21 @@ export interface ParsedTransaction {
  */
 async function fetchNormalTransactions(address: string): Promise<any[]> {
   try {
-    // For demo/test purposes, make a simplified request
-    // In production, you would use your API key and proper endpoint URL
     console.log('Fetching normal transactions for address:', address);
     
-    // Simulate API response for testing in demo
-    // In production, this would be replaced with actual API call
-    const mockTransactions = [
-      {
-        hash: `0x${Math.random().toString(16).substring(2, 42)}`,
-        blockNumber: Math.floor(Math.random() * 1000000) + 9000000,
-        timeStamp: String(Math.floor(Date.now() / 1000) - Math.floor(Math.random() * 86400)),
-        from: address.toLowerCase(),
-        to: FAUCET_CONTRACT.toLowerCase(),
-        value: "0",
-        input: "0x1249c58b", // claim() method
-        methodId: "0x1249c58b",
-        functionName: "claim()",
-        gasPrice: "5000000000",
-        gasUsed: "100000",
-        confirmations: "100"
-      }
-    ];
+    // Real API call to Base Sepolia explorer with API key
+    const url = `${BASE_EXPLORER_API}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${BASESCAN_API_KEY}`;
     
-    return mockTransactions;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.status === '1' && Array.isArray(data.result)) {
+      console.log(`Found ${data.result.length} normal transactions`);
+      return data.result;
+    } else {
+      console.warn('No normal transactions found or API error:', data.message);
+      return [];
+    }
   } catch (error) {
     console.error('Error fetching normal transactions:', error);
     return [];
@@ -102,55 +94,21 @@ async function fetchNormalTransactions(address: string): Promise<any[]> {
  */
 async function fetchTokenTransactions(address: string): Promise<any[]> {
   try {
-    // For demo/test purposes, make a simplified request
-    // In production, you would use your API key and proper endpoint URL
     console.log('Fetching token transactions for address:', address);
     
-    // Simulate API response for testing in demo
-    // In production, this would be replaced with actual API call
-    const mockTransactions = [
-      {
-        hash: `0x${Math.random().toString(16).substring(2, 42)}`,
-        blockNumber: Math.floor(Math.random() * 1000000) + 9000000,
-        timeStamp: String(Math.floor(Date.now() / 1000) - Math.floor(Math.random() * 86400)),
-        from: TOKEN_CONTRACTS.PRIOR.toLowerCase(),
-        to: address.toLowerCase(),
-        value: "1000000000000000000", // 1 PRIOR
-        tokenSymbol: "PRIOR",
-        tokenName: "Prior Protocol Token",
-        tokenDecimal: "18",
-        contractAddress: TOKEN_CONTRACTS.PRIOR,
-        confirmations: "100"
-      },
-      {
-        hash: `0x${Math.random().toString(16).substring(2, 42)}`,
-        blockNumber: Math.floor(Math.random() * 1000000) + 9000000,
-        timeStamp: String(Math.floor(Date.now() / 1000) - Math.floor(Math.random() * 86400)),
-        from: address.toLowerCase(),
-        to: SWAP_CONTRACTS['PRIOR-USDC'].toLowerCase(),
-        value: "500000000000000000", // 0.5 PRIOR
-        tokenSymbol: "PRIOR",
-        tokenName: "Prior Protocol Token",
-        tokenDecimal: "18",
-        contractAddress: TOKEN_CONTRACTS.PRIOR,
-        confirmations: "100"
-      },
-      {
-        hash: `0x${Math.random().toString(16).substring(2, 42)}`,
-        blockNumber: Math.floor(Math.random() * 1000000) + 9000000,
-        timeStamp: String(Math.floor(Date.now() / 1000) - Math.floor(Math.random() * 86400)),
-        from: SWAP_CONTRACTS['PRIOR-USDC'].toLowerCase(),
-        to: address.toLowerCase(),
-        value: "500000000", // 0.5 USDC (6 decimals)
-        tokenSymbol: "USDC",
-        tokenName: "USD Coin",
-        tokenDecimal: "6",
-        contractAddress: TOKEN_CONTRACTS.USDC,
-        confirmations: "100"
-      }
-    ];
+    // Real API call to Base Sepolia explorer for token transactions with API key
+    const url = `${BASE_EXPLORER_API}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${BASESCAN_API_KEY}`;
     
-    return mockTransactions;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.status === '1' && Array.isArray(data.result)) {
+      console.log(`Found ${data.result.length} token transactions`);
+      return data.result;
+    } else {
+      console.warn('No token transactions found or API error:', data.message);
+      return [];
+    }
   } catch (error) {
     console.error('Error fetching token transactions:', error);
     return [];
@@ -162,10 +120,24 @@ async function fetchTokenTransactions(address: string): Promise<any[]> {
  * @param tx Transaction to analyze
  */
 function isFaucetTransaction(tx: any): boolean {
-  return (
-    (tx.to?.toLowerCase() === FAUCET_CONTRACT.toLowerCase() && tx.input?.startsWith('0x1249c58b')) || // claim()
-    (tx.from?.toLowerCase() === FAUCET_CONTRACT.toLowerCase() && tx.tokenSymbol === 'PRIOR')
-  );
+  const faucetContract = FAUCET_CONTRACT.toLowerCase();
+  
+  // Normal transactions to the faucet contract
+  if (tx.to?.toLowerCase() === faucetContract) {
+    // Check for claim() function call (0x1249c58b)
+    if (tx.input?.startsWith('0x1249c58b')) {
+      return true;
+    }
+  }
+  
+  // Token transfer from faucet contract
+  if (tx.from?.toLowerCase() === faucetContract && 
+      tx.tokenSymbol === 'PRIOR' && 
+      tx.contractAddress?.toLowerCase() === TOKEN_CONTRACTS.PRIOR.toLowerCase()) {
+    return true;
+  }
+  
+  return false;
 }
 
 /**
@@ -174,10 +146,34 @@ function isFaucetTransaction(tx: any): boolean {
  */
 function isSwapTransaction(tx: any): boolean {
   const swapContractAddresses = Object.values(SWAP_CONTRACTS).map(addr => addr.toLowerCase());
-  return (
-    swapContractAddresses.includes(tx.to?.toLowerCase()) || 
-    swapContractAddresses.includes(tx.from?.toLowerCase())
-  );
+  const priorContract = TOKEN_CONTRACTS.PRIOR.toLowerCase();
+  const usdcContract = TOKEN_CONTRACTS.USDC.toLowerCase();
+  const usdtContract = TOKEN_CONTRACTS.USDT.toLowerCase();
+  
+  // Check if this is a token transaction to/from a swap contract
+  if (tx.contractAddress) {
+    const contractAddr = tx.contractAddress.toLowerCase();
+    // If this is a token transaction for a supported token (PRIOR, USDC, USDT)
+    if ([priorContract, usdcContract, usdtContract].includes(contractAddr)) {
+      // And it's to/from a swap contract
+      if (swapContractAddresses.includes(tx.to?.toLowerCase()) || 
+          swapContractAddresses.includes(tx.from?.toLowerCase())) {
+        return true;
+      }
+    }
+  }
+  
+  // Direct interaction with swap contracts
+  if (swapContractAddresses.includes(tx.to?.toLowerCase())) {
+    // Input data looks like a swap function
+    if (tx.input && tx.input.length > 10) {
+      // Most swap function signatures start with "0x" and then have specific patterns
+      // This is simplified - in a real app, you'd check specific function signatures
+      return true;
+    }
+  }
+  
+  return false;
 }
 
 /**
@@ -291,33 +287,9 @@ export async function fetchBlockExplorerTransactions(address: string): Promise<P
       }
     }
     
-    // For demo, ensure we have some data to show
+    // Log if we don't find any transactions
     if (parsedTransactions.length === 0) {
-      // Add a simulated faucet claim
-      parsedTransactions.push({
-        txHash: `0x${Math.random().toString(16).substring(2, 42)}`,
-        blockNumber: Math.floor(Math.random() * 1000000) + 9000000,
-        timestamp: new Date().toISOString(),
-        type: 'faucet_claim',
-        fromToken: null,
-        toToken: 'PRIOR',
-        fromAmount: null,
-        toAmount: '1',
-        status: 'completed'
-      });
-      
-      // Add a simulated swap
-      parsedTransactions.push({
-        txHash: `0x${Math.random().toString(16).substring(2, 42)}`,
-        blockNumber: Math.floor(Math.random() * 1000000) + 9000000,
-        timestamp: new Date().toISOString(),
-        type: 'swap',
-        fromToken: 'PRIOR',
-        toToken: 'USDC',
-        fromAmount: '0.5',
-        toAmount: '0.5',
-        status: 'completed'
-      });
+      console.log('No transactions found for this address on Base Sepolia network');
     }
     
     return parsedTransactions;
