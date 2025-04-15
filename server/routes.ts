@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertVoteSchema, insertTransactionSchema } from "@shared/schema";
 import { z } from "zod";
+import transactionRoutes from "./routes/transactions";
+import { log } from "./vite";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes prefix

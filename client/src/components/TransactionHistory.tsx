@@ -56,36 +56,75 @@ export const TransactionHistory: React.FC = () => {
     
     setLoading(true);
     try {
-      // Prefer using userId if available for consistent tracking
-      const apiPath = userId 
-        ? `/api/users/${userId}/transactions` 
-        : `/api/users/${userAddress}/transactions`;
-      
-      const typeSegment = type && type !== "all" ? `/${type}` : "";
-      const queryParams = `?page=${page}&limit=${limit}`;
-      
-      const apiUrl = `${apiPath}${typeSegment}${queryParams}`;
-      
-      console.log("Fetching transactions from endpoint:", apiUrl, "for user:", userAddress || userId);
+      // Step 1: Try to get transactions from our backend API first
+      let apiTransactions: Transaction[] = [];
+      let totalTransactions = 0;
+      let apiSuccess = false;
       
       try {
-        const data = await apiRequest<TransactionResponse>(apiUrl);
-        console.log("Received transactions:", data);
+        // Prefer using userId if available for consistent tracking
+        const apiPath = userId 
+          ? `/api/users/${userId}/transactions` 
+          : `/api/users/${userAddress}/transactions`;
         
-        if (data && data.transactions) {
-          setTransactionData(data);
+        const typeSegment = type && type !== "all" ? `/${type}` : "";
+        const queryParams = `?page=${page}&limit=${limit}`;
+        
+        const apiUrl = `${apiPath}${typeSegment}${queryParams}`;
+        
+        console.log("Fetching transactions from backend API:", apiUrl, "for user:", userAddress || userId);
+        
+        const data = await apiRequest<TransactionResponse>(apiUrl);
+        console.log("Received API transactions:", data);
+        
+        if (data && data.transactions && data.transactions.length > 0) {
+          apiTransactions = data.transactions;
+          totalTransactions = data.total;
+          apiSuccess = true;
         } else {
-          console.warn("No transaction data received or empty transactions array");
-          setTransactionData({
-            transactions: [],
-            total: 0,
-            page: 1,
-            hasMore: false
-          });
+          console.warn("No transaction data received from API or empty transactions array");
         }
       } catch (error) {
-        console.error("Failed to fetch transactions:", error);
-        // Reset transaction data on error
+        console.warn("Failed to fetch transactions from API, will try block explorer:", error);
+      }
+      
+      // Step 2: If the user has a wallet address and either API failed or returned empty,
+      // fetch transactions directly from the Base Sepolia block explorer
+      let blockExplorerTransactions: any[] = [];
+      
+      if (userAddress && (!apiSuccess || apiTransactions.length === 0)) {
+        try {
+          // Import lazily to avoid issues if module is not available
+          const { fetchBlockExplorerTransactions } = await import('@/lib/blockExplorerService');
+          console.log("Fetching transactions from block explorer for address:", userAddress);
+          
+          blockExplorerTransactions = await fetchBlockExplorerTransactions(userAddress);
+          console.log("Received block explorer transactions:", blockExplorerTransactions);
+          
+          // Filter by type if specified
+          if (type && type !== "all") {
+            blockExplorerTransactions = blockExplorerTransactions.filter(tx => tx.type === type);
+          }
+        } catch (error) {
+          console.error("Error fetching from block explorer:", error);
+        }
+      }
+      
+      // Step 3: Combine the results, preferring API transactions but supplementing with block explorer data
+      const allTransactions = apiSuccess 
+        ? apiTransactions 
+        : blockExplorerTransactions;
+      
+      // Check if we got any transactions
+      if (allTransactions.length > 0) {
+        setTransactionData({
+          transactions: allTransactions,
+          total: apiSuccess ? totalTransactions : allTransactions.length,
+          page: page,
+          hasMore: apiSuccess ? page * limit < totalTransactions : false
+        });
+      } else {
+        // No transactions found from either source
         setTransactionData({
           transactions: [],
           total: 0,
@@ -94,7 +133,14 @@ export const TransactionHistory: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error("Error fetching transaction history:", error);
+      console.error("Error in transaction history fetch:", error);
+      // Reset transaction data on critical error
+      setTransactionData({
+        transactions: [],
+        total: 0,
+        page: 1,
+        hasMore: false
+      });
     } finally {
       setLoading(false);
     }
@@ -230,7 +276,8 @@ export const TransactionHistory: React.FC = () => {
     );
   };
 
-  if (!isConnected) {
+  // Show content if either wallet context is connected or standalone wallet is available
+  if (!isConnected && !standaloneAddress) {
     return (
       <Card>
         <CardHeader>
