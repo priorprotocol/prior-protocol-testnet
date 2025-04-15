@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useWallet } from "@/context/WalletContext";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
+import useBlockExplorerSync from "@/hooks/useBlockExplorerSync";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { BadgeCard } from "@/components/BadgeCard";
 import { PioneerBadgeCard } from "@/components/PioneerBadgeCard";
 import { Leaderboard } from "@/components/Leaderboard";
@@ -14,6 +16,7 @@ import { TransactionHistory } from "@/components/TransactionHistory";
 import { getBadgeInfo } from "@/lib/badges";
 import { formatAddress } from "@/lib/formatAddress";
 import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
+import { RefreshCw } from "lucide-react";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 
 // Define the UserStats interface locally to match the server return type
@@ -31,6 +34,7 @@ const Dashboard = () => {
   // Use both wallet systems for compatibility during transition
   const { userId, tokens, getTokenBalance } = useWallet();
   const { address: standaloneAddress } = useStandaloneWallet();
+  const { syncTransactions, isSyncing, lastSyncTime, syncStats } = useBlockExplorerSync();
   const [activeTab, setActiveTab] = useState("overview");
   
   // Prefer standalone address
@@ -409,9 +413,33 @@ const Dashboard = () => {
         {/* Activity History Tab with Transaction History Component */}
         <TabsContent value="activity" className="space-y-6">
           <Card className="bg-[#111827] border-[#2D3748]">
-            <CardHeader>
-              <CardTitle>Your Activity History</CardTitle>
-              <CardDescription>Track all your interactions with the Prior Protocol testnet</CardDescription>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>Your Activity History</CardTitle>
+                <CardDescription>Track all your interactions with the Prior Protocol testnet</CardDescription>
+              </div>
+              <div className="mt-4 sm:mt-0">
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={syncTransactions}
+                  disabled={isSyncing}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                  {isSyncing ? 'Syncing...' : 'Sync Blockchain Activity'}
+                </Button>
+                {lastSyncTime && (
+                  <p className="text-[#A0AEC0] text-xs mt-1 text-right">
+                    Last synced: {lastSyncTime.toLocaleTimeString()}
+                  </p>
+                )}
+                {syncStats && (
+                  <div className="text-xs text-green-400 mt-1 text-right">
+                    +{syncStats.points} points from {syncStats.newTransactions} new transactions
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {/* Pass the address explicitly to ensure consistency */}
