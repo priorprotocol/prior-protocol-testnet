@@ -2,6 +2,13 @@ import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 import { motion } from "framer-motion";
 
+// Import the global type definitions
+declare global {
+  interface Window {
+    disconnectWallet?: () => void;
+  }
+}
+
 const Governance = () => {
   const { isConnected } = useStandaloneWallet();
   
@@ -26,6 +33,22 @@ const Governance = () => {
             </div>
           ) : (
             <div className="text-center">
+              {/* Disconnect wallet button */}
+              <div className="flex justify-end mb-4">
+                <button
+                  onClick={() => {
+                    // Call the global disconnect function from window
+                    if (typeof window !== 'undefined' && window.disconnectWallet) {
+                      window.disconnectWallet();
+                    }
+                  }}
+                  className="flex items-center gap-2 bg-[#1E2A3B] hover:bg-[#283548] text-[#A0AEC0] px-3 py-1 rounded text-sm transition-colors"
+                >
+                  <i className="fas fa-power-off text-red-500"></i>
+                  Disconnect Wallet
+                </button>
+              </div>
+              
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

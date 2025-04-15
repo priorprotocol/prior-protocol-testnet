@@ -195,6 +195,11 @@ export function disconnectWallet() {
   }
 }
 
+// Make the disconnect function available globally
+if (typeof window !== 'undefined') {
+  window.disconnectWallet = disconnectWallet;
+}
+
 /**
  * Get the currently connected wallet address
  */
