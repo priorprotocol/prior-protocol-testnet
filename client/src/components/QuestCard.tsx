@@ -224,34 +224,34 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, userQuest }) => {
         <span className="text-[#A0AEC0]">Convertible to PRIOR at TGE</span>
       </div>
       
-      {/* Standard quest button */}
-      <button 
-        onClick={handleButtonClick}
-        disabled={isButtonDisabled()}
-        className={getButtonClass()}
-      >
-        {getButtonText()}
-      </button>
-      
-      {/* Additional direct navigation buttons for specific quests */}
-      {quest.title.toLowerCase().includes("swap") && (
+      {/* Conditional rendering of buttons based on quest type */}
+      {quest.title.toLowerCase().includes("swap") ? (
+        // For swap quests, show only the direct navigation button
         <a 
           href="/swap" 
-          className="block w-full rounded-lg bg-green-600 hover:bg-green-700 transition-all font-bold text-sm px-6 py-3 uppercase tracking-wide text-center mt-2"
+          className="block w-full rounded-lg bg-green-600 hover:bg-green-700 transition-all font-bold text-sm px-6 py-3 uppercase tracking-wide text-center"
         >
           Go to Swap Page
         </a>
-      )}
-      
-      {(quest.title.toLowerCase().includes("governance") || 
-       quest.title.toLowerCase().includes("vote") || 
-       quest.title.toLowerCase().includes("proposal")) && (
+      ) : (quest.title.toLowerCase().includes("governance") || 
+           quest.title.toLowerCase().includes("vote") || 
+           quest.title.toLowerCase().includes("proposal")) ? (
+        // For governance quests, show only the direct navigation button
         <a 
           href="/governance" 
-          className="block w-full rounded-lg bg-green-600 hover:bg-green-700 transition-all font-bold text-sm px-6 py-3 uppercase tracking-wide text-center mt-2"
+          className="block w-full rounded-lg bg-green-600 hover:bg-green-700 transition-all font-bold text-sm px-6 py-3 uppercase tracking-wide text-center"
         >
           Go to Governance Page
         </a>
+      ) : (
+        // For all other quests, show the standard quest button
+        <button 
+          onClick={handleButtonClick}
+          disabled={isButtonDisabled()}
+          className={getButtonClass()}
+        >
+          {getButtonText()}
+        </button>
       )}
     </div>
   );
