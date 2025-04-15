@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useWallet } from "@/context/WalletContext";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
-import useBlockExplorerSync from "@/hooks/useBlockExplorerSync";
 import useDashboardStats from "@/hooks/useDashboardStats";
-import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,41 +16,31 @@ import { formatAddress } from "@/lib/formatAddress";
 import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
 import { RefreshCw } from "lucide-react";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
-
-// Define the UserStats interface locally to match the server return type
-interface UserStats {
-  totalFaucetClaims: number;
-  totalSwaps: number;
-  completedQuests: number;
-  totalQuests: number;
-  proposalsVoted: number;
-  proposalsCreated: number;
-  points: number;
-}
+import { UserStats } from "@/types";
 
 const Dashboard = () => {
   // Use both wallet systems for compatibility during transition
   const { userId, tokens, getTokenBalance } = useWallet();
   const { address: standaloneAddress } = useStandaloneWallet();
-  const { syncTransactions, isSyncing, lastSyncTime, syncStats } = useBlockExplorerSync();
   const [activeTab, setActiveTab] = useState("overview");
   
   // Prefer standalone address
   const address = standaloneAddress;
+  
+  // Use our custom dashboard stats hook
+  const { 
+    stats: userStats, 
+    isLoadingStats: statsLoading,
+    badges: userBadges,
+    isLoadingBadges: badgesLoading,
+    transactions,
+    totalTransactions,
+    isLoadingTransactions,
+    isSyncing,
+    syncTransactions
+  } = useDashboardStats(address);
 
-  // Fetch user stats
-  const { data: userStats, isLoading: statsLoading } = useQuery({
-    queryKey: ["/api/users/stats", userId],
-    queryFn: () => apiRequest<UserStats>(`/api/users/${userId}/stats`),
-    enabled: !!userId,
-  });
-
-  // Fetch user badges
-  const { data: userBadges, isLoading: badgesLoading } = useQuery({
-    queryKey: ["/api/users/badges", userId],
-    queryFn: () => apiRequest<string[]>(`/api/users/${userId}/badges`),
-    enabled: !!userId,
-  });
+  // Note: We're using useDashboardStats hook now which provides all these values
 
   // Total badges the user could potentially earn
   const allPossibleBadges = 8; // This should match the total number of badges in badges.ts

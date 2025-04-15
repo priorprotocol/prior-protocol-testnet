@@ -1,72 +1,110 @@
-import { useState, useEffect } from 'react';
-import { useStandaloneWallet } from './useStandaloneWallet';
-import { fetchBlockExplorerTransactions } from '@/lib/blockExplorerService';
+import { useQuery } from '@tanstack/react-query';
+import { UserStats } from '@/types';
+import useBlockExplorerSync from './useBlockExplorerSync';
 
-interface UserStats {
-  totalSwaps: number;
-  totalClaims: number;
-  points: number;
-  transactions: any[];
-}
-
-export function useDashboardStats() {
-  const { address } = useStandaloneWallet();
-  const [stats, setStats] = useState<UserStats>({
-    totalSwaps: 0,
-    totalClaims: 0,
-    points: 0,
-    transactions: []
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-
-  // Function to manually refresh data
-  const refreshStats = async () => {
-    if (!address) return;
-    
-    setIsLoading(true);
-    try {
-      // Get transactions directly from block explorer
-      const transactions = await fetchBlockExplorerTransactions(address);
+/**
+ * Custom hook to fetch user stats and transactions for dashboard
+ */
+export function useDashboardStats(address: string | null) {
+  // Use our blockchain sync hook to ensure data is up-to-date
+  const { isSyncing, lastSyncTime, error: syncError, syncTransactions } = useBlockExplorerSync(address);
+  
+  // Fetch user stats from backend
+  const statsQuery = useQuery({
+    queryKey: ['/api/users', address, 'stats'],
+    queryFn: async () => {
+      if (!address) return null;
       
-      // Calculate basic stats
-      const swapTxs = transactions.filter(tx => tx.type === 'swap');
-      const claimTxs = transactions.filter(tx => tx.type === 'faucet_claim');
+      const response = await fetch(`/api/users/${address}/stats`);
       
-      // Calculate points based on business rules
-      // - 2 points per swap when user completes 10+ swaps per day
-      let swapPoints = 0;
-      if (swapTxs.length >= 10) {
-        swapPoints = swapTxs.length * 2;
+      if (!response.ok) {
+        if (response.status === 404) {
+          // User not found - they may not have interacted with the protocol yet
+          return {
+            totalFaucetClaims: 0,
+            totalSwaps: 0,
+            completedQuests: 0,
+            totalQuests: 0,
+            proposalsVoted: 0,
+            proposalsCreated: 0,
+            points: 0
+          } as UserStats;
+        }
+        throw new Error('Failed to fetch user stats');
       }
       
-      setStats({
-        totalSwaps: swapTxs.length,
-        totalClaims: claimTxs.length,
-        points: swapPoints,
-        transactions: transactions
-      });
+      return response.json() as Promise<UserStats>;
+    },
+    enabled: Boolean(address)
+  });
+  
+  // Fetch user's badges 
+  const badgesQuery = useQuery({
+    queryKey: ['/api/users', address, 'badges'],
+    queryFn: async () => {
+      if (!address) return [];
       
-      setLastRefresh(new Date());
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-    } finally {
-      setIsLoading(false);
+      const response = await fetch(`/api/users/${address}/badges`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          // User not found - they may not have any badges yet
+          return [];
+        }
+        throw new Error('Failed to fetch badges');
+      }
+      
+      return response.json() as Promise<string[]>;
+    },
+    enabled: Boolean(address)
+  });
+  
+  // Fetch user's transaction history
+  const transactionsQuery = useQuery({
+    queryKey: ['/api/users', address, 'transactions'],
+    queryFn: async () => {
+      if (!address) return { transactions: [], total: 0, page: 1, hasMore: false };
+      
+      const response = await fetch(`/api/users/${address}/transactions?limit=10`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          // User not found - they may not have any transactions yet
+          return { transactions: [], total: 0, page: 1, hasMore: false };
+        }
+        throw new Error('Failed to fetch transactions');
+      }
+      
+      return response.json();
+    },
+    enabled: Boolean(address)
+  });
+
+  // Handle manual sync trigger
+  const handleSyncTransactions = () => {
+    if (syncTransactions) {
+      syncTransactions();
     }
   };
 
-  // Automatically refresh when wallet address changes
-  useEffect(() => {
-    if (address) {
-      refreshStats();
-    }
-  }, [address]);
-
   return {
-    stats,
-    isLoading,
-    lastRefresh,
-    refreshStats
+    stats: statsQuery.data,
+    isLoadingStats: statsQuery.isLoading,
+    statsError: statsQuery.error,
+    
+    badges: badgesQuery.data || [],
+    isLoadingBadges: badgesQuery.isLoading,
+    badgesError: badgesQuery.error,
+    
+    transactions: transactionsQuery.data?.transactions || [],
+    totalTransactions: transactionsQuery.data?.total || 0,
+    isLoadingTransactions: transactionsQuery.isLoading,
+    transactionsError: transactionsQuery.error,
+    
+    isSyncing,
+    lastSyncTime,
+    syncError,
+    syncTransactions: handleSyncTransactions
   };
 }
 
