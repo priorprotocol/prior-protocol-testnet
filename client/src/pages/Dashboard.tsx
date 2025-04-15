@@ -27,6 +27,7 @@ const Dashboard = () => {
   
   // Prefer standalone address
   const address = standaloneAddress;
+  const { toast } = useToast();
   
   // Use our custom dashboard stats hook
   const { 
