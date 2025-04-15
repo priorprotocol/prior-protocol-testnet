@@ -37,7 +37,7 @@ export async function getTransactionHistory(address: string) {
     return data;
   } catch (error) {
     console.error('Error fetching transaction history:', error);
-    return { status: 'error', message: error.message };
+    return { status: 'error', message: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -55,7 +55,7 @@ export async function getTokenTransactionHistory(address: string) {
     return data;
   } catch (error) {
     console.error('Error fetching token transaction history:', error);
-    return { status: 'error', message: error.message };
+    return { status: 'error', message: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 

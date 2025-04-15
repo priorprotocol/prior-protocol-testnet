@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { storage } from '../storage';
 import { insertTransactionSchema } from '@shared/schema';
 import { z } from 'zod';
+import { getTransactionHistory, getTokenTransactionHistory } from '../basescan';
 
 // Create a router instance
 const router = express.Router();
@@ -297,6 +298,37 @@ router.post('/transactions', async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error creating transaction:", error);
     res.status(400).json({ message: "Invalid transaction data" });
+  }
+});
+
+// Test endpoint for Basescan API
+router.get('/basescan-test/:address', async (req: Request, res: Response) => {
+  const { address } = req.params;
+  
+  if (!address || !address.startsWith('0x')) {
+    return res.status(400).json({ error: 'Invalid address format. Must start with 0x' });
+  }
+  
+  try {
+    // Make direct calls to Basescan to debug API issues
+    const [txHistory, tokenHistory] = await Promise.all([
+      getTransactionHistory(address),
+      getTokenTransactionHistory(address)
+    ]);
+    
+    res.json({ 
+      success: true, 
+      txHistory,
+      tokenHistory,
+      message: 'Successfully queried Basescan API'
+    });
+  } catch (error) {
+    console.error('Error testing Basescan API:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to query Basescan API'
+    });
   }
 });
 
