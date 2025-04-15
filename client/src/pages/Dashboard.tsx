@@ -12,6 +12,7 @@ import { PioneerBadgeCard } from "@/components/PioneerBadgeCard";
 import { Leaderboard } from "@/components/Leaderboard";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { getBadgeInfo } from "@/lib/badges";
+import { formatAddress } from "@/lib/formatAddress";
 import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 
@@ -291,7 +292,7 @@ const Dashboard = () => {
                   <div className="col-span-2">
                     <div className="text-[#A0AEC0] text-xs mb-1">Wallet Address</div>
                     <div className="font-mono text-sm bg-[#131B29] p-2 rounded border border-[#2D3748] break-all">
-                      {address}
+                      {formatAddress(address || '')}
                     </div>
                   </div>
                   <div>
