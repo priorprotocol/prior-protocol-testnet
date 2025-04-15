@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ExternalLink, RefreshCw, ChevronRight, ChevronLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Transaction {
   id: number;
@@ -57,14 +58,13 @@ export const TransactionHistory: React.FC = () => {
       const apiUrl = `${apiPath}${typeSegment}${queryParams}`;
       
       console.log("Fetching transactions from endpoint:", apiUrl);
-        
-      const response = await fetch(apiUrl);
-      if (response.ok) {
-        const data = await response.json();
+      
+      try {
+        const data = await apiRequest<TransactionResponse>(apiUrl);
         console.log("Received transactions:", data);
         setTransactionData(data);
-      } else {
-        console.error("Failed to fetch transactions:", response.status, await response.text());
+      } catch (error) {
+        console.error("Failed to fetch transactions:", error);
       }
     } catch (error) {
       console.error("Error fetching transaction history:", error);
@@ -74,10 +74,10 @@ export const TransactionHistory: React.FC = () => {
   };
 
   useEffect(() => {
-    if (isConnected && address) {
+    if (isConnected && (address || userId)) {
       fetchTransactions(activeTab !== "all" ? activeTab : undefined, currentPage);
     }
-  }, [isConnected, address, activeTab, currentPage]);
+  }, [isConnected, address, userId, activeTab, currentPage]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);

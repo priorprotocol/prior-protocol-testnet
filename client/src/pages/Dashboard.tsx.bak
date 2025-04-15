@@ -14,7 +14,6 @@ import { TransactionHistory } from "@/components/TransactionHistory";
 import { getBadgeInfo } from "@/lib/badges";
 import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
-
 // Define the UserStats interface locally to match the server return type
 interface UserStats {
   totalFaucetClaims: number;
@@ -306,106 +305,173 @@ const Dashboard = () => {
                           window.disconnectWallet();
                         }
                       }}
-                      className="w-full mt-2 px-3 py-1.5 text-xs text-red-400 hover:text-red-300 border border-red-900/30 bg-red-900/10 rounded-md"
+                      className="mt-2 w-full flex justify-center items-center gap-1 bg-red-900/20 text-red-400 border border-red-900/30 rounded px-3 py-1.5 text-xs hover:bg-red-900/30 transition-colors"
                     >
-                      Disconnect
+                      <i className="fas fa-power-off text-xs"></i>
+                      Disconnect Wallet
                     </button>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="badges" className="space-y-6">
+          
+          {/* Badge Progress Card */}
           <Card className="bg-[#111827] border-[#2D3748]">
-            <CardHeader>
-              <CardTitle>Your Badges</CardTitle>
-              <CardDescription>Collect badges by completing activities on Prior Protocol</CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-amber-500 bg-opacity-20 flex items-center justify-center">
+                  <FaTrophy className="text-amber-500 text-xs" />
+                </div>
+                Badges Progress
+              </CardTitle>
+              <CardDescription>Your achievement collection</CardDescription>
             </CardHeader>
             <CardContent>
               {badgesLoading ? (
-                <div className="h-40 flex items-center justify-center">
-                  <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
-                  <p className="ml-2 text-[#A0AEC0]">Loading your badges...</p>
+                <div className="h-20 flex items-center justify-center">
+                  <div className="w-6 h-6 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+                  <p className="ml-2 text-[#A0AEC0]">Loading badges...</p>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {/* Badge progress */}
-                  <div className="flex flex-col space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Badge Completion</span>
-                      <span className="text-sm">{unlockedBadges.length}/{allPossibleBadges}</span>
+                <div>
+                  <div className="mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-semibold text-sm">Badge Collection Progress</h4>
+                      <span className="text-xs text-[#A0AEC0]">
+                        {userBadges?.length || 0} of {allPossibleBadges}
+                      </span>
                     </div>
-                    <Progress value={badgeProgress} className="h-2" />
+                    <Progress value={badgeProgress} className="h-2.5 bg-[#2D3748]" />
+                    <p className="text-xs text-[#A0AEC0] mt-1 text-right">{badgeProgress}% completed</p>
                   </div>
                   
-                  {/* Unlocked badges */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Your Badges</h3>
-                    
-                    {unlockedBadges.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        {unlockedBadges.map(badgeId => {
-                          const badgeInfo = getBadgeInfo(badgeId);
-                          return (
-                            <BadgeCard key={badgeId} badgeId={badgeId} showRarity />
-                          );
-                        })}
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                    {userBadges && userBadges.length > 0 ? (
+                      userBadges.slice(0, 2).map((badge, index) => {
+                        const badgeInfo = getBadgeInfo(badge);
+                        return (
+                          <div 
+                            key={index} 
+                            className="bg-[#1E2A3B] p-2.5 rounded border border-[#2D3748] flex items-center gap-3"
+                          >
+                            <div 
+                              className="w-10 h-10 rounded-full flex items-center justify-center"
+                              style={{ backgroundColor: `${badgeInfo.color}15` }}
+                            >
+                              <FaTrophy style={{ color: badgeInfo.color }} />
+                            </div>
+                            <div>
+                              <h5 className="font-medium text-sm">{badgeInfo.name}</h5>
+                              <p className="text-xs text-[#A0AEC0]">{badgeInfo.description.split('.')[0]}</p>
+                            </div>
+                          </div>
+                        );
+                      })
                     ) : (
-                      <div className="text-center py-8 px-4 border border-dashed border-[#2D3748] rounded-lg">
-                        <i className="far fa-star text-3xl text-[#A0AEC0] mb-3"></i>
-                        <h4 className="text-lg font-medium mb-2">No badges yet</h4>
-                        <p className="text-[#A0AEC0] text-sm">
-                          Complete quests, use the faucet, and participate in the protocol to earn badges.
-                        </p>
+                      <div className="col-span-2 bg-[#1E2A3B] p-4 rounded border border-[#2D3748] text-center">
+                        <p className="text-sm text-[#A0AEC0]">Complete quests and activities to earn badges!</p>
+                      </div>
+                    )}
+                    
+                    {userBadges && userBadges.length > 0 && (
+                      <div className="col-span-2 mt-2 text-center">
+                        <button
+                          onClick={() => setActiveTab("badges")}
+                          className="text-[#1A5CFF] text-sm font-medium hover:underline inline-flex items-center"
+                        >
+                          View all badges
+                          <i className="fas fa-chevron-right ml-1 text-xs"></i>
+                        </button>
                       </div>
                     )}
                   </div>
-                  
-                  {/* Special NFT Pioneer badge card */}
-                  <div className="border-t border-[#2D3748] pt-6 mt-8">
-                    <h3 className="text-lg font-semibold mb-4">Special Badges</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <PioneerBadgeCard />
-                      
-                      {/* Add other special badges here */}
-                    </div>
-                  </div>
-                  
-                  {/* Locked badges */}
-                  {lockedBadges.length > 0 && (
-                    <div className="border-t border-[#2D3748] pt-6 mt-8">
-                      <h3 className="text-lg font-semibold mb-4 flex items-center">
-                        <FaLock className="text-sm mr-2 text-[#A0AEC0]" />
-                        Locked Badges
-                      </h3>
-                      
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        {lockedBadges.map(badgeId => (
-                          <div 
-                            key={badgeId}
-                            className="relative p-4 border border-[#2D3748] rounded-lg bg-[#1A1F2B] opacity-60 filter grayscale"
-                          >
-                            <BadgeCard badgeId={badgeId} showRarity={false} />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="bg-[#000000] bg-opacity-30 p-2 rounded-full">
-                                <FaLock className="text-lg text-[#A0AEC0]" />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
-        
-        {/* Activity History Tab with Transaction History Component */}
+
+        <TabsContent value="badges" className="space-y-6">
+          <Card className="bg-[#111827] border-[#2D3748]">
+            <CardHeader>
+              <CardTitle>Your Achievement Badges</CardTitle>
+              <CardDescription>
+                Badges earned through your activity on the Prior Protocol testnet. Earn badges by interacting with the protocol's features.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {badgesLoading ? (
+                <div className="h-40 flex items-center justify-center">
+                  <div className="animate-pulse h-4 bg-[#2D3748] rounded w-3/4 mb-2"></div>
+                  <div className="animate-pulse h-4 bg-[#2D3748] rounded w-1/2"></div>
+                </div>
+              ) : (
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-4 flex items-center">
+                      <FaTrophy className="mr-2 text-[#1A5CFF]" /> 
+                      Earned Badges ({unlockedBadges.length})
+                    </h3>
+                    
+                    {unlockedBadges.length > 0 ? (
+                      <div className="space-y-6">
+                        {/* Show special Pioneer NFT badge card if user has it */}
+                        {unlockedBadges.includes('prior_pioneer') && (
+                          <div className="mb-6">
+                            <PioneerBadgeCard />
+                          </div>
+                        )}
+                        
+                        {/* Show all other badges */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {unlockedBadges
+                            .filter(badgeId => badgeId !== 'prior_pioneer')
+                            .map((badgeId, index) => (
+                              <BadgeCard key={index} badgeId={badgeId} />
+                            ))
+                          }
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-[#1E2A3B] p-6 rounded-md border border-[#2D3748] text-center">
+                        <p className="text-[#A0AEC0]">
+                          You haven't earned any badges yet. 
+                          Interact with the protocol to earn achievements!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-medium mb-4 flex items-center">
+                      <FaLock className="mr-2 text-[#A0AEC0]" /> 
+                      Locked Badges ({lockedBadges.length})
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {lockedBadges.map((badgeId, index) => (
+                        <Card key={index} className="bg-[#1E2A3B] border border-[#2D3748] opacity-70">
+                          <CardContent className="p-4 flex items-center space-x-4">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#2D3748]">
+                              <FaLock className="text-[#A0AEC0]" />
+                            </div>
+                            <div>
+                              <h4 className="font-bold">{getBadgeInfo(badgeId).name}</h4>
+                              <p className="text-sm text-[#A0AEC0]">{getBadgeInfo(badgeId).description}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Activity History Tab */}
         <TabsContent value="activity" className="space-y-6">
           <Card className="bg-[#111827] border-[#2D3748]">
             <CardHeader>
@@ -414,6 +480,137 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <TransactionHistory />
+            </CardContent>
+          </Card>
+        </TabsContent>
+                <div>
+                  <h3 className="text-lg font-medium mb-4 flex items-center">
+                    <i className="fas fa-faucet mr-2 text-blue-400"></i>
+                    Faucet Claims ({userStats?.totalFaucetClaims || 0})
+                  </h3>
+                  
+                  {userStats?.totalFaucetClaims ? (
+                    <div className="space-y-3">
+                      <div className="overflow-hidden rounded-md border border-[#2D3748]">
+                        <table className="w-full text-sm">
+                          <thead className="bg-[#1E2A3B]">
+                            <tr>
+                              <th className="py-3 px-4 text-left">Date</th>
+                              <th className="py-3 px-4 text-left">Amount</th>
+                              <th className="py-3 px-4 text-left">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#2D3748]">
+                            {Array.from({ length: Math.min(userStats.totalFaucetClaims, 5) }, (_, i) => (
+                              <tr key={i} className="bg-[#141D29]">
+                                <td className="py-3 px-4">
+                                  {new Date(Date.now() - (i * 86400000)).toLocaleDateString()}
+                                </td>
+                                <td className="py-3 px-4 font-mono">1 PRIOR</td>
+                                <td className="py-3 px-4">
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500 bg-opacity-20 text-green-500">
+                                    Completed
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      
+                      <div className="text-right">
+                        <span className="text-xs text-[#A0AEC0]">
+                          Showing {Math.min(userStats.totalFaucetClaims, 5)} of {userStats.totalFaucetClaims} claims
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-[#1E2A3B] p-6 rounded-md border border-[#2D3748] text-center">
+                      <p className="text-[#A0AEC0]">
+                        You haven't claimed any tokens yet. Visit the Faucet page to claim your PRIOR tokens.
+                      </p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Swaps */}
+                <div>
+                  <h3 className="text-lg font-medium mb-4 flex items-center">
+                    <i className="fas fa-exchange-alt mr-2 text-purple-400"></i>
+                    Swap Transactions ({userStats?.totalSwaps || 0})
+                  </h3>
+                  
+                  {userStats?.totalSwaps ? (
+                    <div className="space-y-3">
+                      <div className="overflow-hidden rounded-md border border-[#2D3748]">
+                        <table className="w-full text-sm">
+                          <thead className="bg-[#1E2A3B]">
+                            <tr>
+                              <th className="py-3 px-4 text-left">Date</th>
+                              <th className="py-3 px-4 text-left">From</th>
+                              <th className="py-3 px-4 text-left">To</th>
+                              <th className="py-3 px-4 text-right">Points</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#2D3748]">
+                            {Array.from({ length: Math.min(userStats.totalSwaps, 5) }, (_, i) => {
+                              const tokens = ['PRIOR', 'USDC', 'USDT'];
+                              const fromToken = tokens[Math.floor(Math.random() * tokens.length)];
+                              const toToken = tokens.filter(t => t !== fromToken)[Math.floor(Math.random() * 2)];
+                              
+                              return (
+                                <tr key={i} className="bg-[#141D29]">
+                                  <td className="py-3 px-4">
+                                    {new Date(Date.now() - (i * 3600000)).toLocaleDateString()}
+                                  </td>
+                                  <td className="py-3 px-4 font-mono">{fromToken}</td>
+                                  <td className="py-3 px-4 font-mono">{toToken}</td>
+                                  <td className="py-3 px-4 text-right">
+                                    <span className="text-green-400">
+                                      {userStats.totalSwaps >= 10 ? '+2' : '0'}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      
+                      <div className="text-right">
+                        <span className="text-xs text-[#A0AEC0]">
+                          Showing {Math.min(userStats.totalSwaps, 5)} of {userStats.totalSwaps} swaps
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-[#1E2A3B] p-6 rounded-md border border-[#2D3748] text-center">
+                      <p className="text-[#A0AEC0]">
+                        You haven't made any swaps yet. Visit the Swap page to exchange tokens.
+                      </p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Governance */}
+                <div>
+                  <h3 className="text-lg font-medium mb-4 flex items-center">
+                    <i className="fas fa-landmark mr-2 text-amber-400"></i>
+                    Governance Activity
+                  </h3>
+                  
+                  <div className="bg-[#1E2A3B] p-6 rounded-md border border-[#2D3748] text-center">
+                    <div className="mb-4">
+                      <i className="fas fa-clock text-2xl text-[#A0AEC0]"></i>
+                    </div>
+                    <h4 className="text-lg font-semibold mb-2">Feature Coming Soon</h4>
+                    <p className="text-[#A0AEC0]">
+                      Governance functionality will be available in the next update.
+                      You'll be able to create and vote on proposals, earning points for participation.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
