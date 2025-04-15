@@ -30,22 +30,22 @@ const PRIOR_NFT_CONTRACT = '0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59';
 // Interface for transactions from the block explorer
 export interface BlockExplorerTransaction {
   hash: string;
-  blockNumber: number;
+  blockNumber: number | string;
   timeStamp: string;
   from: string;
   to: string;
   value: string;
-  contractAddress: string;
-  tokenSymbol: string;
-  tokenName: string;
-  tokenDecimal: string;
-  input: string;
-  methodId: string;
-  methodName: string;
-  functionName: string;
-  gasPrice: string;
-  gasUsed: string;
-  confirmations: string;
+  contractAddress?: string;
+  tokenSymbol?: string;
+  tokenName?: string;
+  tokenDecimal?: string;
+  input?: string;
+  methodId?: string;
+  methodName?: string;
+  functionName?: string;
+  gasPrice?: string;
+  gasUsed?: string;
+  confirmations?: string;
 }
 
 // Standardized transaction for our backend
@@ -181,9 +181,12 @@ function isSwapTransaction(tx: any): boolean {
  * @param tx Transaction to parse
  */
 function parseFaucetTransaction(tx: any): ParsedTransaction {
+  // Convert blockNumber to number if it's a string
+  const blockNumber = typeof tx.blockNumber === 'string' ? parseInt(tx.blockNumber, 10) : tx.blockNumber;
+  
   return {
     txHash: tx.hash,
-    blockNumber: parseInt(tx.blockNumber),
+    blockNumber: blockNumber,
     timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
     type: 'faucet_claim',
     fromToken: null,
@@ -210,11 +213,14 @@ function parseSwapTransaction(tx: any, otherTxs: any[]): ParsedTransaction | nul
       t => t.hash === tx.hash && t.tokenSymbol !== tx.tokenSymbol
     );
     
+    // Convert blockNumber to number if it's a string
+    const blockNumber = typeof tx.blockNumber === 'string' ? parseInt(tx.blockNumber, 10) : tx.blockNumber;
+    
     if (relatedTx) {
       // This is an output of a swap
       return {
         txHash: tx.hash,
-        blockNumber: parseInt(tx.blockNumber),
+        blockNumber: blockNumber,
         timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
         type: 'swap',
         fromToken: relatedTx.tokenSymbol,
@@ -226,10 +232,9 @@ function parseSwapTransaction(tx: any, otherTxs: any[]): ParsedTransaction | nul
     }
     
     // This might be the input side of a swap, but we don't have the output yet
-    // In a real implementation, you'd need to analyze the full transaction receipt
     return {
       txHash: tx.hash,
-      blockNumber: parseInt(tx.blockNumber),
+      blockNumber: blockNumber,
       timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
       type: 'swap',
       fromToken: tx.tokenSymbol,
