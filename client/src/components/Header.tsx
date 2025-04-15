@@ -4,8 +4,8 @@ import { useWalletSync } from "@/hooks/useWalletSync";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 import { formatAddress } from "@/lib/formatAddress";
-// Import the logo directly from attached_assets
-import logoPath from "@assets/prior protocol logo.png";
+// Import the logo
+import logoPath from "../assets/prior-protocol-logo.png";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
