@@ -23,7 +23,7 @@ export function useBlockExplorerSync(address: string | null) {
       
       console.log('Fetching blockchain transactions for:', walletAddress);
       
-      // Fetch transactions from block explorer
+      // Fetch transactions from block explorer with improved handling
       const transactions = await fetchBlockExplorerTransactions(walletAddress);
       
       if (transactions.length === 0) {
@@ -36,28 +36,37 @@ export function useBlockExplorerSync(address: string | null) {
       console.log(`Found ${transactions.length} transactions on blockchain, syncing with database...`);
       
       // Send transactions to backend for storage using our API endpoint
-      const response = await apiRequest('/api/sync-transactions', {
-        method: 'POST',
-        body: JSON.stringify({
-          address: walletAddress,
-          transactions
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      // Invalidate relevant queries to update UI
-      queryClient.invalidateQueries({ queryKey: ['/api/users', walletAddress] });
-      queryClient.invalidateQueries({ queryKey: ['/api/users', walletAddress, 'transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/users', walletAddress, 'stats'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
-      
-      console.log('Sync completed successfully:', response);
-      setLastSyncTime(new Date());
+      try {
+        const response = await apiRequest('/api/sync-transactions', {
+          method: 'POST',
+          body: JSON.stringify({
+            address: walletAddress,
+            transactions
+          }),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        // Invalidate relevant queries to update UI
+        queryClient.invalidateQueries({ queryKey: ['/api/users', walletAddress] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users', walletAddress, 'transactions'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users', walletAddress, 'stats'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users', walletAddress, 'transactions', 'swap'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users', walletAddress, 'transactions', 'faucet_claim'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
+        
+        console.log('Sync completed successfully:', response);
+        setLastSyncTime(new Date());
+      } catch (syncError) {
+        console.error('Error saving transactions to database:', syncError);
+        setError('Failed to save transactions to database. Please try again later.');
+        throw syncError; // Re-throw to be caught by the outer try/catch
+      }
     } catch (err) {
       console.error('Error synchronizing transactions:', err);
       setError('Failed to synchronize transactions. Please try again later.');
+      throw err; // Re-throw to be handled by the calling component
     } finally {
       setIsSyncing(false);
     }

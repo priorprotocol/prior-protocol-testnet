@@ -413,7 +413,16 @@ const Dashboard = () => {
                 <Button 
                   variant="secondary" 
                   size="sm" 
-                  onClick={syncTransactions}
+                  onClick={() => {
+                    if (syncTransactions) {
+                      toast({
+                        title: "Syncing blockchain activity",
+                        description: "Fetching your latest transactions from the blockchain...",
+                      });
+                      
+                      syncTransactions();
+                    }
+                  }}
                   disabled={isSyncing}
                   className="flex items-center gap-2"
                 >

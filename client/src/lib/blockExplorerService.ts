@@ -231,16 +231,20 @@ function isSwapTransaction(tx: any): boolean {
   const priorContract = TOKEN_CONTRACTS.PRIOR.toLowerCase();
   const usdcContract = TOKEN_CONTRACTS.USDC.toLowerCase();
   const usdtContract = TOKEN_CONTRACTS.USDT.toLowerCase();
+  const faucetContract = FAUCET_CONTRACT.toLowerCase();
   
   // Check if this is a token transaction to/from a swap contract
   if (tx.contractAddress) {
     const contractAddr = tx.contractAddress.toLowerCase();
     // If this is a token transaction for a supported token (PRIOR, USDC, USDT)
     if ([priorContract, usdcContract, usdtContract].includes(contractAddr)) {
-      // And it's to/from a swap contract
-      if (swapContractAddresses.includes(tx.to?.toLowerCase()) || 
-          swapContractAddresses.includes(tx.from?.toLowerCase())) {
-        return true;
+      // Make sure it's not a faucet claim
+      if (tx.to?.toLowerCase() !== faucetContract && tx.from?.toLowerCase() !== faucetContract) {
+        // And it's to/from a swap contract
+        if (swapContractAddresses.includes(tx.to?.toLowerCase()) || 
+            swapContractAddresses.includes(tx.from?.toLowerCase())) {
+          return true;
+        }
       }
     }
   }
@@ -249,10 +253,38 @@ function isSwapTransaction(tx: any): boolean {
   if (swapContractAddresses.includes(tx.to?.toLowerCase())) {
     // Input data looks like a swap function
     if (tx.input && tx.input.length > 10) {
-      // Most swap function signatures start with "0x" and then have specific patterns
-      // This is simplified - in a real app, you'd check specific function signatures
+      // Check for common swap method signatures
+      const swapMethodIds = [
+        '0x38ed1739', // swapExactTokensForTokens
+        '0x8803dbee', // swapTokensForExactTokens
+        '0x4a25d94a', // swapTokensForExactETH
+        '0x18cbafe5', // swapExactTokensForETH
+      ];
+      
+      for (const methodId of swapMethodIds) {
+        if (tx.input.startsWith(methodId)) {
+          return true;
+        }
+      }
+      
+      // If we can't match a specific method ID, any input to a swap contract is likely a swap
       return true;
     }
+  }
+  
+  // Check for swap method names
+  if (tx.methodName && (
+    tx.methodName.toLowerCase().includes('swap') || 
+    tx.methodName.toLowerCase().includes('exchange')
+  )) {
+    return true;
+  }
+  
+  if (tx.functionName && (
+    tx.functionName.toLowerCase().includes('swap') || 
+    tx.functionName.toLowerCase().includes('exchange')
+  )) {
+    return true;
   }
   
   return false;
