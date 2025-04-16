@@ -136,10 +136,15 @@ const Faucet = () => {
           
           // Record the transaction in our transaction history
           try {
-            const txResponse = await apiRequest('POST', '/api/transactions/faucet-claim', {
-              address,
+            const txResponse = await apiRequest('POST', '/api/transactions', {
+              userId: userData?.id,
+              type: 'faucet_claim',
+              fromToken: null,
+              toToken: 'PRIOR',
+              fromAmount: null,
+              toAmount: '1',
               txHash,
-              amount: '1',
+              status: 'completed',
               blockNumber
             });
             console.log("Transaction recorded:", txResponse);

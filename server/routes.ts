@@ -47,10 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isNewUser = true;
       }
       
-      // Add the wallet_connected badge for new users
-      if (isNewUser) {
-        await storage.addUserBadge(user.id, "wallet_connected");
-      }
+      // Badge functionality has been removed
       
       res.json(user);
     } catch (error) {
@@ -93,10 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update last claim time
       const updatedUser = await storage.updateUserLastClaim(address);
       
-      // Add the token_claimed badge if user exists
-      if (updatedUser) {
-        await storage.addUserBadge(updatedUser.id, "token_claimed");
-      }
+      // Badge functionality has been removed
       
       // If a transaction hash is provided, record the transaction
       if (txHash && updatedUser) {
@@ -225,18 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Complete the quest
       const updatedUserQuest = await storage.updateUserQuestStatus(existingQuest.id, 'completed');
       
-      // Add the quest_completed badge
-      await storage.addUserBadge(user.id, "quest_completed");
-      
-      // Check if all quests are completed
-      const allUserQuests = await storage.getUserQuests(user.id);
-      const allQuests = await storage.getAllQuests();
-      
-      const completedQuests = allUserQuests.filter(uq => uq.status === 'completed');
-      if (completedQuests.length === allQuests.length) {
-        // User has completed all quests, add the all_quests badge
-        await storage.addUserBadge(user.id, "all_quests");
-      }
+      // Badge functionality has been removed
       
       res.json({
         message: `Quest completed successfully! You earned ${quest.reward} PRIOR tokens.`,
@@ -254,70 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(proposals);
   });
   
-  // Get user's badges
-  app.get(`${apiPrefix}/users/:address/badges`, async (req, res) => {
-    const { address } = req.params;
-    
-    const user = await storage.getUser(address);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    
-    const badges = await storage.getUserBadges(user.id);
-    res.json(badges);
-  });
-  
-  // Add a badge to a user
-  app.post(`${apiPrefix}/users/:address/badges`, async (req, res) => {
-    const { address } = req.params;
-    const { badgeId } = req.body;
-    
-    if (!badgeId || typeof badgeId !== 'string') {
-      return res.status(400).json({ message: "Invalid badge ID" });
-    }
-    
-    const user = await storage.getUser(address);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    
-    const badges = await storage.addUserBadge(user.id, badgeId);
-    res.json(badges);
-  });
-  
-  // Check for Prior Pioneer NFT ownership and award badge if needed
-  app.post(`${apiPrefix}/users/:address/check-nft-badge`, async (req, res) => {
-    const { address } = req.params;
-    const { hasNFT } = req.body;
-    
-    if (typeof hasNFT !== 'boolean') {
-      return res.status(400).json({ message: "Invalid input, expected 'hasNFT' boolean" });
-    }
-    
-    const user = await storage.getUser(address);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    
-    // Get current badges to check if user already has the NFT badge
-    const currentBadges = await storage.getUserBadges(user.id);
-    const hasNftBadge = currentBadges.includes('prior_pioneer');
-    
-    // If user has NFT but not the badge, add it
-    if (hasNFT && !hasNftBadge) {
-      const updatedBadges = await storage.addUserBadge(user.id, 'prior_pioneer');
-      return res.json({ 
-        awarded: true,
-        badges: updatedBadges
-      });
-    }
-    
-    // If user already has the badge or doesn't have NFT
-    return res.json({ 
-      awarded: false,
-      badges: currentBadges
-    });
-  });
+  // Badge functionality has been removed
   
   // Get user's stats by address
   app.get(`${apiPrefix}/users/:address/stats`, async (req, res) => {
@@ -382,10 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Increment the swap count
       const newCount = await storage.incrementUserSwapCount(user.id);
       
-      // If this is their first swap, add the swap_completed badge
-      if (newCount === 1) {
-        await storage.addUserBadge(user.id, "swap_completed");
-      }
+      // Badge functionality has been removed
       
       // If transaction details are provided, record it
       if (txHash && fromToken && toToken && fromAmount && toAmount) {
@@ -458,14 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         vote: payload.vote
       });
       
-      // Add the governance_vote badge
-      await storage.addUserBadge(payload.userId, "governance_vote");
-      
-      // Check how many votes this user has cast to award active_voter badge
-      const userStats = await storage.getUserStats(payload.userId);
-      if (userStats.proposalsVoted >= 5) {
-        await storage.addUserBadge(payload.userId, "active_voter");
-      }
+      // Badge functionality has been removed
       
       // Get updated proposal
       const updatedProposal = await storage.getProposal(proposalId);
@@ -809,18 +719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add points to the user
       const newPointsTotal = await storage.addUserPoints(userId, points);
       
-      // Check if the user deserves new badges based on points
-      const currentBadges = await storage.getUserBadges(userId);
-      
-      // Award "power_user" badge at 100 points
-      if (newPointsTotal >= 100 && !currentBadges.includes("power_user")) {
-        await storage.addUserBadge(userId, "power_user");
-      }
-      
-      // Award "expert_trader" badge at 500 points
-      if (newPointsTotal >= 500 && !currentBadges.includes("expert_trader")) {
-        await storage.addUserBadge(userId, "expert_trader");
-      }
+      // Badge functionality has been removed
       
       res.json({ userId, points: newPointsTotal, added: points });
     } catch (error) {
