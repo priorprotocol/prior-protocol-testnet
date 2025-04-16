@@ -516,7 +516,7 @@ export class DatabaseStorage implements IStorage {
         {
           symbol: "USDT",
           name: "Tether",
-          address: "0x708374D87A11B3740610Dd1eCB1e6Ce38DeA0a98", // USDT on Base Sepolia
+          address: "0x2B744c80C4895fDC2003108E186aBD7613c0ec7E", // Fixed USDT address to match client
           decimals: 6,
           logoColor: "#26A17B"
         },

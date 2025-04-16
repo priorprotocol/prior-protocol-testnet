@@ -147,7 +147,7 @@ export class MemStorage implements IStorage {
       {
         symbol: "USDT",
         name: "Mock Tether",
-        address: "0x2B744c80C4895fDC2003108E186aBD7613c0ec7E", // Real mUSDT address
+        address: "0x2B744c80C4895fDC2003108E186aBD7613c0ec7E", // Consistent USDT address
         decimals: 6,
         logoColor: "#26A17B"
       }
