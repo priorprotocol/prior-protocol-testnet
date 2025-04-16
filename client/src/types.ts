@@ -15,7 +15,6 @@ export interface User {
   totalSwaps: number;
   totalClaims: number;
   points: number;
-  badges: string[];
   lastClaim: string | null;
 }
 
