@@ -361,22 +361,129 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
 };
 
 // Function to approve tokens for swap
-export const approveTokens = async (tokenAddress: string, spenderAddress: string, amount: string): Promise<boolean> => {
+/**
+ * Approve tokens for a spender contract
+ * @param tokenAddress The address of the token to approve
+ * @param spenderAddress The address of the spender (usually a swap contract)
+ * @param amount The amount to approve, or "max" for unlimited approval
+ * @returns true if approval was successful, false otherwise
+ */
+export const approveTokens = async (
+  tokenAddress: string, 
+  spenderAddress: string, 
+  amount: string,
+  useMaxApproval: boolean = false
+): Promise<boolean> => {
   try {
     const contract = await getTokenContractWithSigner(tokenAddress);
     const decimals = getTokenDecimalsFromAddress(tokenAddress);
-    const parsedAmount = ethers.utils.parseUnits(amount, decimals);
+    
+    // If max approval is requested or amount is "max", use maximum uint256 value
+    // This allows the spender to use tokens without needing future approvals
+    let parsedAmount;
+    if (useMaxApproval || amount === "max") {
+      parsedAmount = ethers.constants.MaxUint256;
+      console.log("Using max approval amount");
+    } else {
+      parsedAmount = ethers.utils.parseUnits(amount, decimals);
+      console.log(`Approving exact amount: ${amount} tokens`);
+    }
     
     // Use the provided spender address (which should be the swap contract address)
     // Approve the swap contract to spend the tokens
     const tx = await contract.approve(spenderAddress, parsedAmount);
     await tx.wait();
+    
+    // If we successfully used max approval, save this information
+    if (useMaxApproval || amount === "max") {
+      // Store approval in local storage to remember it
+      try {
+        const approvals = JSON.parse(localStorage.getItem('tokenApprovals') || '{}');
+        const userAddress = await getCurrentUserAddress();
+        if (!userAddress) return true;
+        
+        if (!approvals[userAddress]) {
+          approvals[userAddress] = {};
+        }
+        
+        if (!approvals[userAddress][tokenAddress]) {
+          approvals[userAddress][tokenAddress] = {};
+        }
+        
+        approvals[userAddress][tokenAddress][spenderAddress] = {
+          approved: true,
+          timestamp: Date.now()
+        };
+        
+        localStorage.setItem('tokenApprovals', JSON.stringify(approvals));
+      } catch (storageError) {
+        console.error("Error storing approval status:", storageError);
+        // Continue even if storage fails - approval still worked
+      }
+    }
+    
     return true;
   } catch (error) {
     console.error("Error approving tokens:", error);
     return false;
   }
 };
+
+/**
+ * Check if a token has already been approved for a spender
+ * @param tokenAddress The token address to check
+ * @param spenderAddress The spender address to check
+ * @returns true if the token is already approved, false otherwise
+ */
+export const isTokenApproved = async (
+  tokenAddress: string,
+  spenderAddress: string
+): Promise<boolean> => {
+  try {
+    // First check localStorage for saved max approvals
+    try {
+      const approvals = JSON.parse(localStorage.getItem('tokenApprovals') || '{}');
+      const userAddress = await getCurrentUserAddress();
+      if (!userAddress) return false;
+      
+      if (approvals[userAddress]?.[tokenAddress]?.[spenderAddress]?.approved) {
+        // We found a stored approval, but let's verify it on-chain to be sure
+        console.log("Found saved approval, verifying on-chain...");
+      }
+    } catch (storageError) {
+      console.error("Error reading approval status:", storageError);
+      // Continue checking on-chain
+    }
+    
+    // Check actual allowance on-chain
+    const contract = await getTokenContract(tokenAddress);
+    const userAddress = await getCurrentUserAddress();
+    if (!userAddress) return false;
+    
+    const allowance = await contract.allowance(userAddress, spenderAddress);
+    
+    // If allowance is greater than 0, token is already approved
+    return !allowance.isZero();
+  } catch (error) {
+    console.error("Error checking token approval:", error);
+    return false;
+  }
+};
+
+/**
+ * Get current user's Ethereum address
+ */
+async function getCurrentUserAddress(): Promise<string | null> {
+  try {
+    if (!window.ethereum) return null;
+    const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+    const signer = provider.getSigner();
+    return await signer.getAddress();
+  } catch (error) {
+    console.error("Error getting current user address:", error);
+    return null;
+  }
+}
 
 // Function to swap tokens
 export const swapTokens = async (
