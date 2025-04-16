@@ -380,11 +380,13 @@ export default function Swap() {
       // Get the token decimals
       const decimals = TOKENS[fromToken as keyof typeof TOKENS].decimals;
       
-      // Approve tokens using the services function
+      // Approve tokens using the services function with max approval
+      // This allows the swap contract to use the token without requiring approval for every swap
       const result = await approveTokens(
         fromTokenAddress,
         swapContractAddress,
-        fromAmount
+        "max", // Use max approval
+        true // useMaxApproval set to true
       );
       
       if (result) {
@@ -489,37 +491,45 @@ export default function Swap() {
             console.error('Failed to record transaction in database:', await response.text());
           }
           
-          // Get user data to check if this is the first swap
-          const userResponse = await fetch(`/api/users/${userId}`);
-          const userData = await userResponse.json();
-          
           // Increment swap count 
           const swapCountResponse = await fetch(`/api/users/${userId}/increment-swap-count`, {
             method: 'POST',
           });
           const swapCountResult = await swapCountResponse.json();
           
-          // Add points based on whether this is the first swap (20 points) or a subsequent swap (2 points)
-          const isFirstSwap = userData.totalSwaps === 0;
-          const pointsToAdd = isFirstSwap ? 20 : 2;
+          // Check daily swap count to see if user has done 10+ swaps today
+          const dailySwapCountResponse = await fetch(`/api/users/${userId}/daily-swap-count`);
+          const dailySwapData = await dailySwapCountResponse.json();
+          const dailySwapCount = dailySwapData.count || 0;
           
-          await fetch(`/api/users/${userId}/add-points`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              points: pointsToAdd
-            }),
-          });
-          
-          // Show a toast notification about points earned
-          toast({
-            title: `Points Earned: ${pointsToAdd}`,
-            description: isFirstSwap 
-              ? "You earned 20 points for your first swap! Check the Quest page for more ways to earn points." 
-              : "You earned 2 points for this swap!",
-          });
+          // Only award points if the user has completed 10 or more swaps today
+          let pointsToAdd = 0;
+          if (dailySwapCount >= 10) {
+            pointsToAdd = 2; // 2 points per swap when they've done 10+ swaps
+            
+            // Add the points
+            await fetch(`/api/users/${userId}/add-points`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                points: pointsToAdd
+              }),
+            });
+            
+            // Show a toast notification about points earned
+            toast({
+              title: `Points Earned: ${pointsToAdd}`,
+              description: `You earned ${pointsToAdd} points for this swap! (10+ swaps today)`,
+            });
+          } else if (dailySwapCount >= 9) {
+            // They're close to the 10 swap threshold
+            toast({
+              title: "Keep Going!",
+              description: `Complete ${10 - dailySwapCount} more swap(s) today to start earning points!`,
+            });
+          }
         }
       } catch (error) {
         console.error('Error recording transaction and updating stats:', error);
