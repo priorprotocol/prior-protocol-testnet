@@ -26,7 +26,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
     queryFn: () => apiRequest<User[]>(`/api/leaderboard?limit=${limit}`),
   });
   
-  // Badge rendering helper functions
+  // Rank badge rendering helper
   const getRankBadge = (index: number) => {
     switch (index) {
       case 0: // 1st place
@@ -57,27 +57,6 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
       default:
         return null;
     }
-  };
-  
-  // Special badges for top swap users
-  const getSpecialBadge = (user: User, index: number) => {
-    // If the user is in the top 5 of the leaderboard, they get Prior Swap badge
-    if (index < 5) {
-      return (
-        <Badge className="bg-purple-600 hover:bg-purple-500 ml-1">
-          <FaExchangeAlt className="mr-1" /> Prior Swap
-        </Badge>
-      );
-    } 
-    // Otherwise if they have at least 10 swaps, they get Prior Verified badge
-    else if (user.totalSwaps >= 10) {
-      return (
-        <Badge className="bg-blue-600 hover:bg-blue-500 ml-1">
-          <FaShieldAlt className="mr-1" /> Prior Verified
-        </Badge>
-      );
-    }
-    return null;
   };
   
   return (
@@ -128,7 +107,6 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                           </div>
                           <div className="mt-1 flex flex-wrap gap-1">
                             {rankBadge}
-                            {getSpecialBadge(user, index)}
                           </div>
                         </div>
                       </div>
@@ -139,7 +117,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                     </div>
                     
                     {/* Activity details - shown for all users for better transparency */}
-                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs border-t border-[#2D3748] pt-2">
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs border-t border-[#2D3748] pt-2">
                       <div className="text-center">
                         <span className="text-[#A0AEC0] block">Daily Swaps</span>
                         <span className="font-medium">{user.totalSwaps || 0}</span>
@@ -153,16 +131,6 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                         <span className="text-[#A0AEC0] block">Claims</span>
                         <span className="font-medium">{user.totalClaims || 0}</span>
                         <span className="text-xs text-gray-500">0 pts</span>
-                      </div>
-                      <div className="text-center">
-                        <span className="text-[#A0AEC0] block">
-                          {user.totalSwaps >= 10 ? "Badge Status" : "Badge Progress"}
-                        </span>
-                        {user.totalSwaps >= 10 ? (
-                          <span className="font-medium text-green-500">Eligible</span>
-                        ) : (
-                          <span className="font-medium">{user.totalSwaps}/10 swaps</span>
-                        )}
                       </div>
                     </div>
                   </div>

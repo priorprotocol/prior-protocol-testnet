@@ -7,11 +7,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { BadgeCard } from "@/components/BadgeCard";
-import { PioneerBadgeCard } from "@/components/PioneerBadgeCard";
 import { Leaderboard } from "@/components/Leaderboard";
 import { TransactionHistory } from "@/components/TransactionHistory";
-import { getBadgeInfo } from "@/lib/badges";
 import { formatAddress } from "@/lib/formatAddress";
 import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
 import { RefreshCw } from "lucide-react";
@@ -46,11 +43,7 @@ const Dashboard = () => {
 
   // Note: We're using useDashboardStats hook now which provides all these values
 
-  // Total badges the user could potentially earn
-  const allPossibleBadges = 8; // This should match the total number of badges in badges.ts
-  
-  // Calculate badge progress
-  const badgeProgress = userBadges ? Math.round((userBadges.length / allPossibleBadges) * 100) : 0;
+  // Badge functionality has been removed
 
   if (!address) {
     return (
@@ -66,10 +59,7 @@ const Dashboard = () => {
     );
   }
   
-  // Placeholder badges that the user hasn't earned yet
-  const unlockedBadges = userBadges || [];
-  const lockedBadges = ['token_claimed', 'swap_completed', 'governance_vote', 'quest_completed', 'active_voter', 'all_quests', 'early_adopter', 'prior_pioneer']
-    .filter(badgeId => !unlockedBadges.includes(badgeId));
+  // Badge functionality has been removed
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -81,7 +71,6 @@ const Dashboard = () => {
       <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="badges">Badges</TabsTrigger>
           <TabsTrigger value="activity">Activity History</TabsTrigger>
           <TabsTrigger value="leaderboard">
             <div className="flex items-center gap-1">
@@ -152,20 +141,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                       
-                      {userStats?.totalSwaps ? (
-                        <div className="mt-3 pt-3 border-t border-[#2D3748]">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-[#A0AEC0]">Progress to Swap Badge:</span>
-                            <span className="text-xs text-[#A0AEC0]">
-                              {userStats.totalSwaps >= 20 ? "Eligible" : `${userStats.totalSwaps}/20 swaps`}
-                            </span>
-                          </div>
-                          <Progress 
-                            value={Math.min((userStats.totalSwaps / 20) * 100, 100)} 
-                            className="h-1.5 mt-1 bg-[#2D3748]" 
-                          />
-                        </div>
-                      ) : null}
+                      {/* Badge progression removed */}
                     </div>
                     
                     {/* Faucet Claims Card */}

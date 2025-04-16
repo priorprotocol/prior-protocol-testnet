@@ -38,26 +38,12 @@ export function useDashboardStats(address: string | null) {
     enabled: Boolean(address)
   });
   
-  // Fetch user's badges 
-  const badgesQuery = useQuery({
-    queryKey: ['/api/users', address, 'badges'],
-    queryFn: async () => {
-      if (!address) return [];
-      
-      const response = await fetch(`/api/users/${address}/badges`);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          // User not found - they may not have any badges yet
-          return [];
-        }
-        throw new Error('Failed to fetch badges');
-      }
-      
-      return response.json() as Promise<string[]>;
-    },
-    enabled: Boolean(address)
-  });
+  // Badge functionality has been removed
+  const badgesQuery = {
+    data: [] as string[],
+    isLoading: false,
+    error: null
+  };
   
   // Fetch user's transaction history
   const transactionsQuery = useQuery({
