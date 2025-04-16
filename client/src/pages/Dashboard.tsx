@@ -40,6 +40,7 @@ const Dashboard = () => {
     isLoadingTransactions,
     isSyncing,
     lastSyncTime,
+    syncError,
     syncTransactions
   } = useDashboardStats(address);
 
@@ -417,10 +418,29 @@ const Dashboard = () => {
                     if (syncTransactions) {
                       toast({
                         title: "Syncing blockchain activity",
-                        description: "Fetching your latest transactions from the blockchain...",
+                        description: "Fetching your latest swap and faucet transactions...",
                       });
                       
-                      syncTransactions();
+                      try {
+                        syncTransactions();
+                        
+                        // Show success toast after a delay - this assumes the sync is fast
+                        // In a real app, you might want to use events or promises to know when it's done
+                        setTimeout(() => {
+                          if (!syncError) {
+                            toast({
+                              title: "Sync complete",
+                              description: "Your transactions have been updated",
+                            });
+                          }
+                        }, 3000);
+                      } catch (err) {
+                        toast({
+                          title: "Sync failed",
+                          description: "There was a problem synchronizing with the blockchain",
+                          variant: "destructive",
+                        });
+                      }
                     }
                   }}
                   disabled={isSyncing}
@@ -432,6 +452,11 @@ const Dashboard = () => {
                 {lastSyncTime instanceof Date && (
                   <p className="text-[#A0AEC0] text-xs mt-1 text-right">
                     Last synced: {lastSyncTime.toLocaleTimeString()}
+                  </p>
+                )}
+                {syncError && (
+                  <p className="text-red-400 text-xs mt-1 text-right">
+                    Error: {syncError}
                   </p>
                 )}
               </div>
