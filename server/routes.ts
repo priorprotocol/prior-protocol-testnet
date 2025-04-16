@@ -647,6 +647,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Increment user swap count
+  // Get daily swap count for a user
+  app.get(`${apiPrefix}/users/:userIdOrAddress/daily-swap-count`, async (req, res) => {
+    try {
+      const { userIdOrAddress } = req.params;
+      let userId: number;
+      
+      // Check if this is a wallet address or a numeric ID
+      if (userIdOrAddress.startsWith('0x')) {
+        // This is a wallet address
+        const user = await storage.getUser(userIdOrAddress);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        userId = user.id;
+      } else {
+        // This is a numeric ID
+        userId = parseInt(userIdOrAddress);
+        if (isNaN(userId)) {
+          return res.status(400).json({ message: "Invalid user ID format" });
+        }
+      }
+      
+      // Get daily swap count
+      const count = await storage.getDailySwapCount(userId);
+      
+      res.json({ count });
+    } catch (error) {
+      console.error("Error getting daily swap count:", error);
+      res.status(500).json({ message: "Error getting daily swap count" });
+    }
+  });
+
   app.post(`${apiPrefix}/users/:userIdOrAddress/increment-swap-count`, async (req, res) => {
     try {
       const { userIdOrAddress } = req.params;
