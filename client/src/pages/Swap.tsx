@@ -604,10 +604,11 @@ export default function Swap() {
         [toToken]: formatBalance(newToBalance.toString(), toToken)
       });
       
-      // Reset form
+      // Reset form but maintain token approval
       setFromAmount("");
       setToAmount("");
-      setHasAllowance(false);
+      // We no longer reset approval status (setHasAllowance) after swaps
+      // This maintains the unlimited approval granted previously
     } catch (error) {
       console.error("Error executing swap:", error);
       setSwapStatus("Swap failed. Please try again.");
