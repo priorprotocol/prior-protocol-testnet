@@ -174,7 +174,7 @@ export default function Swap() {
       
       // Fetch PRIOR balance
       const priorBalance = await getTokenBalance(
-        CONTRACT_ADDRESSES.priorToken,
+        contractAddresses.priorToken,
         walletAddress
       );
       newBalances["PRIOR"] = priorBalance;
