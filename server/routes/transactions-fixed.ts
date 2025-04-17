@@ -264,39 +264,64 @@ router.post('/sync-transactions', async (req: Request, res: Response) => {
 // Create a new transaction
 router.post('/transactions', async (req: Request, res: Response) => {
   try {
-    const payload = insertTransactionSchema.parse(req.body);
+    const transactionData = req.body;
+    
+    // Check if we have a wallet address
+    if (!transactionData.userAddress) {
+      return res.status(400).json({ message: "User address is required" });
+    }
+    
+    // Get the user first
+    let user = await storage.getUser(transactionData.userAddress);
+    
+    // Create user if they don't exist
+    if (!user) {
+      user = await storage.createUser({ 
+        address: transactionData.userAddress,
+        lastClaim: null
+      });
+    }
+    
+    // Add userId to the transaction
+    const payload = {
+      ...transactionData,
+      userId: user.id
+    };
+    
+    // Validate with schema
+    const validPayload = insertTransactionSchema.parse(payload);
     
     // Create the transaction
-    const transaction = await storage.createTransaction(payload);
+    const transaction = await storage.createTransaction(validPayload);
     
     // Calculate points based on transaction type
     const points = await getTransactionPoints(
-      payload.userId, 
-      payload.type, 
-      payload
+      user.id, 
+      transaction.type, 
+      transaction
     );
     
     // Add points to user if applicable
     if (points > 0) {
-      await storage.addUserPoints(payload.userId, points);
+      await storage.addUserPoints(user.id, points);
     }
     
     // Handle specific transaction types
-    if (payload.type === 'swap') {
+    if (transaction.type === 'swap') {
       // Increment swap count
-      await storage.incrementUserSwapCount(payload.userId);
+      await storage.incrementUserSwapCount(user.id);
       
       // Award swap badge if this is their first swap
-      const userStats = await storage.getUserStats(payload.userId);
+      const userStats = await storage.getUserStats(user.id);
       if (userStats.totalSwaps === 1) {
-        await storage.addUserBadge(payload.userId, "swap_completed");
+        await storage.addUserBadge(user.id, "swap_completed");
       }
-    } else if (payload.type === 'faucet_claim') {
+    } else if (transaction.type === 'faucet_claim') {
       // Increment claim count
-      await storage.incrementUserClaimCount(payload.userId);
+      await storage.incrementUserClaimCount(user.id);
       
       // Award token_claimed badge
-      await storage.addUserBadge(payload.userId, "token_claimed");
+      await storage.addUserBadge(user.id, "token_claimed");
     }
     
     res.status(201).json({ 
