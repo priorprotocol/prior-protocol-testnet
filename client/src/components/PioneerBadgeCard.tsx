@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { getBadgeInfo } from '@/lib/badges';
 import { FaCertificate } from 'react-icons/fa';
+import pioneerNftImage from '../assets/prior-pioneer-nft.jpg';
 
 interface PioneerBadgeCardProps {
   className?: string;
@@ -21,7 +22,7 @@ export const PioneerBadgeCard: React.FC<PioneerBadgeCardProps> = ({ className = 
                 className="w-32 h-32 rounded-lg border-2 border-[#1A5CFF] overflow-hidden"
               >
                 <img 
-                  src="/images/prior-pioneer-nft.jpg" 
+                  src={pioneerNftImage} 
                   alt="Prior Pioneer NFT" 
                   className="w-full h-full object-cover"
                 />
