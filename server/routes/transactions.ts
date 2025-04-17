@@ -167,6 +167,8 @@ router.post('/sync-transactions', async (req: Request, res: Response) => {
             totalPoints += swapPoints;
           } else if (tx.type === 'faucet_claim') {
             totalClaims++;
+            // Award 1 point per faucet claim
+            totalPoints += 1;
           }
         }
       } catch (txError) {
@@ -242,7 +244,8 @@ router.post('/transactions', async (req: Request, res: Response) => {
       }
     } else if (transaction.type === 'faucet_claim') {
       await storage.incrementUserClaimCount(user.id);
-      // Note: No points for faucet claims as per requirements
+      // Award 1 point for each faucet claim
+      await storage.addUserPoints(user.id, 1);
     }
     
     res.status(201).json(transaction);

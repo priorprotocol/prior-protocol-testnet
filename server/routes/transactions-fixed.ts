@@ -19,15 +19,23 @@ const getTransactionPoints = async (userId: number, type: string, txData: any): 
   const DAILY_SWAP_THRESHOLD = 10;
   
   if (type === 'swap') {
-    // Check if user has done 10+ swaps in the current day
+    // Check if user has done swaps in the current day
     const dailySwapCount = await storage.getDailySwapCount(userId);
     
+    // Award 4 points for the first swap of the day
+    if (dailySwapCount === 1) {
+      return 4;
+    }
     // Award 2 points per swap ONLY if they've done 10+ swaps today
-    if (dailySwapCount >= DAILY_SWAP_THRESHOLD) {
+    else if (dailySwapCount >= DAILY_SWAP_THRESHOLD) {
       return 2;
     }
     return 0;
   } 
+  else if (type === 'faucet_claim') {
+    // 1 point for each faucet claim
+    return 1;
+  }
   else if (type === 'governance_vote') {
     // 10 points for each governance vote
     return 10;
@@ -41,7 +49,7 @@ const getTransactionPoints = async (userId: number, type: string, txData: any): 
     return 0;
   }
   
-  // No points for faucet claims or other transaction types
+  // No points for other transaction types
   return 0;
 };
 
