@@ -5,10 +5,9 @@
  * All contract-related logic should be centralized here.
  * 
  * Note: For the PRIOR Protocol testnet, we use fixed exchange rates with small fees:
- * - 1 PRIOR = 10 USDC/USDT
- * - 1 USDC/USDT = 0.1 PRIOR
- * - USDC:USDT rate is 1:1
- * - Fee is 0.5% for PRIOR pairs and 0.3% for stablecoin pairs
+ * - 1 PRIOR = 2 USDC
+ * - 1 USDC = 0.5 PRIOR
+ * - Fee is 0.5% for PRIOR pairs
  */
 
 import { ethers } from 'ethers';

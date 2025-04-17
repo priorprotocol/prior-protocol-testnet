@@ -68,12 +68,12 @@ export default function Swap() {
   
   // Exchange rates between tokens
   const [exchangeRates, setExchangeRates] = useState<{[key: string]: number}>({
-    PRIOR_USDC: 10, // 1 PRIOR = 10 USDC
-    PRIOR_USDT: 10, // 1 PRIOR = 10 USDT
-    USDC_PRIOR: 0.1, // 1 USDC = 0.1 PRIOR
-    USDT_PRIOR: 0.1, // 1 USDT = 0.1 PRIOR
-    USDC_USDT: 1,  // 1:1 for stablecoins
-    USDT_USDC: 1   // 1:1 for stablecoins
+    PRIOR_USDC: 2, // 1 PRIOR = 2 USDC
+    PRIOR_USDT: 2, // 1 PRIOR = 2 USDT (not used in new deployment)
+    USDC_PRIOR: 0.5, // 1 USDC = 0.5 PRIOR
+    USDT_PRIOR: 0.5, // 1 USDT = 0.5 PRIOR (not used in new deployment)
+    USDC_USDT: 1,  // 1:1 for stablecoins (not used in new deployment)
+    USDT_USDC: 1   // 1:1 for stablecoins (not used in new deployment)
   });
   
   // Get wallet state from wallet providers (both global context and standalone)
@@ -214,12 +214,12 @@ export default function Swap() {
 
       // Set the exchange rates
       setExchangeRates({
-        PRIOR_USDC: 10, // 1 PRIOR = 10 USDC
-        PRIOR_USDT: 10, // 1 PRIOR = 10 USDT
-        USDC_PRIOR: 0.1, // 1 USDC = 0.1 PRIOR
-        USDT_PRIOR: 0.1, // 1 USDT = 0.1 PRIOR
-        USDC_USDT: 1,  // 1:1 for stablecoins
-        USDT_USDC: 1   // 1:1 for stablecoins
+        PRIOR_USDC: 2, // 1 PRIOR = 2 USDC
+        PRIOR_USDT: 2, // 1 PRIOR = 2 USDT (not used in new deployment)
+        USDC_PRIOR: 0.5, // 1 USDC = 0.5 PRIOR
+        USDT_PRIOR: 0.5, // 1 USDT = 0.5 PRIOR (not used in new deployment)
+        USDC_USDT: 1,  // 1:1 for stablecoins (not used in new deployment)
+        USDT_USDC: 1   // 1:1 for stablecoins (not used in new deployment)
       });
     } catch (error) {
       console.error("Error loading exchange rates:", error);
