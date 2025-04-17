@@ -98,25 +98,45 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <div>
-                  {/* Total Points Counter */}
+                  {/* Total Points Counter - Simplified Design */}
                   <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-800/50 rounded-lg p-5 mb-6">
                     <div className="flex flex-col md:flex-row md:justify-between md:items-center">
                       <div>
-                        <h3 className="text-lg font-medium text-white mb-2">Total Points Earned</h3>
+                        <h3 className="text-lg font-medium text-white mb-2">
+                          Points Earned 
+                          {statsLoading && <span className="ml-2 inline-block w-4 h-4 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></span>}
+                        </h3>
                         <p className="text-blue-300 text-sm">All points will be converted to PRIOR at TGE</p>
-                        <div className="mt-2 bg-blue-900/40 border border-blue-700/40 rounded p-2">
-                          <p className="text-xs text-blue-200">
-                            <i className="fas fa-database mr-1"></i>
-                            Points are <span className="font-bold">permanently saved</span> in the database and will persist even if you disconnect your wallet or close your browser.
-                          </p>
-                        </div>
                       </div>
                       <div className="mt-4 md:mt-0 text-center md:text-right">
                         <div className="inline-block bg-gradient-to-r from-blue-900/60 to-purple-900/60 rounded-lg p-4 border border-blue-700/40">
-                          <span className="text-5xl font-bold text-white">{userStats?.points || 0}</span>
-                          <span className="ml-2 text-blue-300">pts</span>
+                          {statsLoading ? (
+                            <div className="h-12 flex items-center justify-center">
+                              <div className="w-5 h-5 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mr-2"></div>
+                              <span className="text-blue-300">Loading...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="text-5xl font-bold text-white">{userStats?.points || 0}</span>
+                              <span className="ml-2 text-blue-300">pts</span>
+                            </>
+                          )}
                         </div>
-                        <p className="text-xs text-blue-300 mt-2">Never reset or wiped during testnet</p>
+                        
+                        {/* Points breakdown */}
+                        <div className="mt-3 text-left bg-blue-900/20 border border-blue-800/30 rounded-lg p-3">
+                          <div className="text-xs text-blue-200 font-medium mb-2">Points Breakdown:</div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Swaps:</span>
+                              <span className="text-blue-300 font-medium">{userStats?.totalSwaps ? Math.min(4 + (userStats.totalSwaps >= 10 ? (userStats.totalSwaps - 1) * 2 : 0), 10) : 0} pts</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Faucet:</span>
+                              <span className="text-blue-300 font-medium">{userStats?.totalFaucetClaims || 0} pts</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
