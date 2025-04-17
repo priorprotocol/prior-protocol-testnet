@@ -168,6 +168,16 @@ const Faucet = () => {
             console.error("Failed to record transaction:", txError);
           }
           
+          // Immediately fetch updated user data to ensure lastClaim is updated
+          if (address) {
+            try {
+              const updatedUserData = await apiRequest('GET', `/api/users/${address}`);
+              console.log("Updated user data after claim:", updatedUserData);
+            } catch (userError) {
+              console.error("Failed to refresh user data:", userError);
+            }
+          }
+          
           // Get the API response directly - apiRequest already handles the JSON parsing
           return {
             txReceipt,
@@ -192,6 +202,17 @@ const Faucet = () => {
       // Immediately update UI to show "Already Claimed" state
       setCanClaimTokens(false);
       
+      // Force update the timer by setting a local lastClaim if userData exists
+      if (userData) {
+        const now = new Date();
+        const updatedUserData = {
+          ...userData,
+          lastClaim: now.toISOString()
+        };
+        // Use this for local state until the query refreshes
+        queryClient.setQueryData([`/api/users/${address}`], updatedUserData);
+      }
+      
       // Show success toast for token claim
       toast({
         title: "Token claimed successfully!",
@@ -208,6 +229,7 @@ const Faucet = () => {
       
       // Refresh the user data and balances
       if (address) {
+        // Force refetch to ensure we get the latest data
         queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
         updateLocalBalances();
       }
@@ -229,9 +251,39 @@ const Faucet = () => {
       // Immediately update UI to show "Already Claimed" state
       setCanClaimTokens(false);
       
+      // Set lastClaim if we suspect this is because they already claimed
+      if (userData) {
+        // If we get an error and don't have a lastClaim set, assume it's because they claimed
+        // and set the lastClaim to now
+        if (!userData.lastClaim) {
+          const now = new Date();
+          const updatedUserData = {
+            ...userData,
+            lastClaim: now.toISOString()
+          };
+          // Use this for local state until the query refreshes
+          queryClient.setQueryData([`/api/users/${address}`], updatedUserData);
+        }
+      }
+      
       // We're always going to refresh the user data to get the updated claim time
       if (address) {
-        queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
+        // Immediately fetch updated user data
+        apiRequest('GET', `/api/users/${address}`)
+          .then(freshUserData => {
+            console.log("Got fresh user data after error:", freshUserData);
+            if (freshUserData?.lastClaim) {
+              queryClient.setQueryData([`/api/users/${address}`], freshUserData);
+            }
+            
+            // Then invalidate to ensure we sync with backend
+            queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
+          })
+          .catch(err => {
+            console.error("Error fetching fresh user data:", err);
+            // Still invalidate the query to ensure we try again
+            queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
+          });
       }
       
       toast({
