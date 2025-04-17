@@ -79,51 +79,24 @@ export class DatabaseStorage implements IStorage {
     
     console.log(`[SwapCounter] User ${userId} completing swap #${currentDailySwapNumber} today (total swaps: ${newSwapCount})`);
     
-    // Calculate points to award based on new rules:
-    // - First swap of the day: 4 points
-    // - Swaps after reaching 10+ swaps per day: 2 points each (max 6 points total per day)
-    let pointsToAdd = 0;
-    
-    if (currentDailySwapNumber === 1) {
-      // First swap of the day
-      pointsToAdd = 4;
-      console.log(`[PointsCalc] Awarding ${pointsToAdd} points for first swap of the day`);
-    } else if (currentDailySwapNumber >= 10) {
-      // Swaps after reaching 10+ daily swaps
-      pointsToAdd = 2;
-      
-      if (currentDailySwapNumber === 10) {
-        // Log when user reaches the 10 swap milestone
-        console.log(`[PointsCalc] Milestone! User reached 10 daily swaps threshold, awarding ${pointsToAdd} points`);
-      } else {
-        console.log(`[PointsCalc] Awarding ${pointsToAdd} points for swap #${currentDailySwapNumber} today (10+ swaps)`);
-      }
-    } else {
-      console.log(`[PointsCalc] No points awarded for swap #${currentDailySwapNumber} (not first swap, and less than 10)`);
-    }
-    
-    // Update the user with the new swap count and add points if earned
+    // Update the user with the new swap count only
     const [updatedUser] = await db
       .update(users)
       .set({ 
-        totalSwaps: newSwapCount,
-        points: user.points + pointsToAdd 
+        totalSwaps: newSwapCount
       })
       .where(eq(users.id, userId))
       .returning();
     
-    console.log(`[SwapCounter] User ${userId} now has ${updatedUser.totalSwaps} total swaps and ${updatedUser.points} points`);
-    
-    // Record this transaction with points information
+    // Record this transaction - points will be added automatically in createTransaction
     const transaction = await this.createTransaction({
       userId,
       type: 'swap',
       txHash: `swap_${Date.now()}`, // Placeholder for actual transaction hash
-      status: 'completed',
-      points: pointsToAdd
+      status: 'completed'
     });
     
-    console.log(`[SwapCounter] Recorded transaction ${transaction.id} with ${pointsToAdd} points`);
+    console.log(`[SwapCounter] Recorded transaction ${transaction.id} for user ${userId}`);
     
     return updatedUser.totalSwaps || 0;
   }
@@ -400,6 +373,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
+    // Create the transaction
     const [newTransaction] = await db
       .insert(transactions)
       .values({
@@ -407,6 +381,13 @@ export class DatabaseStorage implements IStorage {
         timestamp: new Date()
       })
       .returning();
+    
+    // Calculate and add points for this transaction
+    const points = await this.getTransactionPoints(newTransaction);
+    if (points > 0) {
+      console.log(`Adding ${points} points to user ${transaction.userId} for ${transaction.type} transaction`);
+      await this.addUserPoints(transaction.userId, points);
+    }
     
     return newTransaction;
   }
@@ -493,29 +474,24 @@ export class DatabaseStorage implements IStorage {
     const currentClaims = user.totalClaims || 0;
     const newClaimCount = currentClaims + 1;
     
-    // Calculate points - 1 point per faucet claim
-    const pointsToAdd = 1;
-    
-    // Update the user with the new claim count and points
+    // Update the user with the new claim count (NOT adding points directly here anymore)
     const [updatedUser] = await db
       .update(users)
       .set({ 
         totalClaims: newClaimCount,
-        lastClaim: new Date(),
-        points: user.points + pointsToAdd
+        lastClaim: new Date()
       })
       .where(eq(users.id, userId))
       .returning();
     
-    console.log(`[ClaimCounter] User ${userId} earned ${pointsToAdd} point for faucet claim #${newClaimCount}`);
+    console.log(`[ClaimCounter] User ${userId} completed faucet claim #${newClaimCount}`);
     
-    // Record this transaction
+    // Record this transaction - points will be added in createTransaction
     await this.createTransaction({
       userId,
       type: 'faucet_claim',
       txHash: `claim_${Date.now()}`, // Placeholder for actual transaction hash
-      status: 'completed',
-      points: pointsToAdd  // Now 1 point for faucet claims
+      status: 'completed'
     });
     
     return updatedUser.totalClaims || 0;

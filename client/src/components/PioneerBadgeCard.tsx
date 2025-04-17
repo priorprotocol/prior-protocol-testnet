@@ -22,7 +22,7 @@ export const PioneerBadgeCard: React.FC<PioneerBadgeCardProps> = ({ className = 
                 className="w-32 h-32 rounded-lg border-2 border-[#1A5CFF] overflow-hidden"
               >
                 <img 
-                  src={pioneerNftImage} 
+                  src={nftImagePath} 
                   alt="Prior Pioneer NFT" 
                   className="w-full h-full object-cover"
                 />
