@@ -172,6 +172,10 @@ export default function Swap() {
       const newBalances: {[key: string]: string} = {};
       const forcedBalancesMap: {[key: string]: string} = {};
       
+      // Log the actual contract addresses to verify they're correct
+      console.log("Using PRIOR contract address:", contractAddresses.priorToken);
+      console.log("Using USDC contract address:", TOKENS.USDC.address);
+      
       // Fetch PRIOR balance
       const priorBalance = await getTokenBalance(
         contractAddresses.priorToken,
@@ -190,6 +194,15 @@ export default function Swap() {
       
       console.log("Loaded real token balances:", newBalances);
       
+      // Manually check against the exact updated token addresses
+      // This is to confirm we are using the new contracts
+      const priorTokenAddress = "0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb"; // New PRIOR
+      const usdcTokenAddress = "0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2"; // New USDC
+      
+      console.log("Verifying PRIOR address matches:", contractAddresses.priorToken === priorTokenAddress);
+      console.log("Verifying USDC address matches:", TOKENS.USDC.address === usdcTokenAddress);
+      
+      // Now set the balances state
       setBalances(newBalances);
       setForcedBalances(forcedBalancesMap);
     } catch (error) {

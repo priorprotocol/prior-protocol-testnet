@@ -23,8 +23,27 @@ import {
 // Function to get token contract instance
 export const getTokenContract = async (tokenAddress: string) => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
+  
+  // Hardcoded correct addresses for direct comparison and logging
+  const NEW_PRIOR = "0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb";
+  const NEW_USDC = "0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2";
+  
+  console.log(`Creating token contract for address: ${tokenAddress}`);
+  console.log(`Is this the new PRIOR token? ${tokenAddress.toLowerCase() === NEW_PRIOR.toLowerCase()}`);
+  console.log(`Is this the new USDC token? ${tokenAddress.toLowerCase() === NEW_USDC.toLowerCase()}`);
+  
   const provider = new ethers.providers.Web3Provider(window.ethereum as any);
-  return new ethers.Contract(tokenAddress, erc20Abi, provider);
+  const contract = new ethers.Contract(tokenAddress, erc20Abi, provider);
+  
+  // Try to get the token name from the contract to verify it's correct
+  try {
+    const contractName = await contract.name();
+    console.log(`Contract at ${tokenAddress} has name: ${contractName}`);
+  } catch (error) {
+    console.warn(`Could not get token name from contract at ${tokenAddress}`, error);
+  }
+  
+  return contract;
 };
 
 // Function to get token contract with signer (for transactions)
@@ -95,7 +114,27 @@ export const getTokenSymbol = (tokenAddress: string): string => {
   // Normalize the input address
   const lowerCaseAddress = tokenAddress.toLowerCase();
   
-  // Check if the address is the PRIOR token
+  // Hard-code the new contract addresses for direct comparison
+  const NEW_PRIOR = "0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb".toLowerCase();
+  const NEW_USDC = "0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2".toLowerCase();
+  
+  console.log(`getTokenSymbol checking address: ${lowerCaseAddress}`);
+  console.log(`Comparing with PRIOR: ${NEW_PRIOR}`);
+  console.log(`Comparing with USDC: ${NEW_USDC}`);
+  
+  // Check if it matches our hard-coded new PRIOR token address
+  if (lowerCaseAddress === NEW_PRIOR) {
+    console.log(`Identified address ${tokenAddress} as new PRIOR token`);
+    return "PRIOR";
+  }
+  
+  // Check if it matches our hard-coded new USDC token address
+  if (lowerCaseAddress === NEW_USDC) {
+    console.log(`Identified address ${tokenAddress} as new USDC token`);
+    return "USDC";
+  }
+  
+  // Also check configured addresses as a fallback
   if (lowerCaseAddress === CONTRACT_ADDRESSES.priorToken.toLowerCase()) {
     console.log(`Identified address ${tokenAddress} as PRIOR token`);
     return "PRIOR";
