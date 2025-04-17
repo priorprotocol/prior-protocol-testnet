@@ -32,13 +32,6 @@ const TOKENS = {
     logo: "U",
     decimals: 6,
     address: contractAddresses.tokens.USDC
-  },
-  USDT: {
-    symbol: "USDT",
-    color: "#26a17b",
-    logo: "T",
-    decimals: 6, 
-    address: contractAddresses.tokens.USDT
   }
 };
 
@@ -69,11 +62,7 @@ export default function Swap() {
   // Exchange rates between tokens
   const [exchangeRates, setExchangeRates] = useState<{[key: string]: number}>({
     PRIOR_USDC: 2, // 1 PRIOR = 2 USDC
-    PRIOR_USDT: 2, // 1 PRIOR = 2 USDT (not used in new deployment)
     USDC_PRIOR: 0.5, // 1 USDC = 0.5 PRIOR
-    USDT_PRIOR: 0.5, // 1 USDT = 0.5 PRIOR (not used in new deployment)
-    USDC_USDT: 1,  // 1:1 for stablecoins (not used in new deployment)
-    USDT_USDC: 1   // 1:1 for stablecoins (not used in new deployment)
   });
   
   // Get wallet state from wallet providers (both global context and standalone)
@@ -146,8 +135,7 @@ export default function Swap() {
       // This resolves the "insufficient balance" error when trying to swap
       const newBalances: {[key: string]: string} = {
         "PRIOR": "3000",
-        "USDC": "9900",
-        "USDT": "10000"
+        "USDC": "9900"
       };
       
       console.log("Setting fixed testnet balances for swap functionality:", newBalances);
@@ -156,8 +144,7 @@ export default function Swap() {
       // Also update forced balances for TokenCard display
       setForcedBalances({
         "PRIOR": "3000.00",
-        "USDC": "9900.00",
-        "USDT": "10000.00"
+        "USDC": "9900.00"
       });
       
       // Also ensure we have a signer if we have an address
@@ -184,15 +171,13 @@ export default function Swap() {
     // Set fixed testnet balances for tokens to ensure users can always swap
     const newBalances: {[key: string]: string} = {
       "PRIOR": "3000",
-      "USDC": "9900", 
-      "USDT": "10000"
+      "USDC": "9900"
     };
     
     setBalances(newBalances);
     setForcedBalances({
       "PRIOR": "3000.00",
-      "USDC": "9900.00",
-      "USDT": "10000.00"
+      "USDC": "9900.00"
     });
   };
 
@@ -200,26 +185,15 @@ export default function Swap() {
   const loadExchangeRates = async () => {
     try {
       // Get the fixed rates from the contract via our service functions
-      const [
-        priorToUsdcRate, 
-        priorToUsdtRate
-      ] = await Promise.all([
-        getPriorToUSDCRate(),
-        getPriorToUSDTRate()
-      ]);
+      const priorToUsdcRate = await getPriorToUSDCRate();
       
       console.log("Loaded exchange rates from contract:");
       console.log(`PRIOR to USDC rate: ${priorToUsdcRate}`);
-      console.log(`PRIOR to USDT rate: ${priorToUsdtRate}`);
 
       // Set the exchange rates
       setExchangeRates({
         PRIOR_USDC: 2, // 1 PRIOR = 2 USDC
-        PRIOR_USDT: 2, // 1 PRIOR = 2 USDT (not used in new deployment)
         USDC_PRIOR: 0.5, // 1 USDC = 0.5 PRIOR
-        USDT_PRIOR: 0.5, // 1 USDT = 0.5 PRIOR (not used in new deployment)
-        USDC_USDT: 1,  // 1:1 for stablecoins (not used in new deployment)
-        USDT_USDC: 1   // 1:1 for stablecoins (not used in new deployment)
       });
     } catch (error) {
       console.error("Error loading exchange rates:", error);
