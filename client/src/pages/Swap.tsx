@@ -700,10 +700,10 @@ export default function Swap() {
         {/* Testnet Notice */}
         <div className="bg-indigo-900/70 border border-indigo-700 rounded-xl p-3 mb-4 text-sm">
           <p className="text-indigo-200 font-medium mb-2">
-            <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment with extremely limited liquidity. Try swapping with very small amounts (0.01-0.1 PRIOR or 1-10 USDC recommended).
+            <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment. Try swapping between 0.1 - 1 PRIOR tokens to test the functionality.
           </p>
           <p className="text-yellow-300 text-xs">
-            <span className="font-bold">Supported pairs:</span> PRIOR ↔ USDC only. Best results with small amounts.
+            <span className="font-bold">Supported pairs:</span> PRIOR ↔ USDC only.
           </p>
         </div>
 
@@ -718,22 +718,54 @@ export default function Swap() {
               </span>
               <div className="flex space-x-1">
                 {fromToken === "PRIOR" && toToken === "USDC" && (
-                  <button 
-                    onClick={() => setFromAmount("0.01")}
-                    className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
-                    title="Use recommended test amount for PRIOR→USDC"
-                  >
-                    Try: 0.01
-                  </button>
+                  <>
+                    <button 
+                      onClick={() => setFromAmount("0.1")}
+                      className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
+                      title="Use recommended test amount for PRIOR→USDC"
+                    >
+                      Try: 0.1
+                    </button>
+                    <button 
+                      onClick={() => setFromAmount("0.5")}
+                      className="text-xs bg-blue-700 hover:bg-blue-600 px-2 py-0.5 rounded"
+                      title="Use recommended test amount for PRIOR→USDC"
+                    >
+                      Try: 0.5
+                    </button>
+                    <button 
+                      onClick={() => setFromAmount("1")}
+                      className="text-xs bg-indigo-700 hover:bg-indigo-600 px-2 py-0.5 rounded"
+                      title="Use recommended test amount for PRIOR→USDC"
+                    >
+                      Try: 1
+                    </button>
+                  </>
                 )}
                 {(fromToken === "USDC" && toToken === "PRIOR") && (
-                  <button 
-                    onClick={() => setFromAmount("1")}
-                    className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
-                    title="Use recommended test amount for USDC→PRIOR"
-                  >
-                    Try: 1
-                  </button>
+                  <>
+                    <button 
+                      onClick={() => setFromAmount("0.2")}
+                      className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
+                      title="Use recommended test amount for USDC→PRIOR"
+                    >
+                      Try: 0.2
+                    </button>
+                    <button 
+                      onClick={() => setFromAmount("1")}
+                      className="text-xs bg-blue-700 hover:bg-blue-600 px-2 py-0.5 rounded"
+                      title="Use recommended test amount for USDC→PRIOR"
+                    >
+                      Try: 1
+                    </button>
+                    <button 
+                      onClick={() => setFromAmount("2")}
+                      className="text-xs bg-indigo-700 hover:bg-indigo-600 px-2 py-0.5 rounded"
+                      title="Use recommended test amount for USDC→PRIOR"
+                    >
+                      Try: 2
+                    </button>
+                  </>
                 )}
 
                 <button 
