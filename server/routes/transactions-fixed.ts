@@ -177,10 +177,11 @@ router.post('/sync-transactions', async (req: Request, res: Response) => {
     // Get or create user
     let user = await storage.getUser(address);
     if (!user) {
-      user = await storage.createUser({ address, lastClaim: null });
+      user = await storage.createUser({ address: address.toLowerCase(), lastClaim: null });
+      console.log(`Created new user for address ${address} during transaction sync`);
     }
     
-    console.log(`Syncing ${transactions.length} transactions for user ${user.id} (${address})`);
+    console.log(`Syncing ${transactions.length} historical transactions for user ${user.id} (${address})`);
     
     // Track stats for response
     const stats = {
@@ -190,73 +191,89 @@ router.post('/sync-transactions', async (req: Request, res: Response) => {
       points: 0
     };
     
+    // Get user's existing transactions to avoid duplicates
+    const existingTxs = await storage.getUserTransactions(user.id);
+    const existingTxHashes = new Set(existingTxs.transactions.map(tx => tx.txHash));
+    
+    console.log(`User has ${existingTxHashes.size} existing transactions in database`);
+    
+    // Sort transactions by block number (ascending) to process oldest first
+    const sortedTransactions = [...transactions].sort((a, b) => a.blockNumber - b.blockNumber);
+    
     // Process each transaction
-    for (const tx of transactions) {
-      // Check if transaction already exists
-      const existingTxs = await storage.getUserTransactions(user.id);
-      const txExists = existingTxs.transactions.some(
-        existingTx => existingTx.txHash === tx.txHash
-      );
+    for (const tx of sortedTransactions) {
+      // Skip if transaction already exists
+      if (existingTxHashes.has(tx.txHash)) {
+        continue;
+      }
       
-      if (!txExists) {
-        // Create a new transaction record
-        const newTx = await storage.createTransaction({
-          userId: user.id,
-          type: tx.type,
-          txHash: tx.txHash,
-          fromToken: tx.fromToken,
-          toToken: tx.toToken,
-          fromAmount: tx.fromAmount,
-          toAmount: tx.toAmount,
-          status: 'completed',
-          blockNumber: tx.blockNumber
-        });
+      // Create a new transaction record
+      const newTx = await storage.createTransaction({
+        userId: user.id,
+        type: tx.type,
+        txHash: tx.txHash,
+        fromToken: tx.fromToken,
+        toToken: tx.toToken,
+        fromAmount: tx.fromAmount,
+        toAmount: tx.toAmount,
+        status: 'completed',
+        blockNumber: tx.blockNumber
+      });
+      
+      stats.newTransactions++;
+      console.log(`Added new ${tx.type} transaction: ${tx.txHash}`);
+      
+      // Track transaction type
+      if (tx.type === 'swap') {
+        stats.swaps++;
         
-        stats.newTransactions++;
+        // If it's a swap, increment the user's swap count
+        await storage.incrementUserSwapCount(user.id);
         
-        // Track transaction type
-        if (tx.type === 'swap') {
-          stats.swaps++;
-          
-          // If it's a swap, increment the user's swap count
-          await storage.incrementUserSwapCount(user.id);
-          
-          // Award swap badge if this is their first swap
-          const userStats = await storage.getUserStats(user.id);
-          if (userStats.totalSwaps === 1) {
-            await storage.addUserBadge(user.id, "swap_completed");
-          }
-        } else if (tx.type === 'faucet_claim') {
-          stats.claims++;
-          
-          // Award token_claimed badge if they don't have it
-          const badges = await storage.getUserBadges(user.id);
-          if (!badges.includes('token_claimed')) {
-            await storage.addUserBadge(user.id, "token_claimed");
-          }
+        // Award swap badge if this is their first swap
+        const userStats = await storage.getUserStats(user.id);
+        if (userStats.totalSwaps === 1) {
+          await storage.addUserBadge(user.id, "swap_completed");
         }
+      } else if (tx.type === 'faucet_claim') {
+        stats.claims++;
+        await storage.incrementUserClaimCount(user.id);
         
-        // Calculate and add points
-        const points = await getTransactionPoints(user.id, tx.type, tx);
-        if (points > 0) {
-          await storage.addUserPoints(user.id, points);
-          stats.points += points;
-          console.log(`Awarded ${points} points for transaction ${tx.txHash}`);
+        // Award token_claimed badge if they don't have it
+        const badges = await storage.getUserBadges(user.id);
+        if (!badges.includes('token_claimed')) {
+          await storage.addUserBadge(user.id, "token_claimed");
         }
       }
+      
+      // Calculate and add points
+      const points = await getTransactionPoints(user.id, tx.type, tx);
+      if (points > 0) {
+        await storage.addUserPoints(user.id, points);
+        stats.points += points;
+        console.log(`Awarded ${points} points for transaction ${tx.txHash}`);
+      }
+      
+      // Add to set of existing hashes to avoid processing duplicates in this batch
+      existingTxHashes.add(tx.txHash);
     }
+    
+    // Get updated user stats after all transactions are processed
+    const updatedStats = await storage.getUserStats(user.id);
     
     res.json({
       success: true,
       message: `Synced ${stats.newTransactions} new transactions`,
-      stats
+      stats,
+      userStats: updatedStats
     });
     
   } catch (error) {
     console.error("Error syncing transactions:", error);
     res.status(400).json({ 
       success: false,
-      message: "Error syncing transactions" 
+      message: "Error syncing transactions",
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 });

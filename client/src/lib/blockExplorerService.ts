@@ -367,27 +367,44 @@ export async function fetchBlockExplorerTransactions(address: string): Promise<P
     // Lowercase the address for consistent comparisons
     address = address.toLowerCase();
     
+    console.log('Fetching historical transactions from Base Sepolia Explorer for address:', address);
+    
     // Fetch both normal and token transactions
     const [normalTxs, tokenTxs] = await Promise.all([
       fetchNormalTransactions(address),
       fetchTokenTransactions(address)
     ]);
     
-    // Combine all transactions
-    const allTxs = [...normalTxs, ...tokenTxs];
+    // Combine all transactions - deduplicate by hash
+    const txMap = new Map();
+    [...normalTxs, ...tokenTxs].forEach(tx => {
+      if (!txMap.has(tx.hash)) {
+        txMap.set(tx.hash, tx);
+      } else {
+        // If we already have this hash, merge any additional properties
+        const existingTx = txMap.get(tx.hash);
+        txMap.set(tx.hash, { ...existingTx, ...tx });
+      }
+    });
+    
+    const allTxs = Array.from(txMap.values());
+    console.log(`Found ${allTxs.length} total transactions (${normalTxs.length} normal, ${tokenTxs.length} token)`);
     
     // Process and filter transactions
     const parsedTransactions: ParsedTransaction[] = [];
     
     // First identify faucet transactions
-    for (const tx of allTxs) {
-      if (isFaucetTransaction(tx)) {
-        parsedTransactions.push(parseFaucetTransaction(tx));
-      }
+    const faucetTxs = allTxs.filter(tx => isFaucetTransaction(tx));
+    console.log(`Identified ${faucetTxs.length} faucet transactions`);
+    
+    for (const tx of faucetTxs) {
+      parsedTransactions.push(parseFaucetTransaction(tx));
     }
     
     // Then identify swap transactions
     const swapCandidates = allTxs.filter(tx => isSwapTransaction(tx) && !isFaucetTransaction(tx));
+    console.log(`Identified ${swapCandidates.length} potential swap transactions`);
+    
     const processedHashes = new Set<string>();
     
     for (const tx of swapCandidates) {
@@ -401,6 +418,27 @@ export async function fetchBlockExplorerTransactions(address: string): Promise<P
         processedHashes.add(tx.hash);
       }
     }
+    
+    // Sort transactions by timestamp/block number (recent first)
+    parsedTransactions.sort((a, b) => {
+      // Try to sort by timestamp first
+      const timeA = new Date(a.timestamp).getTime();
+      const timeB = new Date(b.timestamp).getTime();
+      
+      if (timeA !== timeB) {
+        return timeB - timeA; // Descending order
+      }
+      
+      // If timestamps are same or invalid, sort by block number
+      return b.blockNumber - a.blockNumber;
+    });
+    
+    // Log summary of what we found
+    console.log(`Processed ${parsedTransactions.length} transactions: ${
+      parsedTransactions.filter(tx => tx.type === 'faucet_claim').length
+    } faucet claims, ${
+      parsedTransactions.filter(tx => tx.type === 'swap').length
+    } swaps`);
     
     // Log if we don't find any transactions
     if (parsedTransactions.length === 0) {
