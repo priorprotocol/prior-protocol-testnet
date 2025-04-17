@@ -608,10 +608,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
       
-      // Find user
-      const user = await storage.getUser(address);
+      // Find user or auto-create if not found
+      let user = await storage.getUser(address);
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        console.log(`Auto-creating user for address: ${address} during faucet claim`);
+        user = await storage.createUser({
+          address: address.toLowerCase(),
+          lastClaim: null
+        });
       }
       
       // Create transaction record
@@ -642,10 +646,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
       
-      // Find user
-      const user = await storage.getUser(address);
+      // Find user or auto-create if not found
+      let user = await storage.getUser(address);
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        console.log(`Auto-creating user for address: ${address} during swap`);
+        user = await storage.createUser({
+          address: address.toLowerCase(),
+          lastClaim: null
+        });
       }
       
       // Create transaction record
@@ -680,9 +688,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if this is a wallet address or a numeric ID
       if (userIdOrAddress.startsWith('0x')) {
         // This is a wallet address
-        const user = await storage.getUser(userIdOrAddress);
+        let user = await storage.getUser(userIdOrAddress);
         if (!user) {
-          return res.status(404).json({ message: "User not found" });
+          console.log(`Auto-creating user for address: ${userIdOrAddress} during daily swap count check`);
+          user = await storage.createUser({
+            address: userIdOrAddress.toLowerCase(),
+            lastClaim: null
+          });
         }
         userId = user.id;
       } else {
