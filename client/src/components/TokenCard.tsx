@@ -128,29 +128,17 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, forceBalance }) => {
     }
   }, [rawBalance, forceBalance, token.symbol]);
   
-  // If this is PRIOR, and we're seeing an unexpected 0 balance even though we know it should be non-zero,
-  // for a testnet environment it's acceptable to display a reasonable default
+  // We no longer use any cache for token balances - always display the actual value from chain
+  // This ensures that we don't show incorrect balances from old contract addresses
   let displayedBalance = displayBalance;
   
-  // Only when we're showing PRIOR token, and the user has done a USDC→PRIOR swap
-  if (token.symbol === "PRIOR" && displayedBalance === "0.0000" && forceBalance === undefined) {
-    // Check local storage to see if we've recently done a swap
-    const lastSwapInfo = localStorage.getItem('lastPriorSwap');
-    if (lastSwapInfo) {
-      try {
-        const swapData = JSON.parse(lastSwapInfo);
-        const timestamp = swapData.timestamp || 0;
-        const now = Date.now();
-        
-        // If the swap was in the last 5 minutes, show the expected balance
-        if (now - timestamp < 5 * 60 * 1000) {
-          console.log(`Using cached swap result: ${swapData.amount} PRIOR`);
-          displayedBalance = swapData.amount;
-        }
-      } catch (e) {
-        console.error("Error parsing lastPriorSwap from localStorage:", e);
-      }
-    }
+  console.log(`Token card displaying ${token.symbol} balance: ${displayedBalance}`);
+  
+  // Clear any previous storage that might interfere with balance display
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('lastPriorSwap');
+    localStorage.removeItem('tokenBalances');
+    localStorage.removeItem('cachedBalances');
   }
 
   return (
