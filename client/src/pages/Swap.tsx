@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ethers } from "ethers";
 import TokenCard from "@/components/TokenCard";
 import { getTokenContract, swapTokens, approveTokens, getTokenBalance, 
-  getPriorToUSDCRate, calculateSimpleSwapOutput, getTokenContractWithSigner } from "@/contracts/services";
+  getPriorToUSDCRate, calculateSimpleSwapOutput, getTokenContractWithSigner, isTokenApproved } from "@/contracts/services";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 
 import { 
@@ -165,6 +165,36 @@ export default function Swap() {
   useEffect(() => {
     loadExchangeRates();
   }, []);
+  
+  // Check for token approval status when wallet or tokens change
+  useEffect(() => {
+    const checkAllowance = async () => {
+      // Only check allowance if connected to a wallet
+      const currentAddress = directAddress || address;
+      if (!currentAddress || !isPairSupported()) {
+        return;
+      }
+      
+      try {
+        // Get the token address and swap contract address
+        const fromTokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
+        const swapContractAddress = CORRECT_ADDRESSES.PRIOR_USDC_SWAP;
+        
+        console.log(`Checking allowance for ${fromToken} (${fromTokenAddress}) to swap contract ${swapContractAddress}`);
+        
+        // Check if the token is already approved using the isTokenApproved function
+        const approved = await isTokenApproved(fromTokenAddress, swapContractAddress);
+        
+        console.log(`${fromToken} approval status:`, approved ? "Already approved" : "Needs approval");
+        setHasAllowance(approved);
+      } catch (error) {
+        console.error("Error checking token allowance:", error);
+        setHasAllowance(false);
+      }
+    };
+    
+    checkAllowance();
+  }, [fromToken, toToken, directAddress, address]);
 
   // Load token balances for selected tokens from the actual contracts
   const loadBalances = async (walletAddress: string) => {
