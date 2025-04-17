@@ -71,23 +71,29 @@ export class DatabaseStorage implements IStorage {
     const currentSwaps = user.totalSwaps || 0;
     const newSwapCount = currentSwaps + 1;
     
-    // Check if user has reached 10+ daily swaps to award points (2 points per swap)
+    // This counts the number of swaps already completed today BEFORE this swap
     const dailySwaps = await this.getDailySwapCount(userId);
     
-    // Calculate points to award - only if user has 10 or more daily swaps
+    // The current swap will be the Nth daily swap where N = dailySwaps + 1
+    const currentDailySwapNumber = dailySwaps + 1;
+    
+    console.log(`[SwapCounter] User ${userId} completing swap #${currentDailySwapNumber} today (total swaps: ${newSwapCount})`);
+    
+    // Calculate points to award - only if user has 10 or more daily swaps (including this one)
     let pointsToAdd = 0;
-    if (dailySwaps >= 9) { // This will be the 10th swap
-      pointsToAdd = 2; // Award 2 points for this swap
+    
+    if (currentDailySwapNumber >= 10) {
+      // User has 10+ daily swaps after this one is counted
+      pointsToAdd = 2; // Award 2 points per swap
       
-      // Add Prior Swap badge if user reaches 20+ total swaps
-      if (newSwapCount >= 20) {
-        const userBadges = await this.getUserBadges(userId);
-        if (!userBadges.includes('prior_swap')) {
-          await this.addUserBadge(userId, 'prior_swap');
-        }
+      if (currentDailySwapNumber === 10) {
+        // This is exactly the 10th swap - special case for milestone
+        console.log(`[SwapCounter] Milestone! User reached exactly 10 daily swaps, awarding ${pointsToAdd} points`);
+      } else {
+        console.log(`[SwapCounter] Awarding ${pointsToAdd} points for swap #${currentDailySwapNumber} today`);
       }
-    } else if (dailySwaps >= 10) {
-      pointsToAdd = 2; // Continue to award 2 points per swap after reaching 10
+    } else {
+      console.log(`[SwapCounter] No points awarded for daily swap #${currentDailySwapNumber} (need 10+)`);
     }
     
     // Update the user with the new swap count and add points if earned
@@ -100,14 +106,18 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     
+    console.log(`[SwapCounter] User ${userId} now has ${updatedUser.totalSwaps} total swaps and ${updatedUser.points} points`);
+    
     // Record this transaction with points information
-    await this.createTransaction({
+    const transaction = await this.createTransaction({
       userId,
       type: 'swap',
       txHash: `swap_${Date.now()}`, // Placeholder for actual transaction hash
       status: 'completed',
       points: pointsToAdd
     });
+    
+    console.log(`[SwapCounter] Recorded transaction ${transaction.id} with ${pointsToAdd} points`);
     
     return updatedUser.totalSwaps || 0;
   }
@@ -400,13 +410,30 @@ export class DatabaseStorage implements IStorage {
     if (transaction.type === 'swap') {
       // Check if user has 10+ daily swaps
       const userId = transaction.userId;
+      
+      // This counts swaps made today INCLUDING this one
       const dailySwaps = await this.getDailySwapCount(userId);
       
+      console.log(`[PointsCalc] User ${userId} has ${dailySwaps} daily swaps (including current)`);
+      
       if (dailySwaps >= 10) {
+        // User has at least 10 daily swaps (including this one)
+        console.log(`[PointsCalc] Awarding 2 points for swap to user ${userId} (${dailySwaps} daily swaps)`);
+        
+        if (dailySwaps === 10) {
+          // This is exactly the 10th swap - special case for milestone logging
+          console.log(`[PointsCalc] Milestone! User reached exactly 10 daily swaps threshold`);
+        }
+        
         return 2; // 2 points per swap when user has 10+ daily swaps
+      } else {
+        console.log(`[PointsCalc] No points awarded - user ${userId} has only ${dailySwaps} daily swaps (need 10+)`);
       }
     } else if (transaction.type === 'governance_vote') {
+      console.log(`[PointsCalc] Awarding 10 points for governance vote to user ${transaction.userId}`);
       return 10; // 10 points per governance vote
+    } else {
+      console.log(`[PointsCalc] No points for transaction type: ${transaction.type}`);
     }
     
     return 0; // Default: 0 points
