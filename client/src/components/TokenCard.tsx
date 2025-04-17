@@ -9,8 +9,9 @@ interface TokenCardProps {
 }
 
 const TokenCard: React.FC<TokenCardProps> = ({ token, forceBalance }) => {
-  // Track the balance with state to handle immediate updates
+  // State variables
   const [displayBalance, setDisplayBalance] = useState<string>("0.00");
+  const [correctedToken, setCorrectedToken] = useState<TokenInfo>({...token});
   
   // Initialize with default values
   let getTokenBalance = (_symbol: string) => "0.00";
@@ -23,59 +24,44 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, forceBalance }) => {
     console.log("Wallet context not available yet in TokenCard component");
   }
   
+  // First ensure we're using correct contract addresses
+  useEffect(() => {
+    let needsUpdate = false;
+    const updatedToken = {...token}; // Create a copy to avoid mutating props
+    
+    // Check if the token address is correct, if not prepare an update
+    if (token.symbol === "PRIOR" && token.address.toLowerCase() !== CORRECT_ADDRESSES.PRIOR_TOKEN.toLowerCase()) {
+      console.warn(`Using correct PRIOR token address: ${CORRECT_ADDRESSES.PRIOR_TOKEN}`);
+      updatedToken.address = CORRECT_ADDRESSES.PRIOR_TOKEN;
+      needsUpdate = true;
+    } else if (token.symbol === "USDC" && token.address.toLowerCase() !== CORRECT_ADDRESSES.USDC_TOKEN.toLowerCase()) {
+      console.warn(`Using correct USDC token address: ${CORRECT_ADDRESSES.USDC_TOKEN}`);
+      updatedToken.address = CORRECT_ADDRESSES.USDC_TOKEN;
+      needsUpdate = true;
+    }
+    
+    // If we needed to update the address, set the local state and clear cache
+    if (needsUpdate) {
+      setCorrectedToken(updatedToken);
+      clearTokenCache();
+    } else {
+      setCorrectedToken(token);
+    }
+  }, [token]);
+  
   // Format the balance based on token type and decimals
   const formatBalance = (rawBalance: string): string => {
     // If no balance or invalid, return 0
     if (!rawBalance || isNaN(parseFloat(rawBalance))) {
-      return token.symbol === "PRIOR" ? '0.0000' : '0.00';
+      return correctedToken.symbol === "PRIOR" ? '0.0000' : '0.00';
     }
     
     // Parse the balance
     const parsedBalance = parseFloat(rawBalance);
     
     // Format based on token type
-    if (token.symbol === "PRIOR") {
-      // Enhanced debugging for PRIOR token balances
-      console.log(`TokenCard PRIOR raw balance: ${rawBalance}`);
-      
-      // Special case for tiny PRIOR amounts (which often come from token swaps)
-      // These may be too small to show properly with normal formatting
-      if (rawBalance && rawBalance.length < 15 && parsedBalance > 0 && parsedBalance < 0.001) {
-        try {
-          // If we have a tiny wei amount directly from chain
-          // Try to convert it manually to ether units
-          console.log(`Processing tiny PRIOR amount: ${rawBalance}`);
-          
-          // Check if we're dealing with a raw wei value
-          if (rawBalance.indexOf('.') === -1) {
-            // No decimal point, probably a raw wei value (e.g., "299619984")
-            const weiBalance = BigInt(rawBalance);
-            const etherBalance = Number(weiBalance) / 1e18;
-            console.log(`Converted wei to ether: ${etherBalance}`);
-            
-            // For values from swaps (around 0.2), use a different format
-            if (etherBalance >= 0.1 && etherBalance < 1) {
-              return etherBalance.toFixed(3); // Show like 0.200
-            } else if (etherBalance >= 0.01 && etherBalance < 0.1) {
-              return etherBalance.toFixed(4); // Show like 0.0250
-            } else if (etherBalance > 0) {
-              // For very small amounts, still show something
-              return etherBalance.toFixed(6); // Show tiny amounts with precision
-            }
-          }
-        } catch (error) {
-          console.error("Error handling tiny PRIOR amount:", error);
-        }
-      }
-      
-      // For expected PRIOR values from swaps (like 0.2 PRIOR from 2 USDC)
-      // Make sure these display properly
-      if (parsedBalance >= 0.1 && parsedBalance < 1) {
-        console.log(`Displaying PRIOR value in 0.1-1 range: ${parsedBalance}`);
-        return parsedBalance.toFixed(3); // Show 3 decimal places (0.200)
-      }
-      
-      // Standard display for other values
+    if (correctedToken.symbol === "PRIOR") {
+      // Standard display for PRIOR values
       if (parsedBalance >= 1) {
         return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
       } else if (parsedBalance >= 0.01) {
@@ -87,98 +73,57 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, forceBalance }) => {
         return '0.0000';
       }
     } else {
-      // For stablecoins (USDC, USDT) we need to handle the very large testnet values
-      
-      // Detect and fix the testnet values - these are much larger than normal values
-      if (parsedBalance > 1000000) {
-        // For stablecoins with large values, use fixed display values
-        if (token.symbol === "USDC") {
-          return "2"; // Fixed display value for USDC
-        } else if (token.symbol === "USDT") {
-          return "1"; // Fixed display value for USDT
-        } else {
-          // Fallback for any other token with large value
-          return "2"; // Just show a reasonable value
-        }
-      } else {
-        // Normal case for reasonable stablecoin values, display with 2 decimal places
-        return parsedBalance.toFixed(2).replace(/\.?0+$/, '');
-      }
+      // For stablecoins (USDC), always use 2 decimal places
+      return parsedBalance.toFixed(2);
     }
   };
   
-  // Get the token balance from the wallet context
-  const rawBalance = getTokenBalance(token.symbol);
-  
-  // Update displayBalance when props change or wallet balance changes
+  // Update balance display
   useEffect(() => {
+    // Get the raw balance of the corrected token
+    const rawBalance = getTokenBalance(correctedToken.symbol);
+    
     // If a force balance is provided, use that instead of the wallet balance
-    // This is used for immediate UI updates during swaps
     if (forceBalance !== undefined) {
-      console.log(`Using forced balance for ${token.symbol}: ${forceBalance}`);
+      console.log(`Using forced balance for ${correctedToken.symbol}: ${forceBalance}`);
       setDisplayBalance(formatBalance(forceBalance));
     } else {
       // Otherwise use the balance from the wallet
       const formattedBalance = formatBalance(rawBalance);
       setDisplayBalance(formattedBalance);
       
-      // Special logging for PRIOR to help debug
-      if (token.symbol === "PRIOR") {
-        console.log(`TokenCard updated PRIOR balance: ${formattedBalance} (from raw: ${rawBalance})`);
-      }
+      // Debug logging
+      console.log(`TokenCard updated ${correctedToken.symbol} balance: ${formattedBalance} (raw: ${rawBalance})`);
+      console.log(`Using ${correctedToken.symbol} address: ${correctedToken.address}`);
     }
-  }, [rawBalance, forceBalance, token.symbol]);
-  
-  // We no longer use any cache for token balances - always display the actual value from chain
-  // This ensures that we don't show incorrect balances from old contract addresses
-  let displayedBalance = displayBalance;
-  
-  // Ensure token is using the correct address
-  useEffect(() => {
-    // Check if the token address is correct, if not update it
-    if (token.symbol === "PRIOR" && token.address.toLowerCase() !== CORRECT_ADDRESSES.PRIOR_TOKEN.toLowerCase()) {
-      console.warn(`Fixing incorrect PRIOR token address: ${token.address} -> ${CORRECT_ADDRESSES.PRIOR_TOKEN}`);
-      token.address = CORRECT_ADDRESSES.PRIOR_TOKEN;
-      // Clear any cached data
-      clearTokenCache();
-    } else if (token.symbol === "USDC" && token.address.toLowerCase() !== CORRECT_ADDRESSES.USDC_TOKEN.toLowerCase()) {
-      console.warn(`Fixing incorrect USDC token address: ${token.address} -> ${CORRECT_ADDRESSES.USDC_TOKEN}`);
-      token.address = CORRECT_ADDRESSES.USDC_TOKEN;
-      // Clear any cached data
-      clearTokenCache();
-    }
-  }, [token]);
-  
-  console.log(`Token card displaying ${token.symbol} balance: ${displayedBalance} (address: ${token.address})`);
-  
-  // Clear any previous storage that might interfere with balance display
-  useEffect(() => {
+    
+    // Clear any cache that might interfere with balance display
     if (typeof window !== 'undefined') {
       localStorage.removeItem('lastPriorSwap');
       localStorage.removeItem('tokenBalances');
       localStorage.removeItem('cachedBalances');
     }
-  }, []);
-
+  }, [correctedToken, forceBalance]);
+  
   return (
     <div className="gradient-border bg-[#141D29] p-4 shadow-lg">
       <div className="flex items-center mb-2">
         <div 
           className="w-8 h-8 rounded-full flex items-center justify-center mr-2"
-          style={{ backgroundColor: token.logoColor }}
+          style={{ backgroundColor: correctedToken.logoColor }}
         >
-          {token.symbol === "PRIOR" ? (
+          {correctedToken.symbol === "PRIOR" ? (
             <span className="font-bold text-sm">P</span>
-          ) : token.symbol === "WETH" ? (
+          ) : correctedToken.symbol === "WETH" ? (
             <span className="font-bold text-sm">Ξ</span>
           ) : (
             <span className="font-bold text-sm">$</span>
           )}
         </div>
-        <span className="font-medium">{token.symbol}</span>
+        <span className="font-medium">{correctedToken.symbol}</span>
       </div>
-      <div className="text-2xl font-bold mb-1 font-space">{displayedBalance}</div>
-      <div className="text-xs text-[#A0AEC0]">{token.name}</div>
+      <div className="text-2xl font-bold mb-1 font-space">{displayBalance}</div>
+      <div className="text-xs text-[#A0AEC0]">{correctedToken.name}</div>
     </div>
   );
 };

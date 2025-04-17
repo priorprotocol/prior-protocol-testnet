@@ -140,21 +140,9 @@ export default function Swap() {
     if (currentAddress) {
       console.log("Address detected in useEffect, loading balances:", currentAddress);
       
-      // Set fixed testnet balances for tokens to ensure users can always swap
-      // This resolves the "insufficient balance" error when trying to swap
-      const newBalances: {[key: string]: string} = {
-        "PRIOR": "3000",
-        "USDC": "9900"
-      };
-      
-      console.log("Setting fixed testnet balances for swap functionality:", newBalances);
-      setBalances(newBalances);
-      
-      // Also update forced balances for TokenCard display
-      setForcedBalances({
-        "PRIOR": "3000.00",
-        "USDC": "9900.00"
-      });
+      // We no longer set fixed testnet balances - instead use actual balances from the blockchain
+      // This ensures we're always showing the correct values from the current contracts
+      loadBalances(currentAddress);
       
       // Also ensure we have a signer if we have an address
       if (provider && !signer) {
@@ -167,6 +155,9 @@ export default function Swap() {
       }
     } else {
       console.log("No address available in useEffect");
+      // Clear balances when no address is available
+      setBalances({});
+      setForcedBalances({});
     }
   }, [directAddress, address, provider, signer]);
 
@@ -216,14 +207,8 @@ export default function Swap() {
     } catch (error) {
       console.error("Error loading token balances:", error);
       // Fallback to empty balances if there's an error
-      setBalances({
-        "PRIOR": "0",
-        "USDC": "0"
-      });
-      setForcedBalances({
-        "PRIOR": "0.00",
-        "USDC": "0.00"
-      });
+      setBalances({});
+      setForcedBalances({});
     }
   };
 
