@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Leaderboard } from "@/components/Leaderboard";
-import { TransactionHistory } from "@/components/TransactionHistory";
 import { formatAddress } from "@/lib/formatAddress";
 import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
 import { RefreshCw } from "lucide-react";
