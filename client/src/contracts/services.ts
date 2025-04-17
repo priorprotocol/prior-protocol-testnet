@@ -15,9 +15,7 @@ import { CONTRACT_ADDRESSES, SWAP_CONTRACTS } from './addresses';
 import { TOKEN_DECIMALS, TOKEN_SYMBOLS } from './metadata/tokens';
 import { 
   erc20Abi, 
-  priorUsdcSwapAbi, 
-  priorUsdtSwapAbi, 
-  usdcUsdtSwapAbi,
+  priorUsdcSwapAbi,
   faucetAbi, 
   nftAbi 
 } from './abis';
@@ -141,26 +139,8 @@ export const getTokenBalance = async (tokenAddress: string, address: string): Pr
     try {
       const rawValue = balance.toString();
       
-      // Direct fixed balance handling for testnet tokens with extremely large values
-      // This ensures we always have reasonable balance displays in the UI
-      
-      // Check if this is a large PRIOR balance (testnet)
-      if (symbol === "PRIOR" && rawValue.length > 21) { // Large PRIOR value
-        console.log(`Detected testnet PRIOR value: ${rawValue}, using fixed display value`);
-        return "3000"; // Display a reasonable amount (no decimals for large values)
-      }
-      
-      // Check if this is a large USDC balance (testnet)
-      if (symbol === "USDC" && rawValue.length > 11) { // Large USDC value
-        console.log(`Detected testnet USDC value: ${rawValue}, using fixed display value`);
-        return "9900.00"; // Display a reasonable amount for USDC testnet
-      }
-      
-      // Check if this is a large USDT balance (testnet)
-      if (symbol === "USDT" && rawValue.length > 11) { // Large USDT value
-        console.log(`Detected testnet USDT value: ${rawValue}, using fixed display value`);
-        return "10000.00"; // Display a reasonable amount for USDT testnet
-      }
+      // We no longer use fixed balances for the new deployment
+      // Instead we show the actual balances from the new contract addresses
       
       // For normal decimal values, use the standard formatting
       const formattedBalance = ethers.utils.formatUnits(rawValue, decimals);
@@ -386,43 +366,19 @@ export const swapTokens = async (
       // Add strong error logging to catch any issues
       console.log(`About to execute ${fromSymbol} to ${toSymbol} swap with contract:`, swapContract);
       
-      // PRIOR/USDC Swap - most reliable pair
-      if ((fromSymbol === "PRIOR" && toSymbol === "USDC")) {
+      // Only PRIOR-USDC Swap is supported in the new deployment
+      if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
         console.log("Executing PRIOR to USDC swap");
         // Get contract methods to verify they exist
         console.log("Available contract methods:", Object.keys(swapContract.functions));
         tx = await swapContract.swapPriorToUsdc(parsedAmount);
-      } else if ((fromSymbol === "USDC" && toSymbol === "PRIOR")) {
+      } else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
         console.log("Executing USDC to PRIOR swap");
         // Get contract methods to verify they exist
         console.log("Available contract methods:", Object.keys(swapContract.functions));
         tx = await swapContract.swapUsdcToPrior(parsedAmount);
-      } 
-      // PRIOR/USDT Swap
-      else if ((fromSymbol === "PRIOR" && toSymbol === "USDT")) {
-        console.log("Executing PRIOR to USDT swap");
-        // Get contract methods to verify they exist
-        console.log("Available contract methods:", Object.keys(swapContract.functions));
-        tx = await swapContract.swapPriorToUsdt(parsedAmount);
-      } else if ((fromSymbol === "USDT" && toSymbol === "PRIOR")) {
-        console.log("Executing USDT to PRIOR swap");
-        // Get contract methods to verify they exist
-        console.log("Available contract methods:", Object.keys(swapContract.functions));
-        tx = await swapContract.swapUsdtToPrior(parsedAmount);
-      }
-      // USDC/USDT Swap
-      else if ((fromSymbol === "USDC" && toSymbol === "USDT")) {
-        console.log("Executing USDC to USDT swap");
-        // Get contract methods to verify they exist
-        console.log("Available contract methods:", Object.keys(swapContract.functions));
-        tx = await swapContract.swapUsdcToUsdt(parsedAmount);
-      } else if ((fromSymbol === "USDT" && toSymbol === "USDC")) {
-        console.log("Executing USDT to USDC swap");
-        // Get contract methods to verify they exist
-        console.log("Available contract methods:", Object.keys(swapContract.functions));
-        tx = await swapContract.swapUsdtToUsdc(parsedAmount);
       } else {
-        throw new Error(`Swap pair not supported: ${fromSymbol} to ${toSymbol}`);
+        throw new Error(`Swap pair not supported: ${fromSymbol} to ${toSymbol}. Only PRIOR-USDC is supported in this deployment.`);
       }
       
       console.log("Transaction submitted, waiting for confirmation...");
@@ -432,31 +388,17 @@ export const swapTokens = async (
       
       // Try again with an even smaller amount if we get a liquidity error
       if (error.message && error.message.includes("liquidity")) {
-        if (fromSymbol === "PRIOR") {
+        if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
           console.log("Trying again with a very small amount due to liquidity constraint for PRIOR");
           const tinyAmount = "0.001";
           const tinyParsedAmount = ethers.utils.parseUnits(tinyAmount, decimals);
-          
-          if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
-            tx = await swapContract.swapPriorToUsdc(tinyParsedAmount);
-          } else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
-            tx = await swapContract.swapPriorToUsdt(tinyParsedAmount);
-          } else {
-            throw error;
-          }
-          
+          tx = await swapContract.swapPriorToUsdc(tinyParsedAmount);
           return tx.wait();
-        } else if ((fromSymbol === "USDC" && toSymbol === "USDT") || (fromSymbol === "USDT" && toSymbol === "USDC")) {
-          console.log("Trying again with a smaller amount due to liquidity constraint for stablecoin swap");
-          const tinyAmount = "1"; // Use a very small amount (1 USDC/USDT)
+        } else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
+          console.log("Trying again with a smaller amount due to liquidity constraint for USDC");
+          const tinyAmount = "1"; // Use a small amount (1 USDC)
           const tinyParsedAmount = ethers.utils.parseUnits(tinyAmount, decimals);
-          
-          if (fromSymbol === "USDC" && toSymbol === "USDT") {
-            tx = await swapContract.swapUsdcToUsdt(tinyParsedAmount);
-          } else if (fromSymbol === "USDT" && toSymbol === "USDC") {
-            tx = await swapContract.swapUsdtToUsdc(tinyParsedAmount);
-          }
-          
+          tx = await swapContract.swapUsdcToPrior(tinyParsedAmount);
           return tx.wait();
         } else {
           throw error;

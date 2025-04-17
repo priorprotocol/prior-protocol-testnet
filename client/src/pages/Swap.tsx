@@ -166,19 +166,44 @@ export default function Swap() {
     loadExchangeRates();
   }, []);
 
-  // Load token balances for selected tokens
+  // Load token balances for selected tokens from the actual contracts
   const loadBalances = async (walletAddress: string) => {
-    // Set fixed testnet balances for tokens to ensure users can always swap
-    const newBalances: {[key: string]: string} = {
-      "PRIOR": "3000",
-      "USDC": "9900"
-    };
-    
-    setBalances(newBalances);
-    setForcedBalances({
-      "PRIOR": "3000.00",
-      "USDC": "9900.00"
-    });
+    try {
+      const newBalances: {[key: string]: string} = {};
+      const forcedBalancesMap: {[key: string]: string} = {};
+      
+      // Fetch PRIOR balance
+      const priorBalance = await getTokenBalance(
+        CONTRACT_ADDRESSES.priorToken,
+        walletAddress
+      );
+      newBalances["PRIOR"] = priorBalance;
+      forcedBalancesMap["PRIOR"] = formatBalance(priorBalance, "PRIOR");
+      
+      // Fetch USDC balance
+      const usdcBalance = await getTokenBalance(
+        TOKENS.USDC.address,
+        walletAddress
+      );
+      newBalances["USDC"] = usdcBalance;
+      forcedBalancesMap["USDC"] = formatBalance(usdcBalance, "USDC");
+      
+      console.log("Loaded real token balances:", newBalances);
+      
+      setBalances(newBalances);
+      setForcedBalances(forcedBalancesMap);
+    } catch (error) {
+      console.error("Error loading token balances:", error);
+      // Fallback to empty balances if there's an error
+      setBalances({
+        "PRIOR": "0",
+        "USDC": "0"
+      });
+      setForcedBalances({
+        "PRIOR": "0.00",
+        "USDC": "0.00"
+      });
+    }
   };
 
   // Load exchange rates from contract
@@ -206,11 +231,6 @@ export default function Swap() {
     
     // Parse the balance to a number
     const parsedBalance = parseFloat(balance || "0");
-    
-    // Handle very specific testnet values for USDC
-    if (token === "USDC" && parsedBalance > 1000000) {
-      return "9900.00"; // Display balance that's close to the actual value
-    }
     
     // For normal values, use cleaner display formats based on token type
     if (token === "PRIOR") {
