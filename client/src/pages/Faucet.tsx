@@ -118,9 +118,18 @@ const Faucet = () => {
         let txHash = "";
         let blockNumber = 0;
         
-        if (typeof txReceipt === 'object') {
-          txHash = txReceipt.transactionHash || txReceipt.hash || "";
-          blockNumber = txReceipt.blockNumber || 0;
+        if (txReceipt && typeof txReceipt === 'object') {
+          // Safely access receipt properties with type checking
+          txHash = (
+            'transactionHash' in txReceipt ? String(txReceipt.transactionHash) :
+            'hash' in txReceipt ? String(txReceipt.hash) : 
+            `faucet_claim_${Date.now()}`  // Fallback identifier if no hash found
+          );
+          
+          blockNumber = (
+            'blockNumber' in txReceipt ? Number(txReceipt.blockNumber) : 
+            0  // Default block number if not available
+          );
         }
         
         // Also update our backend to track the claim
@@ -136,8 +145,11 @@ const Faucet = () => {
           
           // Record the transaction in our transaction history
           try {
+            // Make sure userId is a number (casting to avoid type errors)
+            const userId = userData?.id ? Number(userData.id) : undefined;
+            
             const txResponse = await apiRequest('POST', '/api/transactions', {
-              userId: userData?.id,
+              userId,
               type: 'faucet_claim',
               fromToken: null,
               toToken: 'PRIOR',
@@ -145,7 +157,7 @@ const Faucet = () => {
               toAmount: '1',
               txHash,
               status: 'completed',
-              blockNumber
+              blockNumber: Number(blockNumber)
             });
             console.log("Transaction recorded:", txResponse);
           } catch (txError) {
@@ -187,20 +199,47 @@ const Faucet = () => {
       console.error("Claim error:", error);
       // Check for specific error messages
       let errorMessage = "An error occurred during the claim process";
+      let errorTitle = "Failed to claim token";
+      let errorVariant: "default" | "destructive" = "destructive";
       
-      if (error.reason?.includes("Wait 24 hours") || error.message?.includes("wait")) {
-        errorMessage = "You must wait 24 hours between claims. The Prior smart contract enforces this limit.";
-      } else if (error.message) {
+      const errorStr = String(error.message || error.reason || "").toLowerCase();
+      
+      // Handle wait time / already claimed errors with a more user-friendly message
+      if (
+        errorStr.includes("wait") || 
+        errorStr.includes("claim interval") || 
+        errorStr.includes("24 hour") || 
+        errorStr.includes("already claimed")
+      ) {
+        errorTitle = "Already Claimed Today";
+        errorMessage = "You have already claimed tokens today. Please check back in 24 hours for your next claim. The Prior Protocol smart contract enforces this daily limit.";
+        errorVariant = "default"; // Less alarming for expected behavior
+      } 
+      // Handle contract-related errors
+      else if (
+        errorStr.includes("contract") || 
+        errorStr.includes("function") ||
+        errorStr.includes("execution reverted")
+      ) {
+        errorMessage = "The faucet claim transaction failed. This could be due to network congestion or contract state. Please try again later.";
+      }
+      // Use provided error message if available
+      else if (error.message) {
         errorMessage = error.message;
       } else if (error.reason) {
         errorMessage = error.reason;
       }
         
       toast({
-        title: "Failed to claim token",
+        title: errorTitle,
         description: errorMessage,
-        variant: "destructive"
+        variant: errorVariant
       });
+      
+      // If it's a wait time error, refresh the user data to get updated claim time
+      if (errorStr.includes("wait") || errorStr.includes("claim interval") || errorStr.includes("24 hour")) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
+      }
     }
   });
   
@@ -251,6 +290,22 @@ const Faucet = () => {
           variant: "destructive"
         });
       }
+      return;
+    }
+    
+    // First check if user data shows they've already claimed today
+    // This provides a better UX by avoiding unnecessary contract calls
+    if (userData?.lastClaim && !canClaimTokens) {
+      const lastClaim = new Date(userData.lastClaim);
+      const nextClaim = new Date(lastClaim.getTime() + 24 * 60 * 60 * 1000);
+      const now = new Date();
+      const hoursRemaining = Math.ceil((nextClaim.getTime() - now.getTime()) / (1000 * 60 * 60));
+      
+      toast({
+        title: "Already Claimed Today",
+        description: `You have already claimed tokens today. Please check back in approximately ${hoursRemaining} hour${hoursRemaining !== 1 ? 's' : ''}.`,
+        variant: "default"
+      });
       return;
     }
     
