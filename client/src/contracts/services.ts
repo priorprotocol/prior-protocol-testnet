@@ -275,54 +275,57 @@ export const approveTokens = async (
   tokenAddress: string, 
   spenderAddress: string, 
   amount: string,
-  useMaxApproval: boolean = false
+  useMaxApproval: boolean = true // Changed default to true - always use max approval
 ): Promise<boolean> => {
   try {
     const contract = await getTokenContractWithSigner(tokenAddress);
     const decimals = getTokenDecimalsFromAddress(tokenAddress);
+    const symbol = getTokenSymbol(tokenAddress);
     
-    // If max approval is requested or amount is "max", use maximum uint256 value
-    // This allows the spender to use tokens without needing future approvals
+    console.log(`Approving ${symbol} token for spender: ${spenderAddress}`);
+    
+    // Always use maximum uint256 value for approval to avoid needing future approvals
+    // This is more gas-efficient in the long run and provides better UX
     let parsedAmount;
-    if (useMaxApproval || amount === "max") {
-      parsedAmount = ethers.constants.MaxUint256;
-      console.log("Using max approval amount");
-    } else {
-      parsedAmount = ethers.utils.parseUnits(amount, decimals);
-      console.log(`Approving exact amount: ${amount} tokens`);
-    }
+    
+    // Even if a specific amount is requested, we'll use max approval
+    // This means approvals only need to happen once per token/spender pair
+    parsedAmount = ethers.constants.MaxUint256;
+    console.log("Using max approval amount (infinite) for better user experience");
     
     // Use the provided spender address (which should be the swap contract address)
     // Approve the swap contract to spend the tokens
     const tx = await contract.approve(spenderAddress, parsedAmount);
-    await tx.wait();
+    console.log(`Approval transaction sent: ${tx.hash}`);
+    const receipt = await tx.wait();
+    console.log(`Approval confirmed in block: ${receipt.blockNumber}`);
     
-    // If we successfully used max approval, save this information
-    if (useMaxApproval || amount === "max") {
-      // Store approval in local storage to remember it
-      try {
-        const approvals = JSON.parse(localStorage.getItem('tokenApprovals') || '{}');
-        const userAddress = await getCurrentUserAddress();
-        if (!userAddress) return true;
-        
-        if (!approvals[userAddress]) {
-          approvals[userAddress] = {};
-        }
-        
-        if (!approvals[userAddress][tokenAddress]) {
-          approvals[userAddress][tokenAddress] = {};
-        }
-        
-        approvals[userAddress][tokenAddress][spenderAddress] = {
-          approved: true,
-          timestamp: Date.now()
-        };
-        
-        localStorage.setItem('tokenApprovals', JSON.stringify(approvals));
-      } catch (storageError) {
-        console.error("Error storing approval status:", storageError);
-        // Continue even if storage fails - approval still worked
+    // If we get here, the max approval succeeded, so save this information
+    // Store approval in local storage to remember it across sessions
+    try {
+      const approvals = JSON.parse(localStorage.getItem('tokenApprovals') || '{}');
+      const userAddress = await getCurrentUserAddress();
+      if (!userAddress) return true;
+      
+      if (!approvals[userAddress]) {
+        approvals[userAddress] = {};
       }
+      
+      if (!approvals[userAddress][tokenAddress]) {
+        approvals[userAddress][tokenAddress] = {};
+      }
+      
+      approvals[userAddress][tokenAddress][spenderAddress] = {
+        approved: true,
+        timestamp: Date.now(),
+        txHash: tx.hash // Store the transaction hash for reference
+      };
+      
+      localStorage.setItem('tokenApprovals', JSON.stringify(approvals));
+      console.log(`Saved approval status to localStorage for ${symbol}`);
+    } catch (storageError) {
+      console.error("Error storing approval status:", storageError);
+      // Continue even if storage fails - approval still worked
     }
     
     return true;
@@ -344,17 +347,22 @@ export const isTokenApproved = async (
 ): Promise<boolean> => {
   try {
     // First check localStorage for saved max approvals
+    // This allows us to avoid querying the blockchain repeatedly
     try {
       const approvals = JSON.parse(localStorage.getItem('tokenApprovals') || '{}');
       const userAddress = await getCurrentUserAddress();
       if (!userAddress) return false;
       
       if (approvals[userAddress]?.[tokenAddress]?.[spenderAddress]?.approved) {
-        // We found a stored approval, but let's verify it on-chain to be sure
-        console.log("Found saved approval, verifying on-chain...");
+        console.log("Found saved approval in localStorage, skipping on-chain verification");
+        // Trust the localStorage value - this speeds up the UI and avoids unnecessary
+        // blockchain calls when we already know a max approval was granted
+        return true;
+      } else {
+        console.log("No saved approval found in localStorage, checking on-chain");
       }
     } catch (storageError) {
-      console.error("Error reading approval status:", storageError);
+      console.error("Error reading approval status from localStorage:", storageError);
       // Continue checking on-chain
     }
     
@@ -363,7 +371,35 @@ export const isTokenApproved = async (
     const userAddress = await getCurrentUserAddress();
     if (!userAddress) return false;
     
+    console.log(`Checking on-chain allowance for ${tokenAddress} to ${spenderAddress}`);
     const allowance = await contract.allowance(userAddress, spenderAddress);
+    console.log(`Current allowance: ${allowance.toString()}`);
+    
+    // If allowance is greater than a high threshold (basically unlimited approval)
+    // save it to localStorage to avoid future blockchain calls
+    if (allowance.gt(ethers.utils.parseUnits("1000000", 18))) {
+      console.log("Large allowance detected, saving to localStorage for future reference");
+      try {
+        const approvals = JSON.parse(localStorage.getItem('tokenApprovals') || '{}');
+        
+        if (!approvals[userAddress]) {
+          approvals[userAddress] = {};
+        }
+        
+        if (!approvals[userAddress][tokenAddress]) {
+          approvals[userAddress][tokenAddress] = {};
+        }
+        
+        approvals[userAddress][tokenAddress][spenderAddress] = {
+          approved: true,
+          timestamp: Date.now()
+        };
+        
+        localStorage.setItem('tokenApprovals', JSON.stringify(approvals));
+      } catch (storageError) {
+        console.error("Error saving approval status to localStorage:", storageError);
+      }
+    }
     
     // If allowance is greater than 0, token is already approved
     return !allowance.isZero();
