@@ -66,10 +66,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const { address, txHash, amount, blockNumber } = claimSchema.parse(req.body);
-      let user = await storage.getUser(address);
+      
+      // Normalize address
+      const normalizedAddress = address.toLowerCase();
+      console.log(`Processing token claim for address: ${normalizedAddress}`);
+      
+      let user = await storage.getUser(normalizedAddress);
       
       if (!user) {
-        user = await storage.createUser({ address, lastClaim: null });
+        user = await storage.createUser({ 
+          address: normalizedAddress, 
+          lastClaim: null 
+        });
+        console.log(`Created new user with ID ${user.id} for faucet claim`);
       }
       
       // Check if user has claimed in the last 24 hours
@@ -88,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Update last claim time
-      const updatedUser = await storage.updateUserLastClaim(address);
+      const updatedUser = await storage.updateUserLastClaim(normalizedAddress);
       
       // Badge functionality has been removed
       
@@ -419,11 +428,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const page = parseInt(req.query.page as string || '1');
     const limit = parseInt(req.query.limit as string || '10');
     
-    let user = await storage.getUser(address);
+    // Normalize the address to lowercase
+    const normalizedAddress = address.startsWith('0x') 
+      ? address.toLowerCase() 
+      : `0x${address}`.toLowerCase();
+    
+    console.log(`Processing transaction history request for address: ${normalizedAddress}`);
+    
+    let user = await storage.getUser(normalizedAddress);
     if (!user) {
-      console.log(`Auto-creating user for address: ${address} when requesting transactions`);
+      console.log(`Auto-creating user for address: ${normalizedAddress} when requesting transactions`);
       user = await storage.createUser({
-        address: address.toLowerCase(),
+        address: normalizedAddress,
         lastClaim: null
       });
     }
@@ -453,11 +469,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const page = parseInt(req.query.page as string || '1');
     const limit = parseInt(req.query.limit as string || '10');
     
-    let user = await storage.getUser(address);
+    // Normalize the address to lowercase
+    const normalizedAddress = address.startsWith('0x') 
+      ? address.toLowerCase() 
+      : `0x${address}`.toLowerCase();
+    
+    console.log(`Processing transaction history by type request for address: ${normalizedAddress}`);
+    
+    let user = await storage.getUser(normalizedAddress);
     if (!user) {
-      console.log(`Auto-creating user for address: ${address} when requesting transactions by type`);
+      console.log(`Auto-creating user for address: ${normalizedAddress} when requesting transactions by type`);
       user = await storage.createUser({
-        address: address.toLowerCase(),
+        address: normalizedAddress,
         lastClaim: null
       });
     }
@@ -565,19 +588,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If we have a wallet address instead of userId
       if (!userId && req.body.userAddress) {
         address = req.body.userAddress;
-        user = await storage.getUser(address);
       }
       // If we have a direct userId that looks like a wallet address (e.g. from Swap.tsx)
       else if (typeof userId === 'string' && userId.startsWith('0x')) {
         address = userId;
-        user = await storage.getUser(address);
+      }
+      // If userId is specified with address format in other fields
+      else if (!userId && req.body.address) {
+        address = req.body.address;
       }
       
-      // If the user doesn't exist, create a new user account
-      if (address && !user) {
-        console.log(`User with address ${address} not found, creating new user account`);
-        user = await storage.createUser({ address, lastClaim: null });
-        console.log(`Created new user:`, user);
+      // Normalize address if we have one
+      if (address) {
+        const normalizedAddress = address.startsWith('0x') 
+          ? address.toLowerCase() 
+          : `0x${address}`.toLowerCase();
+        
+        console.log(`Looking up user for address: ${normalizedAddress}`);
+        user = await storage.getUser(normalizedAddress);
+        
+        // If the user doesn't exist, create a new user account
+        if (!user) {
+          console.log(`User with address ${normalizedAddress} not found, creating new user account`);
+          user = await storage.createUser({ 
+            address: normalizedAddress, 
+            lastClaim: null 
+          });
+          console.log(`Created new user with ID ${user.id}`);
+        }
       }
       
       // Ensure we have a valid userId
@@ -615,12 +653,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
       
+      // Normalize address
+      const normalizedAddress = address.startsWith('0x') 
+        ? address.toLowerCase() 
+        : `0x${address}`.toLowerCase();
+      
+      console.log(`Processing faucet claim for address: ${normalizedAddress}`);
+      
       // Find user or auto-create if not found
-      let user = await storage.getUser(address);
+      let user = await storage.getUser(normalizedAddress);
       if (!user) {
-        console.log(`Auto-creating user for address: ${address} during faucet claim`);
+        console.log(`Auto-creating user for address: ${normalizedAddress} during faucet claim`);
         user = await storage.createUser({
-          address: address.toLowerCase(),
+          address: normalizedAddress,
           lastClaim: null
         });
       }
@@ -653,12 +698,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
       
+      // Normalize address
+      const normalizedAddress = address.startsWith('0x') 
+        ? address.toLowerCase() 
+        : `0x${address}`.toLowerCase();
+      
+      console.log(`Processing swap transaction for address: ${normalizedAddress}`);
+      
       // Find user or auto-create if not found
-      let user = await storage.getUser(address);
+      let user = await storage.getUser(normalizedAddress);
       if (!user) {
-        console.log(`Auto-creating user for address: ${address} during swap`);
+        console.log(`Auto-creating user for address: ${normalizedAddress} during swap`);
         user = await storage.createUser({
-          address: address.toLowerCase(),
+          address: normalizedAddress,
           lastClaim: null
         });
       }
@@ -695,11 +747,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if this is a wallet address or a numeric ID
       if (userIdOrAddress.startsWith('0x')) {
         // This is a wallet address
-        let user = await storage.getUser(userIdOrAddress);
+        // Normalize address
+        const normalizedAddress = userIdOrAddress.toLowerCase();
+        console.log(`Processing daily swap count check for address: ${normalizedAddress}`);
+        
+        let user = await storage.getUser(normalizedAddress);
         if (!user) {
-          console.log(`Auto-creating user for address: ${userIdOrAddress} during daily swap count check`);
+          console.log(`Auto-creating user for address: ${normalizedAddress} during daily swap count check`);
           user = await storage.createUser({
-            address: userIdOrAddress.toLowerCase(),
+            address: normalizedAddress,
             lastClaim: null
           });
         }
@@ -730,13 +786,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if this is a wallet address or a numeric ID
       if (userIdOrAddress && userIdOrAddress.toString().startsWith('0x')) {
         // It's a wallet address
-        let user = await storage.getUser(userIdOrAddress);
+        // Normalize address
+        const normalizedAddress = userIdOrAddress.toString().toLowerCase();
+        console.log(`Processing increment swap count for address: ${normalizedAddress}`);
+        
+        let user = await storage.getUser(normalizedAddress);
         
         // If user doesn't exist, create a new user
         if (!user) {
-          console.log(`User with address ${userIdOrAddress} not found, creating new user account`);
-          user = await storage.createUser({ address: userIdOrAddress, lastClaim: null });
-          console.log(`Created new user:`, user);
+          console.log(`User with address ${normalizedAddress} not found, creating new user account`);
+          user = await storage.createUser({ 
+            address: normalizedAddress, 
+            lastClaim: null 
+          });
+          console.log(`Created new user with ID ${user.id}`);
         }
         
         userId = user.id;
@@ -773,13 +836,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if this is a wallet address or a numeric ID
       if (userIdOrAddress && userIdOrAddress.toString().startsWith('0x')) {
         // It's a wallet address
-        let user = await storage.getUser(userIdOrAddress);
+        // Normalize address
+        const normalizedAddress = userIdOrAddress.toString().toLowerCase();
+        console.log(`Processing add points for address: ${normalizedAddress}`);
+        
+        let user = await storage.getUser(normalizedAddress);
         
         // If user doesn't exist, create a new user
         if (!user) {
-          console.log(`User with address ${userIdOrAddress} not found, creating new user account`);
-          user = await storage.createUser({ address: userIdOrAddress, lastClaim: null });
-          console.log(`Created new user:`, user);
+          console.log(`User with address ${normalizedAddress} not found, creating new user account`);
+          user = await storage.createUser({ 
+            address: normalizedAddress, 
+            lastClaim: null 
+          });
+          console.log(`Created new user with ID ${user.id}`);
         }
         
         userId = user.id;
