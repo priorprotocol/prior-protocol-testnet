@@ -472,9 +472,8 @@ const Documentation = () => {
                       If you're experiencing issues that aren't covered here, you can reach out for support through:
                     </p>
                     <ul className="list-disc list-inside space-y-2">
-                      <li>Prior Protocol Discord: <a href="https://discord.gg/prior" target="_blank" rel="noopener noreferrer" className="text-[#1A5CFF] hover:underline">discord.gg/prior</a></li>
+                      <li>Prior Protocol Discord: <a href="http://discord.gg/priorprotocol" target="_blank" rel="noopener noreferrer" className="text-[#1A5CFF] hover:underline">discord.gg/priorprotocol</a></li>
                       <li>Twitter: <a href="https://twitter.com/priorprotocol" target="_blank" rel="noopener noreferrer" className="text-[#1A5CFF] hover:underline">@priorprotocol</a></li>
-                      <li>Email: support@priorprotocol.xyz</li>
                     </ul>
                     <p className="mt-3">
                       Please include detailed information about the issue, including transaction hashes if applicable.
