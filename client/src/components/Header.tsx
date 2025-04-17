@@ -51,84 +51,86 @@ const Header = () => {
         />
       )}
       
-      <div className="container mx-auto px-3 py-3 md:py-4 flex justify-between items-center">
-        {/* Logo */}
-        <div className="flex items-center shrink-0">
-          <img 
-            src={logoPath} 
-            alt="Prior Protocol Logo" 
-            className="w-8 h-8 md:w-10 md:h-10 mr-2"
-          />
-          <h1 className="text-xl md:text-2xl font-space font-bold">
-            <span className="text-[#1A5CFF]">Prior</span><span className="text-white">Protocol</span>
-            <span className="text-xs ml-1 text-[#FF6B00] font-medium">TESTNET</span>
-          </h1>
+      <div className="container mx-auto px-2 md:px-4 py-3 md:py-4">
+        <div className="flex flex-wrap items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center shrink-0 mr-2">
+            <img 
+              src={logoPath} 
+              alt="Prior Protocol Logo" 
+              className="w-8 h-8 md:w-10 md:h-10 mr-2"
+            />
+            <h1 className="text-xl md:text-2xl font-space font-bold">
+              <span className="text-[#1A5CFF]">Prior</span><span className="text-white">Protocol</span>
+              <span className="text-xs ml-1 text-[#FF6B00] font-medium">TESTNET</span>
+            </h1>
+          </div>
+          
+          {/* Mobile menu button - improved accessibility */}
+          <button 
+            onClick={toggleMobileMenu}
+            className="md:hidden flex items-center justify-center p-2 rounded-md text-gray-200 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors ml-auto"
+            aria-expanded={isMobileMenuOpen}
+            aria-label="Toggle main menu"
+            aria-controls="mobile-menu"
+          >
+            <span className="sr-only">{isMobileMenuOpen ? 'Close main menu' : 'Open main menu'}</span>
+            {/* Icon changes based on menu state */}
+            {isMobileMenuOpen ? (
+              <i className="fas fa-times text-xl" aria-hidden="true"></i>
+            ) : (
+              <i className="fas fa-bars text-xl" aria-hidden="true"></i>
+            )}
+          </button>
+          
+          {/* Desktop Navigation - with accessibility improvements */}
+          <div className="hidden md:block flex-grow max-w-4xl mx-auto px-4">
+            <nav className="flex justify-center" aria-label="Main navigation">
+              <ul className="flex items-center justify-center space-x-4 text-[#A0AEC0] font-medium">
+                {navLinks.map(link => (
+                  <li key={link.path}>
+                    {link.external ? (
+                      <a 
+                        href={link.path}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block px-3 py-2 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors whitespace-nowrap"
+                      >
+                        {link.name} <i className="fas fa-external-link-alt text-xs ml-1" aria-hidden="true"></i>
+                      </a>
+                    ) : (
+                      <Link 
+                        href={link.path} 
+                        className={`block px-3 py-2 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors whitespace-nowrap relative ${location === link.path ? 'text-white font-medium' : ''}`}
+                        aria-current={location === link.path ? 'page' : undefined}
+                      >
+                        {link.name}
+                        {location === link.path && (
+                          <div className="absolute h-0.5 bg-[#1A5CFF] bottom-0 left-0 right-0"></div>
+                        )}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+          
+          {/* Standalone Wallet Button - with added accessibility */}
+          <div className="hidden md:flex items-center shrink-0">
+            <StandaloneWalletButton
+              onConnect={(newAddress) => {
+                console.log("Connected to wallet:", newAddress);
+                if (newAddress) copyToClipboard(newAddress);
+              }}
+              onDisconnect={() => {
+                console.log("Wallet disconnected");
+              }}
+              showAddress={true}
+              className="focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+            />
+          </div>
         </div>
-        
-        {/* Desktop Navigation - with accessibility improvements */}
-        <div className="hidden md:block flex-grow max-w-4xl mx-auto px-4">
-          <nav aria-label="Main navigation">
-            <ul className="flex items-center justify-center space-x-5 text-[#A0AEC0] font-medium">
-              {navLinks.map(link => (
-                <li key={link.path}>
-                  {link.external ? (
-                    <a 
-                      href={link.path}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-2 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors flex items-center"
-                    >
-                      {link.name} <i className="fas fa-external-link-alt text-xs ml-1" aria-hidden="true"></i>
-                    </a>
-                  ) : (
-                    <Link 
-                      href={link.path} 
-                      className={`px-3 py-2 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors flex items-center relative ${location === link.path ? 'text-white font-medium' : ''}`}
-                      aria-current={location === link.path ? 'page' : undefined}
-                    >
-                      {link.name}
-                      {location === link.path && (
-                        <div className="absolute h-0.5 bg-[#1A5CFF] bottom-0 left-0 right-0"></div>
-                      )}
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-        
-        {/* Standalone Wallet Button - with added accessibility */}
-        <div className="hidden md:flex items-center shrink-0">
-          <StandaloneWalletButton
-            onConnect={(newAddress) => {
-              console.log("Connected to wallet:", newAddress);
-              if (newAddress) copyToClipboard(newAddress);
-            }}
-            onDisconnect={() => {
-              console.log("Wallet disconnected");
-            }}
-            showAddress={true}
-            className="focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-          />
-        </div>
-        
-        {/* Mobile menu button - improved accessibility */}
-        <button 
-          onClick={toggleMobileMenu}
-          className="md:hidden flex items-center justify-center p-2 rounded-md text-gray-200 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors"
-          aria-expanded={isMobileMenuOpen}
-          aria-label="Toggle main menu"
-          aria-controls="mobile-menu"
-        >
-          <span className="sr-only">{isMobileMenuOpen ? 'Close main menu' : 'Open main menu'}</span>
-          {/* Icon changes based on menu state */}
-          {isMobileMenuOpen ? (
-            <i className="fas fa-times text-xl" aria-hidden="true"></i>
-          ) : (
-            <i className="fas fa-bars text-xl" aria-hidden="true"></i>
-          )}
-        </button>
       </div>
       
       {/* Mobile Navigation Menu - slides in from right */}
