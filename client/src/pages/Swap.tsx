@@ -392,15 +392,8 @@ export default function Swap() {
       const fromTokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
       const toTokenAddress = TOKENS[toToken as keyof typeof TOKENS].address;
       
-      // Determine which swap contract to use
-      let swapContractAddress = "";
-      if ((fromToken === "PRIOR" && toToken === "USDC") || (fromToken === "USDC" && toToken === "PRIOR")) {
-        swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
-      } else if ((fromToken === "PRIOR" && toToken === "USDT") || (fromToken === "USDT" && toToken === "PRIOR")) {
-        swapContractAddress = SWAP_CONTRACTS.PRIOR_USDT;
-      } else if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
-        swapContractAddress = SWAP_CONTRACTS.USDC_USDT;
-      }
+      // Get the swap contract address - only PRIOR-USDC pair is supported
+      let swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
       
       // Execute the swap through the service function
       const receipt = await swapTokens(
@@ -621,8 +614,7 @@ export default function Swap() {
             const token = {
               ...TOKENS[tokenSymbol as keyof typeof TOKENS],
               id: 0, // Not used in this context
-              name: tokenSymbol === "PRIOR" ? "Prior Protocol Token" : 
-                    tokenSymbol === "USDC" ? "USD Coin" : "Tether USD",
+              name: tokenSymbol === "PRIOR" ? "Prior Protocol Token" : "USD Coin",
               logoColor: TOKENS[tokenSymbol as keyof typeof TOKENS].color
             };
             
