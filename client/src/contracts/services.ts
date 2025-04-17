@@ -13,6 +13,7 @@
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESSES, SWAP_CONTRACTS } from './addresses';
 import { TOKEN_DECIMALS, TOKEN_SYMBOLS } from './metadata/tokens';
+import { CORRECT_ADDRESSES } from '../lib/forceCorrectAddresses';
 import { 
   erc20Abi, 
   priorUsdcSwapAbi,
@@ -90,23 +91,32 @@ export const getSwapContractWithSigner = async (fromToken?: string, toToken?: st
 // Function to get Faucet contract instance
 export const getFaucetContract = async () => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
+  // Use the verified correct faucet address from our force-correct utilities
+  const faucetAddress = CORRECT_ADDRESSES.PRIOR_FAUCET;
+  console.log("Using faucet contract address:", faucetAddress);
   const provider = new ethers.providers.Web3Provider(window.ethereum as any);
-  return new ethers.Contract(CONTRACT_ADDRESSES.priorFaucet, faucetAbi, provider);
+  return new ethers.Contract(faucetAddress, faucetAbi, provider);
 };
 
 // Function to get Faucet contract with signer (for transactions)
 export const getFaucetContractWithSigner = async () => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
+  // Use the verified correct faucet address from our force-correct utilities
+  const faucetAddress = CORRECT_ADDRESSES.PRIOR_FAUCET;
+  console.log("Using faucet contract address for transaction:", faucetAddress);
   const provider = new ethers.providers.Web3Provider(window.ethereum as any);
   const signer = provider.getSigner();
-  return new ethers.Contract(CONTRACT_ADDRESSES.priorFaucet, faucetAbi, signer);
+  return new ethers.Contract(faucetAddress, faucetAbi, signer);
 };
 
 // Function to get NFT contract
 export const getNftContract = async () => {
   if (!window.ethereum) throw new Error("No ethereum provider found");
+  // Use the verified correct NFT address from our force-correct utilities
+  const nftAddress = CORRECT_ADDRESSES.PRIOR_PIONEER_NFT;
+  console.log("Using NFT contract address:", nftAddress);
   const provider = new ethers.providers.Web3Provider(window.ethereum as any);
-  return new ethers.Contract(CONTRACT_ADDRESSES.priorPioneerNFT, nftAbi, provider);
+  return new ethers.Contract(nftAddress, nftAbi, provider);
 };
 
 // Get token symbol from address
@@ -471,9 +481,9 @@ export const claimFromFaucet = async (userAddress?: string): Promise<boolean> =>
       const checksummedAddress = ethers.utils.getAddress(signerAddress);
       console.log("Checksummed signer address for faucet claim:", checksummedAddress);
       
-      // Get the faucet contract with signer
+      // Get the faucet contract with signer - now using the force-correct address
       const faucetContract = await getFaucetContractWithSigner();
-      console.log("Faucet contract address:", CONTRACT_ADDRESSES.priorFaucet);
+      console.log("Using faucet contract address:", CORRECT_ADDRESSES.PRIOR_FAUCET);
       
       // Check if we can claim first using our checksummed address
       try {
@@ -536,6 +546,7 @@ export const getFaucetInfo = async (address: string) => {
     
     const faucetContract = await getFaucetContract();
     console.log("Checking faucet claim status for address:", checksummedAddress);
+    console.log("Using faucet contract address:", CORRECT_ADDRESSES.PRIOR_FAUCET);
     
     // First, directly check if user can claim using the contract's canClaim function
     try {
