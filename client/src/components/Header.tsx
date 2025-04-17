@@ -33,6 +33,7 @@ const Header = () => {
     { name: "Quest", path: "/quest" },
     { name: "Governance", path: "/governance" },
     { name: "Dashboard", path: "/dashboard" },
+    { name: "NFT STAKE", path: "https://testnetpriorprotocol.xyz/", external: true },
     { name: "About", path: "/about" }
   ];
   
@@ -67,14 +68,26 @@ const Header = () => {
         {/* Desktop Navigation - with accessibility improvements */}
         <nav className="hidden md:flex items-center space-x-6 text-[#A0AEC0] font-medium" aria-label="Main navigation">
           {navLinks.map(link => (
-            <Link 
-              key={link.path}
-              href={link.path} 
-              className={`px-3 py-2 rounded-md hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${location === link.path ? 'tab-active bg-gray-900 text-white' : ''}`}
-              aria-current={location === link.path ? 'page' : undefined}
-            >
-              {link.name}
-            </Link>
+            link.external ? (
+              <a 
+                key={link.path}
+                href={link.path}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 rounded-md hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              >
+                {link.name} <i className="fas fa-external-link-alt text-xs ml-1" aria-hidden="true"></i>
+              </a>
+            ) : (
+              <Link 
+                key={link.path}
+                href={link.path} 
+                className={`px-3 py-2 rounded-md hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${location === link.path ? 'tab-active bg-gray-900 text-white' : ''}`}
+                aria-current={location === link.path ? 'page' : undefined}
+              >
+                {link.name}
+              </Link>
+            )
           ))}
         </nav>
         
@@ -141,15 +154,29 @@ const Header = () => {
           
           <nav className="flex flex-col space-y-3 py-6 px-6 flex-grow" aria-label="Mobile navigation">
             {navLinks.map(link => (
-              <Link 
-                key={link.path}
-                href={link.path} 
-                className={`${location === link.path ? 'text-white font-medium bg-gray-800' : 'text-[#A0AEC0]'} hover:text-white transition-colors py-3 px-4 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                onClick={() => setIsMobileMenuOpen(false)}
-                aria-current={location === link.path ? 'page' : undefined}
-              >
-                {link.name}
-              </Link>
+              link.external ? (
+                <a 
+                  key={link.path}
+                  href={link.path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#A0AEC0] hover:text-white transition-colors py-3 px-4 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {link.name} 
+                  <i className="fas fa-external-link-alt text-xs ml-1" aria-hidden="true"></i>
+                </a>
+              ) : (
+                <Link 
+                  key={link.path}
+                  href={link.path} 
+                  className={`${location === link.path ? 'text-white font-medium bg-gray-800' : 'text-[#A0AEC0]'} hover:text-white transition-colors py-3 px-4 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  aria-current={location === link.path ? 'page' : undefined}
+                >
+                  {link.name}
+                </Link>
+              )
             ))}
           </nav>
           
