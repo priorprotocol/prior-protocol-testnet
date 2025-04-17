@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ethers } from "ethers";
 import TokenCard from "@/components/TokenCard";
 import { getTokenContract, swapTokens, approveTokens, getTokenBalance, 
-  getPriorToUSDCRate, getPriorToUSDTRate, calculateSimpleSwapOutput, getTokenContractWithSigner } from "@/contracts/services";
+  getPriorToUSDCRate, calculateSimpleSwapOutput, getTokenContractWithSigner } from "@/contracts/services";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 
 // Token definitions with symbol, color, logo, decimals, and address
@@ -207,16 +207,9 @@ export default function Swap() {
     // Parse the balance to a number
     const parsedBalance = parseFloat(balance || "0");
     
-    // Handle very specific testnet values for USDC and USDT
-    if ((token === "USDC" || token === "USDT") && parsedBalance > 1000000) {
-      // For USDC on testnet (usually around 9899999997.97)
-      if (token === "USDC") {
-        return "9900.00"; // Display balance that's close to the actual value
-      }
-      // For USDT on testnet (usually around 99999999.02)
-      else if (token === "USDT") {
-        return "10000.00"; // Display balance that's close to the actual value
-      }
+    // Handle very specific testnet values for USDC
+    if (token === "USDC" && parsedBalance > 1000000) {
+      return "9900.00"; // Display balance that's close to the actual value
     }
     
     // For normal values, use cleaner display formats based on token type
@@ -234,7 +227,7 @@ export default function Swap() {
         return "0"; // Just show "0" for zero balance
       }
     } else {
-      // For stablecoins (USDC, USDT), always use 2 decimal places
+      // For stablecoins (USDC), always use 2 decimal places
       return parsedBalance.toFixed(2);
     }
   };
@@ -246,13 +239,9 @@ export default function Swap() {
 
   // Verify if the pair is supported
   const isPairSupported = () => {
-    // PRIOR pairs are always supported
-    if (fromToken === "PRIOR" || toToken === "PRIOR") {
-      return true;
-    }
-    
-    // USDC-USDT pair is also supported
-    if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
+    // PRIOR-USDC pair is the only supported pair
+    if ((fromToken === "PRIOR" && toToken === "USDC") || 
+        (fromToken === "USDC" && toToken === "PRIOR")) {
       return true;
     }
     
@@ -339,15 +328,8 @@ export default function Swap() {
       setIsApproving(true);
       setSwapStatus("Approving tokens...");
       
-      // Get the swap contract address based on the token pair
-      let swapContractAddress = "";
-      if ((fromToken === "PRIOR" && toToken === "USDC") || (fromToken === "USDC" && toToken === "PRIOR")) {
-        swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
-      } else if ((fromToken === "PRIOR" && toToken === "USDT") || (fromToken === "USDT" && toToken === "PRIOR")) {
-        swapContractAddress = SWAP_CONTRACTS.PRIOR_USDT;
-      } else if ((fromToken === "USDC" && toToken === "USDT") || (fromToken === "USDT" && toToken === "USDC")) {
-        swapContractAddress = SWAP_CONTRACTS.USDC_USDT;
-      }
+      // Get the swap contract address - only PRIOR-USDC pair is supported
+      let swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
       
       const fromTokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
       
@@ -660,10 +642,10 @@ export default function Swap() {
         {/* Testnet Notice */}
         <div className="bg-indigo-900/70 border border-indigo-700 rounded-xl p-3 mb-4 text-sm">
           <p className="text-indigo-200 font-medium mb-2">
-            <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment with extremely limited liquidity. Try swapping with very small amounts (0.01-0.1 PRIOR or 1-10 USDC/USDT recommended).
+            <span className="text-indigo-400 font-bold">⚠️ Testnet Notice:</span> This is a testnet environment with extremely limited liquidity. Try swapping with very small amounts (0.01-0.1 PRIOR or 1-10 USDC recommended).
           </p>
           <p className="text-yellow-300 text-xs">
-            <span className="font-bold">Supported pairs:</span> PRIOR ↔ USDC/USDT and USDC ↔ USDT. Best results with small amounts.
+            <span className="font-bold">Supported pairs:</span> PRIOR ↔ USDC only. Best results with small amounts.
           </p>
         </div>
 
@@ -695,33 +677,7 @@ export default function Swap() {
                     Try: 1
                   </button>
                 )}
-                {(fromToken === "USDT" && toToken === "PRIOR") && (
-                  <button 
-                    onClick={() => setFromAmount("1")}
-                    className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
-                    title="Use recommended test amount for USDT→PRIOR"
-                  >
-                    Try: 1
-                  </button>
-                )}
-                {(fromToken === "USDC" && toToken === "USDT") && (
-                  <button 
-                    onClick={() => setFromAmount("1")}
-                    className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
-                    title="Use recommended test amount for USDC→USDT"
-                  >
-                    Try: 1
-                  </button>
-                )}
-                {(fromToken === "USDT" && toToken === "USDC") && (
-                  <button 
-                    onClick={() => setFromAmount("1")}
-                    className="text-xs bg-green-700 hover:bg-green-600 px-2 py-0.5 rounded"
-                    title="Use recommended test amount for USDT→USDC"
-                  >
-                    Try: 1
-                  </button>
-                )}
+
                 <button 
                   onClick={setMaxAmount}
                   className="text-xs bg-gray-600 hover:bg-gray-500 px-2 py-0.5 rounded"
@@ -829,10 +785,10 @@ export default function Swap() {
           <div className="mt-3 mb-4 text-sm text-gray-400 flex justify-between">
             <span>Rate:</span>
             <span>
-              {fromToken === "PRIOR" && (toToken === "USDC" || toToken === "USDT") ? (
-                `1 PRIOR = ${exchangeRates.PRIOR_USDC} ${toToken}`
-              ) : (toToken === "PRIOR" && (fromToken === "USDC" || fromToken === "USDT")) ? (
-                `1 ${fromToken} = ${exchangeRates.USDC_PRIOR} PRIOR`
+              {fromToken === "PRIOR" && toToken === "USDC" ? (
+                `1 PRIOR = ${exchangeRates.PRIOR_USDC} USDC`
+              ) : (toToken === "PRIOR" && fromToken === "USDC") ? (
+                `1 USDC = ${exchangeRates.USDC_PRIOR} PRIOR`
               ) : (
                 `1 ${fromToken} = 1 ${toToken}`
               )}
@@ -897,10 +853,9 @@ export default function Swap() {
             <ul className="list-disc pl-5 space-y-1">
               <li>1 PRIOR = 2 USDC</li>
               <li>1 USDC = 0.5 PRIOR</li>
-              <li>Fee = 0.5% for PRIOR swaps</li>
             </ul>
             <p className="mt-2 text-gray-400">
-              <span className="font-semibold">Fees:</span> 0.5% for all pairs
+              <span className="font-semibold">Fee:</span> 0.5% for PRIOR-USDC swap pair
             </p>
           </div>
         </div>
