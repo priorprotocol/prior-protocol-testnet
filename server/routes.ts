@@ -243,13 +243,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(`${apiPrefix}/users/:address/stats`, async (req, res) => {
     const { address } = req.params;
     
-    let user = await storage.getUser(address);
+    // Normalize the address to lowercase
+    const normalizedAddress = address.startsWith('0x') 
+      ? address.toLowerCase() 
+      : `0x${address}`.toLowerCase();
+    
+    console.log(`Processing stats request for address: ${normalizedAddress}`);
+    
+    let user = await storage.getUser(normalizedAddress);
     
     // Auto-create user if not found
     if (!user) {
-      console.log(`Auto-creating user for address: ${address} when requesting stats`);
+      console.log(`Auto-creating user for address: ${normalizedAddress} when requesting stats`);
       user = await storage.createUser({
-        address: address.toLowerCase(),
+        address: normalizedAddress,
         lastClaim: null
       });
       

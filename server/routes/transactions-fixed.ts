@@ -64,11 +64,18 @@ router.get('/users/:identifier/transactions', async (req: Request, res: Response
     
     // Check if identifier is a wallet address or a user ID
     if (identifier.startsWith('0x')) {
+      // Normalize the address to lowercase
+      const normalizedAddress = identifier.toLowerCase();
+      
       // It's an address, get or create the user
-      let user = await storage.getUser(identifier);
+      let user = await storage.getUser(normalizedAddress);
       if (!user) {
         // Auto-create user if not exists
-        user = await storage.createUser({ address: identifier, lastClaim: null });
+        user = await storage.createUser({ 
+          address: normalizedAddress, 
+          lastClaim: null 
+        });
+        console.log(`Auto-created user for address ${normalizedAddress} in transactions endpoint`);
       }
       userId = user.id;
     } else {
@@ -113,11 +120,18 @@ router.get('/users/:identifier/transactions/:type', async (req: Request, res: Re
     
     // Check if identifier is a wallet address or a user ID
     if (identifier.startsWith('0x')) {
+      // Normalize the address to lowercase
+      const normalizedAddress = identifier.toLowerCase();
+      
       // It's an address, get or create the user
-      let user = await storage.getUser(identifier);
+      let user = await storage.getUser(normalizedAddress);
       if (!user) {
         // Auto-create user if not exists
-        user = await storage.createUser({ address: identifier, lastClaim: null });
+        user = await storage.createUser({ 
+          address: normalizedAddress, 
+          lastClaim: null 
+        });
+        console.log(`Auto-created user for address ${normalizedAddress} in transactions-by-type endpoint`);
       }
       userId = user.id;
     } else {
@@ -296,17 +310,25 @@ router.post('/transactions', async (req: Request, res: Response) => {
     }
     
     // Determine which address field to use
-    const userAddress = transactionData.userAddress || transactionData.userId || transactionData.address;
+    const rawAddress = transactionData.userAddress || transactionData.userId || transactionData.address;
+    
+    // Normalize address format
+    const normalizedAddress = rawAddress.startsWith('0x') 
+      ? rawAddress.toLowerCase() 
+      : `0x${rawAddress}`.toLowerCase();
+    
+    console.log(`Processing transaction request for address: ${normalizedAddress}`);
     
     // Get the user first
-    let user = await storage.getUser(userAddress);
+    let user = await storage.getUser(normalizedAddress);
     
     // Create user if they don't exist
     if (!user) {
       user = await storage.createUser({ 
-        address: userAddress.toLowerCase(),
+        address: normalizedAddress,
         lastClaim: null
       });
+      console.log(`Auto-created user for address ${normalizedAddress} in transaction create endpoint`);
     }
     
     // Add userId to the transaction
