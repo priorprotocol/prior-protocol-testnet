@@ -121,23 +121,36 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                       <div className={`text-center ${user.totalSwaps >= 10 ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-md p-1' : ''}`}>
                         <span className="text-[#A0AEC0] block">Total Swaps</span>
                         <span className={`font-medium ${user.totalSwaps >= 10 ? 'text-emerald-400' : ''}`}>{user.totalSwaps || 0}</span>
-                        {user.totalSwaps >= 10 ? (
-                          <div>
-                            <span className="text-xs text-emerald-400 bg-emerald-900/50 px-2 py-0.5 rounded-md">
-                              +{user.totalSwaps * 2} pts (+2 per swap)
-                            </span>
-                            <div className="text-xs mt-0.5 text-emerald-300">
-                              <FaExchangeAlt className="inline mr-1" size={10} />Top Swapper
-                            </div>
+                        <div className="grid grid-cols-2 gap-1 mt-1">
+                          <div className="text-center bg-blue-900/20 rounded px-1 py-0.5">
+                            <span className="text-blue-400">+4 pts</span>
+                            <div className="text-gray-400 text-[9px]">First Swap</div>
                           </div>
-                        ) : (
-                          <span className="text-xs text-gray-500">Need 10+ for pts</span>
+                          {user.totalSwaps >= 10 ? (
+                            <div className="text-center bg-emerald-900/20 rounded px-1 py-0.5">
+                              <span className="text-emerald-400">+2 pts</span>
+                              <div className="text-gray-400 text-[9px]">10+ Swaps</div>
+                            </div>
+                          ) : (
+                            <div className="text-center bg-gray-800/30 rounded px-1 py-0.5">
+                              <span className="text-gray-500">--</span>
+                              <div className="text-gray-500 text-[9px]">Need 10+</div>
+                            </div>
+                          )}
+                        </div>
+                        {user.totalSwaps >= 10 && (
+                          <div className="text-xs mt-1 text-emerald-300">
+                            <FaExchangeAlt className="inline mr-1" size={10} />Top Swapper
+                          </div>
                         )}
                       </div>
                       <div className="text-center">
-                        <span className="text-[#A0AEC0] block">Claims</span>
+                        <span className="text-[#A0AEC0] block">Faucet Claims</span>
                         <span className="font-medium">{user.totalClaims || 0}</span>
-                        <span className="text-xs text-gray-500">0 pts</span>
+                        <div className="text-center mt-1 bg-indigo-900/20 rounded px-1 py-0.5">
+                          <span className="text-indigo-400">+1 pt</span>
+                          <div className="text-gray-400 text-[9px]">Per Claim</div>
+                        </div>
                       </div>
                     </div>
                   </div>

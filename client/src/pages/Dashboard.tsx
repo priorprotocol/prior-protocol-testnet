@@ -133,11 +133,19 @@ const Dashboard = () => {
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-xl">
-                            {userStats && userStats.totalSwaps && userStats.totalSwaps >= 10 ? userStats.totalSwaps * 2 : 0}
+                            {/* Calculate potential points based on new system */}
+                            {userStats ? (
+                              // First daily swap (4pts) + Additional 2pts per swap for 10+ swaps
+                              4 + (userStats.totalSwaps >= 10 ? Math.min((userStats.totalSwaps - 1) * 2, 6) : 0)
+                            ) : 0}
                           </div>
-                          <p className="text-xs text-green-400">
-                            {userStats && userStats.totalSwaps && userStats.totalSwaps >= 10 ? '2 pts per swap' : 'Need 10+ daily swaps'}
-                          </p>
+                          <div className="flex flex-col text-xs space-y-1 mt-1">
+                            <span className="text-blue-400 bg-blue-900/20 rounded px-2 py-0.5">+4 pts first swap of the day</span>
+                            <span className="text-emerald-400 bg-emerald-900/20 rounded px-2 py-0.5">
+                              +2 pts per swap after 10+ daily swaps
+                            </span>
+                            <span className="text-amber-400 text-[10px]">Max 6 pts from 10+ swaps bonus</span>
+                          </div>
                         </div>
                       </div>
                       
@@ -159,8 +167,10 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-bold text-xl">0</div>
-                          <p className="text-xs text-[#A0AEC0]">No points for claims</p>
+                          <div className="font-bold text-xl">{userStats?.totalFaucetClaims || 0}</div>
+                          <div className="text-xs text-indigo-400 bg-indigo-900/20 rounded px-2 py-0.5 mt-1">
+                            +1 pt per claim
+                          </div>
                         </div>
                       </div>
                       
@@ -363,9 +373,14 @@ const Dashboard = () => {
             <div className="px-1">
               <h3 className="text-xl font-semibold mb-1">Prior Protocol Leaderboard</h3>
               <p className="text-[#A0AEC0]">
-                Top users ranked by Prior Points from protocol activity. Earn points by swapping tokens (2 points per swap when you make 10+ daily swaps), 
-                voting on governance proposals (10 points), and completing quests (various rewards). 
-                <strong>All points will be converted to PRIOR tokens at Token Generation Event (TGE).</strong>
+                Top users ranked by Prior Points from protocol activity. Earn points by:
+                <ul className="list-disc list-inside mt-1 ml-2">
+                  <li><span className="text-blue-400">4 points</span> for your first swap of the day</li>
+                  <li><span className="text-emerald-400">2 points</span> per swap after reaching 10+ daily swaps (max 6 additional points)</li>
+                  <li><span className="text-indigo-400">1 point</span> for each faucet claim</li>
+                  <li><span className="text-purple-400">10 points</span> for governance votes (coming soon)</li>
+                </ul>
+                <strong className="block mt-1">All points will be converted to PRIOR tokens at Token Generation Event (TGE).</strong>
               </p>
             </div>
             
@@ -400,8 +415,8 @@ const Dashboard = () => {
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Faucet</p>
-                      <p className="text-xl font-bold">0</p>
-                      <p className="text-xs text-[#A0AEC0]">({userStats?.totalFaucetClaims || 0} claims × 0 pts)</p>
+                      <p className="text-xl font-bold">{userStats?.totalFaucetClaims || 0}</p>
+                      <p className="text-xs text-[#A0AEC0]">({userStats?.totalFaucetClaims || 0} claims × 1 pt each)</p>
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Governance</p>

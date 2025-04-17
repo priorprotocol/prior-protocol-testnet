@@ -493,15 +493,21 @@ export class DatabaseStorage implements IStorage {
     const currentClaims = user.totalClaims || 0;
     const newClaimCount = currentClaims + 1;
     
-    // Update the user with the new claim count
+    // Calculate points - 1 point per faucet claim
+    const pointsToAdd = 1;
+    
+    // Update the user with the new claim count and points
     const [updatedUser] = await db
       .update(users)
       .set({ 
         totalClaims: newClaimCount,
-        lastClaim: new Date()
+        lastClaim: new Date(),
+        points: user.points + pointsToAdd
       })
       .where(eq(users.id, userId))
       .returning();
+    
+    console.log(`[ClaimCounter] User ${userId} earned ${pointsToAdd} point for faucet claim #${newClaimCount}`);
     
     // Record this transaction
     await this.createTransaction({
@@ -509,7 +515,7 @@ export class DatabaseStorage implements IStorage {
       type: 'faucet_claim',
       txHash: `claim_${Date.now()}`, // Placeholder for actual transaction hash
       status: 'completed',
-      points: 0  // No points for faucet claims
+      points: pointsToAdd  // Now 1 point for faucet claims
     });
     
     return updatedUser.totalClaims || 0;
