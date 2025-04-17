@@ -135,7 +135,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user quests
   app.get(`${apiPrefix}/users/:address/quests`, async (req, res) => {
     const { address } = req.params;
-    const user = await storage.getUser(address);
+    
+    // Normalize the address to lowercase
+    const normalizedAddress = address.startsWith('0x') 
+      ? address.toLowerCase() 
+      : `0x${address}`.toLowerCase();
+    
+    console.log(`Processing quest retrieval for address: ${normalizedAddress}`);
+    
+    const user = await storage.getUser(normalizedAddress);
     
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -155,6 +163,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { address } = addressSchema.parse(req.body);
       const questId = parseInt(req.params.questId);
       
+      // Normalize address
+      const normalizedAddress = address.toLowerCase();
+      console.log(`Processing quest start for address: ${normalizedAddress}`);
+      
       const quest = await storage.getQuest(questId);
       if (!quest) {
         return res.status(404).json({ message: "Quest not found" });
@@ -164,9 +176,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "This quest is not active yet" });
       }
       
-      let user = await storage.getUser(address);
+      let user = await storage.getUser(normalizedAddress);
       if (!user) {
-        user = await storage.createUser({ address, lastClaim: null });
+        user = await storage.createUser({ 
+          address: normalizedAddress, 
+          lastClaim: null 
+        });
+        console.log(`Created new user with ID ${user.id} for quest start`);
       }
       
       // Check if user already started this quest
@@ -203,12 +219,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { address } = addressSchema.parse(req.body);
       const questId = parseInt(req.params.questId);
       
+      // Normalize address
+      const normalizedAddress = address.toLowerCase();
+      console.log(`Processing quest completion for address: ${normalizedAddress}`);
+      
       const quest = await storage.getQuest(questId);
       if (!quest) {
         return res.status(404).json({ message: "Quest not found" });
       }
       
-      let user = await storage.getUser(address);
+      let user = await storage.getUser(normalizedAddress);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -326,9 +346,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { address } = req.params;
       const { txHash, fromToken, toToken, fromAmount, toAmount, blockNumber } = swapSchema.parse(req.body);
       
-      const user = await storage.getUser(address);
+      // Normalize address
+      const normalizedAddress = address.startsWith('0x') 
+        ? address.toLowerCase() 
+        : `0x${address}`.toLowerCase();
+      
+      console.log(`Processing swap for address: ${normalizedAddress}`);
+      
+      // Find or auto-create user
+      let user = await storage.getUser(normalizedAddress);
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        console.log(`Auto-creating user for address: ${normalizedAddress} during swap`);
+        user = await storage.createUser({
+          address: normalizedAddress,
+          lastClaim: null
+        });
       }
       
       // Increment the swap count
@@ -364,7 +396,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(`${apiPrefix}/users/:address/proposals/:proposalId/vote`, async (req, res) => {
     const { address, proposalId } = req.params;
     
-    const user = await storage.getUser(address);
+    // Normalize address
+    const normalizedAddress = address.startsWith('0x') 
+      ? address.toLowerCase() 
+      : `0x${address}`.toLowerCase();
+    
+    console.log(`Processing vote retrieval for address: ${normalizedAddress}`);
+    
+    const user = await storage.getUser(normalizedAddress);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
