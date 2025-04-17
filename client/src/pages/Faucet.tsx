@@ -351,22 +351,6 @@ const Faucet = () => {
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-space font-semibold">Daily Token Claim</h3>
             </div>
-            
-            {/* Prominent Countdown Timer */}
-            {isConnected && userData?.lastClaim && !canClaimTokens && (
-              <div className="mb-4 p-3 bg-[#1a2334] border border-blue-900/30 rounded-lg">
-                <div className="flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-[#A0AEC0] text-sm mb-1">Next claim available in:</div>
-                    <div className="text-xl font-bold font-mono text-white">
-                      <i className="fas fa-clock mr-2 text-blue-400"></i>
-                      {timeUntilNextClaim}
-                    </div>
-                    <div className="text-xs text-blue-400 mt-1">Claim once every 24 hours</div>
-                  </div>
-                </div>
-              </div>
-            )}
             <div className="flex items-center justify-between p-4 bg-[#1A5CFF] bg-opacity-10 rounded-lg border border-[#1A5CFF] border-opacity-30">
               <div className="flex items-center">
                 <div className="w-10 h-10 rounded-full bg-[#1A5CFF] flex items-center justify-center mr-3">
@@ -421,18 +405,23 @@ const Faucet = () => {
               className="w-full rounded-lg py-4 uppercase tracking-wide"
               size="lg"
             />
-          ) : (
+          ) : canClaimTokens ? (
             <button 
               onClick={handleClaimTokens}
-              disabled={!canClaimTokens || claimMutation.isPending}
-              className={`w-full rounded-lg ${!canClaimTokens ? 'bg-[#A0AEC0] cursor-not-allowed' : 'bg-[#1A5CFF] hover:bg-opacity-90'} transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide`}
+              disabled={claimMutation.isPending}
+              className="w-full rounded-lg bg-[#1A5CFF] hover:bg-opacity-90 transition-all font-bold text-sm px-8 py-4 uppercase tracking-wide"
             >
-              {claimMutation.isPending 
-                ? "Claiming..." 
-                : canClaimTokens 
-                ? "Claim 1 PRIOR Token" 
-                : "Already Claimed Today"}
+              {claimMutation.isPending ? "Claiming..." : "Claim 1 PRIOR Token"}
             </button>
+          ) : (
+            <div className="w-full rounded-lg bg-gradient-to-r from-[#1a2334] to-[#1e2a3b] border border-blue-900/30 p-5 text-center">
+              <div className="text-[#A0AEC0] mb-2">Already Claimed Today</div>
+              <div className="font-bold text-white font-mono text-xl bg-blue-900/20 rounded-md p-2 border border-blue-800/30">
+                <i className="fas fa-clock mr-2 text-blue-400"></i>
+                {timeUntilNextClaim}
+              </div>
+              <div className="text-blue-400 text-xs mt-3">Come back in {timeUntilNextClaim.split(':')[0]} hours to claim again</div>
+            </div>
           )}
           
           <div className="mt-6 text-sm text-[#A0AEC0] text-center">
