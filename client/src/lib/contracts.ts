@@ -111,23 +111,23 @@ export const PRIOR_PIONEER_NFT_ADDRESS = "0x2a45dfDbdCfcF72CBE835435eD54f4beE7d0
 
 export const contractAddresses = {
   // Real token addresses on Base Sepolia testnet
-  priorToken: "0xBc8697476a56679534b15994C0f1122556bBF9F4", // PRIOR token
+  priorToken: "0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb", // PRIOR token
   
   // Single swapContracts object to store all token pair swap contracts
   swapContracts: {
-    PRIOR_USDC: "0xaB73D1a2334Bf336DD103d739a239bba1A56b6ED",
-    PRIOR_USDT: "0xdb68d6D064c36d45c92365f61F689FC2d1661F65",
-    USDC_USDT: "0xbbd5997cfA849876289ebab4CddcD4Bc538B0244"
+    PRIOR_USDC: "0x8957e1988905311EE249e679a29fc9deCEd4D910",
+    PRIOR_USDT: "", // Not used in new deployment
+    USDC_USDT: ""   // Not used in new deployment
   },
   
   // Individual token addresses
   tokens: {
-    USDC: "0xc6d67115Cf17A55F9F22D29b955654A7c96781C5", // USDC with 6 decimals
-    USDT: "0x2B744c80C4895fDC2003108E186aBD7613c0ec7E"  // USDT with 6 decimals
+    USDC: "0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2", // USDC with 6 decimals
+    USDT: ""  // Not used in new deployment
   },
   
   // Faucet contract address
-  priorFaucet: "0xD0CA4219ABFd3A0535cafDCe3FB5707dc66F7cCe",
+  priorFaucet: "0xa206dC56F1A56a03aEa0fCBB7c7A62b5bE1Fe419",
   
   // NFT contract address
   priorPioneerNFT: PRIOR_PIONEER_NFT_ADDRESS
@@ -421,39 +421,39 @@ export const getFaucetInfo = async (address: string) => {
   }
 };
 
-// Get the exchange rate between PRIOR and USDC (1 PRIOR = 10 USDC)
+// Get the exchange rate between PRIOR and USDC (1 PRIOR = 2 USDC)
 export const getPriorToUSDCRate = async () => {
   try {
     const swapContract = await getSwapContract('PRIOR', 'USDC');
     
-    // Since we're using fixed rates for the testnet: 1 PRIOR = 10 USDC
+    // Since we're using fixed rates for the testnet: 1 PRIOR = 2 USDC
     // This assumes PRIOR has 18 decimals and USDC has 6 decimals
     // Convert to proper format for calculations - return the decimal multiplier
     
-    // 1 PRIOR = 10 USDC, so multiply by 10
-    return "10"; 
+    // 1 PRIOR = 2 USDC, so multiply by 2
+    return "2"; 
   } catch (error) {
     console.error("Error getting PRIOR to USDC rate:", error);
-    // Default rate: 1 PRIOR = 10 USDC
-    return "10"; 
+    // Default rate: 1 PRIOR = 2 USDC
+    return "2"; 
   }
 };
 
-// Get the exchange rate between PRIOR and USDT (1 PRIOR = 10 USDT)
+// Get the exchange rate between PRIOR and USDT (1 PRIOR = 2 USDT)
 export const getPriorToUSDTRate = async () => {
   try {
     const swapContract = await getSwapContract('PRIOR', 'USDT');
     
-    // Since we're using fixed rates for the testnet: 1 PRIOR = 10 USDT
+    // Since we're using fixed rates for the testnet: 1 PRIOR = 2 USDT
     // This assumes PRIOR has 18 decimals and USDT has 6 decimals
     // Convert to proper format for calculations
     
-    // 1 PRIOR = 10 USDT, so multiply by 10
-    return "10";
+    // 1 PRIOR = 2 USDT, so multiply by 2
+    return "2";
   } catch (error) {
     console.error("Error getting PRIOR to USDT rate:", error);
-    // Default rate: 1 PRIOR = 10 USDT
-    return "10";
+    // Default rate: 1 PRIOR = 2 USDT
+    return "2";
   }
 };
 
@@ -511,22 +511,22 @@ export const calculateSwapOutput = async (fromTokenAddress: string, toTokenAddre
     let rate = "0";
     
     if (fromSymbol === "PRIOR" && toSymbol === "USDC") {
-      // 1 PRIOR = 10 USDC
+      // 1 PRIOR = 2 USDC
       rate = await getPriorToUSDCRate();
       console.log(`Using PRIOR to USDC rate: ${rate}`);
     } 
     else if (fromSymbol === "PRIOR" && toSymbol === "USDT") {
-      // 1 PRIOR = 10 USDT
+      // 1 PRIOR = 2 USDT
       rate = await getPriorToUSDTRate();
       console.log(`Using PRIOR to USDT rate: ${rate}`);
     } 
     else if (fromSymbol === "USDC" && toSymbol === "PRIOR") {
-      // 10 USDC = 1 PRIOR (0.1 PRIOR per USDC)
+      // 2 USDC = 1 PRIOR (0.5 PRIOR per USDC)
       rate = (1 / parseFloat(await getPriorToUSDCRate())).toString();
       console.log(`Using USDC to PRIOR rate: ${rate}`);
     } 
     else if (fromSymbol === "USDT" && toSymbol === "PRIOR") {
-      // 10 USDT = 1 PRIOR (0.1 PRIOR per USDT)
+      // 2 USDT = 1 PRIOR (0.5 PRIOR per USDT)
       rate = (1 / parseFloat(await getPriorToUSDTRate())).toString();
       console.log(`Using USDT to PRIOR rate: ${rate}`);
     }
