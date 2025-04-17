@@ -66,7 +66,7 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
           <FaTrophy className="text-amber-500" /> Prior Protocol Leaderboard
         </CardTitle>
         <CardDescription>
-          Top {limit} users ranked by points - Highest swap activity highlighted
+          Top {limit} users ranked by Prior points - Highest swap activity highlighted
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -112,7 +112,7 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-lg">{user.points}</div>
-                        <div className="text-xs text-[#A0AEC0]">points</div>
+                        <div className="text-xs text-[#A0AEC0]">Prior points</div>
                       </div>
                     </div>
                     
@@ -129,12 +129,12 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                         </div>
                         <div className="grid grid-cols-2 gap-1 mt-1">
                           <div className="text-center bg-blue-900/20 rounded px-1 py-0.5">
-                            <span className="text-blue-400">+4 pts</span>
+                            <span className="text-blue-400">+4 Prior pts</span>
                             <div className="text-gray-400 text-[9px]">First Swap</div>
                           </div>
                           {user.totalSwaps >= 10 ? (
                             <div className="text-center bg-emerald-900/20 rounded px-1 py-0.5">
-                              <span className="text-emerald-400">+2 pts</span>
+                              <span className="text-emerald-400">+2 Prior pts</span>
                               <div className="text-gray-400 text-[9px]">10+ Swaps</div>
                             </div>
                           ) : (
@@ -158,11 +158,11 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                           <span className="text-[10px] text-gray-400 ml-1">(Saved in DB)</span>
                         </div>
                         <div className="text-center mt-1 bg-indigo-900/20 rounded px-1 py-0.5">
-                          <span className="text-indigo-400">+1 pt</span>
+                          <span className="text-indigo-400">+1 Prior pt</span>
                           <div className="text-gray-400 text-[9px]">Per Claim</div>
                         </div>
                         <div className="text-[10px] mt-1 text-gray-400">
-                          Total points: {user.totalClaims || 0}
+                          Total Prior points: {user.totalClaims || 0}
                         </div>
                       </div>
                     </div>

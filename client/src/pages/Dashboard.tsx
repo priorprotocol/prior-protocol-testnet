@@ -330,10 +330,10 @@ const Dashboard = () => {
                 <CardContent>
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-2">
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
-                      <p className="text-xs text-[#A0AEC0] mb-1">Total Points</p>
+                      <p className="text-xs text-[#A0AEC0] mb-1">Total Prior Points</p>
                       <p className="text-2xl font-bold">{userStats?.points || 0}</p>
                       <p className="text-xs text-[#A0AEC0] mt-1 italic">
-                        All points convert to PRIOR at TGE
+                        All Prior points convert to PRIOR at TGE
                       </p>
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
@@ -353,14 +353,14 @@ const Dashboard = () => {
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Faucet</p>
                       <p className="text-xl font-bold">{userStats?.totalFaucetClaims || 0}</p>
-                      <p className="text-xs text-[#A0AEC0]">({userStats?.totalFaucetClaims || 0} claims × 1 pt each)</p>
+                      <p className="text-xs text-[#A0AEC0]">({userStats?.totalFaucetClaims || 0} claims × 1 Prior pt each)</p>
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Governance</p>
                       <p className="text-xl font-bold">{userStats?.proposalsVoted ? userStats.proposalsVoted * 10 : 0}</p>
                       <p className="text-xs text-[#A0AEC0]">
                         {userStats?.proposalsVoted ? 
-                          `${userStats.proposalsVoted} votes (${userStats.proposalsVoted * 10} pts)` : 
+                          `${userStats.proposalsVoted} votes (${userStats.proposalsVoted * 10} Prior pts)` : 
                           "No votes yet"}
                       </p>
                       <p className="text-xs text-[#A0AEC0] mt-1">
