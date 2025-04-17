@@ -119,7 +119,7 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                     {/* Activity details - shown for all users for better transparency */}
                     <div className="mt-2 grid grid-cols-2 gap-2 text-xs border-t border-[#2D3748] pt-2">
                       <div className={`text-center ${user.totalSwaps >= 10 ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-md p-1' : ''}`}>
-                        <span className="text-[#A0AEC0] block mb-1">Lifetime Swaps</span>
+                        <span className="text-[#A0AEC0] block mb-1">Swap Activity</span>
                         <div className="flex justify-center items-center">
                           <FaExchangeAlt className="text-indigo-400 mr-1" />
                           <span className={`text-lg font-bold ${user.totalSwaps >= 10 ? 'text-emerald-400' : 'text-white'}`}>
@@ -151,7 +151,7 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                         )}
                       </div>
                       <div className="text-center">
-                        <span className="text-[#A0AEC0] block mb-1">Lifetime Claims</span>
+                        <span className="text-[#A0AEC0] block mb-1">Faucet Activity</span>
                         <div className="flex justify-center items-center">
                           <i className="fas fa-faucet text-cyan-400 mr-1"></i>
                           <span className="text-lg font-bold text-white">{user.totalClaims || 0}</span>

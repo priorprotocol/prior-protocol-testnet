@@ -374,14 +374,18 @@ export class MemStorage implements IStorage {
     // Get current daily swap count
     const dailySwapCount = await this.getDailySwapCount(userId);
     
-    // Add points according to the new reward system:
-    // 1. Only award 2 points per swap if user has 10+ swaps per day
-    // 2. No points for swaps if daily count is below 10
-    // 3. First swap no longer gives bonus points
+    // Add points according to the reward system:
+    // 1. Award 4 points for the first swap of the day
+    // 2. Award 2 additional points per swap if user has 10+ swaps per day
     
     let pointsToAdd = 0;
-    if (dailySwapCount >= 10) {
-      // If user has made 10 or more swaps today, award 2 points per swap
+    
+    // First swap of the day gets 4 points
+    if (dailySwapCount === 1) {
+      pointsToAdd = 4;
+    }
+    // Swaps after reaching 10+ daily swaps get 2 points each
+    else if (dailySwapCount >= 10) {
       pointsToAdd = 2;
     }
     
@@ -408,7 +412,8 @@ export class MemStorage implements IStorage {
     this.users.set(userId, updatedUser);
     this.usersByAddress.set(user.address, updatedUser);
     
-    // No points are awarded for faucet claims
+    // Award 1 point per faucet claim
+    await this.addUserPoints(userId, 1);
     
     return newClaimCount;
   }
@@ -724,9 +729,12 @@ export class MemStorage implements IStorage {
     // Count how many swaps the user has made today
     const swapCountToday = userSwapsToday.length;
     
-    // Only award points if user has made 10 or more swaps today (2 points per swap)
-    // No bonus points for first swap anymore
-    if (swapCountToday >= 10) {
+    // Award 4 points for the first swap of the day
+    if (swapCountToday === 1) {
+      return 4;
+    }
+    // Award 2 points per swap if user has reached 10+ swaps today
+    else if (swapCountToday >= 10) {
       return 2;
     }
     
