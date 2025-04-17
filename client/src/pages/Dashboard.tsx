@@ -152,11 +152,11 @@ const Dashboard = () => {
                             ) : 0}
                           </div>
                           <div className="flex flex-col text-xs space-y-1 mt-1">
-                            <span className="text-blue-400 bg-blue-900/20 rounded px-2 py-0.5">+4 pts first swap of the day</span>
+                            <span className="text-blue-400 bg-blue-900/20 rounded px-2 py-0.5">+4 Prior pts first swap of the day</span>
                             <span className="text-emerald-400 bg-emerald-900/20 rounded px-2 py-0.5">
-                              +2 pts per swap after 10+ daily swaps
+                              +2 Prior pts per swap after 10+ daily swaps
                             </span>
-                            <span className="text-amber-400 text-[10px]">Max 6 pts from 10+ swaps bonus</span>
+                            <span className="text-amber-400 text-[10px]">Max 6 Prior pts from 10+ swaps bonus</span>
                           </div>
                         </div>
                       </div>
@@ -179,7 +179,7 @@ const Dashboard = () => {
                         <div className="text-right">
                           <div className="font-bold text-xl">{userStats?.totalFaucetClaims || 0}</div>
                           <div className="text-xs text-indigo-400 bg-indigo-900/20 rounded px-2 py-0.5 mt-1">
-                            +1 pt per claim
+                            +1 Prior pt per claim
                           </div>
                         </div>
                       </div>
@@ -246,10 +246,10 @@ const Dashboard = () => {
                         </div>
                         <div className="text-right">
                           <div className="text-xs bg-purple-900/30 border border-purple-800/30 rounded px-2 py-1">
-                            <span className="text-purple-300">+10</span> <span className="text-[#A0AEC0]">pts per vote</span>
+                            <span className="text-purple-300">+10</span> <span className="text-[#A0AEC0]">Prior pts per vote</span>
                           </div>
                           <div className="text-xs bg-purple-900/30 border border-purple-800/30 rounded px-2 py-1 mt-1">
-                            <span className="text-purple-300">+300</span> <span className="text-[#A0AEC0]">pts with NFT</span>
+                            <span className="text-purple-300">+300</span> <span className="text-[#A0AEC0]">Prior pts with NFT</span>
                           </div>
                         </div>
                       </div>
@@ -312,10 +312,10 @@ const Dashboard = () => {
               <p className="text-[#A0AEC0]">
                 Top users ranked by Prior Points from protocol activity. Earn points by:
                 <ul className="list-disc list-inside mt-1 ml-2">
-                  <li><span className="text-blue-400">4 points</span> for your first swap of the day</li>
-                  <li><span className="text-emerald-400">2 points</span> per swap after reaching 10+ daily swaps (max 6 additional points)</li>
-                  <li><span className="text-indigo-400">1 point</span> for each faucet claim</li>
-                  <li><span className="text-purple-400">10 points</span> for governance votes (coming soon)</li>
+                  <li><span className="text-blue-400">4 Prior points</span> for your first swap of the day</li>
+                  <li><span className="text-emerald-400">2 Prior points</span> per swap after reaching 10+ daily swaps (max 6 additional points)</li>
+                  <li><span className="text-indigo-400">1 Prior point</span> for each faucet claim</li>
+                  <li><span className="text-purple-400">10 Prior points</span> for governance votes (coming soon)</li>
                 </ul>
                 <strong className="block mt-1">All points will be converted to PRIOR tokens at Token Generation Event (TGE).</strong>
               </p>
@@ -345,8 +345,8 @@ const Dashboard = () => {
                       <p className="text-xs text-[#A0AEC0]">
                         {userStats?.totalSwaps ? 
                           (userStats.totalSwaps >= 10 ? 
-                            `${userStats.totalSwaps} swaps × 2 pts each` : 
-                            `${userStats.totalSwaps} swaps (need 10+ daily swaps for points)`) : 
+                            `${userStats.totalSwaps} swaps × 2 Prior pts each` : 
+                            `${userStats.totalSwaps} swaps (need 10+ daily swaps for Prior points)`) : 
                           "No swaps yet"}
                       </p>
                     </div>

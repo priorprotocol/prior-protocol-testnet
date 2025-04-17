@@ -163,7 +163,7 @@ export class MemStorage implements IStorage {
     const initialQuests: InsertQuest[] = [
       {
         title: "Daily Swap Quest",
-        description: "Complete 10+ swaps in a day to earn 2 points per swap (convertible to PRIOR at TGE).",
+        description: "Complete 10+ swaps in a day to earn 2 Prior points per swap (convertible to PRIOR at TGE).",
         reward: 2,
         difficulty: "Beginner",
         status: "active",
@@ -171,7 +171,7 @@ export class MemStorage implements IStorage {
       },
       {
         title: "Governance Participation",
-        description: "Participate in governance proposals to earn 10 points per vote (feature coming soon).",
+        description: "Participate in governance proposals to earn 10 Prior points per vote (feature coming soon).",
         reward: 10,
         difficulty: "Intermediate",
         status: "active",
