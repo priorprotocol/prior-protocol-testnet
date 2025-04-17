@@ -40,16 +40,13 @@ function formatTokenValue(value: string, decimals: number = 18): string {
 const BASE_EXPLORER_API = 'https://api-sepolia.basescan.org/api';
 const BASESCAN_API_KEY = import.meta.env.VITE_BASESCAN_API_KEY || '';
 const TOKEN_CONTRACTS = {
-  PRIOR: '0xBc8697476a56679534b15994C0f1122556bBF9F4',
-  USDC: '0xc6d67115Cf17A55F9F22D29b955654A7c96781C5',
-  USDT: '0x2B744c80C4895fDC2003108E186aB7613c0ec7E',
+  PRIOR: '0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb',
+  USDC: '0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2',
 };
 const SWAP_CONTRACTS = {
-  'PRIOR-USDC': '0xaB73D1a2334Bf336DD103d739a239bba1A56b6ED',
-  'PRIOR-USDT': '0xdb68d6D064c36d45c92365f61F689FC2d1661F65',
-  'USDC-USDT': '0xbbd5997cfA849876289ebab4CddcD4Bc538B0244',
+  'PRIOR-USDC': '0x8957e1988905311EE249e679a29fc9deCEd4D910',
 };
-const FAUCET_CONTRACT = '0xD0CA4219ABFd3A0535cafDCe3FB5707dc66F7cCe';
+const FAUCET_CONTRACT = '0xa206dC56F1A56a03aEa0fCBB7c7A62b5bE1Fe419';
 const PRIOR_NFT_CONTRACT = '0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59';
 
 // Interface for transactions from the block explorer
@@ -230,14 +227,13 @@ function isSwapTransaction(tx: any): boolean {
   const swapContractAddresses = Object.values(SWAP_CONTRACTS).map(addr => addr.toLowerCase());
   const priorContract = TOKEN_CONTRACTS.PRIOR.toLowerCase();
   const usdcContract = TOKEN_CONTRACTS.USDC.toLowerCase();
-  const usdtContract = TOKEN_CONTRACTS.USDT.toLowerCase();
   const faucetContract = FAUCET_CONTRACT.toLowerCase();
   
   // Check if this is a token transaction to/from a swap contract
   if (tx.contractAddress) {
     const contractAddr = tx.contractAddress.toLowerCase();
-    // If this is a token transaction for a supported token (PRIOR, USDC, USDT)
-    if ([priorContract, usdcContract, usdtContract].includes(contractAddr)) {
+    // If this is a token transaction for a supported token (PRIOR, USDC)
+    if ([priorContract, usdcContract].includes(contractAddr)) {
       // Make sure it's not a faucet claim
       if (tx.to?.toLowerCase() !== faucetContract && tx.from?.toLowerCase() !== faucetContract) {
         // And it's to/from a swap contract
