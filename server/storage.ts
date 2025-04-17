@@ -12,6 +12,7 @@ import {
 export interface IStorage {
   // User operations
   getUser(address: string): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserLastClaim(address: string): Promise<User | undefined>;
   getUserBadges(userId: number): Promise<string[]>; 

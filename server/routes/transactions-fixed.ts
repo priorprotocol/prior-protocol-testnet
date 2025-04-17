@@ -338,12 +338,25 @@ router.post('/transactions', async (req: Request, res: Response) => {
     }
     
     // Determine which address field to use
-    const rawAddress = transactionData.userAddress || transactionData.userId || transactionData.address;
+    const rawAddress = transactionData.userAddress || transactionData.address || transactionData.userId;
     
-    // Normalize address format
-    const normalizedAddress = rawAddress.startsWith('0x') 
-      ? rawAddress.toLowerCase() 
-      : `0x${rawAddress}`.toLowerCase();
+    // Normalize address format - handle both string addresses and numeric IDs
+    let normalizedAddress: string;
+    
+    if (typeof rawAddress === 'string') {
+      normalizedAddress = rawAddress.startsWith('0x') 
+        ? rawAddress.toLowerCase() 
+        : `0x${rawAddress}`.toLowerCase();
+    } else if (typeof rawAddress === 'number') {
+      // This is a user ID, not an address, so we'll need to look it up
+      const user = await storage.getUserById(rawAddress);
+      if (!user || !user.address) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      normalizedAddress = user.address.toLowerCase();
+    } else {
+      return res.status(400).json({ message: "Invalid address format" });
+    }
     
     console.log(`Processing transaction request for address: ${normalizedAddress}`);
     
