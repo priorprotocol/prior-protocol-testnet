@@ -49,7 +49,12 @@ const Faucet = () => {
     return now >= nextClaim;
   };
   
-  const canClaimTokens = canClaim();
+  const [canClaimTokens, setCanClaimTokens] = useState(true);
+  
+  // Update canClaimTokens when userData changes
+  useEffect(() => {
+    setCanClaimTokens(canClaim());
+  }, [userData]);
   
   // Update the countdown timer
   useEffect(() => {
@@ -184,6 +189,9 @@ const Faucet = () => {
     onSuccess: (data) => {
       console.log("Claim successful:", data);
       
+      // Immediately update UI to show "Already Claimed" state
+      setCanClaimTokens(false);
+      
       // Show success toast for token claim
       toast({
         title: "Token claimed successfully!",
@@ -217,6 +225,9 @@ const Faucet = () => {
       // For ALL faucet-related errors, simplify to a user-friendly message about already claimed
       // This ensures users never see technical error messages
       errorMessage = "You have already claimed your PRIOR tokens today. Please come back tomorrow for your next claim.";
+      
+      // Immediately update UI to show "Already Claimed" state
+      setCanClaimTokens(false);
       
       // We're always going to refresh the user data to get the updated claim time
       if (address) {
