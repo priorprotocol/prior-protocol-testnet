@@ -157,7 +157,7 @@ router.get('/users/:identifier/transactions/:type', async (req: Request, res: Re
 // Synchronize blockchain transactions with our database
 router.post('/sync-transactions', async (req: Request, res: Response) => {
   const syncSchema = z.object({
-    address: z.string().min(42).max(42),
+    address: z.string(),
     transactions: z.array(z.object({
       txHash: z.string(),
       blockNumber: z.number(),
@@ -174,11 +174,18 @@ router.post('/sync-transactions', async (req: Request, res: Response) => {
   try {
     const { address, transactions } = syncSchema.parse(req.body);
     
+    // Normalize address to ensure it starts with 0x and is lowercase
+    const normalizedAddress = address.startsWith('0x') 
+      ? address.toLowerCase() 
+      : `0x${address}`.toLowerCase();
+    
+    console.log(`Processing sync-transactions request for address: ${normalizedAddress}`);
+    
     // Get or create user
-    let user = await storage.getUser(address);
+    let user = await storage.getUser(normalizedAddress);
     if (!user) {
-      user = await storage.createUser({ address: address.toLowerCase(), lastClaim: null });
-      console.log(`Created new user for address ${address} during transaction sync`);
+      user = await storage.createUser({ address: normalizedAddress, lastClaim: null });
+      console.log(`Created new user for address ${normalizedAddress} during transaction sync`);
     }
     
     console.log(`Syncing ${transactions.length} historical transactions for user ${user.id} (${address})`);
