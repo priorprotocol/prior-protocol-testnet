@@ -283,18 +283,21 @@ router.post('/transactions', async (req: Request, res: Response) => {
   try {
     const transactionData = req.body;
     
-    // Check if we have a wallet address
-    if (!transactionData.userAddress) {
+    // Check if we have a wallet address (support both userId and userAddress fields)
+    if (!transactionData.userAddress && !transactionData.userId && !transactionData.address) {
       return res.status(400).json({ message: "User address is required" });
     }
     
+    // Determine which address field to use
+    const userAddress = transactionData.userAddress || transactionData.userId || transactionData.address;
+    
     // Get the user first
-    let user = await storage.getUser(transactionData.userAddress);
+    let user = await storage.getUser(userAddress);
     
     // Create user if they don't exist
     if (!user) {
       user = await storage.createUser({ 
-        address: transactionData.userAddress,
+        address: userAddress.toLowerCase(),
         lastClaim: null
       });
     }
