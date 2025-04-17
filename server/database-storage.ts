@@ -88,16 +88,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     
-    // Record this transaction - points will be added automatically in createTransaction
-    const transaction = await this.createTransaction({
-      userId,
-      type: 'swap',
-      txHash: `swap_${Date.now()}`, // Placeholder for actual transaction hash
-      status: 'completed'
-    });
-    
-    console.log(`[SwapCounter] Recorded transaction ${transaction.id} for user ${userId}`);
-    
     return updatedUser.totalSwaps || 0;
   }
   

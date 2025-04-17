@@ -1,10 +1,12 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertVoteSchema, insertTransactionSchema } from "@shared/schema";
+import { insertUserSchema, insertVoteSchema, insertTransactionSchema, transactions } from "@shared/schema";
 import { z } from "zod";
 import transactionRoutes from "./routes/transactions-fixed";
 import { log } from "./vite";
+import { db } from "./db";
+import { eq, and, count, sql } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes prefix
@@ -754,7 +756,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Create transaction record
+      // First, increment the user's swap count
+      await storage.incrementUserSwapCount(user.id);
+      
+      // Determine if this is the first swap of the day for points calculation
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const existingSwapsToday = await db
+        .select({ count: count() })
+        .from(transactions)
+        .where(and(
+          eq(transactions.userId, user.id),
+          eq(transactions.type, 'swap'),
+          sql`${transactions.timestamp} >= ${today}`
+        ));
+      
+      const swapCountToday = existingSwapsToday[0]?.count || 0;
+      console.log(`User ${user.id} has ${swapCountToday} swaps today before this one`);
+      
+      // Calculate points based on swap count
+      let points = 0;
+      if (swapCountToday === 0) {
+        // First swap of the day gets 4 points
+        points = 4;
+        console.log(`Awarding 4 points for first swap of the day to user ${user.id}`);
+      } else if (swapCountToday >= 9) {
+        // 10+ swaps get 2 additional points each (including the 10th swap)
+        points = 2;
+        console.log(`Awarding 2 points for 10+ daily swaps to user ${user.id}`);
+      }
+      
+      // Create transaction record 
       const transaction = await storage.createTransaction({
         userId: user.id,
         type: 'swap',
@@ -767,11 +800,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         blockNumber: blockNumber || null
       });
       
-      // Increment the user's swap count
-      await storage.incrementUserSwapCount(user.id);
+      // Manually add points if needed (beyond what createTransaction handles)
+      if (points > 0) {
+        await storage.addUserPoints(user.id, points);
+      }
       
-      res.status(201).json(transaction);
+      res.status(201).json({
+        ...transaction,
+        points
+      });
     } catch (error) {
+      console.error("Error recording swap transaction:", error);
       res.status(400).json({ message: "Failed to record transaction" });
     }
   });
