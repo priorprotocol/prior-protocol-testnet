@@ -479,13 +479,13 @@ export default function Swap() {
           const dailySwapData = await dailySwapCountResponse.json();
           const dailySwapCount = dailySwapData.count || 0;
           
-          // Only award points if the user has completed 10 or more swaps today
-          let pointsToAdd = 0;
+          // Improved points logic for users with 10+ swaps daily
+          const pointsToAdd = 2; // 2 points per swap when they've done 10+ swaps
+          
           if (dailySwapCount >= 10) {
-            pointsToAdd = 2; // 2 points per swap when they've done 10+ swaps
-            
+            // Immediately add points for this swap since they're over the threshold
             // Add the points
-            await fetch(`/api/users/${userId}/add-points`, {
+            const pointsResponse = await fetch(`/api/users/${userId}/add-points`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -495,16 +495,32 @@ export default function Swap() {
               }),
             });
             
-            // Show a toast notification about points earned
-            toast({
-              title: `Points Earned: ${pointsToAdd}`,
-              description: `You earned ${pointsToAdd} points for this swap! (10+ swaps today)`,
-            });
+            if (pointsResponse.ok) {
+              const pointsResult = await pointsResponse.json();
+              console.log(`Successfully awarded ${pointsToAdd} points for swap, new total: ${pointsResult.points}`);
+              
+              // Show a toast notification about points earned with dynamic styling
+              toast({
+                title: `Points Earned: ${pointsToAdd}`,
+                description: `You earned ${pointsToAdd} points for this swap! (${dailySwapCount} swaps today)`,
+                variant: "default",
+                className: "bg-gradient-to-r from-emerald-800 to-green-900 border-emerald-600"
+              });
+            }
           } else if (dailySwapCount >= 9) {
-            // They're close to the 10 swap threshold
+            // They're about to reach the 10 swap threshold - encourage them
+            toast({
+              title: "Almost There!",
+              description: `Complete just ${10 - dailySwapCount} more swap(s) today to start earning 2 points per swap!`,
+              className: "bg-amber-900 border-amber-600"
+            });
+          } else if (dailySwapCount >= 5) {
+            // They're making progress
             toast({
               title: "Keep Going!",
-              description: `Complete ${10 - dailySwapCount} more swap(s) today to start earning points!`,
+              description: `Complete ${10 - dailySwapCount} more swaps today to unlock 2 points per swap!`,
+              variant: "default",
+              className: "bg-blue-900 border-blue-600"
             });
           }
         }

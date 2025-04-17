@@ -118,11 +118,18 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                     
                     {/* Activity details - shown for all users for better transparency */}
                     <div className="mt-2 grid grid-cols-2 gap-2 text-xs border-t border-[#2D3748] pt-2">
-                      <div className="text-center">
-                        <span className="text-[#A0AEC0] block">Daily Swaps</span>
-                        <span className="font-medium">{user.totalSwaps || 0}</span>
+                      <div className={`text-center ${user.totalSwaps >= 10 ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-md p-1' : ''}`}>
+                        <span className="text-[#A0AEC0] block">Total Swaps</span>
+                        <span className={`font-medium ${user.totalSwaps >= 10 ? 'text-emerald-400' : ''}`}>{user.totalSwaps || 0}</span>
                         {user.totalSwaps >= 10 ? (
-                          <span className="text-xs text-green-500">+{user.totalSwaps * 2} pts</span>
+                          <div>
+                            <span className="text-xs text-emerald-400 bg-emerald-900/50 px-2 py-0.5 rounded-md">
+                              +{user.totalSwaps * 2} pts (+2 per swap)
+                            </span>
+                            <div className="text-xs mt-0.5 text-emerald-300">
+                              <FaExchangeAlt className="inline mr-1" size={10} />Top Swapper
+                            </div>
+                          </div>
                         ) : (
                           <span className="text-xs text-gray-500">Need 10+ for pts</span>
                         )}
