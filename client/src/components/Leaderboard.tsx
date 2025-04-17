@@ -13,7 +13,7 @@ interface LeaderboardProps {
   limit?: number;
 }
 
-export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
+export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
   // Use both for compatibility during transition
   const { address: contextAddress } = useWallet();
   const { address: standaloneAddress } = useStandaloneWallet();
