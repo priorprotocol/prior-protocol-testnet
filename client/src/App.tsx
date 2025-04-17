@@ -7,6 +7,7 @@ import Quest from "@/pages/Quest";
 import Governance from "@/pages/Governance";
 import Dashboard from "@/pages/Dashboard";
 import About from "@/pages/About";
+import Documentation from "@/pages/Documentation";
 import Redirect from "@/pages/Redirect";
 import NotFound from "@/pages/not-found";
 
@@ -19,6 +20,7 @@ const WrappedQuest = () => <Quest />;
 const WrappedGovernance = () => <Governance />;
 const WrappedDashboard = () => <Dashboard />;
 const WrappedAbout = () => <About />;
+const WrappedDocumentation = () => <Documentation />;
 const WrappedRedirect = () => <Redirect />;
 
 function App() {
@@ -34,6 +36,7 @@ function App() {
         <Route path="/governance" component={WrappedGovernance} />
         <Route path="/dashboard" component={WrappedDashboard} />
         <Route path="/about" component={WrappedAbout} />
+        <Route path="/docs" component={WrappedDocumentation} />
         <Route path="/redirect" component={WrappedRedirect} />
         <Route component={NotFound} />
       </Switch>
