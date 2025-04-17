@@ -72,11 +72,13 @@ const About = () => {
           <h2 className="text-2xl font-bold mb-6 text-center">Prior Pioneer NFT</h2>
           <div className="flex flex-col md:flex-row gap-8 items-center bg-[#1A202C] p-6 rounded-lg">
             <div className="md:w-1/3">
-              {/* NFT image placeholder - will be replaced with new asset */}
-              <div 
-                className="w-full max-w-[240px] h-[240px] mx-auto rounded-lg bg-gray-800 flex items-center justify-center"
-              >
-                <FaKey className="text-[#1A5CFF] text-5xl" />
+              {/* Prior Pioneer NFT image */}
+              <div className="w-full max-w-[240px] h-[240px] mx-auto rounded-lg overflow-hidden">
+                <img 
+                  src="/images/prior-pioneer-nft.jpg" 
+                  alt="Prior Pioneer NFT" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="text-center mt-4">
                 <p className="text-xs text-[#A0AEC0]">Contract Address:</p>

@@ -16,11 +16,15 @@ export const PioneerBadgeCard: React.FC<PioneerBadgeCardProps> = ({ className = 
         <div className="flex flex-col md:flex-row items-center gap-6">
           <div className="flex-shrink-0">
             <div className="relative">
-              {/* Pioneer NFT image will be updated with new assets */}
+              {/* Prior Pioneer NFT image */}
               <div 
-                className="w-32 h-32 flex items-center justify-center bg-gray-800 rounded-lg border-2 border-[#1A5CFF]"
+                className="w-32 h-32 rounded-lg border-2 border-[#1A5CFF] overflow-hidden"
               >
-                <FaCertificate className="text-[#1A5CFF] text-4xl" />
+                <img 
+                  src="/images/prior-pioneer-nft.jpg" 
+                  alt="Prior Pioneer NFT" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="absolute -top-3 -right-3 bg-[#1A5CFF] rounded-full p-2">
                 <FaCertificate className="text-white text-2xl" />
