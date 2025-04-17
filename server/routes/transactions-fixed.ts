@@ -22,18 +22,46 @@ const getTransactionPoints = async (userId: number, type: string, txData: any): 
     // Check if user has done swaps in the current day
     const dailySwapCount = await storage.getDailySwapCount(userId);
     
+    // Get the date for this transaction
+    const txDate = txData.timestamp ? new Date(txData.timestamp) : new Date();
+    const txDay = new Date(txDate);
+    txDay.setHours(0, 0, 0, 0);
+    
+    // Count swaps made on this day BEFORE this one
+    const allUserTransactions = await storage.getUserTransactionsByType(userId, 'swap');
+    const swapsBeforeThisOne = allUserTransactions.transactions.filter(tx => {
+      // Skip this transaction
+      if (tx.txHash === txData.txHash) return false;
+      
+      // Get the date for the transaction
+      const thisTxDate = new Date(tx.timestamp);
+      const thisTxDay = new Date(thisTxDate);
+      thisTxDay.setHours(0, 0, 0, 0);
+      
+      // Check if it's the same day and has a smaller ID (happened before)
+      return thisTxDay.getTime() === txDay.getTime() && 
+             (txData.id ? tx.id < txData.id : true);
+    });
+    
+    // This is the first swap of the day if there are no swaps before it on the same day
+    const isFirstSwapOfDay = swapsBeforeThisOne.length === 0;
+    
     // Award 4 points for the first swap of the day
-    if (dailySwapCount === 1) {
+    if (isFirstSwapOfDay) {
+      console.log(`[PointsCalc] Awarding 4 points for first swap of day to user ${userId}`);
       return 4;
     }
     // Award 2 points per swap ONLY if they've done 10+ swaps today
     else if (dailySwapCount >= DAILY_SWAP_THRESHOLD) {
+      console.log(`[PointsCalc] Awarding 2 points for 10+ daily swaps to user ${userId}`);
       return 2;
     }
+    console.log(`[PointsCalc] No points awarded - not first swap and under 10 daily total for user ${userId}`);
     return 0;
   } 
   else if (type === 'faucet_claim') {
     // 1 point for each faucet claim
+    console.log(`[PointsCalc] Awarding 1 point for faucet claim to user ${userId}`);
     return 1;
   }
   else if (type === 'governance_vote') {

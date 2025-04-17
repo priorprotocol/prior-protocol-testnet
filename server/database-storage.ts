@@ -411,7 +411,23 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`[PointsCalc] User ${userId} making swap, daily count: ${dailySwaps}, is first swap of day: ${isDailyFirstSwap}`);
       
-      if (isDailyFirstSwap) {
+      // Make sure the user has actually performed a swap transaction before awarding points
+      // Get all user swaps to verify they've swapped before
+      const userSwaps = await db
+        .select({ count: count() })
+        .from(transactions)
+        .where(and(
+          eq(transactions.userId, userId),
+          eq(transactions.type, 'swap')
+        ));
+      
+      const totalUserSwaps = userSwaps[0]?.count || 0;
+      
+      if (totalUserSwaps === 0) {
+        // No points for users who haven't actually swapped yet
+        console.log(`[PointsCalc] No points awarded - user ${userId} has no swap transactions`);
+        return 0;
+      } else if (isDailyFirstSwap) {
         // First swap of the day gets 4 points
         console.log(`[PointsCalc] Awarding 4 points for first swap of the day to user ${userId}`);
         return 4;
