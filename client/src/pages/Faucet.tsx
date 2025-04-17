@@ -3,7 +3,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import TokenCard from "@/components/TokenCard";
-import { TransactionHistory } from "@/components/TransactionHistory";
 import { useWalletSync } from "@/hooks/useWalletSync";
 import { claimFromFaucet, getFaucetInfo } from "@/contracts/services";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
@@ -207,49 +206,28 @@ const Faucet = () => {
     },
     onError: (error: any) => {
       console.error("Claim error:", error);
+      
       // Check for specific error messages
       let errorMessage = "An error occurred during the claim process";
-      let errorTitle = "Failed to claim token";
-      let errorVariant: "default" | "destructive" = "destructive";
+      let errorTitle = "Already Claimed Today";
+      let errorVariant: "default" | "destructive" = "default";
       
       const errorStr = String(error.message || error.reason || "").toLowerCase();
       
-      // Handle wait time / already claimed errors with a more user-friendly message
-      if (
-        errorStr.includes("wait") || 
-        errorStr.includes("claim interval") || 
-        errorStr.includes("24 hour") || 
-        errorStr.includes("already claimed")
-      ) {
-        errorTitle = "Already Claimed Today";
-        errorMessage = "You have already claimed tokens today. Please check back in 24 hours for your next claim. The Prior Protocol smart contract enforces this daily limit.";
-        errorVariant = "default"; // Less alarming for expected behavior
-      } 
-      // Handle contract-related errors
-      else if (
-        errorStr.includes("contract") || 
-        errorStr.includes("function") ||
-        errorStr.includes("execution reverted")
-      ) {
-        errorMessage = "The faucet claim transaction failed. This could be due to network congestion or contract state. Please try again later.";
+      // For ALL faucet-related errors, simplify to a user-friendly message about already claimed
+      // This ensures users never see technical error messages
+      errorMessage = "You have already claimed your PRIOR tokens today. Please come back tomorrow for your next claim.";
+      
+      // We're always going to refresh the user data to get the updated claim time
+      if (address) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
       }
-      // Use provided error message if available
-      else if (error.message) {
-        errorMessage = error.message;
-      } else if (error.reason) {
-        errorMessage = error.reason;
-      }
-        
+      
       toast({
         title: errorTitle,
         description: errorMessage,
         variant: errorVariant
       });
-      
-      // If it's a wait time error, refresh the user data to get updated claim time
-      if (errorStr.includes("wait") || errorStr.includes("claim interval") || errorStr.includes("24 hour")) {
-        queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
-      }
     }
   });
   
@@ -372,13 +350,23 @@ const Faucet = () => {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-space font-semibold">Daily Token Claim</h3>
-              {isConnected && userData?.lastClaim && !canClaimTokens && (
-                <div className="flex items-center text-[#A0AEC0] text-sm">
-                  <i className="fas fa-clock mr-1"></i>
-                  <span>{timeUntilNextClaim}</span> until next claim
-                </div>
-              )}
             </div>
+            
+            {/* Prominent Countdown Timer */}
+            {isConnected && userData?.lastClaim && !canClaimTokens && (
+              <div className="mb-4 p-3 bg-[#1a2334] border border-blue-900/30 rounded-lg">
+                <div className="flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-[#A0AEC0] text-sm mb-1">Next claim available in:</div>
+                    <div className="text-xl font-bold font-mono text-white">
+                      <i className="fas fa-clock mr-2 text-blue-400"></i>
+                      {timeUntilNextClaim}
+                    </div>
+                    <div className="text-xs text-blue-400 mt-1">Claim once every 24 hours</div>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="flex items-center justify-between p-4 bg-[#1A5CFF] bg-opacity-10 rounded-lg border border-[#1A5CFF] border-opacity-30">
               <div className="flex items-center">
                 <div className="w-10 h-10 rounded-full bg-[#1A5CFF] flex items-center justify-center mr-3">
@@ -466,8 +454,14 @@ const Faucet = () => {
           </div>
         </div>
         
-        <div className="mt-12 max-w-4xl mx-auto">
-          <TransactionHistory />
+        <div className="mt-12 text-center">
+          <a 
+            href="/dashboard" 
+            className="inline-flex items-center gap-2 text-[#1A5CFF] hover:text-blue-400 transition-colors"
+          >
+            <i className="fas fa-history mr-1"></i>
+            Click here to see your transaction history
+          </a>
         </div>
       </div>
     </section>
