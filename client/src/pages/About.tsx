@@ -2,7 +2,8 @@ import React from 'react';
 import { SiDiscord, SiMedium } from 'react-icons/si';
 import { FaTwitter, FaBook, FaKey, FaIdBadge } from 'react-icons/fa';
 import { FaImage } from 'react-icons/fa6';
-import pioneerNftImage from '../assets/prior-pioneer-nft.jpg';
+// For direct asset imports
+import nftImagePath from '@/assets/prior-pioneer-nft.jpg';
 
 const About = () => {
   return (
@@ -76,7 +77,7 @@ const About = () => {
               {/* Prior Pioneer NFT image */}
               <div className="w-full max-w-[240px] h-[240px] mx-auto rounded-lg overflow-hidden">
                 <img 
-                  src={pioneerNftImage} 
+                  src={nftImagePath} 
                   alt="Prior Pioneer NFT" 
                   className="w-full h-full object-cover"
                 />

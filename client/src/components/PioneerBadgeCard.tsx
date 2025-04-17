@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { getBadgeInfo } from '@/lib/badges';
 import { FaCertificate } from 'react-icons/fa';
-import pioneerNftImage from '../assets/prior-pioneer-nft.jpg';
+import nftImagePath from '@/assets/prior-pioneer-nft.jpg';
 
 interface PioneerBadgeCardProps {
   className?: string;
