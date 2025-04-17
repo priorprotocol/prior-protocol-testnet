@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Leaderboard } from "@/components/Leaderboard";
 import { formatAddress } from "@/lib/formatAddress";
 import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
-import { RefreshCw } from "lucide-react";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 import { UserStats } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -70,7 +69,6 @@ const Dashboard = () => {
       <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="activity">Activity History</TabsTrigger>
           <TabsTrigger value="leaderboard">
             <div className="flex items-center gap-1">
               <FaRankingStar className="text-xs" />
@@ -136,7 +134,6 @@ const Dashboard = () => {
                             <h4 className="font-medium">Total Swaps</h4>
                             <div className="flex items-center mt-1">
                               <span className="text-2xl font-bold text-white">{userStats?.totalSwaps || 0}</span>
-                              <span className="ml-2 text-[#A0AEC0] text-xs">Lifetime swaps</span>
                             </div>
                             <div className="mt-1 bg-indigo-900/20 border border-indigo-800/20 rounded-sm px-2 py-1">
                               <p className="text-xs text-indigo-300">
@@ -307,72 +304,6 @@ const Dashboard = () => {
         </TabsContent>
         
         {/* Badges tab content has been removed */}
-        
-        {/* Activity History Tab with Transaction History Component */}
-        <TabsContent value="activity" className="space-y-6">
-          <Card className="bg-[#111827] border-[#2D3748]">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>Your Activity History</CardTitle>
-                <CardDescription>Track all your interactions with the Prior Protocol testnet</CardDescription>
-              </div>
-              <div className="mt-4 sm:mt-0">
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
-                  onClick={() => {
-                    if (syncTransactions) {
-                      toast({
-                        title: "Syncing blockchain activity",
-                        description: "Fetching your latest swap and faucet transactions...",
-                      });
-                      
-                      try {
-                        syncTransactions();
-                        
-                        // Show success toast after a delay - this assumes the sync is fast
-                        // In a real app, you might want to use events or promises to know when it's done
-                        setTimeout(() => {
-                          if (!syncError) {
-                            toast({
-                              title: "Sync complete",
-                              description: "Your transactions have been updated",
-                            });
-                          }
-                        }, 3000);
-                      } catch (err) {
-                        toast({
-                          title: "Sync failed",
-                          description: "There was a problem synchronizing with the blockchain",
-                          variant: "destructive",
-                        });
-                      }
-                    }
-                  }}
-                  disabled={isSyncing}
-                  className="flex items-center gap-2"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? 'Syncing...' : 'Sync Blockchain Activity'}
-                </Button>
-                {lastSyncTime instanceof Date && (
-                  <p className="text-[#A0AEC0] text-xs mt-1 text-right">
-                    Last synced: {lastSyncTime.toLocaleTimeString()}
-                  </p>
-                )}
-                {syncError && (
-                  <p className="text-red-400 text-xs mt-1 text-right">
-                    Error: {syncError}
-                  </p>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {/* Pass the address explicitly to ensure consistency */}
-              <TransactionHistory address={address} />
-            </CardContent>
-          </Card>
-        </TabsContent>
         
         <TabsContent value="leaderboard" className="space-y-6">
           <div className="space-y-4">
