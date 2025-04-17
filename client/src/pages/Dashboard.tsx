@@ -107,10 +107,19 @@ const Dashboard = () => {
                       <div>
                         <h3 className="text-lg font-medium text-white mb-2">Total Points Earned</h3>
                         <p className="text-blue-300 text-sm">All points will be converted to PRIOR at TGE</p>
+                        <div className="mt-2 bg-blue-900/40 border border-blue-700/40 rounded p-2">
+                          <p className="text-xs text-blue-200">
+                            <i className="fas fa-database mr-1"></i>
+                            Points are <span className="font-bold">permanently saved</span> in the database and will persist even if you disconnect your wallet or close your browser.
+                          </p>
+                        </div>
                       </div>
-                      <div className="mt-4 md:mt-0">
-                        <span className="text-4xl font-bold text-white">{userStats?.points || 0}</span>
-                        <span className="ml-2 text-blue-300">pts</span>
+                      <div className="mt-4 md:mt-0 text-center md:text-right">
+                        <div className="inline-block bg-gradient-to-r from-blue-900/60 to-purple-900/60 rounded-lg p-4 border border-blue-700/40">
+                          <span className="text-5xl font-bold text-white">{userStats?.points || 0}</span>
+                          <span className="ml-2 text-blue-300">pts</span>
+                        </div>
+                        <p className="text-xs text-blue-300 mt-2">Never reset or wiped during testnet</p>
                       </div>
                     </div>
                   </div>
@@ -125,10 +134,17 @@ const Dashboard = () => {
                             <i className="fas fa-exchange-alt text-indigo-400"></i>
                           </div>
                           <div>
-                            <h4 className="font-medium">Swaps</h4>
-                            <p className="text-[#A0AEC0] text-sm">
-                              {userStats?.totalSwaps || 0} total swap{userStats?.totalSwaps !== 1 ? 's' : ''}
-                            </p>
+                            <h4 className="font-medium">Total Swaps</h4>
+                            <div className="flex items-center mt-1">
+                              <span className="text-2xl font-bold text-white">{userStats?.totalSwaps || 0}</span>
+                              <span className="ml-2 text-[#A0AEC0] text-xs">Lifetime swaps</span>
+                            </div>
+                            <div className="mt-1 bg-indigo-900/20 border border-indigo-800/20 rounded-sm px-2 py-1">
+                              <p className="text-xs text-indigo-300">
+                                <i className="fas fa-info-circle mr-1"></i>
+                                Swap count persists across sessions
+                              </p>
+                            </div>
                           </div>
                         </div>
                         <div className="text-right">
@@ -148,8 +164,6 @@ const Dashboard = () => {
                           </div>
                         </div>
                       </div>
-                      
-                      {/* Badge progression removed */}
                     </div>
                     
                     {/* Faucet Claims Card */}

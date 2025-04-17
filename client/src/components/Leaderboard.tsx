@@ -119,8 +119,14 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                     {/* Activity details - shown for all users for better transparency */}
                     <div className="mt-2 grid grid-cols-2 gap-2 text-xs border-t border-[#2D3748] pt-2">
                       <div className={`text-center ${user.totalSwaps >= 10 ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-md p-1' : ''}`}>
-                        <span className="text-[#A0AEC0] block">Total Swaps</span>
-                        <span className={`font-medium ${user.totalSwaps >= 10 ? 'text-emerald-400' : ''}`}>{user.totalSwaps || 0}</span>
+                        <span className="text-[#A0AEC0] block mb-1">Lifetime Swaps</span>
+                        <div className="flex justify-center items-center">
+                          <FaExchangeAlt className="text-indigo-400 mr-1" />
+                          <span className={`text-lg font-bold ${user.totalSwaps >= 10 ? 'text-emerald-400' : 'text-white'}`}>
+                            {user.totalSwaps || 0}
+                          </span>
+                          <span className="text-[10px] text-gray-400 ml-1">(Saved in DB)</span>
+                        </div>
                         <div className="grid grid-cols-2 gap-1 mt-1">
                           <div className="text-center bg-blue-900/20 rounded px-1 py-0.5">
                             <span className="text-blue-400">+4 pts</span>
@@ -145,11 +151,18 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                         )}
                       </div>
                       <div className="text-center">
-                        <span className="text-[#A0AEC0] block">Faucet Claims</span>
-                        <span className="font-medium">{user.totalClaims || 0}</span>
+                        <span className="text-[#A0AEC0] block mb-1">Lifetime Claims</span>
+                        <div className="flex justify-center items-center">
+                          <i className="fas fa-faucet text-cyan-400 mr-1"></i>
+                          <span className="text-lg font-bold text-white">{user.totalClaims || 0}</span>
+                          <span className="text-[10px] text-gray-400 ml-1">(Saved in DB)</span>
+                        </div>
                         <div className="text-center mt-1 bg-indigo-900/20 rounded px-1 py-0.5">
                           <span className="text-indigo-400">+1 pt</span>
                           <div className="text-gray-400 text-[9px]">Per Claim</div>
+                        </div>
+                        <div className="text-[10px] mt-1 text-gray-400">
+                          Total points: {user.totalClaims || 0}
                         </div>
                       </div>
                     </div>
