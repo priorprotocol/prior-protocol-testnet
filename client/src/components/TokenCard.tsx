@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/context/WalletContext";
 import { TokenInfo } from "@/types";
+import { CORRECT_ADDRESSES, clearTokenCache } from "@/lib/forceCorrectAddresses";
 
 interface TokenCardProps {
   token: TokenInfo;
@@ -132,14 +133,32 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, forceBalance }) => {
   // This ensures that we don't show incorrect balances from old contract addresses
   let displayedBalance = displayBalance;
   
-  console.log(`Token card displaying ${token.symbol} balance: ${displayedBalance}`);
+  // Ensure token is using the correct address
+  useEffect(() => {
+    // Check if the token address is correct, if not update it
+    if (token.symbol === "PRIOR" && token.address.toLowerCase() !== CORRECT_ADDRESSES.PRIOR_TOKEN.toLowerCase()) {
+      console.warn(`Fixing incorrect PRIOR token address: ${token.address} -> ${CORRECT_ADDRESSES.PRIOR_TOKEN}`);
+      token.address = CORRECT_ADDRESSES.PRIOR_TOKEN;
+      // Clear any cached data
+      clearTokenCache();
+    } else if (token.symbol === "USDC" && token.address.toLowerCase() !== CORRECT_ADDRESSES.USDC_TOKEN.toLowerCase()) {
+      console.warn(`Fixing incorrect USDC token address: ${token.address} -> ${CORRECT_ADDRESSES.USDC_TOKEN}`);
+      token.address = CORRECT_ADDRESSES.USDC_TOKEN;
+      // Clear any cached data
+      clearTokenCache();
+    }
+  }, [token]);
+  
+  console.log(`Token card displaying ${token.symbol} balance: ${displayedBalance} (address: ${token.address})`);
   
   // Clear any previous storage that might interfere with balance display
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('lastPriorSwap');
-    localStorage.removeItem('tokenBalances');
-    localStorage.removeItem('cachedBalances');
-  }
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('lastPriorSwap');
+      localStorage.removeItem('tokenBalances');
+      localStorage.removeItem('cachedBalances');
+    }
+  }, []);
 
   return (
     <div className="gradient-border bg-[#141D29] p-4 shadow-lg">
