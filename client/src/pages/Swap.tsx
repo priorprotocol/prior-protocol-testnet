@@ -479,12 +479,34 @@ export default function Swap() {
           const dailySwapData = await dailySwapCountResponse.json();
           const dailySwapCount = dailySwapData.count || 0;
           
-          // Improved points logic for users with 10+ swaps daily
-          const pointsToAdd = 2; // 2 points per swap when they've done 10+ swaps
+          // Determine points to add based on daily swap count and if it's first swap
+          let pointsToAdd = 0;
+          let pointsMessage = "";
           
-          if (dailySwapCount >= 10) {
-            // Immediately add points for this swap since they're over the threshold
-            // Add the points
+          if (dailySwapCount === 1) {
+            // First swap of the day
+            pointsToAdd = 4;
+            pointsMessage = "4 points for your first swap of the day!";
+          } else if (dailySwapCount >= 10) {
+            // 10+ swaps in a day
+            pointsToAdd = 2;
+            pointsMessage = "2 points for your swap (10+ daily swaps bonus)!";
+          } else {
+            pointsMessage = "No points earned. Make more swaps to earn points!";
+          }
+          
+          // Show toast for points earned
+          if (pointsToAdd > 0) {
+            toast({
+              title: "Points Earned!",
+              description: pointsMessage,
+              variant: "default",
+              className: "bg-green-800 text-white border-green-600",
+            });
+          }
+          
+          if (pointsToAdd > 0) {
+            // Add the points to the user's account
             const pointsResponse = await fetch(`/api/users/${userId}/add-points`, {
               method: 'POST',
               headers: {
