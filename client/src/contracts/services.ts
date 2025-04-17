@@ -747,14 +747,14 @@ export const getFaucetInfo = async (address: string) => {
 
 // Get the exchange rate between PRIOR and USDC (1 PRIOR = x USDC)
 export const getPriorToUSDCRate = async (): Promise<string> => {
-  // Fixed rate: 1 PRIOR = 10 USDC for the testnet
-  return "10";
+  // Fixed rate: 1 PRIOR = 2 USDC for the testnet
+  return "2";
 };
 
 // Get the exchange rate between PRIOR and USDT
 export const getPriorToUSDTRate = async (): Promise<string> => {
-  // Fixed rate: 1 PRIOR = 10 USDT for the testnet
-  return "10";
+  // Fixed rate: 1 PRIOR = 2 USDT for the testnet (not used in new deployment)
+  return "2";
 };
 
 // Get the exchange rate between USDC and USDT
@@ -776,10 +776,10 @@ export const calculateSimpleSwapOutput = (
     return "0";
   }
   
-  // PRIOR to stablecoins: 1 PRIOR = 10 USDC/USDT
+  // PRIOR to stablecoins: 1 PRIOR = 2 USDC/USDT
   if (fromSymbol === "PRIOR" && (toSymbol === "USDC" || toSymbol === "USDT")) {
-    console.log(`Swap calculation: ${amount} PRIOR to ${toSymbol} with rate 10`);
-    const resultBeforeFee = inputAmount * 10;
+    console.log(`Swap calculation: ${amount} PRIOR to ${toSymbol} with rate 2`);
+    const resultBeforeFee = inputAmount * 2;
     console.log(`Result before fee: ${resultBeforeFee}`);
     // Apply a small fee (0.5%) to match contract behavior
     const resultAfterFee = resultBeforeFee * 0.995; // 0.5% fee
@@ -789,19 +789,19 @@ export const calculateSimpleSwapOutput = (
     return resultAfterFee.toFixed(2);
   }
   
-  // Stablecoins to PRIOR: 10 USDC/USDT = 1 PRIOR
+  // Stablecoins to PRIOR: 2 USDC/USDT = 1 PRIOR
   if ((fromSymbol === "USDC" || fromSymbol === "USDT") && toSymbol === "PRIOR") {
-    console.log(`Swap calculation: ${amount} ${fromSymbol} to PRIOR with rate 0.1`);
+    console.log(`Swap calculation: ${amount} ${fromSymbol} to PRIOR with rate 0.5`);
     // Calculate with a 0.5% fee (typical DEX fee)
-    const resultBeforeFee = inputAmount * 0.1;
+    const resultBeforeFee = inputAmount * 0.5;
     console.log(`Result before fee: ${resultBeforeFee}`);
     const resultAfterFee = resultBeforeFee * 0.995; // 0.5% fee
     console.log(`Result after 0.5% fee: ${resultAfterFee.toFixed(6)}`);
     
-    // Special case for the common 2 USDC → 0.2 PRIOR conversion
+    // Special case for the common 2 USDC → 1 PRIOR conversion
     if (inputAmount === 2) {
-      console.log("Special case for 2 USDC → 0.2 PRIOR conversion");
-      return "0.2"; // Return exact expected value for better UX
+      console.log("Special case for 2 USDC → 1 PRIOR conversion");
+      return "1"; // Return exact expected value for better UX
     }
     
     // Ensure we never return "0" for tiny amounts
@@ -826,8 +826,8 @@ export const calculateSimpleSwapOutput = (
     console.log(`Swap calculation: ${amount} ${fromSymbol} to ${toSymbol} with rate 1`);
     const resultBeforeFee = inputAmount;
     console.log(`Result before fee: ${resultBeforeFee}`);
-    const resultAfterFee = resultBeforeFee * 0.997; // 0.3% fee
-    console.log(`Result after 0.3% fee: ${resultAfterFee.toFixed(2)}`);
+    const resultAfterFee = resultBeforeFee * 0.995; // 0.5% fee
+    console.log(`Result after 0.5% fee: ${resultAfterFee.toFixed(2)}`);
     return resultAfterFee.toFixed(2);
   }
   

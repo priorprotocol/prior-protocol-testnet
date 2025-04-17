@@ -921,13 +921,12 @@ export default function Swap() {
               <span className="font-semibold">Testnet Exchange Rates:</span> 
             </p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>1 PRIOR = 10 USDC / 10 USDT</li>
-              <li>1 USDC = 0.1 PRIOR</li>
-              <li>1 USDT = 0.1 PRIOR</li>
-              <li>1 USDC = 1 USDT</li>
+              <li>1 PRIOR = 2 USDC</li>
+              <li>1 USDC = 0.5 PRIOR</li>
+              <li>Fee = 0.5% for PRIOR swaps</li>
             </ul>
             <p className="mt-2 text-gray-400">
-              <span className="font-semibold">Fees:</span> 0.5% for PRIOR pairs, 0.3% for stablecoin pairs
+              <span className="font-semibold">Fees:</span> 0.5% for all pairs
             </p>
           </div>
         </div>
