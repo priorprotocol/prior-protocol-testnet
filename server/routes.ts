@@ -243,9 +243,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(`${apiPrefix}/users/:address/stats`, async (req, res) => {
     const { address } = req.params;
     
-    const user = await storage.getUser(address);
+    let user = await storage.getUser(address);
+    
+    // Auto-create user if not found
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      console.log(`Auto-creating user for address: ${address} when requesting stats`);
+      user = await storage.createUser({
+        address: address.toLowerCase(),
+        lastClaim: null
+      });
+      
+      // If the user has connected their wallet before but somehow not registered,
+      // let's check if they have any transactions on the blockchain
+      try {
+        // We won't actually query the blockchain here because that's handled by the frontend
+        // but we'll create a placeholder record
+        console.log(`New user created with ID: ${user.id}`);
+      } catch (err) {
+        console.error("Error checking blockchain for user:", err);
+      }
     }
     
     const stats = await storage.getUserStats(user.id);
@@ -396,9 +412,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const page = parseInt(req.query.page as string || '1');
     const limit = parseInt(req.query.limit as string || '10');
     
-    const user = await storage.getUser(address);
+    let user = await storage.getUser(address);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      console.log(`Auto-creating user for address: ${address} when requesting transactions`);
+      user = await storage.createUser({
+        address: address.toLowerCase(),
+        lastClaim: null
+      });
     }
     
     const result = await storage.getUserTransactions(user.id, page, limit);
@@ -426,9 +446,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const page = parseInt(req.query.page as string || '1');
     const limit = parseInt(req.query.limit as string || '10');
     
-    const user = await storage.getUser(address);
+    let user = await storage.getUser(address);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      console.log(`Auto-creating user for address: ${address} when requesting transactions by type`);
+      user = await storage.createUser({
+        address: address.toLowerCase(),
+        lastClaim: null
+      });
     }
     
     const result = await storage.getUserTransactionsByType(user.id, type, page, limit);
