@@ -216,14 +216,7 @@ const Dashboard = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <button 
-                            onClick={() => setActiveTab("activity")} 
-                            className="text-xs text-blue-400 hover:underline"
-                          >
-                            View all quests
-                          </button>
-                        </div>
+                        {/* "View all quests" link removed as requested */}
                       </div>
                       
                       <div className="mt-3 pt-3 border-t border-[#2D3748]">
