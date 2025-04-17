@@ -66,30 +66,35 @@ const Header = () => {
         </div>
         
         {/* Desktop Navigation - with accessibility improvements */}
-        <div className="hidden md:block flex-grow max-w-3xl mx-auto px-4">
-          <nav className="flex items-center flex-wrap justify-center gap-1.5 text-[#A0AEC0] font-medium" aria-label="Main navigation">
-            {navLinks.map(link => (
-              link.external ? (
-                <a 
-                  key={link.path}
-                  href={link.path}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-2 py-1.5 rounded-md hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors whitespace-nowrap text-sm"
-                >
-                  {link.name} <i className="fas fa-external-link-alt text-xs ml-1" aria-hidden="true"></i>
-                </a>
-              ) : (
-                <Link 
-                  key={link.path}
-                  href={link.path} 
-                  className={`px-2 py-1.5 rounded-md hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors whitespace-nowrap text-sm ${location === link.path ? 'tab-active bg-gray-900 text-white' : ''}`}
-                  aria-current={location === link.path ? 'page' : undefined}
-                >
-                  {link.name}
-                </Link>
-              )
-            ))}
+        <div className="hidden md:block flex-grow max-w-4xl mx-auto px-4">
+          <nav aria-label="Main navigation">
+            <ul className="flex items-center justify-center space-x-5 text-[#A0AEC0] font-medium">
+              {navLinks.map(link => (
+                <li key={link.path}>
+                  {link.external ? (
+                    <a 
+                      href={link.path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-2 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors flex items-center"
+                    >
+                      {link.name} <i className="fas fa-external-link-alt text-xs ml-1" aria-hidden="true"></i>
+                    </a>
+                  ) : (
+                    <Link 
+                      href={link.path} 
+                      className={`px-3 py-2 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors flex items-center relative ${location === link.path ? 'text-white font-medium' : ''}`}
+                      aria-current={location === link.path ? 'page' : undefined}
+                    >
+                      {link.name}
+                      {location === link.path && (
+                        <div className="absolute h-0.5 bg-[#1A5CFF] bottom-0 left-0 right-0"></div>
+                      )}
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
           </nav>
         </div>
         
@@ -154,36 +159,34 @@ const Header = () => {
             </button>
           </div>
           
-          <nav className="flex flex-col p-3 flex-grow" aria-label="Mobile navigation">
-            <div className="p-1 bg-[#1A1F2E] rounded-lg">
-              <div className="grid grid-cols-2 gap-2">
-                {navLinks.map(link => (
-                  link.external ? (
+          <nav className="flex flex-col py-4 px-5 flex-grow" aria-label="Mobile navigation">
+            <ul className="space-y-1.5">
+              {navLinks.map(link => (
+                <li key={link.path}>
+                  {link.external ? (
                     <a 
-                      key={link.path}
                       href={link.path}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#A0AEC0] bg-[#111827] hover:text-white transition-colors py-2.5 px-2 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center text-center text-sm"
+                      className="text-[#A0AEC0] hover:text-white transition-colors py-2.5 px-4 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       {link.name} 
-                      <i className="fas fa-external-link-alt text-xs ml-1" aria-hidden="true"></i>
+                      <i className="fas fa-external-link-alt text-xs ml-1.5" aria-hidden="true"></i>
                     </a>
                   ) : (
                     <Link 
-                      key={link.path}
                       href={link.path} 
-                      className={`${location === link.path ? 'text-white font-medium bg-gray-800' : 'text-[#A0AEC0] bg-[#111827]'} hover:text-white transition-colors py-2.5 px-2 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center text-center text-sm`}
+                      className={`${location === link.path ? 'text-white font-medium bg-gray-800' : 'text-[#A0AEC0]'} hover:text-white transition-colors py-2.5 px-4 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center`}
                       onClick={() => setIsMobileMenuOpen(false)}
                       aria-current={location === link.path ? 'page' : undefined}
                     >
                       {link.name}
                     </Link>
-                  )
-                ))}
-              </div>
-            </div>
+                  )}
+                </li>
+              ))}
+            </ul>
           </nav>
           
           <div className="px-6 py-4 border-t border-gray-700 mt-auto" aria-label="Wallet connection">
