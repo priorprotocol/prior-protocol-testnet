@@ -17,21 +17,30 @@ import { getTokenContract, swapTokens, approveTokens, getTokenBalance,
   getPriorToUSDCRate, calculateSimpleSwapOutput, getTokenContractWithSigner } from "@/contracts/services";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 
+import { 
+  CORRECT_ADDRESSES, 
+  getCorrectPriorTokenAddress, 
+  getCorrectUsdcTokenAddress,
+  getCorrectSwapAddress,
+  clearTokenCache
+} from '@/lib/forceCorrectAddresses';
+
 // Token definitions with symbol, color, logo, decimals, and address
+// Using hard-coded correct addresses to ensure we always use the right contracts
 const TOKENS = {
   PRIOR: {
     symbol: "PRIOR",
     color: "#00df9a",
     logo: "P",
     decimals: 18,
-    address: contractAddresses.priorToken
+    address: CORRECT_ADDRESSES.PRIOR_TOKEN // Force correct address
   },
   USDC: {
     symbol: "USDC",
     color: "#2775ca",
     logo: "U",
     decimals: 6,
-    address: contractAddresses.tokens.USDC
+    address: CORRECT_ADDRESSES.USDC_TOKEN // Force correct address
   }
 };
 
@@ -361,7 +370,8 @@ export default function Swap() {
       setSwapStatus("Approving tokens...");
       
       // Get the swap contract address - only PRIOR-USDC pair is supported
-      let swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
+      // Using the force-correct address to ensure we use the new contract
+      let swapContractAddress = CORRECT_ADDRESSES.PRIOR_USDC_SWAP;
       
       const fromTokenAddress = TOKENS[fromToken as keyof typeof TOKENS].address;
       
@@ -425,7 +435,8 @@ export default function Swap() {
       const toTokenAddress = TOKENS[toToken as keyof typeof TOKENS].address;
       
       // Get the swap contract address - only PRIOR-USDC pair is supported
-      let swapContractAddress = SWAP_CONTRACTS.PRIOR_USDC;
+      // Using the force-correct address to ensure we use the new contract
+      let swapContractAddress = CORRECT_ADDRESSES.PRIOR_USDC_SWAP;
       
       // Execute the swap through the service function
       const receipt = await swapTokens(
