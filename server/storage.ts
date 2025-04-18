@@ -164,24 +164,24 @@ export class MemStorage implements IStorage {
     const initialQuests: InsertQuest[] = [
       {
         title: "Daily Swap Quest",
-        description: "Complete 10+ swaps in a day to earn 2 Prior points per swap (convertible to PRIOR at TGE).",
-        reward: 2,
+        description: "Complete swaps to earn 0.5 Prior points per swap, up to 5 swaps daily (max 2.5 points/day, convertible to PRIOR at TGE).",
+        reward: 0.5,
         difficulty: "Beginner",
         status: "active",
         icon: "exchange-alt"
       },
       {
         title: "Governance Participation",
-        description: "Participate in governance proposals to earn 10 Prior points per vote (feature coming soon).",
-        reward: 10,
+        description: "Participate in governance proposals to help shape the future of Prior Protocol (feature coming soon).",
+        reward: 0,
         difficulty: "Intermediate",
         status: "active",
         icon: "vote-yea"
       },
       {
         title: "Liquidity Provider",
-        description: "Add liquidity to a trading pair to earn 5 Prior Points (convertible at TGE).",
-        reward: 5,
+        description: "Add liquidity to a trading pair to support the Protocol ecosystem (feature coming soon).",
+        reward: 0,
         difficulty: "Advanced",
         status: "coming_soon",
         icon: "chart-line"
@@ -379,19 +379,19 @@ export class MemStorage implements IStorage {
     // Get current daily swap count
     const dailySwapCount = await this.getDailySwapCount(userId);
     
-    // Add points according to the reward system:
-    // 1. Award 4 points for the first swap of the day
-    // 2. Award 2 additional points per swap if user has 10+ swaps per day
+    // NEW SIMPLIFIED POINTS SYSTEM:
+    // Award 0.5 points for each of the first 5 swaps per day (max 2.5 points daily)
+    const MAX_DAILY_SWAPS_FOR_POINTS = 5;
+    const POINTS_PER_SWAP = 0.5;
     
     let pointsToAdd = 0;
     
-    // First swap of the day gets 4 points
-    if (dailySwapCount === 1) {
-      pointsToAdd = 4;
-    }
-    // Swaps after reaching 10+ daily swaps get 2 points each
-    else if (dailySwapCount >= 10) {
-      pointsToAdd = 2;
+    // Award points only for first 5 swaps each day
+    if (dailySwapCount <= MAX_DAILY_SWAPS_FOR_POINTS) {
+      pointsToAdd = POINTS_PER_SWAP;
+      console.log(`[PointsSystem] Awarded ${POINTS_PER_SWAP} points for swap #${dailySwapCount} to user ${userId}`);
+    } else {
+      console.log(`[PointsSystem] No points for swap #${dailySwapCount} - max ${MAX_DAILY_SWAPS_FOR_POINTS} swaps per day for user ${userId}`);
     }
     
     if (pointsToAdd > 0) {
@@ -417,8 +417,9 @@ export class MemStorage implements IStorage {
     this.users.set(userId, updatedUser);
     this.usersByAddress.set(user.address, updatedUser);
     
-    // Award 1 point per faucet claim
-    await this.addUserPoints(userId, 1);
+    // Under the NEW SIMPLIFIED points system, faucet claims don't award points anymore
+    // Only the first 5 swaps each day award 0.5 points each
+    console.log(`[PointsSystem] No points awarded for faucet claim by user ${userId} under new points system`);
     
     return newClaimCount;
   }
@@ -627,17 +628,12 @@ export class MemStorage implements IStorage {
     // Update the proposal's vote count
     await this.updateProposalVotes(vote.proposalId, vote.vote, 1);
     
-    // Add 10 points for each vote
-    await this.addUserPoints(vote.userId, 10);
+    // Under the NEW SIMPLIFIED POINTS SYSTEM, votes don't award points
+    // Only the first 5 swaps each day award 0.5 points each
+    console.log(`[PointsSystem] No points awarded for vote by user ${vote.userId} under new points system`);
     
-    // Check if user has a Prior Pioneer NFT and award 300 additional points
-    // This would normally query the blockchain, but for this demo we'll
-    // check if the user has the 'pioneer' badge
-    const user = this.users.get(vote.userId);
-    const userBadges = user?.badges;
-    if (user && userBadges && Array.isArray(userBadges) && userBadges.indexOf('pioneer') >= 0) {
-      await this.addUserPoints(vote.userId, 300);
-    }
+    // No additional points for Pioneer NFT holders under new system either
+    console.log(`[PointsSystem] No bonus points for Pioneer NFT under new points system`);
     
     return newVote;
   }
@@ -734,16 +730,17 @@ export class MemStorage implements IStorage {
     // Count how many swaps the user has made today
     const swapCountToday = userSwapsToday.length;
     
-    // Award 4 points for the first swap of the day
-    if (swapCountToday === 1) {
-      return 4;
-    }
-    // Award 2 points per swap if user has reached 10+ swaps today
-    else if (swapCountToday >= 10) {
-      return 2;
+    // NEW SIMPLIFIED POINTS SYSTEM:
+    // Award 0.5 points for each of the first 5 swaps per day (max 2.5 points daily)
+    const MAX_DAILY_SWAPS_FOR_POINTS = 5;
+    const POINTS_PER_SWAP = 0.5;
+    
+    // Only award points if this is one of the first 5 swaps
+    if (swapCountToday <= MAX_DAILY_SWAPS_FOR_POINTS) {
+      return POINTS_PER_SWAP;
     }
     
-    // Otherwise, no points
+    // No points for swaps beyond the daily limit
     return 0;
   }
   
