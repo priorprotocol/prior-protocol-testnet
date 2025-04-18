@@ -1,13 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { User } from "@/types";
 import { formatAddress } from "@/lib/formatAddress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FaTrophy, FaMedal, FaAward, FaExchangeAlt, FaShieldAlt } from "react-icons/fa";
+import { FaTrophy, FaMedal, FaAward, FaExchangeAlt, FaSync } from "react-icons/fa";
 import { useWallet } from "@/context/WalletContext";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
+import { useEffect, useCallback, useRef } from "react";
 
 interface LeaderboardProps {
   limit?: number;
@@ -21,10 +22,46 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
   // Prefer standalone address but fall back to context address
   const address = standaloneAddress || contextAddress;
   
-  const { data: leaderboard, isLoading } = useQuery({
+  // For refreshing leaderboard data automatically
+  const queryClient = useQueryClient();
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Real-time leaderboard with short stale time and auto-refresh
+  const { data: leaderboard, isLoading, refetch } = useQuery({
     queryKey: ["/api/leaderboard", limit],
     queryFn: () => apiRequest<User[]>(`/api/leaderboard?limit=${limit}`),
+    staleTime: 5000, // Consider data stale after 5 seconds
+    refetchOnMount: true, // Refresh when component mounts
+    refetchOnWindowFocus: true, // Refresh when window regains focus
+    refetchOnReconnect: true, // Refresh when network reconnects
   });
+  
+  // Function to refresh leaderboard data
+  const refreshLeaderboard = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
+  
+  // Initialize real-time updates as soon as component mounts 
+  // This ensures leaderboard is showing even before wallet connects
+  useEffect(() => {
+    // Immediately load leaderboard data on app start
+    queryClient.prefetchQuery({
+      queryKey: ["/api/leaderboard", limit],
+      queryFn: () => apiRequest<User[]>(`/api/leaderboard?limit=${limit}`)
+    });
+    
+    // Set up interval for real-time updates
+    refreshIntervalRef.current = setInterval(() => {
+      refreshLeaderboard();
+    }, 10000); // Refresh every 10 seconds
+    
+    // Clean up interval on unmount
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [limit, queryClient, refreshLeaderboard]);
   
   // Rank badge rendering helper
   const getRankBadge = (index: number) => {
@@ -62,9 +99,19 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
   return (
     <Card className="bg-[#111827] border-[#2D3748]">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FaTrophy className="text-amber-500" /> Prior Protocol Leaderboard
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center gap-2">
+            <FaTrophy className="text-amber-500" /> Prior Protocol Leaderboard
+          </CardTitle>
+          <button 
+            className="text-xs flex items-center gap-1 bg-blue-900/30 hover:bg-blue-800/40 text-blue-300 px-2 py-1 rounded-md"
+            onClick={() => refreshLeaderboard()}
+            title="Refresh Leaderboard"
+          >
+            <FaSync size={10} className="mr-1" />
+            Refresh
+          </button>
+        </div>
         <CardDescription>
           Top {limit} users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
         </CardDescription>
