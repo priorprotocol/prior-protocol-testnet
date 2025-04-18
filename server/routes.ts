@@ -327,6 +327,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(stats);
   });
   
+  // Get user's historical points data by address
+  app.get(`${apiPrefix}/users/:address/historical-points`, async (req, res) => {
+    const { address } = req.params;
+    const { period = 'week' } = req.query; // Options: 'day', 'week', 'month', 'all'
+    
+    // Normalize the address to lowercase
+    const normalizedAddress = address.startsWith('0x') 
+      ? address.toLowerCase() 
+      : `0x${address}`.toLowerCase();
+    
+    console.log(`Processing historical points request for address: ${normalizedAddress}, period: ${period}`);
+    
+    let user = await storage.getUser(normalizedAddress);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    try {
+      const historicalData = await storage.getUserHistoricalPoints(user.id, period as string);
+      res.json(historicalData);
+    } catch (error) {
+      console.error('Error fetching historical points:', error);
+      res.status(500).json({ error: 'Failed to fetch historical points data' });
+    }
+  });
+  
   // Get user's stats by userId
   app.get(`${apiPrefix}/users/:userId/stats`, async (req, res) => {
     const userId = parseInt(req.params.userId);

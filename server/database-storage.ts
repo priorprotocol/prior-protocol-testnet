@@ -175,6 +175,177 @@ export class DatabaseStorage implements IStorage {
     };
   }
   
+  /**
+   * Get historical points data for a user over time
+   * @param userId The user ID
+   * @param period The time period to retrieve ('day', 'week', 'month', 'all')
+   */
+  async getUserHistoricalPoints(userId: number, period = 'week'): Promise<{
+    periods: string[];
+    pointsData: number[];
+    swapData: number[];
+    totalPoints: number;
+    currentPoints: number;
+  }> {
+    // Get the user for the current point balance
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) {
+      return {
+        periods: [],
+        pointsData: [],
+        swapData: [],
+        totalPoints: 0,
+        currentPoints: 0,
+      };
+    }
+    
+    // Current points from user record
+    const currentPoints = user.points || 0;
+    
+    // Set time range based on period
+    const now = new Date();
+    let startDate: Date;
+    let groupByFormat: string;
+    let labelFormat: (date: Date) => string;
+    
+    switch (period) {
+      case 'day':
+        // Last 24 hours, grouped by hour
+        startDate = new Date(now);
+        startDate.setHours(now.getHours() - 24);
+        groupByFormat = '%Y-%m-%d %H:00:00';
+        labelFormat = (date) => date.toLocaleTimeString(undefined, { hour: '2-digit' });
+        break;
+        
+      case 'week':
+        // Last 7 days, grouped by day
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 7);
+        groupByFormat = '%Y-%m-%d';
+        labelFormat = (date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        break;
+        
+      case 'month':
+        // Last 30 days, grouped by day
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 30);
+        groupByFormat = '%Y-%m-%d';
+        labelFormat = (date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        break;
+        
+      case 'all':
+      default:
+        // All time, grouped by week
+        startDate = new Date('2024-01-01'); // From beginning of 2024
+        groupByFormat = '%Y-%U'; // Year-Week format
+        labelFormat = (date) => {
+          const weekNum = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+          return `Week ${weekNum}`;
+        };
+        break;
+    }
+    
+    // Get all swap transactions for the specified time range
+    const swapTransactions = await db
+      .select()
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        eq(transactions.type, 'swap'),
+        sql`${transactions.timestamp} >= ${startDate}`
+      ))
+      .orderBy(asc(transactions.timestamp));
+    
+    // Group transactions by date and calculate points per period
+    const periodData: Record<string, { points: number, swaps: number }> = {};
+    const allPeriods: Set<string> = new Set();
+    
+    // Process transactions
+    for (const tx of swapTransactions) {
+      const txDate = new Date(tx.timestamp);
+      
+      // Generate period key based on our format
+      let periodKey: string;
+      if (period === 'day') {
+        periodKey = txDate.toISOString().substring(0, 13) + ':00:00'; // YYYY-MM-DDTHH:00:00
+      } else if (period === 'week' || period === 'month') {
+        periodKey = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+      } else {
+        // For 'all', use year-week format
+        const weekNum = Math.floor((txDate.getTime() - new Date(txDate.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+        periodKey = `${txDate.getFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
+      }
+      
+      // Initialize period data if not exists
+      if (!periodData[periodKey]) {
+        periodData[periodKey] = { points: 0, swaps: 0 };
+      }
+      
+      // Each swap adds 0.5 points up to 5 swaps (2.5 points) per day
+      // For daily periods, cap at 5 swaps
+      if (period === 'day') {
+        if (periodData[periodKey].swaps < 5) {
+          periodData[periodKey].points += 0.5;
+          periodData[periodKey].swaps += 1;
+        }
+      } else {
+        // For longer periods, we need to track daily caps
+        const txDay = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+        if (!periodData[periodKey][txDay]) {
+          periodData[periodKey][txDay] = { swaps: 0 };
+        }
+        
+        if (periodData[periodKey][txDay].swaps < 5) {
+          periodData[periodKey].points += 0.5;
+          periodData[periodKey].swaps += 1;
+          periodData[periodKey][txDay].swaps += 1;
+        }
+      }
+      
+      allPeriods.add(periodKey);
+    }
+    
+    // Create a sorted array of period keys
+    const sortedPeriods = Array.from(allPeriods).sort();
+    
+    // Create arrays for points and swaps per period
+    const periods: string[] = [];
+    const pointsData: number[] = [];
+    const swapData: number[] = [];
+    
+    for (const periodKey of sortedPeriods) {
+      // Convert period key to human-readable format
+      let label: string;
+      if (period === 'day') {
+        const date = new Date(periodKey);
+        label = date.toLocaleTimeString(undefined, { hour: '2-digit' });
+      } else if (period === 'week' || period === 'month') {
+        const date = new Date(periodKey);
+        label = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      } else {
+        // For 'all', extract year and week number
+        const [year, weekPart] = periodKey.split('-');
+        const weekNum = parseInt(weekPart.substring(1), 10);
+        label = `Week ${weekNum}`;
+      }
+      
+      periods.push(label);
+      pointsData.push(periodData[periodKey].points);
+      swapData.push(periodData[periodKey].swaps);
+    }
+    
+    // Calculate total points from transactions
+    const totalPoints = pointsData.reduce((sum, points) => sum + points, 0);
+    
+    return {
+      periods,
+      pointsData,
+      swapData,
+      totalPoints,
+      currentPoints
+    };
+  }
+  
   // Quest operations
   async getAllQuests(): Promise<Quest[]> {
     return await db.select().from(quests);
