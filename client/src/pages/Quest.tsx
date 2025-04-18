@@ -68,10 +68,10 @@ const Quest = () => {
                 <div>
                   <h4 className="font-semibold">Swap Tokens</h4>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-green-400">2 points</span> for each swap when you reach 10+ daily swaps
+                    <span className="text-green-400">0.5 points</span> for each swap
                   </p>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-gray-400">0 points</span> if you make fewer than 10 swaps per day
+                    <span className="text-blue-400">Maximum 5 swaps daily</span> (2.5 pts max per day)
                   </p>
                   <p className="text-[#A0AEC0] text-sm mt-1">
                     <span className="text-yellow-400">Points convert to PRIOR</span> at TGE
@@ -79,34 +79,17 @@ const Quest = () => {
                 </div>
               </div>
               
-
-              
               <div className="flex items-center mb-3">
-                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-white font-bold text-sm">🗳️</span>
+                <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-sm">ℹ️</span>
                 </div>
                 <div>
-                  <h4 className="font-semibold">Governance Voting</h4>
+                  <h4 className="font-semibold">Other Activities</h4>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-green-400">10 points</span> for each proposal vote
+                    <span className="text-gray-400">0 points</span> for all other activities currently
                   </p>
-                  <p className="text-[#A0AEC0] text-sm mt-1">
-                    <span className="text-yellow-400">Feature coming soon</span>
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-white font-bold text-sm">📈</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold">Liquidity Provider</h4>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-green-400">5 points</span> for liquidity staking
-                  </p>
-                  <p className="text-[#A0AEC0] text-sm mt-1">
-                    <span className="text-yellow-400">Coming soon</span>
+                    Under the new simplified points system, only swaps earn points
                   </p>
                 </div>
               </div>
