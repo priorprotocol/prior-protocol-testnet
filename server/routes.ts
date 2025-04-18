@@ -15,6 +15,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register modular transaction routes
   app.use(apiPrefix, transactionRoutes);
   
+  // Maintenance endpoint to remove all faucet claim points
+  app.post(`${apiPrefix}/maintenance/remove-faucet-points`, async (req, res) => {
+    try {
+      console.log("Removing all faucet claim points as per maintenance request");
+      const pointsRemoved = await storage.removePointsForFaucetClaims();
+      
+      return res.status(200).json({
+        success: true,
+        message: `Successfully removed ${pointsRemoved} points from faucet claims`,
+        pointsRemoved
+      });
+    } catch (error) {
+      console.error("Error during faucet points removal:", error);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while removing faucet points",
+        error: String(error)
+      });
+    }
+  });
+  
   // Get all tokens
   app.get(`${apiPrefix}/tokens`, async (req, res) => {
     const tokens = await storage.getAllTokens();

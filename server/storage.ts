@@ -20,6 +20,7 @@ export interface IStorage {
   incrementUserSwapCount(userId: number): Promise<number>;
   incrementUserClaimCount(userId: number): Promise<number>;
   addUserPoints(userId: number, points: number): Promise<number>;
+  removePointsForFaucetClaims(): Promise<number>; // Method to remove all faucet claim points
   getLeaderboard(limit?: number): Promise<User[]>;
   getUserStats(userId: number): Promise<{
     totalFaucetClaims: number;
@@ -441,6 +442,53 @@ export class MemStorage implements IStorage {
     this.usersByAddress.set(user.address, updatedUser);
     
     return newPoints;
+  }
+  
+  async removePointsForFaucetClaims(): Promise<number> {
+    console.log("[PointsSystem] Starting removal of all points from faucet claims");
+    
+    let totalPointsRemoved = 0;
+    let usersUpdated = 0;
+    
+    // Find all faucet claim transactions first to identify affected users
+    const faucetClaimTransactions = Array.from(this.transactions.values())
+      .filter(tx => tx.type === 'faucet_claim');
+    
+    // Group transactions by userId to count the number of faucet claims per user
+    const userFaucetClaims = new Map<number, number>();
+    
+    for (const tx of faucetClaimTransactions) {
+      const userId = tx.userId;
+      const currentCount = userFaucetClaims.get(userId) || 0;
+      userFaucetClaims.set(userId, currentCount + 1);
+    }
+    
+    // For each user with faucet claims, deduct 1 point per claim
+    for (const [userId, claimCount] of userFaucetClaims.entries()) {
+      const user = this.users.get(userId);
+      if (!user) continue;
+      
+      const currentPoints = user.points || 0;
+      const pointsToDeduct = claimCount; // 1 point per faucet claim
+      const newPoints = Math.max(0, currentPoints - pointsToDeduct); // Ensure points don't go below 0
+      
+      // Update the user with the adjusted points
+      const updatedUser: User = {
+        ...user,
+        points: newPoints
+      };
+      
+      this.users.set(userId, updatedUser);
+      this.usersByAddress.set(user.address, updatedUser);
+      
+      totalPointsRemoved += (currentPoints - newPoints);
+      usersUpdated++;
+      
+      console.log(`[PointsSystem] Removed ${currentPoints - newPoints} points from user ${userId} (${user.address}) for ${claimCount} faucet claims`);
+    }
+    
+    console.log(`[PointsSystem] Completed removal of ${totalPointsRemoved} total points from ${usersUpdated} users`);
+    return totalPointsRemoved;
   }
   
   async getLeaderboard(limit: number = 15): Promise<User[]> {

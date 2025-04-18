@@ -491,6 +491,57 @@ export class DatabaseStorage implements IStorage {
     return updatedUser.points || 0;
   }
   
+  async removePointsForFaucetClaims(): Promise<number> {
+    console.log("[PointsSystem] Starting removal of all points from faucet claims in database");
+    
+    let totalPointsRemoved = 0;
+    let usersUpdated = 0;
+    
+    try {
+      // Get all users with faucet claim transactions
+      const userClaims = await db
+        .select({
+          userId: transactions.userId,
+          claimCount: count(transactions.id)
+        })
+        .from(transactions)
+        .where(eq(transactions.type, 'faucet_claim'))
+        .groupBy(transactions.userId);
+        
+      // For each user, find and deduct points from faucet claims
+      for (const userClaim of userClaims) {
+        const { userId, claimCount } = userClaim;
+        
+        // Get current user points
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        if (!user) continue;
+        
+        const currentPoints = user.points || 0;
+        const pointsToDeduct = claimCount; // 1 point per claim
+        const newPoints = Math.max(0, currentPoints - pointsToDeduct);
+        
+        // Update user points
+        const [updatedUser] = await db
+          .update(users)
+          .set({ points: newPoints })
+          .where(eq(users.id, userId))
+          .returning();
+          
+        const pointsRemoved = currentPoints - (updatedUser.points || 0);
+        totalPointsRemoved += pointsRemoved;
+        usersUpdated++;
+        
+        console.log(`[PointsSystem] Removed ${pointsRemoved} points from user ${userId} (${user.address}) for ${claimCount} faucet claims`);
+      }
+      
+      console.log(`[PointsSystem] Completed removal of ${totalPointsRemoved} total points from ${usersUpdated} users in database`);
+      return totalPointsRemoved;
+    } catch (error) {
+      console.error("Error removing points for faucet claims:", error);
+      return 0;
+    }
+  }
+  
   async getLeaderboard(limit: number = 20): Promise<User[]> {
     // Get top users by points, ensuring we get the top 20 swap users highlighted
     return await db
