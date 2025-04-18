@@ -29,17 +29,37 @@ const Faucet = () => {
   const [isCopied, setIsCopied] = useState(false);
   const [localBalances, setLocalBalances] = useState<Record<string, string>>({});
   
-  // Get user data
-  const { data: userData } = useQuery<{id?: number, address: string, lastClaim: string | null}>({
+  // Get user data with better stale time handling to ensure we have accurate claim times
+  const { data: userData, isLoading: isUserDataLoading } = useQuery<{id?: number, address: string, lastClaim: string | null}>({
     queryKey: [`/api/users/${address}`],
     enabled: isConnected && !!address,
+    staleTime: 30000, // Consider data stale after 30 seconds
+    refetchOnMount: true, // Always refetch on component mount
+    refetchOnWindowFocus: true, // Refetch when window regains focus
+    retry: 3, // Retry failed requests up to 3 times
   });
   
   // State to hold the countdown time
   const [timeUntilNextClaim, setTimeUntilNextClaim] = useState("00:00:00");
   // Add a new state to track our manual timer
   const [lastClaimTime, setLastClaimTime] = useState<Date | null>(null);
-  const [canClaimTokens, setCanClaimTokens] = useState(true);
+  const [canClaimTokens, setCanClaimTokens] = useState(false); // Default to false until we verify
+  
+  // Use sessionStorage to remember the last claim time across reloads
+  useEffect(() => {
+    // Try to restore last claim time from sessionStorage on component mount
+    const storedClaimTime = sessionStorage.getItem(`lastClaim_${address}`);
+    if (storedClaimTime) {
+      try {
+        const parsedTime = new Date(storedClaimTime);
+        console.log("Restored last claim time from session storage:", parsedTime);
+        setLastClaimTime(parsedTime);
+      } catch (e) {
+        console.error("Failed to parse stored claim time:", e);
+        // If parsing fails, we'll rely on userData instead
+      }
+    }
+  }, [address]);
   
   // Initialize timer when userData changes
   useEffect(() => {
@@ -57,17 +77,28 @@ const Faucet = () => {
       // Set the last claim time regardless - we'll use this to calculate countdown
       setLastClaimTime(lastClaimDate);
       
+      // Store the last claim time in sessionStorage for persistence across page reloads
+      try {
+        sessionStorage.setItem(`lastClaim_${address}`, lastClaimDate.toISOString());
+      } catch (e) {
+        console.error("Failed to store claim time in sessionStorage:", e);
+      }
+      
       // Only update canClaimTokens if needed (we have a separate effect for this)
       if (now >= nextClaimTime) {
         setCanClaimTokens(true);
       } else {
         setCanClaimTokens(false);
       }
-    } else {
-      // First time user with no claim history
-      setCanClaimTokens(true);
+    } else if (!isUserDataLoading) {
+      // Only consider them as a first-time user if we've actually loaded the data
+      // and confirmed there's no lastClaim field
+      if (userData) {
+        // First time user with no claim history - can claim
+        setCanClaimTokens(true);
+      }
     }
-  }, [userData]);
+  }, [userData, isUserDataLoading, address]);
   
   // Check if the user can claim tokens based on our tracked timestamp
   const checkCanClaim = useCallback(() => {
@@ -243,6 +274,14 @@ const Faucet = () => {
       setLastClaimTime(now);
       console.log("Setting lastClaimTime after successful claim to:", now);
       
+      // Store the claim time in sessionStorage for persistence across page refreshes
+      try {
+        sessionStorage.setItem(`lastClaim_${address}`, now.toISOString());
+        console.log("Stored claim time in sessionStorage for address:", address);
+      } catch (e) {
+        console.error("Failed to store claim time in sessionStorage:", e);
+      }
+      
       // Force update the query cache if userData exists
       if (userData) {
         const updatedUserData = {
@@ -289,6 +328,15 @@ const Faucet = () => {
       // Always update our local timer state regardless of userData
       setLastClaimTime(now);
       console.log("Setting lastClaimTime after claim error to:", now);
+      
+      // Store the claim time in sessionStorage even on error
+      // This is crucial for maintaining state across refreshes/reconnects
+      try {
+        sessionStorage.setItem(`lastClaim_${address}`, now.toISOString());
+        console.log("Stored claim time in sessionStorage after error for address:", address);
+      } catch (e) {
+        console.error("Failed to store claim time in sessionStorage:", e);
+      }
       
       if (userData) {
         // If we get an error and don't have a lastClaim set, assume it's because they claimed
