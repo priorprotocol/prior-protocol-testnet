@@ -46,8 +46,26 @@ const Faucet = () => {
     console.log("User data updated:", userData);
     if (userData?.lastClaim) {
       const lastClaimDate = new Date(userData.lastClaim);
+      const now = new Date();
+      const nextClaimTime = new Date(lastClaimDate.getTime() + 24 * 60 * 60 * 1000);
+      
+      console.log("Last claim date:", lastClaimDate);
+      console.log("Next claim time:", nextClaimTime);
+      console.log("Current time:", now);
+      console.log("Can claim?", now >= nextClaimTime);
+      
+      // Set the last claim time regardless - we'll use this to calculate countdown
       setLastClaimTime(lastClaimDate);
-      console.log("Setting last claim time to:", lastClaimDate);
+      
+      // Only update canClaimTokens if needed (we have a separate effect for this)
+      if (now >= nextClaimTime) {
+        setCanClaimTokens(true);
+      } else {
+        setCanClaimTokens(false);
+      }
+    } else {
+      // First time user with no claim history
+      setCanClaimTokens(true);
     }
   }, [userData]);
   
