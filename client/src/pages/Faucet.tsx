@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -37,51 +37,69 @@ const Faucet = () => {
   
   // State to hold the countdown time
   const [timeUntilNextClaim, setTimeUntilNextClaim] = useState("00:00:00");
-  
-  // Check if the user can claim tokens
-  const canClaim = () => {
-    if (!userData?.lastClaim) return true;
-    
-    const lastClaim = new Date(userData.lastClaim);
-    const nextClaim = new Date(lastClaim.getTime() + 24 * 60 * 60 * 1000);
-    const now = new Date();
-    
-    return now >= nextClaim;
-  };
-  
+  // Add a new state to track our manual timer
+  const [lastClaimTime, setLastClaimTime] = useState<Date | null>(null);
   const [canClaimTokens, setCanClaimTokens] = useState(true);
   
-  // Update canClaimTokens when userData changes
+  // Initialize timer when userData changes
   useEffect(() => {
-    setCanClaimTokens(canClaim());
+    console.log("User data updated:", userData);
+    if (userData?.lastClaim) {
+      const lastClaimDate = new Date(userData.lastClaim);
+      setLastClaimTime(lastClaimDate);
+      console.log("Setting last claim time to:", lastClaimDate);
+    }
   }, [userData]);
   
-  // Update the countdown timer
+  // Check if the user can claim tokens based on our tracked timestamp
+  const checkCanClaim = useCallback(() => {
+    if (!lastClaimTime) return true;
+    
+    const nextClaimTime = new Date(lastClaimTime.getTime() + 24 * 60 * 60 * 1000);
+    const now = new Date();
+    
+    return now >= nextClaimTime;
+  }, [lastClaimTime]);
+  
+  // Update claim state whenever lastClaimTime changes
   useEffect(() => {
-    // Only start the timer if there's a lastClaim and can't claim yet
-    if (!userData?.lastClaim || canClaimTokens) return;
+    setCanClaimTokens(checkCanClaim());
+  }, [lastClaimTime, checkCanClaim]);
+  
+  // Separate effect for the timer to run continuously
+  useEffect(() => {
+    // Don't run timer if no claim has been made
+    if (!lastClaimTime) {
+      setTimeUntilNextClaim("00:00:00");
+      return;
+    }
+    
+    console.log("Starting timer with lastClaimTime:", lastClaimTime);
     
     // Function to update the timer
     const updateTimer = () => {
-      const lastClaim = new Date(userData?.lastClaim || 0);
-      const nextClaim = new Date(lastClaim.getTime() + 24 * 60 * 60 * 1000);
+      // Calculate next claim time (24 hours after last claim)
+      const nextClaimTime = new Date(lastClaimTime.getTime() + 24 * 60 * 60 * 1000);
       const now = new Date();
       
-      if (now >= nextClaim) {
+      // Check if it's time to claim
+      if (now >= nextClaimTime) {
         setTimeUntilNextClaim("00:00:00");
-        // If the countdown reaches zero, refresh user data
-        queryClient.invalidateQueries({ queryKey: [`/api/users/${address}`] });
+        setCanClaimTokens(true);
         return;
       }
       
-      const diffTime = nextClaim.getTime() - now.getTime();
+      // Calculate time difference
+      const diffTime = nextClaimTime.getTime() - now.getTime();
       const hours = Math.floor(diffTime / (1000 * 60 * 60));
       const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
       
-      setTimeUntilNextClaim(
-        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-      );
+      // Format and set the countdown string
+      const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      setTimeUntilNextClaim(formattedTime);
+      
+      console.log("Timer updated:", formattedTime, "Next claim at:", nextClaimTime);
     };
     
     // Update immediately
@@ -92,7 +110,7 @@ const Faucet = () => {
     
     // Clean up on unmount
     return () => clearInterval(intervalId);
-  }, [userData?.lastClaim, address, canClaimTokens]);
+  }, [lastClaimTime]);
   
   // Handle token claim using blockchain contract directly
   const claimMutation = useMutation({
@@ -202,9 +220,13 @@ const Faucet = () => {
       // Immediately update UI to show "Already Claimed" state
       setCanClaimTokens(false);
       
-      // Force update the timer by setting a local lastClaim if userData exists
+      // Update our local timer state directly - this is the most important part for the UI
+      const now = new Date();
+      setLastClaimTime(now);
+      console.log("Setting lastClaimTime after successful claim to:", now);
+      
+      // Force update the query cache if userData exists
       if (userData) {
-        const now = new Date();
         const updatedUserData = {
           ...userData,
           lastClaim: now.toISOString()
@@ -252,11 +274,16 @@ const Faucet = () => {
       setCanClaimTokens(false);
       
       // Set lastClaim if we suspect this is because they already claimed
+      const now = new Date();
+      
+      // Always update our local timer state regardless of userData
+      setLastClaimTime(now);
+      console.log("Setting lastClaimTime after claim error to:", now);
+      
       if (userData) {
         // If we get an error and don't have a lastClaim set, assume it's because they claimed
         // and set the lastClaim to now
         if (!userData.lastClaim) {
-          const now = new Date();
           const updatedUserData = {
             ...userData,
             lastClaim: now.toISOString()
