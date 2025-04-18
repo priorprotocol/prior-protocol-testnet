@@ -49,6 +49,14 @@ Block Explorer: [Base Sepolia](https://sepolia.basescan.org)
 2. Install dependencies: `npm install`
 3. Start the development server: `npm run dev`
 
+## Deployment
+
+This project can be deployed to various platforms:
+
+- **Replit** - Click the "Deploy" button in the Replit interface
+- **Hostinger** - Follow the instructions in [HOSTINGER-DEPLOYMENT.md](./HOSTINGER-DEPLOYMENT.md)
+- **Netlify/Vercel** - Configure as a Node.js application or split into frontend/backend
+
 ## License
 
 MIT License
