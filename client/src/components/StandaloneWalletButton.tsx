@@ -8,6 +8,7 @@ import {
   restoreWalletConnection
 } from '@/lib/standaloneWallet';
 import { formatAddress } from '@/lib/formatAddress';
+import { useImmediateDataLoader } from '@/hooks/useImmediateDataLoader';
 
 interface StandaloneWalletButtonProps {
   onConnect?: (address: string) => void;
@@ -29,6 +30,10 @@ const StandaloneWalletButton: React.FC<StandaloneWalletButtonProps> = ({
   const [address, setAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
+  
+  // This hook will immediately fetch all user data as soon as the wallet is connected
+  // There's no need to wait for navigation to specific pages
+  useImmediateDataLoader(address);
 
   // Initialize wallet state and listeners
   useEffect(() => {
