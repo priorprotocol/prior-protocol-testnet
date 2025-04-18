@@ -242,8 +242,8 @@ const Documentation = () => {
                     <strong className="text-[#1A5CFF]">Points System:</strong> Swaps are rewarded with points as follows:
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-sm text-gray-300 mt-2">
-                    <li>First swap of the day: 4 points</li>
-                    <li>10th swap and beyond (per day): 2 points each (max 6 points daily from these swaps)</li>
+                    <li>Each swap: 0.5 points</li>
+                    <li>Maximum 5 swaps per day: 2.5 points maximum daily</li>
                   </ul>
                 </div>
                 
@@ -369,29 +369,16 @@ const Documentation = () => {
                   </TableHeader>
                   <TableBody>
                     <TableRow>
-                      <TableCell className="font-medium">Faucet Claim</TableCell>
-                      <TableCell>1 point</TableCell>
-                      <TableCell>Once per 24 hours</TableCell>
+                      <TableCell className="font-medium">Swap</TableCell>
+                      <TableCell>0.5 points per swap</TableCell>
+                      <TableCell>Maximum 5 swaps daily (2.5 points max)</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">First Daily Swap</TableCell>
-                      <TableCell>4 points</TableCell>
-                      <TableCell>Once per day</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">10+ Daily Swaps</TableCell>
-                      <TableCell>2 points per swap</TableCell>
-                      <TableCell>Max 6 points per day</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Governance Vote</TableCell>
-                      <TableCell>10 points</TableCell>
-                      <TableCell>Per proposal</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">NFT Staking</TableCell>
-                      <TableCell>5 points</TableCell>
-                      <TableCell>Daily while staked</TableCell>
+                      <TableCell className="font-medium" colSpan={3}>
+                        <div className="text-center text-amber-500 py-1">
+                          <span className="text-xs">* All other activities currently earn 0 points under the new system</span>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
