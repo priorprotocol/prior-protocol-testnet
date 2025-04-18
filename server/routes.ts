@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertUserSchema, insertVoteSchema, insertTransactionSchema, transactions } from "@shared/schema";
 import { z } from "zod";
 import transactionRoutes from "./routes/transactions-fixed";
+import healthRoutes from "./routes/health";
 import { log } from "./vite";
 import { db } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
