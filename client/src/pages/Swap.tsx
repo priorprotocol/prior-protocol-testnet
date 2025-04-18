@@ -509,20 +509,20 @@ export default function Swap() {
           const dailySwapData = await dailySwapCountResponse.json();
           const dailySwapCount = dailySwapData.count || 0;
           
-          // Determine points to add based on daily swap count and if it's first swap
+          // Determine points to add based on NEW SIMPLIFIED points system
+          // 0.5 points for first 5 swaps per day (max 2.5 points daily)
+          const MAX_DAILY_SWAPS_FOR_POINTS = 5;
+          const POINTS_PER_SWAP = 0.5;
+          
           let pointsToAdd = 0;
           let pointsMessage = "";
           
-          if (dailySwapCount === 1) {
-            // First swap of the day
-            pointsToAdd = 4;
-            pointsMessage = "4 points for your first swap of the day!";
-          } else if (dailySwapCount >= 10) {
-            // 10+ swaps in a day
-            pointsToAdd = 2;
-            pointsMessage = "2 points for your swap (10+ daily swaps bonus)!";
+          if (dailySwapCount <= MAX_DAILY_SWAPS_FOR_POINTS) {
+            // Award 0.5 points for each of the first 5 swaps
+            pointsToAdd = POINTS_PER_SWAP;
+            pointsMessage = `${POINTS_PER_SWAP} points for this swap! (${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS} daily swaps)`;
           } else {
-            pointsMessage = "No points earned. Make more swaps to earn points!";
+            pointsMessage = `No points earned. Already completed ${MAX_DAILY_SWAPS_FOR_POINTS} swaps today.`;
           }
           
           // Show toast for points earned
@@ -554,25 +554,17 @@ export default function Swap() {
               // Show a toast notification about points earned with dynamic styling
               toast({
                 title: `Points Earned: ${pointsToAdd}`,
-                description: `You earned ${pointsToAdd} points for this swap! (${dailySwapCount} swaps today)`,
+                description: `You earned ${pointsToAdd} points for this swap! (${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS} daily swaps)`,
                 variant: "default",
                 className: "bg-gradient-to-r from-emerald-800 to-green-900 border-emerald-600"
               });
             }
-          } else if (dailySwapCount >= 9) {
-            // They're about to reach the 10 swap threshold - encourage them
+          } else {
+            // They've reached maximum daily swaps for points - let them know clearly
             toast({
-              title: "Almost There!",
-              description: `Complete just ${10 - dailySwapCount} more swap(s) today to start earning 2 points per swap!`,
-              className: "bg-amber-900 border-amber-600"
-            });
-          } else if (dailySwapCount >= 5) {
-            // They're making progress
-            toast({
-              title: "Keep Going!",
-              description: `Complete ${10 - dailySwapCount} more swaps today to unlock 2 points per swap!`,
-              variant: "default",
-              className: "bg-blue-900 border-blue-600"
+              title: "Daily Points Limit Reached",
+              description: `You've already completed ${MAX_DAILY_SWAPS_FOR_POINTS} swaps today. Maximum ${MAX_DAILY_SWAPS_FOR_POINTS * POINTS_PER_SWAP} points per day.`,
+              className: "bg-blue-800 border-blue-600"
             });
           }
         }
