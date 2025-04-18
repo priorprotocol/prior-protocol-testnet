@@ -19,7 +19,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FaInfoCircle, FaExternalLinkAlt, FaExchangeAlt, FaFaucet, FaVoteYea, FaUserShield } from 'react-icons/fa';
+import { 
+  FaInfoCircle, 
+  FaExternalLinkAlt, 
+  FaExchangeAlt, 
+  FaFaucet, 
+  FaVoteYea, 
+  FaUserShield,
+  FaClock,
+  FaCoins,
+  FaUsers
+} from 'react-icons/fa';
 
 const Documentation = () => {
   return (
@@ -261,32 +271,106 @@ const Documentation = () => {
           {/* Using the Faucet Section */}
           <Card className="bg-[#0D1321] border-[#1A5CFF]/20" id="faucet">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 p-1.5 rounded-lg">
+                  <FaFaucet className="text-white" />
+                </span>
                 Using the Prior Token Faucet
               </h2>
+              
+              <Alert className="mb-4 bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-500/30">
+                <FaInfoCircle className="h-4 w-4 text-blue-400" />
+                <AlertTitle className="text-blue-300 font-medium">Points Update Notice</AlertTitle>
+                <AlertDescription className="text-gray-300">
+                  Under the simplified points system, faucet claims no longer earn points. Points are now exclusively earned through swap transactions.
+                </AlertDescription>
+              </Alert>
+              
               <p className="text-gray-300 mb-4">
                 The Prior Protocol faucet allows you to claim testnet PRIOR tokens once every 24 hours.
-                These tokens can be used to interact with the protocol's various features.
+                These tokens provide the foundation for interacting with the protocol's various features, particularly the swap functionality.
               </p>
               
-              <div className="space-y-4">
-                <div className="bg-[#1A1F2E] p-4 rounded-lg border border-[#1A5CFF]/20">
-                  <h3 className="text-lg font-medium text-white mb-2">How to claim PRIOR tokens</h3>
-                  <ol className="list-decimal list-inside space-y-2 text-gray-300">
-                    <li>Navigate to the <strong>Faucet</strong> page from the main menu</li>
-                    <li>Connect your wallet if you haven't already</li>
-                    <li>Click the "Claim PRIOR Tokens" button</li>
-                    <li>Confirm the transaction in your wallet</li>
-                    <li>Once the transaction is processed, 1 PRIOR token will be added to your wallet</li>
-                  </ol>
-                </div>
-                
-                <div className="bg-[#1E293B] p-4 rounded-lg">
-                  <p className="text-sm text-gray-300">
-                    <strong className="text-[#1A5CFF]">Note:</strong> Each wallet address can only claim 1 PRIOR token every 24 hours.
-                    You'll earn 1 point for each successful faucet claim, which contributes to your overall testnet participation score.
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 p-4 rounded-lg border border-indigo-900/40">
+                  <h4 className="font-medium text-indigo-300 mb-2">Faucet Purpose</h4>
+                  <p className="text-gray-300 text-sm">
+                    The Prior Protocol faucet provides free testnet tokens that serve as your entry point into the ecosystem. 
+                    While faucet claims don't earn points, they give you the tokens needed to perform swaps that do earn points.
                   </p>
                 </div>
+                
+                <div className="bg-gradient-to-br from-blue-900/20 to-indigo-900/20 p-4 rounded-lg border border-blue-900/40">
+                  <h4 className="font-medium text-blue-300 mb-2">Faucet Limits</h4>
+                  <p className="text-gray-300 text-sm">
+                    To ensure fair distribution of testnet tokens, each wallet address can only claim 1 PRIOR token every 24 hours.
+                    Make sure to use your claimed tokens effectively for testing swap functionality.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-[#1A1F2E] p-5 rounded-lg border border-[#1A5CFF]/20 mb-4">
+                <h3 className="text-xl font-medium text-white mb-3 flex items-center">
+                  <div className="w-8 h-8 rounded-full bg-indigo-900/50 flex items-center justify-center mr-3">
+                    <FaFaucet className="text-indigo-400" />
+                  </div>
+                  How to Claim PRIOR Tokens
+                </h3>
+                <ol className="space-y-4 text-gray-300 mt-4">
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-indigo-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-indigo-400 text-xs">1</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Navigate to the Faucet page</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Click "Faucet" in the main navigation menu</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-indigo-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-indigo-400 text-xs">2</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Connect your wallet</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Click "Connect Wallet" if you haven't already connected</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-indigo-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-indigo-400 text-xs">3</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Click the "Claim PRIOR Tokens" button</span>
+                      <p className="text-xs text-gray-400 mt-0.5">If 24 hours haven't passed since your last claim, the button will be disabled</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-indigo-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-indigo-400 text-xs">4</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Confirm the transaction in your wallet</span>
+                      <p className="text-xs text-gray-400 mt-0.5">The MetaMask (or other wallet) popup will appear, asking you to confirm</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-indigo-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-indigo-400 text-xs">5</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Receive 1 PRIOR token</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Once the transaction is processed, 1 PRIOR token will be added to your wallet</p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+              
+              <div className="flex justify-center mt-6">
+                <Link to="/faucet">
+                  <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white">
+                    Go to Faucet
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -294,64 +378,183 @@ const Documentation = () => {
           {/* Token Swapping Section */}
           <Card className="bg-[#0D1321] border-[#1A5CFF]/20" id="swap">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="bg-gradient-to-r from-green-600 to-emerald-600 p-1.5 rounded-lg">
+                  <FaExchangeAlt className="text-white" />
+                </span>
                 Token Swapping
               </h2>
+              
+              <Alert className="mb-4 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-600/30">
+                <FaInfoCircle className="h-4 w-4 text-green-400" />
+                <AlertTitle className="text-green-300 font-medium">Points Earning Activity</AlertTitle>
+                <AlertDescription className="text-gray-300">
+                  Swapping tokens is now the only way to earn points in the Prior Protocol testnet. Each swap earns 0.5 points, with a maximum of 5 swaps (2.5 points) daily.
+                </AlertDescription>
+              </Alert>
+              
               <p className="text-gray-300 mb-4">
-                The Prior Protocol testnet includes a swap interface that allows you to exchange between PRIOR 
-                and various other tokens like USDC, USDT, DAI, and WETH.
+                The Prior Protocol swap interface allows you to exchange between PRIOR and various testnet tokens 
+                like USDC, USDT, and WETH. The swap functionality is the core feature of the protocol and the primary 
+                focus of our testnet.
               </p>
               
-              <div className="space-y-4">
-                <div className="bg-[#1A1F2E] p-4 rounded-lg border border-[#1A5CFF]/20">
-                  <h3 className="text-lg font-medium text-white mb-2">How to swap tokens</h3>
-                  <ol className="list-decimal list-inside space-y-2 text-gray-300">
-                    <li>Navigate to the <strong>Swap</strong> page from the main menu</li>
-                    <li>Connect your wallet if you haven't already</li>
-                    <li>Select the tokens you want to swap between</li>
-                    <li>Enter the amount you want to swap</li>
-                    <li>Click "Approve" to authorize the swap contract to use your tokens (one-time per token pair)</li>
-                    <li>Click "Swap" and confirm the transaction in your wallet</li>
-                  </ol>
-                </div>
-                
-                <div className="bg-[#1E293B] p-4 rounded-lg mb-4">
-                  <p className="text-sm text-gray-300">
-                    <strong className="text-[#1A5CFF]">Points System:</strong> Swaps are rewarded with points as follows:
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 p-4 rounded-lg border border-green-900/40">
+                  <h4 className="font-medium text-green-300 mb-2">Exchange Rate</h4>
+                  <p className="text-gray-300 text-sm">
+                    The exchange rate is set to 1 PRIOR = 2 USDC, with proper handling of decimal differences between tokens.
+                    All swap pairs use a standardized 0.5% fee to simulate real-world trading conditions.
                   </p>
-                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-300 mt-2">
-                    <li>Each swap: 0.5 points</li>
-                    <li>Maximum 5 swaps per day: 2.5 points maximum daily</li>
-                  </ul>
                 </div>
                 
+                <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 p-4 rounded-lg border border-green-900/40">
+                  <h4 className="font-medium text-green-300 mb-2">Points Earning</h4>
+                  <p className="text-gray-300 text-sm">
+                    Swaps are the only way to earn points in the current system. Each swap earns 0.5 points, with a 
+                    maximum of 5 swaps (2.5 points) counted per day, regardless of the amount or token pair.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-[#1A1F2E] p-5 rounded-lg border border-[#1A5CFF]/20 mb-6">
+                <h3 className="text-xl font-medium text-white mb-3 flex items-center">
+                  <div className="w-8 h-8 rounded-full bg-green-900/50 flex items-center justify-center mr-3">
+                    <FaExchangeAlt className="text-green-400" />
+                  </div>
+                  How to Swap Tokens
+                </h3>
+                <ol className="space-y-4 text-gray-300 mt-4">
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-green-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-green-400 text-xs">1</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Navigate to the Swap page</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Click "Swap" in the main navigation menu</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-green-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-green-400 text-xs">2</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Connect your wallet</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Click "Connect Wallet" if you haven't already connected</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-green-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-green-400 text-xs">3</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Select tokens and enter amount</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Choose the tokens you want to swap between and enter the amount</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-green-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-green-400 text-xs">4</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Approve token usage (first time only)</span>
+                      <p className="text-xs text-gray-400 mt-0.5">For the first swap with a particular token, you'll need to approve the smart contract to use your tokens</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-green-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-green-400 text-xs">5</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Execute the swap</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Click "Swap" and confirm the transaction in your wallet</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-green-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-green-400 text-xs">6</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Earn points</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Each successful swap earns you 0.5 points (up to 5 swaps daily)</p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+              
+              <div className="overflow-x-auto mb-6">
                 <Table>
                   <TableCaption>Available token pairs for swapping</TableCaption>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="text-white">Token Pair</TableHead>
+                      <TableHead className="text-white">Exchange Rate</TableHead>
                       <TableHead className="text-white">Swap Fee</TableHead>
-                      <TableHead className="text-white">Token Contract</TableHead>
+                      <TableHead className="text-white">Contract Address</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     <TableRow>
-                      <TableCell className="font-medium">PRIOR/USDC</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center">
+                          <span className="bg-blue-900/40 text-blue-300 text-xs px-2 py-0.5 rounded mr-2">PRIOR/USDC</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>1 PRIOR = 2 USDC</TableCell>
                       <TableCell>0.5%</TableCell>
-                      <TableCell className="text-xs">0x8957e1988905311EE249e679a29fc9deCEd4D910</TableCell>
+                      <TableCell className="text-xs text-gray-400">0x8957e1988905311EE249e679a29fc9deCEd4D910</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">PRIOR/USDT</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center">
+                          <span className="bg-blue-900/40 text-blue-300 text-xs px-2 py-0.5 rounded mr-2">PRIOR/USDT</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>1 PRIOR = 2 USDT</TableCell>
                       <TableCell>0.5%</TableCell>
-                      <TableCell className="text-xs">-</TableCell>
+                      <TableCell className="text-xs text-gray-400">Coming soon</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">PRIOR/WETH</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center">
+                          <span className="bg-blue-900/40 text-blue-300 text-xs px-2 py-0.5 rounded mr-2">PRIOR/WETH</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>Coming soon</TableCell>
                       <TableCell>0.5%</TableCell>
-                      <TableCell className="text-xs">-</TableCell>
+                      <TableCell className="text-xs text-gray-400">Coming soon</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
+              </div>
+              
+              <div className="bg-[#1E293B] p-4 rounded-lg mb-4">
+                <h4 className="text-lg font-medium text-white mb-2 flex items-center">
+                  <FaInfoCircle className="text-green-400 mr-2" />
+                  Points System Summary
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+                  <div className="bg-green-900/20 p-3 rounded-lg border border-green-900/40 text-center">
+                    <div className="text-3xl font-bold text-green-400">0.5</div>
+                    <div className="text-xs text-gray-300 mt-1">Points per swap</div>
+                  </div>
+                  <div className="bg-green-900/20 p-3 rounded-lg border border-green-900/40 text-center">
+                    <div className="text-3xl font-bold text-green-400">5</div>
+                    <div className="text-xs text-gray-300 mt-1">Max swaps per day</div>
+                  </div>
+                  <div className="bg-green-900/20 p-3 rounded-lg border border-green-900/40 text-center">
+                    <div className="text-3xl font-bold text-green-400">2.5</div>
+                    <div className="text-xs text-gray-300 mt-1">Max daily points</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-center mt-6">
+                <Link to="/swap">
+                  <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white">
+                    Go to Swap
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -359,33 +562,131 @@ const Documentation = () => {
           {/* Governance Section */}
           <Card className="bg-[#0D1321] border-[#1A5CFF]/20" id="governance">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="bg-gradient-to-r from-purple-600 to-violet-600 p-1.5 rounded-lg">
+                  <FaVoteYea className="text-white" />
+                </span>
                 Governance
               </h2>
+              
+              <Alert className="mb-4 bg-gradient-to-r from-gray-900/40 to-slate-900/40 border border-gray-500/30">
+                <FaInfoCircle className="h-4 w-4 text-gray-400" />
+                <AlertTitle className="text-gray-300 font-medium">Points System Update</AlertTitle>
+                <AlertDescription className="text-gray-300">
+                  Governance participation no longer earns points under the simplified points system. However, we still encourage testing the governance features for a complete testnet experience.
+                </AlertDescription>
+              </Alert>
+              
               <p className="text-gray-300 mb-4">
                 Prior Protocol implements a governance system that allows PRIOR token holders to vote on
-                protocol upgrades and changes. This testnet provides a way to experiment with the governance process.
+                protocol upgrades and changes. This testnet provides a way to experiment with the protocol's governance features.
               </p>
               
-              <div className="space-y-4">
-                <div className="bg-[#1A1F2E] p-4 rounded-lg border border-[#1A5CFF]/20">
-                  <h3 className="text-lg font-medium text-white mb-2">How to participate in governance</h3>
-                  <ol className="list-decimal list-inside space-y-2 text-gray-300">
-                    <li>Navigate to the <strong>Governance</strong> page from the main menu</li>
-                    <li>Connect your wallet if you haven't already</li>
-                    <li>Browse active proposals</li>
-                    <li>Click on a proposal to view details</li>
-                    <li>Cast your vote (Yes or No) on the proposal</li>
-                    <li>Confirm the transaction in your wallet</li>
-                  </ol>
-                </div>
-                
-                <div className="bg-[#1E293B] p-4 rounded-lg">
-                  <p className="text-sm text-gray-300">
-                    <strong className="text-[#1A5CFF]">Coming Soon:</strong> Enhanced governance features including proposal creation and delegation will be available in upcoming updates.
-                    Participating in governance will earn you 10 points per vote.
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-purple-900/20 to-violet-900/20 p-4 rounded-lg border border-purple-900/40">
+                  <h4 className="font-medium text-purple-300 mb-2">What is Governance?</h4>
+                  <p className="text-gray-300 text-sm">
+                    Governance allows token holders to have a voice in the protocol's future development and parameter changes.
+                    It's a critical component of decentralized protocols, ensuring community control.
                   </p>
                 </div>
+                
+                <div className="bg-gradient-to-br from-purple-900/20 to-violet-900/20 p-4 rounded-lg border border-purple-900/40">
+                  <h4 className="font-medium text-purple-300 mb-2">Testnet Governance</h4>
+                  <p className="text-gray-300 text-sm">
+                    In the testnet environment, you can experience the voting process on pre-created proposals.
+                    While voting no longer earns points, it provides valuable insight into a core DeFi protocol feature.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-[#1A1F2E] p-5 rounded-lg border border-[#1A5CFF]/20 mb-6">
+                <h3 className="text-xl font-medium text-white mb-3 flex items-center">
+                  <div className="w-8 h-8 rounded-full bg-purple-900/50 flex items-center justify-center mr-3">
+                    <FaVoteYea className="text-purple-400" />
+                  </div>
+                  How to Participate in Governance
+                </h3>
+                <ol className="space-y-4 text-gray-300 mt-4">
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-purple-400 text-xs">1</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Navigate to the Governance page</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Click "Governance" in the main navigation menu</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-purple-400 text-xs">2</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Connect your wallet</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Click "Connect Wallet" if you haven't already connected</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-purple-400 text-xs">3</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Browse active proposals</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Review the list of active governance proposals</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-purple-400 text-xs">4</span>
+                    </div>
+                    <div>
+                      <span className="text-white">View proposal details</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Click on a proposal to see its full details, current voting status, and timeline</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-purple-400 text-xs">5</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Cast your vote</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Select "Yes" or "No" and submit your vote</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-purple-400 text-xs">6</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Confirm transaction</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Approve the transaction in your wallet to record your vote on-chain</p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+              
+              <div className="bg-[#1E293B] p-4 rounded-lg">
+                <h4 className="text-lg font-medium text-white mb-2 flex items-center">
+                  <FaInfoCircle className="text-purple-400 mr-2" />
+                  Coming Soon
+                </h4>
+                <p className="text-gray-300">
+                  Enhanced governance features are under development for future releases:
+                </p>
+                <ul className="list-disc list-inside mt-2 space-y-1 text-gray-300">
+                  <li>Proposal creation by community members</li>
+                  <li>Delegation of voting power</li>
+                  <li>Governance forums for discussion</li>
+                  <li>Enhanced voting analytics</li>
+                </ul>
+              </div>
+              
+              <div className="flex justify-center mt-6">
+                <Link to="/governance">
+                  <Button className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white">
+                    Go to Governance
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -393,33 +694,117 @@ const Documentation = () => {
           {/* NFT Staking Section */}
           <Card className="bg-[#0D1321] border-[#1A5CFF]/20" id="nft">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="bg-gradient-to-r from-orange-500 to-amber-500 p-1.5 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </span>
                 NFT Staking
               </h2>
+              
+              <Alert className="mb-4 bg-gradient-to-r from-gray-900/40 to-slate-900/40 border border-gray-500/30">
+                <FaInfoCircle className="h-4 w-4 text-gray-400" />
+                <AlertTitle className="text-gray-300 font-medium">Points System Update</AlertTitle>
+                <AlertDescription className="text-gray-300">
+                  NFT staking no longer earns points under the simplified points system. However, the feature is still available on the original testnet site for users who want to explore this aspect of the protocol.
+                </AlertDescription>
+              </Alert>
+              
               <p className="text-gray-300 mb-4">
-                Prior Protocol features NFT staking, allowing you to stake your Prior Pioneer NFT
-                to earn additional benefits and rewards.
+                Prior Protocol features NFT staking functionality, allowing you to stake your Prior Pioneer NFT.
+                This feature demonstrates how NFTs can be integrated into DeFi protocols beyond just being 
+                collectibles.
               </p>
               
-              <div className="space-y-4">
-                <div className="bg-[#1A1F2E] p-4 rounded-lg border border-[#1A5CFF]/20">
-                  <h3 className="text-lg font-medium text-white mb-2">How to stake your NFT</h3>
-                  <ol className="list-decimal list-inside space-y-2 text-gray-300">
-                    <li>Navigate to the <strong>NFT Stake</strong> page from the main menu</li>
-                    <li>Connect your wallet if you haven't already</li>
-                    <li>Select the Prior Pioneer NFT you wish to stake</li>
-                    <li>Click "Stake NFT" and confirm the transaction</li>
-                    <li>Your NFT will now be staked and earning rewards</li>
-                  </ol>
-                </div>
-                
-                <div className="bg-[#1E293B] p-4 rounded-lg">
-                  <p className="text-sm text-gray-300">
-                    <strong className="text-[#1A5CFF]">Note:</strong> NFT staking earns you 5 points per day.
-                    The NFT staking feature is currently available on the original testnet site, which you can
-                    access by clicking the "NFT STAKE" link in the main navigation.
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-orange-900/20 to-amber-900/20 p-4 rounded-lg border border-orange-900/40">
+                  <h4 className="font-medium text-orange-300 mb-2">Prior Pioneer NFT</h4>
+                  <p className="text-gray-300 text-sm">
+                    The Prior Pioneer NFT is a special non-fungible token that represents your early participation 
+                    in the Prior Protocol ecosystem. It has a unique design and serves as proof of your testnet contribution.
                   </p>
                 </div>
+                
+                <div className="bg-gradient-to-br from-orange-900/20 to-amber-900/20 p-4 rounded-lg border border-orange-900/40">
+                  <h4 className="font-medium text-orange-300 mb-2">NFT Staking</h4>
+                  <p className="text-gray-300 text-sm">
+                    NFT staking allows you to lock up your NFT in a smart contract to potentially earn rewards.
+                    This feature is available on the original testnet site, accessible via the "NFT STAKE" link.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-[#1A1F2E] p-5 rounded-lg border border-[#1A5CFF]/20 mb-4">
+                <h3 className="text-xl font-medium text-white mb-3 flex items-center">
+                  <div className="w-8 h-8 rounded-full bg-orange-900/50 flex items-center justify-center mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  How to Stake Your NFT
+                </h3>
+                <ol className="space-y-4 text-gray-300 mt-4">
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-orange-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-orange-400 text-xs">1</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Go to the original testnet site</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Click "NFT STAKE" in the main navigation menu to be redirected</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-orange-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-orange-400 text-xs">2</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Connect your wallet</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Ensure your wallet is connected to the Base Sepolia testnet</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-orange-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-orange-400 text-xs">3</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Select your Prior Pioneer NFT</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Choose the NFT you want to stake from your wallet</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-orange-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-orange-400 text-xs">4</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Approve and stake</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Confirm the transaction in your wallet to complete the staking process</p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+              
+              <div className="bg-[#1E293B] p-4 rounded-lg mb-4">
+                <h4 className="text-base font-medium text-white mb-2 flex items-center">
+                  <FaInfoCircle className="text-orange-400 mr-2" />
+                  Prior Pioneer NFT Contract
+                </h4>
+                <div className="bg-slate-900/50 p-3 rounded text-xs text-gray-400 font-mono mt-2 break-all">
+                  0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59
+                </div>
+                <p className="text-sm text-gray-300 mt-3">
+                  The NFT staking feature is available on the original testnet site. While it no longer earns points under the 
+                  simplified points system, it remains an important part of the full testnet experience.
+                </p>
+              </div>
+              
+              <div className="flex justify-center mt-6">
+                <a href="https://testnetpriorprotocol.xyz/" target="_blank" rel="noopener noreferrer">
+                  <Button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white flex items-center gap-2">
+                    Go to NFT Staking
+                    <FaExternalLinkAlt size={12} />
+                  </Button>
+                </a>
               </div>
             </CardContent>
           </Card>
