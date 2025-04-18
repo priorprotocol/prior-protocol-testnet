@@ -5,7 +5,10 @@ import {
   proposals, Proposal, InsertProposal,
   votes, Vote, InsertVote,
   tokens, Token, InsertToken,
-  transactions, Transaction, InsertTransaction
+  transactions, Transaction, InsertTransaction,
+  quizzes, Quiz, InsertQuiz,
+  quizQuestions, QuizQuestion, InsertQuizQuestion,
+  userQuizzes, UserQuiz, InsertUserQuiz
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -81,6 +84,23 @@ export interface IStorage {
   }>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   getTransactionPoints(transaction: Transaction): Promise<number>; // New method to get points for a transaction
+  
+  // Quiz operations
+  getAllQuizzes(): Promise<Quiz[]>;
+  getQuiz(id: number): Promise<Quiz | undefined>;
+  createQuiz(quiz: InsertQuiz): Promise<Quiz>;
+  
+  // Quiz Question operations
+  getQuizQuestions(quizId: number): Promise<QuizQuestion[]>;
+  getQuizQuestion(id: number): Promise<QuizQuestion | undefined>;
+  createQuizQuestion(question: InsertQuizQuestion): Promise<QuizQuestion>;
+  
+  // User Quiz operations
+  getUserQuizzes(userId: number): Promise<UserQuiz[]>;
+  getUserQuiz(id: number): Promise<UserQuiz | undefined>;
+  getUserQuizByUserAndQuizId(userId: number, quizId: number): Promise<UserQuiz | undefined>;
+  createUserQuiz(userQuiz: InsertUserQuiz): Promise<UserQuiz>;
+  updateUserQuiz(id: number, updates: Partial<Omit<UserQuiz, 'id'>>): Promise<UserQuiz | undefined>;
 }
 
 // In-memory implementation of storage
@@ -103,6 +123,14 @@ export class MemStorage implements IStorage {
   private tokenId: number;
   private transactionId: number;
   
+  // New fields for quiz feature
+  private quizzes: Map<number, Quiz>;
+  private quizQuestions: Map<number, QuizQuestion>;
+  private userQuizzes: Map<number, UserQuiz>;
+  private quizId: number;
+  private quizQuestionId: number;
+  private userQuizId: number;
+  
   constructor() {
     this.users = new Map();
     this.usersByAddress = new Map();
@@ -113,6 +141,9 @@ export class MemStorage implements IStorage {
     this.tokens = new Map();
     this.tokensBySymbol = new Map();
     this.transactions = new Map();
+    this.quizzes = new Map();
+    this.quizQuestions = new Map();
+    this.userQuizzes = new Map();
     
     this.userId = 1;
     this.questId = 1;
@@ -121,6 +152,9 @@ export class MemStorage implements IStorage {
     this.voteId = 1;
     this.tokenId = 1;
     this.transactionId = 1;
+    this.quizId = 1;
+    this.quizQuestionId = 1;
+    this.userQuizId = 1;
     
     // Initialize with sample tokens
     this.initializeTokens();
@@ -128,6 +162,8 @@ export class MemStorage implements IStorage {
     this.initializeQuests();
     // Initialize with sample proposals
     this.initializeProposals();
+    // Initialize with sample quizzes
+    this.initializeQuizzes();
     
     // Initialize sample transaction data - do this asynchronously
     setTimeout(() => {
@@ -983,6 +1019,335 @@ export class MemStorage implements IStorage {
     this.transactions.set(id, newTransaction);
     
     return newTransaction;
+  }
+  
+  async getTransactionPoints(transaction: Transaction): Promise<number> {
+    // For the SIMPLIFIED POINTS SYSTEM, only swaps give points
+    // 0.5 points per swap, max 5 swaps per day = 2.5 points max per day
+    if (transaction.type === 'swap') {
+      return 0.5; // Each swap is worth 0.5 points
+    }
+    
+    return 0; // All other transaction types give 0 points
+  }
+  
+  // Quiz feature initialization
+  private initializeQuizzes() {
+    const initialQuizzes: InsertQuiz[] = [
+      {
+        title: "Blockchain Basics",
+        description: "Test your knowledge of fundamental blockchain concepts and technology.",
+        difficulty: "beginner",
+        category: "blockchain",
+        pointsReward: 5,
+        status: "active"
+      },
+      {
+        title: "DeFi Fundamentals",
+        description: "Learn about decentralized finance and how it's revolutionizing financial systems.",
+        difficulty: "intermediate",
+        category: "defi",
+        pointsReward: 8,
+        status: "active"
+      },
+      {
+        title: "Prior Protocol Deep Dive",
+        description: "Understand the technical aspects and vision behind Prior Protocol.",
+        difficulty: "advanced",
+        category: "prior",
+        pointsReward: 10,
+        status: "active"
+      }
+    ];
+    
+    // Create the quizzes and add questions to each
+    initialQuizzes.forEach(async quiz => {
+      const createdQuiz = await this.createQuiz(quiz);
+      
+      // Add questions based on quiz category
+      if (quiz.category === "blockchain") {
+        await this.createQuizQuestion({
+          quizId: createdQuiz.id,
+          question: "What is a blockchain?",
+          options: [
+            "A centralized database managed by banks",
+            "A distributed ledger technology",
+            "A programming language for smart contracts",
+            "A type of cryptocurrency"
+          ],
+          correctOptionIndex: 1,
+          explanation: "A blockchain is a distributed ledger technology that records transactions across many computers.",
+          points: 1,
+          order: 1
+        });
+        
+        await this.createQuizQuestion({
+          quizId: createdQuiz.id,
+          question: "What is the purpose of consensus mechanisms in blockchain?",
+          options: [
+            "To encrypt transactions",
+            "To accelerate transaction speed",
+            "To agree on the state of the blockchain",
+            "To reduce transaction fees"
+          ],
+          correctOptionIndex: 2,
+          explanation: "Consensus mechanisms ensure all nodes in the network agree on the current state of the blockchain.",
+          points: 1,
+          order: 2
+        });
+        
+        await this.createQuizQuestion({
+          quizId: createdQuiz.id,
+          question: "What makes blockchain technology secure?",
+          options: [
+            "Government regulations",
+            "Bank oversight",
+            "Cryptographic hashing and decentralization",
+            "Insurance policies"
+          ],
+          correctOptionIndex: 2,
+          explanation: "Blockchain security comes from cryptographic hashing and its decentralized nature.",
+          points: 1,
+          order: 3
+        });
+        
+        await this.createQuizQuestion({
+          quizId: createdQuiz.id,
+          question: "What is a smart contract?",
+          options: [
+            "A legal agreement between two parties",
+            "Self-executing code on a blockchain",
+            "A contract managed by AI",
+            "A document signed digitally"
+          ],
+          correctOptionIndex: 1,
+          explanation: "Smart contracts are self-executing code that run on blockchain platforms when predetermined conditions are met.",
+          points: 1,
+          order: 4
+        });
+        
+        await this.createQuizQuestion({
+          quizId: createdQuiz.id,
+          question: "What is the Base layer-2 solution built on?",
+          options: [
+            "Bitcoin",
+            "Solana",
+            "Ethereum",
+            "Cardano"
+          ],
+          correctOptionIndex: 2,
+          explanation: "Base is a layer-2 solution built on Ethereum, focusing on scaling and reducing transaction costs.",
+          points: 1,
+          order: 5
+        });
+      } 
+      else if (quiz.category === "defi") {
+        await this.createQuizQuestion({
+          quizId: createdQuiz.id,
+          question: "What does DeFi stand for?",
+          options: [
+            "Digital Finance",
+            "Decentralized Finance",
+            "Distributed Funding",
+            "Direct Financial Instruments"
+          ],
+          correctOptionIndex: 1,
+          explanation: "DeFi stands for Decentralized Finance, which aims to recreate traditional financial systems in a decentralized manner.",
+          points: 1,
+          order: 1
+        });
+        
+        await this.createQuizQuestion({
+          quizId: createdQuiz.id,
+          question: "What is an AMM in DeFi?",
+          options: [
+            "Automated Money Market",
+            "Automated Market Maker",
+            "Asset Management Module",
+            "Algorithmic Mining Mechanism"
+          ],
+          correctOptionIndex: 1,
+          explanation: "AMM stands for Automated Market Maker, which uses liquidity pools instead of traditional order books.",
+          points: 1,
+          order: 2
+        });
+        
+        await this.createQuizQuestion({
+          quizId: createdQuiz.id,
+          question: "What is the primary purpose of a stablecoin?",
+          options: [
+            "To increase in value over time",
+            "To maintain price stability relative to an asset",
+            "To replace traditional cryptocurrencies",
+            "To provide staking rewards"
+          ],
+          correctOptionIndex: 1,
+          explanation: "Stablecoins are designed to maintain price stability relative to a reference asset, often a fiat currency like USD.",
+          points: 1,
+          order: 3
+        });
+      } 
+      else if (quiz.category === "prior") {
+        await this.createQuizQuestion({
+          quizId: createdQuiz.id,
+          question: "What is Prior Protocol primarily designed to do?",
+          options: [
+            "Create NFTs",
+            "Mine cryptocurrencies",
+            "Streamline DeFi experiences and create simplified financial primitives",
+            "Replace traditional banking"
+          ],
+          correctOptionIndex: 2,
+          explanation: "Prior Protocol aims to streamline DeFi experiences and create simplified financial primitives for users.",
+          points: 1,
+          order: 1
+        });
+        
+        await this.createQuizQuestion({
+          quizId: createdQuiz.id,
+          question: "What blockchain is the Prior Protocol testnet built on?",
+          options: [
+            "Ethereum Mainnet",
+            "Base Sepolia",
+            "Solana",
+            "Polygon"
+          ],
+          correctOptionIndex: 1,
+          explanation: "Prior Protocol's testnet is built on Base Sepolia, which is a layer-2 testnet on Ethereum.",
+          points: 1,
+          order: 2
+        });
+        
+        await this.createQuizQuestion({
+          quizId: createdQuiz.id,
+          question: "What benefit do users get for earning points on the Prior Protocol testnet?",
+          options: [
+            "Immediate cash rewards",
+            "NFT airdrops",
+            "Points convertible to PRIOR tokens at Token Generation Event (TGE)",
+            "Governance rights"
+          ],
+          correctOptionIndex: 2,
+          explanation: "Users earn points on the testnet that will be convertible to PRIOR tokens at the Token Generation Event (TGE).",
+          points: 1,
+          order: 3
+        });
+      }
+    });
+  }
+  
+  // Quiz operations
+  async getAllQuizzes(): Promise<Quiz[]> {
+    return Array.from(this.quizzes.values());
+  }
+  
+  async getQuiz(id: number): Promise<Quiz | undefined> {
+    return this.quizzes.get(id);
+  }
+  
+  async createQuiz(quiz: InsertQuiz): Promise<Quiz> {
+    const id = this.quizId++;
+    const now = new Date();
+    
+    const newQuiz: Quiz = {
+      ...quiz,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.quizzes.set(id, newQuiz);
+    return newQuiz;
+  }
+  
+  // Quiz Question operations
+  async getQuizQuestions(quizId: number): Promise<QuizQuestion[]> {
+    return Array.from(this.quizQuestions.values())
+      .filter(question => question.quizId === quizId)
+      .sort((a, b) => a.order - b.order);
+  }
+  
+  async getQuizQuestion(id: number): Promise<QuizQuestion | undefined> {
+    return this.quizQuestions.get(id);
+  }
+  
+  async createQuizQuestion(question: InsertQuizQuestion): Promise<QuizQuestion> {
+    const id = this.quizQuestionId++;
+    
+    const newQuestion: QuizQuestion = {
+      ...question,
+      id
+    };
+    
+    this.quizQuestions.set(id, newQuestion);
+    return newQuestion;
+  }
+  
+  // User Quiz operations
+  async getUserQuizzes(userId: number): Promise<UserQuiz[]> {
+    return Array.from(this.userQuizzes.values())
+      .filter(userQuiz => userQuiz.userId === userId);
+  }
+  
+  async getUserQuiz(id: number): Promise<UserQuiz | undefined> {
+    return this.userQuizzes.get(id);
+  }
+  
+  async getUserQuizByUserAndQuizId(userId: number, quizId: number): Promise<UserQuiz | undefined> {
+    return Array.from(this.userQuizzes.values())
+      .find(userQuiz => userQuiz.userId === userId && userQuiz.quizId === quizId);
+  }
+  
+  async createUserQuiz(userQuiz: InsertUserQuiz): Promise<UserQuiz> {
+    const id = this.userQuizId++;
+    const startedAt = new Date();
+    
+    const newUserQuiz: UserQuiz = {
+      ...userQuiz,
+      id,
+      startedAt,
+      completedAt: null,
+      answers: []
+    };
+    
+    this.userQuizzes.set(id, newUserQuiz);
+    return newUserQuiz;
+  }
+  
+  async updateUserQuiz(id: number, updates: Partial<Omit<UserQuiz, 'id'>>): Promise<UserQuiz | undefined> {
+    const userQuiz = this.userQuizzes.get(id);
+    if (!userQuiz) return undefined;
+    
+    const updatedUserQuiz: UserQuiz = {
+      ...userQuiz,
+      ...updates
+    };
+    
+    // If completing the quiz, award points and add badge if applicable
+    if (updates.status === 'completed' && userQuiz.status !== 'completed') {
+      // Award points for completing the quiz
+      const quiz = await this.getQuiz(userQuiz.quizId);
+      if (quiz) {
+        const pointsEarned = Math.round((updatedUserQuiz.score / updatedUserQuiz.maxScore) * quiz.pointsReward);
+        updatedUserQuiz.pointsEarned = pointsEarned;
+        
+        // Add points to user
+        if (pointsEarned > 0) {
+          await this.addUserPoints(userQuiz.userId, pointsEarned);
+          console.log(`[PointsSystem] Awarded ${pointsEarned} points to user ${userQuiz.userId} for completing quiz ${quiz.id}`);
+        }
+        
+        // If user scored 100%, award a badge
+        if (updatedUserQuiz.score === updatedUserQuiz.maxScore) {
+          const badgeId = `quiz_master_${quiz.id}`;
+          await this.addUserBadge(userQuiz.userId, badgeId);
+          console.log(`[BadgeSystem] Awarded ${badgeId} badge to user ${userQuiz.userId} for perfect quiz score`);
+        }
+      }
+    }
+    
+    this.userQuizzes.set(id, updatedUserQuiz);
+    return updatedUserQuiz;
   }
 }
 
