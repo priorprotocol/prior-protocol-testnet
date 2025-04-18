@@ -1,10 +1,12 @@
 import { Link } from "wouter";
+import { Leaderboard } from "@/components/Leaderboard";
+import { FaTrophy, FaExchangeAlt } from "react-icons/fa";
 
 const Home = () => {
   return (
     <>
       {/* Hero Section */}
-      <section className="pt-12 pb-24">
+      <section className="pt-12 pb-12">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-6xl font-space font-bold leading-tight mb-6">
@@ -26,6 +28,30 @@ const Home = () => {
                 Read Whitepaper
               </a>
             </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Real-time Leaderboard Section */}
+      <section className="py-10 bg-gradient-to-b from-[#0B1118] to-[#131B25]">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center bg-blue-900/30 px-4 py-2 rounded-full mb-4">
+              <FaTrophy className="text-amber-500 mr-2" />
+              <span className="text-blue-200 font-medium">Real-time Leaderboard</span>
+              <span className="ml-2 bg-green-500 animate-pulse h-2 w-2 rounded-full"></span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-space font-bold mb-4">Prior Protocol Community Rankings</h2>
+            <div className="flex justify-center items-center gap-2">
+              <FaExchangeAlt className="text-blue-400" />
+              <p className="text-[#A0AEC0]">
+                <span className="text-emerald-400 font-bold">0.5 points</span> per swap, max <span className="text-emerald-400 font-bold">5 swaps daily</span> (2.5 points max)
+              </p>
+            </div>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            <Leaderboard limit={10} />
           </div>
         </div>
       </section>
