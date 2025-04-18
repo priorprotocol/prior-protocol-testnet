@@ -16,6 +16,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register modular transaction routes
   app.use(apiPrefix, transactionRoutes);
   
+  // Register health check routes for Railway monitoring
+  app.use(apiPrefix, healthRoutes);
+  
   // Maintenance endpoint to remove all faucet claim points
   app.post(`${apiPrefix}/maintenance/remove-faucet-points`, async (req, res) => {
     try {

@@ -53,6 +53,7 @@ Block Explorer: [Base Sepolia](https://sepolia.basescan.org)
 
 This project can be deployed to various platforms:
 
+- **Railway (Recommended)** - Follow the instructions in [RAILWAY-DEPLOYMENT.md](./RAILWAY-DEPLOYMENT.md)
 - **Replit** - Click the "Deploy" button in the Replit interface
 - **Hostinger** - Follow the instructions in [HOSTINGER-DEPLOYMENT.md](./HOSTINGER-DEPLOYMENT.md)
 - **Netlify/Vercel** - Configure as a Node.js application or split into frontend/backend
