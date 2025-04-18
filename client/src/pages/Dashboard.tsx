@@ -359,15 +359,22 @@ const Dashboard = () => {
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">From Swaps</p>
                       <p className="text-xl font-bold">
-                        {userStats?.totalSwaps && userStats.totalSwaps >= 10 ? 
-                          userStats.totalSwaps * 2 : 0}
+                        {userStats?.totalSwaps ? (
+                          // First daily swap (4pts) + Additional 2pts per swap for 10+ swaps
+                          4 + (userStats.totalSwaps >= 10 ? Math.min((userStats.totalSwaps - 1) * 2, 6) : 0)
+                        ) : 0}
                       </p>
                       <p className="text-xs text-[#A0AEC0]">
-                        {userStats?.totalSwaps ? 
-                          (userStats.totalSwaps >= 10 ? 
-                            `${userStats.totalSwaps} swaps × 2 Prior pts each` : 
-                            `${userStats.totalSwaps} swaps (need 10+ daily swaps for Prior points)`) : 
-                          "No swaps yet"}
+                        {userStats?.totalSwaps ? (
+                          <>
+                            <span className="block">4pts (first swap)</span>
+                            {userStats.totalSwaps >= 10 ? (
+                              <span className="block">+{Math.min((userStats.totalSwaps - 1) * 2, 6)}pts (10+ swaps bonus)</span>
+                            ) : (
+                              <span className="block">Need 10+ daily swaps for bonus</span>
+                            )}
+                          </>
+                        ) : "No swaps yet"}
                       </p>
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
