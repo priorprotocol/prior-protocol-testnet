@@ -66,7 +66,7 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
           <FaTrophy className="text-amber-500" /> Prior Protocol Leaderboard
         </CardTitle>
         <CardDescription>
-          Top {limit} users ranked by Prior points - Highest swap activity highlighted
+          Top {limit} users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -116,54 +116,36 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                       </div>
                     </div>
                     
-                    {/* Activity details - shown for all users for better transparency */}
-                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs border-t border-[#2D3748] pt-2">
-                      <div className={`text-center ${user.totalSwaps >= 10 ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-md p-1' : ''}`}>
+                    {/* NEW SYSTEM - Activity details - shown for all users */}
+                    <div className="mt-2 grid grid-cols-1 text-xs border-t border-[#2D3748] pt-2">
+                      <div className={`text-center ${user.totalSwaps >= 5 ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-md p-1' : ''}`}>
                         <span className="text-[#A0AEC0] block mb-1">Swap Activity</span>
                         <div className="flex justify-center items-center">
                           <FaExchangeAlt className="text-indigo-400 mr-1" />
-                          <span className={`text-lg font-bold ${user.totalSwaps >= 10 ? 'text-emerald-400' : 'text-white'}`}>
+                          <span className={`text-lg font-bold ${user.totalSwaps >= 5 ? 'text-emerald-400' : 'text-white'}`}>
                             {user.totalSwaps || 0}
                           </span>
-                          <span className="text-[10px] text-gray-400 ml-1">(Saved in DB)</span>
+                          <span className="text-[10px] text-gray-400 ml-1">(Total Swaps)</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-1 mt-1">
-                          <div className="text-center bg-blue-900/20 rounded px-1 py-0.5">
-                            <span className="text-blue-400">+4 Prior pts</span>
-                            <div className="text-gray-400 text-[9px]">First Swap</div>
+                        
+                        <div className="mt-2 text-center bg-blue-900/20 rounded px-1 py-1">
+                          <div className="flex justify-between px-2">
+                            <span className="text-blue-400">Points Earned:</span>
+                            <span className="text-emerald-400 font-bold">
+                              {Math.min(user.totalSwaps * 0.5, 2.5).toFixed(1)}
+                            </span>
                           </div>
-                          {user.totalSwaps >= 10 ? (
-                            <div className="text-center bg-emerald-900/20 rounded px-1 py-0.5">
-                              <span className="text-emerald-400">+2 Prior pts</span>
-                              <div className="text-gray-400 text-[9px]">10+ Swaps</div>
-                            </div>
-                          ) : (
-                            <div className="text-center bg-gray-800/30 rounded px-1 py-0.5">
-                              <span className="text-gray-500">--</span>
-                              <div className="text-gray-500 text-[9px]">Need 10+</div>
-                            </div>
-                          )}
+                          <div className="text-gray-400 text-[9px] mt-1">
+                            0.5 pts per swap (max 5 swaps)
+                          </div>
                         </div>
-                        {user.totalSwaps >= 10 && (
-                          <div className="text-xs mt-1 text-emerald-300">
-                            <FaExchangeAlt className="inline mr-1" size={10} />Top Swapper
+                        
+                        {user.totalSwaps >= 5 && (
+                          <div className="text-xs mt-1.5 text-emerald-300 bg-emerald-900/20 rounded py-0.5 px-2">
+                            <FaExchangeAlt className="inline mr-1" size={10} />
+                            Max Daily Points Achieved
                           </div>
                         )}
-                      </div>
-                      <div className="text-center">
-                        <span className="text-[#A0AEC0] block mb-1">Faucet Activity</span>
-                        <div className="flex justify-center items-center">
-                          <i className="fas fa-faucet text-cyan-400 mr-1"></i>
-                          <span className="text-lg font-bold text-white">{user.totalClaims || 0}</span>
-                          <span className="text-[10px] text-gray-400 ml-1">(Saved in DB)</span>
-                        </div>
-                        <div className="text-center mt-1 bg-indigo-900/20 rounded px-1 py-0.5">
-                          <span className="text-indigo-400">+1 Prior pt</span>
-                          <div className="text-gray-400 text-[9px]">Per Claim</div>
-                        </div>
-                        <div className="text-[10px] mt-1 text-gray-400">
-                          Total Prior points: {user.totalClaims || 0}
-                        </div>
                       </div>
                     </div>
                   </div>

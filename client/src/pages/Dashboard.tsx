@@ -223,7 +223,7 @@ const Dashboard = () => {
                           </div>
                         ) : transactions && transactions.length > 0 ? (
                           <div className="space-y-2 max-h-40 overflow-y-auto">
-                            {transactions.slice(0, 3).map((tx, i) => (
+                            {transactions.slice(0, 3).map((tx: any, i: number) => (
                               <div key={i} className="text-xs bg-[#131B29] p-2 rounded flex justify-between items-center">
                                 <div>
                                   <span className={tx.type === 'swap' ? 'text-indigo-400' : 'text-cyan-400'}>
@@ -309,12 +309,11 @@ const Dashboard = () => {
             <div className="px-1">
               <h3 className="text-xl font-semibold mb-1">Prior Protocol Leaderboard</h3>
               <p className="text-[#A0AEC0]">
-                Top users ranked by Prior Points from protocol activity. Earn points by:
+                Top users ranked by Prior Points from swap activity. The new points system:
                 <ul className="list-disc list-inside mt-1 ml-2">
-                  <li><span className="text-blue-400">4 Prior points</span> for your first swap of the day</li>
-                  <li><span className="text-emerald-400">2 Prior points</span> per swap after reaching 10+ daily swaps (max 6 additional points)</li>
-                  <li><span className="text-indigo-400">1 Prior point</span> for each faucet claim</li>
-                  <li><span className="text-purple-400">10 Prior points</span> for governance votes (coming soon)</li>
+                  <li><span className="text-blue-400">0.5 Prior points</span> per swap</li>
+                  <li><span className="text-emerald-400">Maximum 5 swaps</span> count toward points each day</li>
+                  <li><span className="text-indigo-400">2.5 Prior points</span> maximum daily earnings</li>
                 </ul>
                 <strong className="block mt-1">All points will be converted to PRIOR tokens at Token Generation Event (TGE).</strong>
               </p>
@@ -327,7 +326,7 @@ const Dashboard = () => {
                   <CardTitle className="text-lg">Your Performance</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
                       <p className="text-xs text-[#A0AEC0] mb-1">Total Prior Points</p>
                       <p className="text-2xl font-bold">{userStats?.points || 0}</p>
@@ -336,42 +335,22 @@ const Dashboard = () => {
                       </p>
                     </div>
                     <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
-                      <p className="text-xs text-[#A0AEC0] mb-1">From Swaps</p>
+                      <p className="text-xs text-[#A0AEC0] mb-1">Swap Activity</p>
                       <p className="text-xl font-bold">
-                        {userStats?.totalSwaps ? (
-                          // First daily swap (4pts) + Additional 2pts per swap for 10+ swaps
-                          4 + (userStats.totalSwaps >= 10 ? Math.min((userStats.totalSwaps - 1) * 2, 6) : 0)
-                        ) : 0}
+                        {userStats?.totalSwaps || 0} swaps
                       </p>
-                      <p className="text-xs text-[#A0AEC0]">
-                        {userStats?.totalSwaps ? (
-                          <>
-                            <span className="block">4pts (first swap)</span>
-                            {userStats.totalSwaps >= 10 ? (
-                              <span className="block">+{Math.min((userStats.totalSwaps - 1) * 2, 6)}pts (10+ swaps bonus)</span>
-                            ) : (
-                              <span className="block">Need 10+ daily swaps for bonus</span>
-                            )}
-                          </>
-                        ) : "No swaps yet"}
-                      </p>
-                    </div>
-                    <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
-                      <p className="text-xs text-[#A0AEC0] mb-1">From Faucet</p>
-                      <p className="text-xl font-bold">{userStats?.totalFaucetClaims || 0}</p>
-                      <p className="text-xs text-[#A0AEC0]">({userStats?.totalFaucetClaims || 0} claims × 1 Prior pt each)</p>
-                    </div>
-                    <div className="bg-[#1E2A3B] p-4 rounded-md text-center">
-                      <p className="text-xs text-[#A0AEC0] mb-1">From Governance</p>
-                      <p className="text-xl font-bold">{userStats?.proposalsVoted ? userStats.proposalsVoted * 10 : 0}</p>
-                      <p className="text-xs text-[#A0AEC0]">
-                        {userStats?.proposalsVoted ? 
-                          `${userStats.proposalsVoted} votes (${userStats.proposalsVoted * 10} Prior pts)` : 
-                          "No votes yet"}
-                      </p>
-                      <p className="text-xs text-[#A0AEC0] mt-1">
-                        <span className="text-purple-400">+300</span> with Prior NFT
-                      </p>
+                      <div className="mt-2 flex items-center justify-center">
+                        <div className="text-xs bg-blue-900/20 border border-blue-800/30 rounded-lg px-3 py-1">
+                          <span className="text-blue-400">
+                            {userStats?.totalSwaps ? 
+                              `${Math.min(userStats.totalSwaps * 0.5, 2.5).toFixed(1)} pts earned` : 
+                              "No points yet"}
+                          </span>
+                          <span className="block text-[10px] text-gray-400 mt-0.5">
+                            0.5 pts per swap (max 5 swaps)
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
