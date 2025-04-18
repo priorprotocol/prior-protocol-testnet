@@ -315,6 +315,9 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
               
+              {/* Points History Chart */}
+              {address && <PointsHistoryChart address={address} className="mb-6" />}
+              
               {/* Network Activity Card */}
               <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 via-violet-600 to-purple-600"></div>
