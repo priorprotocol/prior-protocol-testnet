@@ -13,6 +13,7 @@ import { FaTrophy, FaLock, FaRankingStar } from "react-icons/fa6";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 import { UserStats } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 
 const Dashboard = () => {
   // Use both wallet systems for compatibility during transition
@@ -78,7 +79,7 @@ const Dashboard = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Points Summary Card - New professional design */}
+          {/* Points Summary Card - New professional design with updated point system */}
           <Card className="bg-[#111827] border-[#2D3748] overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600"></div>
             <CardHeader className="pb-2">
@@ -88,7 +89,7 @@ const Dashboard = () => {
                 </div>
                 Points Summary
               </CardTitle>
-              <CardDescription>Your point earnings across all activities</CardDescription>
+              <CardDescription>Your point earnings from swaps - 0.5 points per swap, max 5 swaps daily</CardDescription>
             </CardHeader>
             <CardContent>
               {statsLoading ? (
@@ -98,7 +99,7 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <div>
-                  {/* Total Points Counter - Simplified Design */}
+                  {/* Total Points Counter - New Design */}
                   <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-800/50 rounded-lg p-5 mb-6">
                     <div className="flex flex-col md:flex-row md:justify-between md:items-center">
                       <div>
@@ -123,17 +124,20 @@ const Dashboard = () => {
                           )}
                         </div>
                         
-                        {/* Points breakdown */}
+                        {/* NEW Points system breakdown */}
                         <div className="mt-3 text-left bg-blue-900/20 border border-blue-800/30 rounded-lg p-3">
-                          <div className="text-xs text-blue-200 font-medium mb-2">Points Breakdown:</div>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="text-xs text-blue-200 font-medium mb-2">New Points System:</div>
+                          <div className="text-xs space-y-2">
                             <div className="flex justify-between">
                               <span className="text-gray-300">Swaps:</span>
-                              <span className="text-blue-300 font-medium">{userStats?.totalSwaps ? Math.min(4 + (userStats.totalSwaps >= 10 ? (userStats.totalSwaps - 1) * 2 : 0), 10) : 0} pts</span>
+                              <span className="text-blue-300 font-medium">0.5 pts per swap</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-300">Faucet:</span>
-                              <span className="text-blue-300 font-medium">{userStats?.totalFaucetClaims || 0} pts</span>
+                              <span className="text-gray-300">Daily Limit:</span>
+                              <span className="text-blue-300 font-medium">First 5 swaps only</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-emerald-300 font-medium">Maximum 2.5 pts earned daily</span>
                             </div>
                           </div>
                         </div>
@@ -141,9 +145,9 @@ const Dashboard = () => {
                     </div>
                   </div>
                   
-                  {/* Activity Cards Grid */}
+                  {/* Activity Cards Grid - Simplified to show only what matters */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Swaps Card */}
+                    {/* Swaps Card - Updated with new points system */}
                     <div className="bg-[#1E2A3B] rounded-lg border border-[#2D3748] p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center">
@@ -165,113 +169,88 @@ const Dashboard = () => {
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-xl">
-                            {/* Calculate potential points based on new system */}
-                            {userStats ? (
-                              // First daily swap (4pts) + Additional 2pts per swap for 10+ swaps
-                              4 + (userStats.totalSwaps >= 10 ? Math.min((userStats.totalSwaps - 1) * 2, 6) : 0)
-                            ) : 0}
+                            {/* Calculate potential points based on NEW system */}
+                            {userStats && userStats.totalSwaps > 0 ? 
+                              Math.min(userStats.totalSwaps * 0.5, 2.5).toFixed(1) : "0"}
                           </div>
                           <div className="flex flex-col text-xs space-y-1 mt-1">
-                            <span className="text-blue-400 bg-blue-900/20 rounded px-2 py-0.5">+4 Prior pts first swap of the day</span>
+                            <span className="text-blue-400 bg-blue-900/20 rounded px-2 py-0.5">+0.5 pts per swap</span>
                             <span className="text-emerald-400 bg-emerald-900/20 rounded px-2 py-0.5">
-                              +2 Prior pts per swap after 10+ daily swaps
+                              First 5 swaps of the day only
                             </span>
-                            <span className="text-amber-400 text-[10px]">Max 6 Prior pts from 10+ swaps bonus</span>
+                            <span className="text-amber-400 text-[10px]">Max 2.5 Prior pts per day</span>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Faucet Claims Card */}
+                    {/* Transaction History Card */}
                     <div className="bg-[#1E2A3B] rounded-lg border border-[#2D3748] p-4">
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div className="w-10 h-10 rounded-full bg-cyan-600 bg-opacity-20 flex items-center justify-center mr-3">
-                            <i className="fas fa-faucet text-cyan-400"></i>
+                            <i className="fas fa-history text-cyan-400"></i>
                           </div>
                           <div>
-                            <h4 className="font-medium">Faucet Claims</h4>
-                            <p className="text-[#A0AEC0] text-sm">
-                              {userStats?.totalFaucetClaims || 0} total claim{userStats?.totalFaucetClaims !== 1 ? 's' : ''}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-xl">{userStats?.totalFaucetClaims || 0}</div>
-                          <div className="text-xs text-indigo-400 bg-indigo-900/20 rounded px-2 py-0.5 mt-1">
-                            +1 Prior pt per claim
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-3 pt-3 border-t border-[#2D3748]">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-[#A0AEC0]">Claims over last 7 days:</span>
-                          <span className="text-xs text-[#A0AEC0]">
-                            {Math.min(userStats?.totalFaucetClaims || 0, 7)}/7 days
-                          </span>
-                        </div>
-                        <Progress 
-                          value={Math.min(((userStats?.totalFaucetClaims || 0) / 7) * 100, 100)} 
-                          className="h-1.5 mt-1 bg-[#2D3748]" 
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* Quests Card */}
-                    <div className="bg-[#1E2A3B] rounded-lg border border-[#2D3748] p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-amber-600 bg-opacity-20 flex items-center justify-center mr-3">
-                            <i className="fas fa-tasks text-amber-400"></i>
-                          </div>
-                          <div>
-                            <h4 className="font-medium">Quests</h4>
-                            <p className="text-[#A0AEC0] text-sm">
-                              {userStats?.completedQuests || 0}/{userStats?.totalQuests || 0} completed
-                            </p>
-                          </div>
-                        </div>
-                        {/* "View all quests" link removed as requested */}
-                      </div>
-                      
-                      <div className="mt-3 pt-3 border-t border-[#2D3748]">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-[#A0AEC0]">Quest completion:</span>
-                          <span className="text-xs text-[#A0AEC0]">
-                            {Math.round(((userStats?.completedQuests || 0) / (userStats?.totalQuests || 1)) * 100)}%
-                          </span>
-                        </div>
-                        <Progress 
-                          value={((userStats?.completedQuests || 0) / (userStats?.totalQuests || 1)) * 100} 
-                          className="h-1.5 mt-1 bg-[#2D3748]" 
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* Governance Card */}
-                    <div className="bg-[#1E2A3B] rounded-lg border border-[#2D3748] p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-purple-600 bg-opacity-20 flex items-center justify-center mr-3">
-                            <i className="fas fa-landmark text-purple-400"></i>
-                          </div>
-                          <div>
-                            <h4 className="font-medium">Governance</h4>
-                            <div className="flex items-center">
-                              <span className="text-yellow-400 text-xs mr-2">Coming Soon</span>
-                              <i className="fas fa-clock text-yellow-400 text-xs"></i>
+                            <h4 className="font-medium">Transaction History</h4>
+                            <div className="flex items-center mt-1">
+                              <span className="text-sm text-[#A0AEC0]">View your recent activity</span>
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-xs bg-purple-900/30 border border-purple-800/30 rounded px-2 py-1">
-                            <span className="text-purple-300">+10</span> <span className="text-[#A0AEC0]">Prior pts per vote</span>
-                          </div>
-                          <div className="text-xs bg-purple-900/30 border border-purple-800/30 rounded px-2 py-1 mt-1">
-                            <span className="text-purple-300">+300</span> <span className="text-[#A0AEC0]">Prior pts with NFT</span>
-                          </div>
+                        <div>
+                          {isSyncing ? (
+                            <div className="flex items-center bg-blue-900/20 rounded px-3 py-1.5">
+                              <div className="w-4 h-4 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mr-2"></div>
+                              <span className="text-xs text-blue-300">Syncing...</span>
+                            </div>
+                          ) : (
+                            <button 
+                              onClick={syncTransactions}
+                              className="text-xs bg-blue-900/20 border border-blue-800/30 text-blue-400 rounded px-3 py-1.5 hover:bg-blue-900/30"
+                            >
+                              <i className="fas fa-sync-alt mr-1"></i> Sync Transactions
+                            </button>
+                          )}
                         </div>
+                      </div>
+                      
+                      {/* Recent Transactions */}
+                      <div className="mt-3 border-t border-[#2D3748] pt-3">
+                        {isLoadingTransactions ? (
+                          <div className="flex justify-center py-3">
+                            <div className="w-5 h-5 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+                          </div>
+                        ) : transactions && transactions.length > 0 ? (
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {transactions.slice(0, 3).map((tx, i) => (
+                              <div key={i} className="text-xs bg-[#131B29] p-2 rounded flex justify-between items-center">
+                                <div>
+                                  <span className={tx.type === 'swap' ? 'text-indigo-400' : 'text-cyan-400'}>
+                                    {tx.type === 'swap' ? 'Swap' : 'Faucet Claim'}
+                                  </span>
+                                  <span className="text-[#A0AEC0] ml-1">
+                                    {new Date(tx.timestamp).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <div className="text-xs">
+                                  {tx.type === 'swap' && 
+                                    <span className="text-blue-400">+0.5 pts</span>
+                                  }
+                                </div>
+                              </div>
+                            ))}
+                            {transactions.length > 3 && (
+                              <div className="text-center text-xs text-blue-400 hover:underline">
+                                <Link to="/transactions">View all {totalTransactions} transactions</Link>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center py-2 text-xs text-[#A0AEC0]">
+                            No transactions found
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -393,10 +393,7 @@ export class DatabaseStorage implements IStorage {
       // Check daily swap count to determine points
       const userId = transaction.userId;
       
-      // This counts swaps made today INCLUDING this one
-      const dailySwaps = await this.getDailySwapCount(userId);
-      
-      // Get timestamp of this transaction to determine if it's the first of the day
+      // Get timestamp of this transaction to determine if it's valid for today
       const txDate = transaction.timestamp ? new Date(transaction.timestamp) : new Date();
       const txDay = new Date(txDate);
       txDay.setHours(0, 0, 0, 0);
@@ -412,52 +409,21 @@ export class DatabaseStorage implements IStorage {
           transaction.id ? sql`${transactions.id} < ${transaction.id}` : sql`1=1` // If we have an ID, count only transactions before this one
         ));
       
-      const isDailyFirstSwap = (swapsBeforeThisOne[0]?.count || 0) === 0;
+      const swapsBeforeCount = swapsBeforeThisOne[0]?.count || 0;
       
-      console.log(`[PointsCalc] User ${userId} making swap, daily count: ${dailySwaps}, is first swap of day: ${isDailyFirstSwap}`);
-      
-      // Make sure the user has actually performed a swap transaction before awarding points
-      // Get all user swaps to verify they've swapped before
-      const userSwaps = await db
-        .select({ count: count() })
-        .from(transactions)
-        .where(and(
-          eq(transactions.userId, userId),
-          eq(transactions.type, 'swap')
-        ));
-      
-      const totalUserSwaps = userSwaps[0]?.count || 0;
-      
-      if (totalUserSwaps === 0) {
-        // No points for users who haven't actually swapped yet
-        console.log(`[PointsCalc] No points awarded - user ${userId} has no swap transactions`);
-        return 0;
-      } else if (isDailyFirstSwap) {
-        // First swap of the day gets 4 points
-        console.log(`[PointsCalc] Awarding 4 points for first swap of the day to user ${userId}`);
-        return 4;
-      } else if (dailySwaps >= 10) {
-        // 10+ swaps get 2 points each (including the 10th swap)
-        console.log(`[PointsCalc] Awarding 2 points for 10+ daily swaps to user ${userId} (${dailySwaps} daily swaps)`);
-        return 2;
+      // Only award points for the first 5 swaps of the day
+      if (swapsBeforeCount < 5) {
+        console.log(`[PointsCalc] Awarding 0.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
+        return 0.5; // 0.5 points per swap for first 5 swaps
       } else {
-        console.log(`[PointsCalc] No points awarded - not first swap and under 10 daily total for user ${userId}`);
+        console.log(`[PointsCalc] No points awarded - already reached 5 swaps for the day for user ${userId}`);
+        return 0;
       }
-    } else if (transaction.type === 'faucet_claim') {
-      // Faucet claims now get 1 point each
-      console.log(`[PointsCalc] Awarding 1 point for faucet claim to user ${transaction.userId}`);
-      return 1;
-    } else if (transaction.type === 'governance_vote') {
-      console.log(`[PointsCalc] Awarding 10 points for governance vote to user ${transaction.userId}`);
-      return 10; // 10 points per governance vote
-    } else if (transaction.type === 'liquidity_stake') {
-      console.log(`[PointsCalc] Awarding 5 points for liquidity staking to user ${transaction.userId}`);
-      return 5; // 5 points for liquidity staking
     } else {
+      // No points for any other transaction types
       console.log(`[PointsCalc] No points for transaction type: ${transaction.type}`);
+      return 0;
     }
-    
-    return 0; // Default: 0 points
   }
   
   async getDailySwapCount(userId: number): Promise<number> {
