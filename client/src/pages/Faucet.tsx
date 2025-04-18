@@ -259,14 +259,6 @@ const Faucet = () => {
         description: "1 PRIOR token has been sent to your wallet.",
       });
       
-      // Show points earned toast
-      toast({
-        title: "Points Earned!",
-        description: "You earned 1 point for claiming from the faucet.",
-        variant: "default",
-        className: "bg-green-800 text-white border-green-600",
-      });
-      
       // Refresh the user data and balances
       if (address) {
         // Force refetch to ensure we get the latest data

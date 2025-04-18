@@ -271,11 +271,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address:
           <div className="text-sm">
             <div>Received: {formatAmount(tx.toAmount, tx.toToken)}</div>
             <div className="mt-1">
-              {(tx.points && tx.points > 0) ? (
-                <Badge className="bg-indigo-600">+{tx.points} point</Badge>
-              ) : (
-                <Badge className="bg-indigo-600">+1 point</Badge>
-              )}
+              <Badge variant="outline" className="text-indigo-400 border-indigo-500">Faucet Claim</Badge>
             </div>
           </div>
         )}
