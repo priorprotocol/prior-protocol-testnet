@@ -136,3 +136,68 @@ export type Token = typeof tokens.$inferSelect;
 
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
+
+// Quizzes table
+export const quizzes = pgTable("quizzes", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  difficulty: text("difficulty").notNull(), // 'beginner', 'intermediate', 'advanced'
+  category: text("category").notNull(), // 'blockchain', 'defi', 'nft', etc.
+  pointsReward: integer("points_reward").notNull().default(5),
+  status: text("status").notNull().default("active"), // 'active', 'inactive', 'draft'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertQuizSchema = createInsertSchema(quizzes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+// Quiz questions table
+export const quizQuestions = pgTable("quiz_questions", {
+  id: serial("id").primaryKey(),
+  quizId: integer("quiz_id").notNull(),
+  question: text("question").notNull(),
+  options: jsonb("options").notNull(), // Array of answer options
+  correctOptionIndex: integer("correct_option_index").notNull(),
+  explanation: text("explanation"), // Explanation for the correct answer
+  points: integer("points").notNull().default(1),
+  order: integer("order").notNull(), // Order of questions within quiz
+});
+
+export const insertQuizQuestionSchema = createInsertSchema(quizQuestions).omit({
+  id: true,
+});
+
+// User quiz attempts
+export const userQuizzes = pgTable("user_quizzes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  quizId: integer("quiz_id").notNull(),
+  score: integer("score").notNull().default(0),
+  maxScore: integer("max_score").notNull(),
+  status: text("status").notNull().default("in_progress"), // 'in_progress', 'completed'
+  pointsEarned: integer("points_earned").default(0),
+  startedAt: timestamp("started_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+  answers: jsonb("answers").default([]), // Array of {questionId, selectedOptionIndex}
+});
+
+export const insertUserQuizSchema = createInsertSchema(userQuizzes).omit({
+  id: true,
+  startedAt: true,
+  completedAt: true,
+});
+
+// Types for the quiz feature
+export type InsertQuiz = z.infer<typeof insertQuizSchema>;
+export type Quiz = typeof quizzes.$inferSelect;
+
+export type InsertQuizQuestion = z.infer<typeof insertQuizQuestionSchema>;
+export type QuizQuestion = typeof quizQuestions.$inferSelect;
+
+export type InsertUserQuiz = z.infer<typeof insertUserQuizSchema>;
+export type UserQuiz = typeof userQuizzes.$inferSelect;
