@@ -13,15 +13,14 @@ const validateTransactionType = (type: string): string => {
   return validTypes.includes(type) ? type : 'other';
 };
 
-// Get transaction points based on type and user context
+// Get transaction points based on type and user context - NEW SIMPLIFIED POINTS SYSTEM
 const getTransactionPoints = async (userId: number, type: string, txData: any): Promise<number> => {
-  // Daily swap threshold
-  const DAILY_SWAP_THRESHOLD = 10;
+  // Daily swap limit for points (max 5 swaps)
+  const MAX_DAILY_SWAPS_FOR_POINTS = 5;
+  // Points per swap (0.5 points)
+  const POINTS_PER_SWAP = 0.5;
   
   if (type === 'swap') {
-    // Check if user has done swaps in the current day
-    const dailySwapCount = await storage.getDailySwapCount(userId);
-    
     // Get the date for this transaction
     const txDate = txData.timestamp ? new Date(txData.timestamp) : new Date();
     const txDay = new Date(txDate);
@@ -43,42 +42,23 @@ const getTransactionPoints = async (userId: number, type: string, txData: any): 
              (txData.id ? tx.id < txData.id : true);
     });
     
-    // This is the first swap of the day if there are no swaps before it on the same day
-    const isFirstSwapOfDay = swapsBeforeThisOne.length === 0;
+    // Count number of swaps today before this one
+    const swapsCountToday = swapsBeforeThisOne.length;
     
-    // Award 4 points for the first swap of the day
-    if (isFirstSwapOfDay) {
-      console.log(`[PointsCalc] Awarding 4 points for first swap of day to user ${userId}`);
-      return 4;
+    // Award 0.5 points for each swap up to 5 swaps per day
+    if (swapsCountToday < MAX_DAILY_SWAPS_FOR_POINTS) {
+      console.log(`[PointsCalc] Awarding ${POINTS_PER_SWAP} points for swap #${swapsCountToday + 1} to user ${userId}`);
+      return POINTS_PER_SWAP;
+    } else {
+      console.log(`[PointsCalc] No points awarded - already reached ${MAX_DAILY_SWAPS_FOR_POINTS} swaps for the day for user ${userId}`);
+      return 0;
     }
-    // Award 2 points per swap ONLY if they've done 10+ swaps today
-    else if (dailySwapCount >= DAILY_SWAP_THRESHOLD) {
-      console.log(`[PointsCalc] Awarding 2 points for 10+ daily swaps to user ${userId}`);
-      return 2;
-    }
-    console.log(`[PointsCalc] No points awarded - not first swap and under 10 daily total for user ${userId}`);
-    return 0;
   } 
-  else if (type === 'faucet_claim') {
-    // 1 point for each faucet claim
-    console.log(`[PointsCalc] Awarding 1 point for faucet claim to user ${userId}`);
-    return 1;
-  }
-  else if (type === 'governance_vote') {
-    // 10 points for each governance vote
-    return 10;
-  }
-  else if (type === 'liquidity_stake') {
-    // 5 points for liquidity staking
-    return 5;
-  }
-  else if (type === 'nft_mint') {
-    // Special handling for NFTs could be added here
+  // NO POINTS FOR ANY OTHER ACTIVITY UNDER NEW SYSTEM
+  else {
+    console.log(`[PointsCalc] No points for ${type} transaction under new points system`);
     return 0;
   }
-  
-  // No points for other transaction types
-  return 0;
 };
 
 // Get user's transaction history (all types) with pagination

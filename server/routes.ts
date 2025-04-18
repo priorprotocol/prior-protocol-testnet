@@ -775,16 +775,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const swapCountToday = existingSwapsToday[0]?.count || 0;
       console.log(`User ${user.id} has ${swapCountToday} swaps today before this one`);
       
-      // Calculate points based on swap count
+      // Calculate points based on NEW SIMPLIFIED points system
+      // 0.5 points per swap for first 5 swaps each day (max 2.5 points)
+      const MAX_DAILY_SWAPS_FOR_POINTS = 5;
+      const POINTS_PER_SWAP = 0.5;
+      
       let points = 0;
-      if (swapCountToday === 0) {
-        // First swap of the day gets 4 points
-        points = 4;
-        console.log(`Awarding 4 points for first swap of the day to user ${user.id}`);
-      } else if (swapCountToday >= 9) {
-        // 10+ swaps get 2 additional points each (including the 10th swap)
-        points = 2;
-        console.log(`Awarding 2 points for 10+ daily swaps to user ${user.id}`);
+      if (swapCountToday < MAX_DAILY_SWAPS_FOR_POINTS) {
+        // Award 0.5 points for each of the first 5 swaps
+        points = POINTS_PER_SWAP;
+        console.log(`Awarding ${POINTS_PER_SWAP} points for swap #${swapCountToday + 1} to user ${user.id}`);
+      } else {
+        console.log(`No points awarded - already reached ${MAX_DAILY_SWAPS_FOR_POINTS} swaps for the day for user ${user.id}`);
       }
       
       // Create transaction record 
