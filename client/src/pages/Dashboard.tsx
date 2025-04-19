@@ -305,9 +305,9 @@ const Dashboard = () => {
                             ))}
                             {transactions.length > 4 && (
                               <div className="text-center text-xs mt-2">
-                                <Link to="/transactions" className="text-blue-400 hover:text-blue-300 hover:underline flex items-center justify-center">
+                                <Link to="/transactions" className="text-blue-400 hover:text-blue-300 hover:underline flex items-center justify-center group">
                                   <span>View all {totalTransactions} transactions</span>
-                                  <ChevronRight className="ml-1" size={12} />
+                                  <ChevronRight className="ml-1 group-hover:translate-x-0.5 transition-transform" size={12} />
                                 </Link>
                               </div>
                             )}
