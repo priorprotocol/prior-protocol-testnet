@@ -92,12 +92,7 @@ export function useImmediateDataLoader(address: string | null) {
         const loadTime = Date.now() - userLoadStart;
         console.log(`✅ User data pre-loaded in ${loadTime}ms`);
         
-        // After database data is loaded, sync with blockchain
-        if (syncTransactions) {
-          console.log('Now syncing blockchain data in background...');
-          syncTransactions();
-        }
-        
+        // We're no longer syncing with blockchain, only using database
         // Refresh the leaderboard after user data is loaded
         queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
       })

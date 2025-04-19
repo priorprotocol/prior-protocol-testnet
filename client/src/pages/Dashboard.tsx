@@ -170,7 +170,7 @@ const Dashboard = () => {
               {isSyncing ? (
                 <div className="flex items-center justify-center bg-blue-900/20 rounded-md py-2">
                   <div className="w-4 h-4 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mr-2"></div>
-                  <span className="text-xs text-blue-300">Syncing blockchain data...</span>
+                  <span className="text-xs text-blue-300">Refreshing data...</span>
                 </div>
               ) : (
                 <button 
@@ -178,7 +178,7 @@ const Dashboard = () => {
                   className="w-full text-sm bg-gradient-to-r from-blue-600/20 to-purple-600/20 text-blue-400 rounded-md py-2 border border-blue-800/50 hover:bg-blue-900/30 flex items-center justify-center"
                 >
                   <FaDatabase className="mr-1.5" size={12} />
-                  Sync Blockchain Data
+                  Refresh Data
                 </button>
               )}
             </CardContent>
