@@ -267,107 +267,80 @@ export class MemStorage implements IStorage {
   }
   
   private async initializeSampleData() {
-    // Create a demo user if not exists
-    const demoUserAddress = "0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae";
-    const demoUser = this.usersByAddress.get(demoUserAddress);
+    console.log("Creating demo user and sample transaction data");
+    const now = new Date();
+    const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const threeDaysAgo = new Date(now.getTime() - 72 * 60 * 60 * 1000);
     
-    if (!demoUser) {
-      console.log("Creating demo user and sample transaction data");
-      const now = new Date();
-      const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    // Sample user addresses with varied points - these are placeholder addresses for display purposes
+    const sampleUsers = [
+      { address: "0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae", lastClaim: twelveHoursAgo, swaps: 12, claims: 3, points: 6.0 },
+      { address: "0x4cfc531df94339def7dcd603aac1a1d2e63569da", lastClaim: oneDayAgo, swaps: 10, claims: 2, points: 5.0 },
+      { address: "0x9e42e938dee47bbe167b02d92da6d81351055ffc", lastClaim: twoDaysAgo, swaps: 8, claims: 1, points: 4.0 },
+      { address: "0x789c7d9a896d194da6e438fb68239db7cb2fd1e5", lastClaim: threeDaysAgo, swaps: 6, claims: 1, points: 3.0 },
+      { address: "0x56e9ae915938da26bdc02e23f20f6a3ce3ae3a78", lastClaim: twoDaysAgo, swaps: 4, claims: 1, points: 2.0 },
+      { address: "0x12a83136a82a35bf73a117c5c19e7e83d7eb3a93", lastClaim: oneDayAgo, swaps: 2, claims: 1, points: 1.0 },
+      { address: "0xb788e62f7f29ba4ed9838d527036a8e8fc09a234", lastClaim: twelveHoursAgo, swaps: 20, claims: 5, points: 10.0 },
+      { address: "0xc1c85e7fde7d1aab88da17e6f4e5d4178d4537fd", lastClaim: twelveHoursAgo, swaps: 30, claims: 6, points: 15.0 },
+      { address: "0xada5c63028327e7cd121f1ad71a187a99e2e8939", lastClaim: threeDaysAgo, swaps: 40, claims: 7, points: 20.0 },
+      { address: "0x57c4e8d937f2f63b15619f75b9475e0b7c1bdcac", lastClaim: twoDaysAgo, swaps: 50, claims: 8, points: 25.0 },
+      { address: "0x1bf4bd3e75c0119da5a4e2b5eb89c927cb6e8933", lastClaim: twoDaysAgo, swaps: 18, claims: 3, points: 9.0 },
+      { address: "0x29f92d12237f4be8fd1db28c35eef9a99e425038", lastClaim: oneDayAgo, swaps: 16, claims: 3, points: 8.0 },
+      { address: "0x3f349bbafec1551819b8be1efea2fc46ca749aa1", lastClaim: threeDaysAgo, swaps: 14, claims: 2, points: 7.0 },
+      { address: "0x2ddc1dc61ad5a84e8f27bea32db85d2b212ce81e", lastClaim: oneDayAgo, swaps: 11, claims: 2, points: 5.5 },
+      { address: "0x63abbc5e9c197fbc3c57bc378667b92e79d8e656", lastClaim: twoDaysAgo, swaps: 7, claims: 2, points: 3.5 }
+    ];
+    
+    // Create each sample user if it doesn't already exist
+    for (const sample of sampleUsers) {
+      const existingUser = this.usersByAddress.get(sample.address);
       
-      // Create main demo user
-      const user = await this.createUser({ 
-        address: demoUserAddress, 
-        lastClaim: twelveHoursAgo 
-      });
-      
-      // First create a user to ensure it exists in our in-memory database
-      if (user && user.id) {
-        // Add sample transactions - faucet claim transaction
-        await this.createTransaction({
-          userId: user.id,
-          type: 'faucet_claim',
-          fromToken: null,
-          toToken: 'PRIOR',
-          fromAmount: null,
-          toAmount: '1',
-          txHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-          status: 'completed',
-          blockNumber: 123456
+      if (!existingUser) {
+        // Create the user
+        const user = await this.createUser({ 
+          address: sample.address, 
+          lastClaim: sample.lastClaim 
         });
         
-        // Sample swap transaction - PRIOR to USDC
-        await this.createTransaction({
-          userId: user.id,
-          type: 'swap',
-          fromToken: 'PRIOR',
-          toToken: 'USDC',
-          fromAmount: '0.1',
-          toAmount: '1',
-          txHash: '0x9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef',
-          status: 'completed',
-          blockNumber: 123457
-        });
-        
-        // Sample swap transaction - USDC to USDT
-        await this.createTransaction({
-          userId: user.id,
-          type: 'swap',
-          fromToken: 'USDC',
-          toToken: 'USDT',
-          fromAmount: '5',
-          toAmount: '5',
-          txHash: '0xaabbccddeeff11223344556677889900aabbccddeeff1122334455667788990',
-          status: 'completed',
-          blockNumber: 123458
-        });
-        
-        // Now create additional leaderboard users
-        const additionalUsers = [
-          { address: "0x57c4e8d937f2f63b15619f75b9475e0b7c1bdcac", points: 25.0 },
-          { address: "0xc1c85e7fde7d1aab88da17e6f4e5d4178d4537fd", points: 15.0 },
-          { address: "0xb788e62f7f29ba4ed9838d527036a8e8fc09a234", points: 10.0 },
-          { address: "0x1bf4bd3e75c0119da5a4e2b5eb89c927cb6e8933", points: 9.0 },
-          { address: "0x29f92d12237f4be8fd1db28c35eef9a99e425038", points: 8.0 },
-          { address: "0x3f349bbafec1551819b8be1efea2fc46ca749aa1", points: 7.0 },
-          { address: "0x9e42e938dee47bbe167b02d92da6d81351055ffc", points: 6.0 },
-          { address: "0x2ddc1dc61ad5a84e8f27bea32db85d2b212ce81e", points: 5.5 },
-          { address: "0x4cfc531df94339def7dcd603aac1a1d2e63569da", points: 5.0 },
-          { address: "0x63abbc5e9c197fbc3c57bc378667b92e79d8e656", points: 3.5 },
-          { address: "0x789c7d9a896d194da6e438fb68239db7cb2fd1e5", points: 3.0 },
-          { address: "0x56e9ae915938da26bdc02e23f20f6a3ce3ae3a78", points: 2.0 },
-          { address: "0x12a83136a82a35bf73a117c5c19e7e83d7eb3a93", points: 1.0 }
-        ];
-        
-        for (const additionalUser of additionalUsers) {
-          const user = await this.createUser({
-            address: additionalUser.address,
-            lastClaim: new Date(now.getTime() - Math.random() * 48 * 60 * 60 * 1000)
+        if (user && user.id) {
+          // Set user stats directly for leaderboard
+          user.totalSwaps = sample.swaps;
+          user.totalClaims = sample.claims;
+          user.points = sample.points;
+          
+          // Update the maps with the updated user
+          this.users.set(user.id, user);
+          this.usersByAddress.set(user.address, user);
+          
+          // Add a faucet claim transaction
+          await this.createTransaction({
+            userId: user.id,
+            type: 'faucet_claim',
+            fromToken: null,
+            toToken: 'PRIOR',
+            fromAmount: null,
+            toAmount: '1',
+            txHash: `0xfaucet${user.id}${Math.floor(Math.random() * 1000000)}`,
+            status: 'completed',
+            blockNumber: 123456 + user.id
           });
           
-          if (user) {
-            // Set points directly
-            user.points = additionalUser.points;
-            user.totalSwaps = Math.round(additionalUser.points * 2); // Approximate swap count
-            user.totalClaims = Math.round(additionalUser.points / 5); // Approximate claim count
-            
-            // Update user in both maps
-            this.users.set(user.id, user);
-            this.usersByAddress.set(user.address, user);
-            
-            // Add a sample transaction to make it realistic
+          // Add swap transactions based on totalSwaps (just add a few representative ones)
+          const swapCount = Math.min(sample.swaps, 3); // Add up to 3 sample swaps per user
+          
+          for (let i = 0; i < swapCount; i++) {
             await this.createTransaction({
               userId: user.id,
               type: 'swap',
-              fromToken: 'PRIOR',
-              toToken: 'USDC',
-              fromAmount: (Math.random() * 10).toFixed(2),
-              toAmount: (Math.random() * 20).toFixed(2),
-              txHash: `0x${user.id}swap${Math.random().toString(16).substring(2)}`,
+              fromToken: i % 2 === 0 ? 'PRIOR' : 'USDC',
+              toToken: i % 2 === 0 ? 'USDC' : 'PRIOR',
+              fromAmount: `${(Math.random() * 10).toFixed(2)}`,
+              toAmount: `${(Math.random() * 20).toFixed(2)}`,
+              txHash: `0xswap${user.id}${i}${Math.floor(Math.random() * 1000000)}`,
               status: 'completed',
-              blockNumber: 123400 + Math.floor(Math.random() * 100)
+              blockNumber: 123500 + (user.id * 10) + i
             });
           }
         }
