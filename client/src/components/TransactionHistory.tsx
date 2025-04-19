@@ -253,15 +253,9 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address:
             </div>
             <div className="mt-1 flex flex-wrap gap-1">
               {tx.points && tx.points > 0 ? (
-                tx.points === 4 ? (
-                  <Badge className="bg-blue-600">+4 points (First daily swap)</Badge>
-                ) : tx.points === 2 ? (
-                  <Badge className="bg-emerald-600">+2 points (10+ daily swaps)</Badge>
-                ) : (
-                  <Badge className="bg-green-600">+{tx.points} points</Badge>
-                )
+                <Badge className="bg-blue-600">+{tx.points} points</Badge>
               ) : (
-                <Badge variant="outline" className="text-gray-400">No points (Not first or under 10 daily swaps)</Badge>
+                <Badge variant="outline" className="text-gray-400">No points (Daily limit reached)</Badge>
               )}
             </div>
           </div>
