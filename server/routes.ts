@@ -390,8 +390,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const limitParam = req.query.limit ? parseInt(req.query.limit as string) : 15;
     const limit = isNaN(limitParam) ? 15 : limitParam;
     
-    const leaderboard = await storage.getLeaderboard(limit);
-    res.json(leaderboard);
+    const pageParam = req.query.page ? parseInt(req.query.page as string) : 1;
+    const page = isNaN(pageParam) ? 1 : pageParam;
+    
+    const leaderboardData = await storage.getLeaderboard(limit, page);
+    res.json(leaderboardData);
+  });
+  
+  // Get user rank in leaderboard
+  app.get(`${apiPrefix}/users/:address/rank`, async (req, res) => {
+    const { address } = req.params;
+    
+    // Normalize the address to lowercase
+    const normalizedAddress = address.startsWith('0x') 
+      ? address.toLowerCase() 
+      : `0x${address}`.toLowerCase();
+      
+    const rank = await storage.getUserRank(normalizedAddress);
+    res.json({ rank });
   });
   
   // Record a swap for a user

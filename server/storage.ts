@@ -24,7 +24,13 @@ export interface IStorage {
   incrementUserClaimCount(userId: number): Promise<number>;
   addUserPoints(userId: number, points: number): Promise<number>;
   removePointsForFaucetClaims(): Promise<number>; // Method to remove all faucet claim points
-  getLeaderboard(limit?: number): Promise<User[]>;
+  getLeaderboard(limit?: number, page?: number): Promise<{
+    users: User[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }>;
+  getUserRank(address: string): Promise<number | null>;
   getUserStats(userId: number): Promise<{
     totalFaucetClaims: number;
     totalSwaps: number;
@@ -583,13 +589,52 @@ export class MemStorage implements IStorage {
     return totalPointsRemoved;
   }
   
-  async getLeaderboard(limit: number = 15): Promise<User[]> {
+  async getLeaderboard(limit: number = 15, page: number = 1): Promise<{
+    users: User[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
     // Get all users and sort by points (highest first)
-    const sortedUsers = Array.from(this.users.values())
-      .sort((a, b) => (b.points || 0) - (a.points || 0))
-      .slice(0, limit);
+    const allSortedUsers = Array.from(this.users.values())
+      .sort((a, b) => (b.points || 0) - (a.points || 0));
     
-    return sortedUsers;
+    const total = allSortedUsers.length;
+    const totalPages = Math.ceil(total / limit) || 1;
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    
+    // Calculate start and end indices for pagination
+    const startIdx = (safePage - 1) * limit;
+    const endIdx = Math.min(startIdx + limit, total);
+    
+    // Get users for the current page
+    const paginatedUsers = allSortedUsers.slice(startIdx, endIdx);
+    
+    return {
+      users: paginatedUsers,
+      total,
+      page: safePage,
+      totalPages
+    };
+  }
+  
+  async getUserRank(address: string): Promise<number | null> {
+    if (!address) return null;
+    
+    // Normalize address
+    const normalizedAddress = address.toLowerCase();
+    
+    // Get all users sorted by points 
+    const allSortedUsers = Array.from(this.users.values())
+      .sort((a, b) => (b.points || 0) - (a.points || 0));
+    
+    // Find the index of the user
+    const userIndex = allSortedUsers.findIndex(
+      user => user.address.toLowerCase() === normalizedAddress
+    );
+    
+    // Return the rank (index + 1) or null if not found
+    return userIndex !== -1 ? userIndex + 1 : null;
   }
   
   async getUserStats(userId: number): Promise<{
