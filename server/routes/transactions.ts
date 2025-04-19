@@ -67,8 +67,7 @@ router.post('/transactions', async (req, res) => {
       fromAmount,
       toAmount,
       status,
-      blockNumber,
-      timestamp: new Date().toISOString()
+      blockNumber
     });
     
     // If it's a swap, increment swap count and potentially award points

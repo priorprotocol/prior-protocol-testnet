@@ -3,16 +3,21 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertVoteSchema, insertTransactionSchema, transactions } from "@shared/schema";
 import { z } from "zod";
-import transactionRoutes from "./routes/transactions-fixed";
+import transactionRoutes from "./routes/transactions";
 import healthRoutes from "./routes/health";
 import quizRoutes from "./routes/quizzes";
 import { log } from "./vite";
 import { db } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
+import { userTrackerMiddleware } from "./middleware/userTracker";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes prefix
   const apiPrefix = "/api";
+  
+  // Apply global middleware
+  // Automatically track and create users when requests have wallet addresses
+  app.use(`${apiPrefix}/users/:address`, userTrackerMiddleware);
   
   // Register modular transaction routes
   app.use(apiPrefix, transactionRoutes);
