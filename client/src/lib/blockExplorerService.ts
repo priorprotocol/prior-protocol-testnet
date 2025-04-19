@@ -226,19 +226,55 @@ async function fetchTokenTransactions(address: string): Promise<any[]> {
  */
 function isFaucetTransaction(tx: any): boolean {
   const faucetContract = FAUCET_CONTRACT.toLowerCase();
+  const priorContract = TOKEN_CONTRACTS.PRIOR.toLowerCase();
   
   // Normal transactions to the faucet contract
   if (tx.to?.toLowerCase() === faucetContract) {
-    // Check for claim() function call (0x1249c58b)
-    if (tx.input?.startsWith('0x1249c58b')) {
+    // Check for common faucet function signatures
+    const faucetFunctionSignatures = [
+      '0x1249c58b', // claim()
+      '0x9f678cca', // drip()
+      '0x28cad79b', // requestTokens()
+      '0x4e71d92d', // claim() alternative signature
+      '0xe1f21c67'  // request() alternative signature
+    ];
+    
+    // If this is direct interaction with the faucet, consider it a claim
+    if (tx.input) {
+      // Check if input matches known faucet function signatures
+      if (faucetFunctionSignatures.some(sig => tx.input.startsWith(sig))) {
+        return true;
+      }
+    }
+    
+    // Empty input (0x or blank) to faucet is also likely a claim
+    if (!tx.input || tx.input === '0x' || tx.input.length <= 2) {
       return true;
     }
   }
   
-  // Token transfer from faucet contract
+  // Token transfer from faucet contract (common pattern)
   if (tx.from?.toLowerCase() === faucetContract && 
       tx.tokenSymbol === 'PRIOR' && 
-      tx.contractAddress?.toLowerCase() === TOKEN_CONTRACTS.PRIOR.toLowerCase()) {
+      tx.contractAddress?.toLowerCase() === priorContract) {
+    return true;
+  }
+  
+  // Event triggered by faucet contract (event-based faucets)
+  if (tx.topics && tx.topics.length > 0) {
+    // Many faucets emit standard Transfer events
+    const transferEventTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+    if (tx.topics[0] === transferEventTopic && 
+        tx.address?.toLowerCase() === priorContract &&
+        tx.topics[1]?.toLowerCase().includes(faucetContract.slice(2))) {
+      return true;
+    }
+  }
+  
+  // If the tx description/method contains 'claim', 'faucet', 'drip' keywords
+  const keywords = ['claim', 'faucet', 'drip', 'request token'];
+  if (tx.functionName && keywords.some(keyword => 
+      tx.functionName.toLowerCase().includes(keyword))) {
     return true;
   }
   
@@ -320,6 +356,35 @@ function parseFaucetTransaction(tx: any): ParsedTransaction {
   // Convert blockNumber to number if it's a string
   const blockNumber = typeof tx.blockNumber === 'string' ? parseInt(tx.blockNumber, 10) : tx.blockNumber;
   
+  // Default faucet claim amount is 1 PRIOR
+  let toAmount = '1';
+  
+  // Try to extract the amount from the transaction if possible
+  if (tx.value && tx.tokenDecimal) {
+    // For token transactions, get the value from the token transfer
+    toAmount = formatTokenValue(tx.value, parseInt(tx.tokenDecimal));
+  } else if (tx.value && tx.tokenSymbol === 'PRIOR') {
+    // For token transactions without decimal info but known to be PRIOR
+    toAmount = formatTokenValue(tx.value, 18);
+  } else if (tx.logs && tx.logs.length > 0) {
+    // Try to extract from logs
+    for (const log of tx.logs) {
+      if (log.data && log.data !== '0x' && log.data.length > 2) {
+        try {
+          // Try to interpret the data as a token amount
+          const amountHex = log.data.slice(2);
+          const amountBigInt = BigInt('0x' + amountHex);
+          if (amountBigInt > 0) {
+            toAmount = formatTokenValue(amountBigInt.toString(), 18);
+            break;
+          }
+        } catch (e) {
+          // Ignore parsing errors
+        }
+      }
+    }
+  }
+  
   return {
     txHash: tx.hash,
     blockNumber: blockNumber,
@@ -328,7 +393,7 @@ function parseFaucetTransaction(tx: any): ParsedTransaction {
     fromToken: null,
     toToken: 'PRIOR',
     fromAmount: null,
-    toAmount: tx.value ? formatTokenValue(tx.value, parseInt(tx.tokenDecimal || '18')) : '1',
+    toAmount: toAmount,
     status: 'completed'
   };
 }

@@ -312,9 +312,9 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address:
       <CardContent>
         <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="mb-4">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="faucet_claim">Faucet Claims</TabsTrigger>
-            <TabsTrigger value="swap">Swaps</TabsTrigger>
+            <TabsTrigger value="all" className="data-[state=active]:bg-blue-600">All</TabsTrigger>
+            <TabsTrigger value="faucet_claim" className="data-[state=active]:bg-indigo-600">Faucet Claims</TabsTrigger>
+            <TabsTrigger value="swap" className="data-[state=active]:bg-green-600">Swaps</TabsTrigger>
           </TabsList>
           
           <TabsContent value={activeTab}>
