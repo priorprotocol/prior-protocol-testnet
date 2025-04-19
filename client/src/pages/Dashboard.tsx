@@ -13,6 +13,7 @@ import { formatAddress } from "@/lib/formatAddress";
 import { FaTrophy, FaLock, FaExchangeAlt, FaNetworkWired, FaRegLightbulb, FaDatabase, FaChartLine } from "react-icons/fa";
 import { FaRankingStar } from "react-icons/fa6";
 import { HiOutlineChartSquareBar, HiOutlineSparkles } from "react-icons/hi";
+import { ChevronRight } from "lucide-react";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 import { UserStats } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -304,8 +305,9 @@ const Dashboard = () => {
                             ))}
                             {transactions.length > 4 && (
                               <div className="text-center text-xs mt-2">
-                                <Link to="/transactions" className="text-blue-400 hover:text-blue-300 hover:underline">
-                                  View all {totalTransactions} transactions
+                                <Link to="/transactions" className="text-blue-400 hover:text-blue-300 hover:underline flex items-center justify-center">
+                                  <span>View all {totalTransactions} transactions</span>
+                                  <ChevronRight className="ml-1" size={12} />
                                 </Link>
                               </div>
                             )}
