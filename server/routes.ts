@@ -5,6 +5,7 @@ import { insertUserSchema, insertVoteSchema, insertTransactionSchema, transactio
 import { z } from "zod";
 import transactionRoutes from "./routes/transactions-fixed";
 import healthRoutes from "./routes/health";
+import quizRoutes from "./routes/quizzes";
 import { log } from "./vite";
 import { db } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
@@ -18,6 +19,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register health check routes for Railway monitoring
   app.use(apiPrefix, healthRoutes);
+  
+  // Register quiz routes for blockchain education feature
+  app.use(apiPrefix, quizRoutes);
   
   // Maintenance endpoint to remove all faucet claim points
   app.post(`${apiPrefix}/maintenance/remove-faucet-points`, async (req, res) => {

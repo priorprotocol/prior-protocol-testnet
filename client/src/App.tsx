@@ -11,6 +11,9 @@ import Dashboard from "@/pages/Dashboard";
 import About from "@/pages/About";
 import Documentation from "@/pages/Documentation";
 import Redirect from "@/pages/Redirect";
+import Learn from "@/pages/Learn";
+import QuizPage from "@/pages/QuizPage";
+import QuizResultPage from "@/pages/QuizResultPage";
 import NotFound from "@/pages/not-found";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -25,6 +28,9 @@ const WrappedDashboard = () => <Dashboard />;
 const WrappedAbout = () => <About />;
 const WrappedDocumentation = () => <Documentation />;
 const WrappedRedirect = () => <Redirect />;
+const WrappedLearn = () => <Learn />;
+const WrappedQuizPage = () => <QuizPage />;
+const WrappedQuizResultPage = () => <QuizResultPage />;
 
 function App() {
   const [location] = useLocation();
@@ -72,6 +78,9 @@ function App() {
         <Route path="/about" component={WrappedAbout} />
         <Route path="/docs" component={WrappedDocumentation} />
         <Route path="/redirect" component={WrappedRedirect} />
+        <Route path="/learn" component={WrappedLearn} />
+        <Route path="/quiz/:quizId/:userQuizId" component={WrappedQuizPage} />
+        <Route path="/quiz-result/:userQuizId" component={WrappedQuizResultPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
