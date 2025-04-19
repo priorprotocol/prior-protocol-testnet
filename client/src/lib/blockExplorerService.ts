@@ -123,7 +123,20 @@ async function fetchNormalTransactions(address: string): Promise<any[]> {
         return [];
       } else {
         // Other API errors like rate limiting or invalid API key
-        console.warn('API error fetching normal transactions:', data.message);
+        console.warn('API error fetching normal transactions:', data.status);
+        // Log more detailed error info
+        console.log('API response details:', data);
+        
+        // For NOTOK status, it could be API key issues or rate limiting
+        if (data.status === 'NOTOK') {
+          console.log('Base Sepolia Explorer API returned NOTOK status. This could be due to:');
+          console.log('1. API rate limiting');
+          console.log('2. API key permissions');
+          console.log('3. Service temporarily unavailable');
+          console.log('Falling back to database records');
+          return []; // Return empty array instead of throwing
+        }
+        
         throw new Error(`API error: ${data.message}`);
       }
     } catch (error) {
@@ -176,7 +189,20 @@ async function fetchTokenTransactions(address: string): Promise<any[]> {
         return [];
       } else {
         // Other API errors like rate limiting or invalid API key
-        console.warn('API error fetching token transactions:', data.message);
+        console.warn('API error fetching token transactions:', data.status);
+        // Log more detailed error info
+        console.log('API response details:', data);
+        
+        // For NOTOK status, it could be API key issues or rate limiting
+        if (data.status === 'NOTOK') {
+          console.log('Base Sepolia Explorer API returned NOTOK status. This could be due to:');
+          console.log('1. API rate limiting');
+          console.log('2. API key permissions');
+          console.log('3. Service temporarily unavailable');
+          console.log('Falling back to database records');
+          return []; // Return empty array instead of throwing
+        }
+        
         throw new Error(`API error: ${data.message}`);
       }
     } catch (error) {
