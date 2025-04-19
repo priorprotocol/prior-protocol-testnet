@@ -288,7 +288,7 @@ function isFaucetTransaction(tx: any): boolean {
           const transferEventTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
           if (log.topics[0] === transferEventTopic) {
             // Check if faucet address is in any topic
-            if (log.topics.some(topic => topic.toLowerCase().includes(faucetContract.slice(2)))) {
+            if (log.topics.some((topic: string) => topic.toLowerCase().includes(faucetContract.slice(2)))) {
               console.log(`Identified faucet transaction via Transfer event logs`);
               return true;
             }
@@ -458,11 +458,14 @@ function parseFaucetTransaction(tx: any): ParsedTransaction {
     toAmount = '1';
   }
   
-  const parsedTx = {
+  // Ensure the transaction uses the correct literal type
+  const txType: 'faucet_claim' = 'faucet_claim';
+  
+  const parsedTx: ParsedTransaction = {
     txHash: tx.hash,
     blockNumber: blockNumber,
     timestamp: new Date(parseInt(tx.timeStamp || Date.now()/1000) * 1000).toISOString(),
-    type: 'faucet_claim',
+    type: txType,
     fromToken: null,
     toToken: 'PRIOR',
     fromAmount: null,
@@ -491,35 +494,40 @@ function parseSwapTransaction(tx: any, otherTxs: any[]): ParsedTransaction | nul
     );
     
     // Convert blockNumber to number if it's a string
-    const blockNumber = typeof tx.blockNumber === 'string' ? parseInt(tx.blockNumber, 10) : tx.blockNumber;
+    const blockNumber = typeof tx.blockNumber === 'string' ? parseInt(tx.blockNumber, 10) : tx.blockNumber || 0;
+    
+    // Ensure the transaction uses the correct literal type
+    const txType: 'swap' = 'swap';
     
     if (relatedTx) {
       // This is an output of a swap
-      return {
+      const parsedTx: ParsedTransaction = {
         txHash: tx.hash,
         blockNumber: blockNumber,
-        timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
-        type: 'swap',
+        timestamp: new Date(parseInt(tx.timeStamp || Date.now()/1000) * 1000).toISOString(),
+        type: txType,
         fromToken: relatedTx.tokenSymbol,
         toToken: tx.tokenSymbol,
         fromAmount: relatedTx.value ? formatTokenValue(relatedTx.value, parseInt(relatedTx.tokenDecimal || '18')) : null,
         toAmount: tx.value ? formatTokenValue(tx.value, parseInt(tx.tokenDecimal || '18')) : null,
         status: 'completed'
       };
+      return parsedTx;
     }
     
     // This might be the input side of a swap, but we don't have the output yet
-    return {
+    const parsedTx: ParsedTransaction = {
       txHash: tx.hash,
       blockNumber: blockNumber,
-      timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
-      type: 'swap',
+      timestamp: new Date(parseInt(tx.timeStamp || Date.now()/1000) * 1000).toISOString(),
+      type: txType,
       fromToken: tx.tokenSymbol,
       toToken: null, // We don't know the output token yet
       fromAmount: tx.value ? formatTokenValue(tx.value, parseInt(tx.tokenDecimal || '18')) : null,
       toAmount: null,
       status: 'completed'
     };
+    return parsedTx;
   }
   
   return null;
