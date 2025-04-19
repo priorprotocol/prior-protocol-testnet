@@ -228,7 +228,7 @@ function isFaucetTransaction(tx: any): boolean {
   const faucetContract = FAUCET_CONTRACT.toLowerCase();
   const priorContract = TOKEN_CONTRACTS.PRIOR.toLowerCase();
   
-  // Normal transactions to the faucet contract
+  // Case 1: Direct interaction with the faucet contract (most common)
   if (tx.to?.toLowerCase() === faucetContract) {
     // Check for common faucet function signatures
     const faucetFunctionSignatures = [
@@ -236,46 +236,82 @@ function isFaucetTransaction(tx: any): boolean {
       '0x9f678cca', // drip()
       '0x28cad79b', // requestTokens()
       '0x4e71d92d', // claim() alternative signature
-      '0xe1f21c67'  // request() alternative signature
+      '0xe1f21c67', // request() alternative signature
+      '0x' // Default method call with no parameters
     ];
     
-    // If this is direct interaction with the faucet, consider it a claim
+    // If input data exists, check for known faucet signatures
     if (tx.input) {
-      // Check if input matches known faucet function signatures
-      if (faucetFunctionSignatures.some(sig => tx.input.startsWith(sig))) {
-        return true;
+      // First check exact matches with common signatures
+      for (const sig of faucetFunctionSignatures) {
+        if (tx.input.startsWith(sig)) {
+          console.log(`Identified faucet transaction by method signature: ${sig}`);
+          return true;
+        }
       }
     }
     
-    // Empty input (0x or blank) to faucet is also likely a claim
-    if (!tx.input || tx.input === '0x' || tx.input.length <= 2) {
+    // Any interaction with the faucet contract is likely a claim
+    console.log(`Identified faucet transaction by direct contract interaction with: ${faucetContract}`);
+    return true;
+  }
+  
+  // Case 2: Token transfer from the faucet contract 
+  if (tx.from?.toLowerCase() === faucetContract) {
+    console.log(`Identified faucet transaction by sender: ${faucetContract}`);
+    return true;
+  }
+  
+  // Case 3: Token transfer related to PRIOR from the faucet
+  if (tx.tokenSymbol === 'PRIOR' || tx.tokenName === 'Prior Protocol Token') {
+    if (tx.from?.toLowerCase() === faucetContract || tx.to?.toLowerCase() === faucetContract) {
+      console.log(`Identified faucet transaction via PRIOR token transfer involving faucet`);
       return true;
     }
   }
   
-  // Token transfer from faucet contract (common pattern)
-  if (tx.from?.toLowerCase() === faucetContract && 
-      tx.tokenSymbol === 'PRIOR' && 
-      tx.contractAddress?.toLowerCase() === priorContract) {
-    return true;
-  }
-  
-  // Event triggered by faucet contract (event-based faucets)
-  if (tx.topics && tx.topics.length > 0) {
-    // Many faucets emit standard Transfer events
-    const transferEventTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-    if (tx.topics[0] === transferEventTopic && 
-        tx.address?.toLowerCase() === priorContract &&
-        tx.topics[1]?.toLowerCase().includes(faucetContract.slice(2))) {
+  // Case 4: Any transaction involving the PRIOR contract and faucet contract
+  if (tx.contractAddress?.toLowerCase() === priorContract) {
+    if (tx.from?.toLowerCase() === faucetContract || tx.to?.toLowerCase() === faucetContract) {
+      console.log(`Identified faucet transaction via PRIOR contract interaction with faucet`);
       return true;
     }
   }
   
-  // If the tx description/method contains 'claim', 'faucet', 'drip' keywords
-  const keywords = ['claim', 'faucet', 'drip', 'request token'];
-  if (tx.functionName && keywords.some(keyword => 
-      tx.functionName.toLowerCase().includes(keyword))) {
+  // Case 5: Check for ERC20 Transfer events from logs
+  if (tx.logs) {
+    for (const log of tx.logs) {
+      // If this log is from the PRIOR contract and involves the faucet
+      if (log.address?.toLowerCase() === priorContract) {
+        if (log.topics && log.topics.length > 0) {
+          // Standard ERC20 Transfer event topic
+          const transferEventTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+          if (log.topics[0] === transferEventTopic) {
+            // Check if faucet address is in any topic
+            if (log.topics.some(topic => topic.toLowerCase().includes(faucetContract.slice(2)))) {
+              console.log(`Identified faucet transaction via Transfer event logs`);
+              return true;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Case 6: Check transaction function name/description
+  const keywords = ['claim', 'faucet', 'drip', 'request token', 'airdrop'];
+  if (tx.functionName && keywords.some(keyword => tx.functionName.toLowerCase().includes(keyword))) {
+    console.log(`Identified faucet transaction via function name: ${tx.functionName}`);
     return true;
+  }
+  
+  // Case 7: Check method ID if available and known faucet methods
+  if (tx.methodId) {
+    const faucetMethodIds = ['0x1249c58b', '0x9f678cca', '0x28cad79b', '0x4e71d92d', '0xe1f21c67'];
+    if (faucetMethodIds.includes(tx.methodId)) {
+      console.log(`Identified faucet transaction via methodId: ${tx.methodId}`);
+      return true;
+    }
   }
   
   return false;
@@ -353,8 +389,10 @@ function isSwapTransaction(tx: any): boolean {
  * @param tx Transaction to parse
  */
 function parseFaucetTransaction(tx: any): ParsedTransaction {
+  console.log('Parsing faucet transaction:', tx.hash);
+  
   // Convert blockNumber to number if it's a string
-  const blockNumber = typeof tx.blockNumber === 'string' ? parseInt(tx.blockNumber, 10) : tx.blockNumber;
+  const blockNumber = typeof tx.blockNumber === 'string' ? parseInt(tx.blockNumber, 10) : tx.blockNumber || 0;
   
   // Default faucet claim amount is 1 PRIOR
   let toAmount = '1';
@@ -363,11 +401,14 @@ function parseFaucetTransaction(tx: any): ParsedTransaction {
   if (tx.value && tx.tokenDecimal) {
     // For token transactions, get the value from the token transfer
     toAmount = formatTokenValue(tx.value, parseInt(tx.tokenDecimal));
+    console.log(`Extracted amount from token tx: ${toAmount} (raw: ${tx.value}, decimals: ${tx.tokenDecimal})`);
   } else if (tx.value && tx.tokenSymbol === 'PRIOR') {
     // For token transactions without decimal info but known to be PRIOR
     toAmount = formatTokenValue(tx.value, 18);
+    console.log(`Extracted amount from PRIOR tx: ${toAmount} (raw: ${tx.value})`);
   } else if (tx.logs && tx.logs.length > 0) {
     // Try to extract from logs
+    console.log(`Attempting to extract amount from ${tx.logs.length} transaction logs`);
     for (const log of tx.logs) {
       if (log.data && log.data !== '0x' && log.data.length > 2) {
         try {
@@ -376,19 +417,51 @@ function parseFaucetTransaction(tx: any): ParsedTransaction {
           const amountBigInt = BigInt('0x' + amountHex);
           if (amountBigInt > 0) {
             toAmount = formatTokenValue(amountBigInt.toString(), 18);
+            console.log(`Extracted amount from logs: ${toAmount} (raw: ${amountBigInt.toString()})`);
             break;
           }
         } catch (e) {
-          // Ignore parsing errors
+          console.warn('Error parsing log data:', e);
         }
       }
     }
+  } else if (tx.input && tx.input.length >= 74) {
+    // Try to extract from input data for some faucet contracts
+    // Input format: 0x<method_id><params>
+    try {
+      // Skip method ID (4 bytes / 8 hex chars) and get first parameter (32 bytes / 64 hex chars)
+      const valueHex = tx.input.slice(10, 74);
+      const valueBigInt = BigInt('0x' + valueHex);
+      
+      // Check if this looks like a reasonable value (not zero and not unrealistically large)
+      if (valueBigInt > 0 && valueBigInt < BigInt('1000000000000000000000')) { // 1000 tokens max
+        toAmount = formatTokenValue(valueBigInt.toString(), 18);
+        console.log(`Extracted amount from input data: ${toAmount} (raw: ${valueBigInt.toString()})`);
+      }
+    } catch (e) {
+      console.warn('Error parsing input data:', e);
+    }
   }
   
-  return {
+  // Ensure the amount is not unrealistically large or small
+  try {
+    const parsed = parseFloat(toAmount);
+    if (isNaN(parsed) || parsed <= 0) {
+      console.log('Amount was invalid, defaulting to 1 PRIOR');
+      toAmount = '1';
+    } else if (parsed > 1000) {
+      // Cap unrealistically large values at 1000 tokens
+      console.log(`Capping unrealistic amount ${parsed} to 1000 PRIOR`);
+      toAmount = '1000';
+    }
+  } catch (e) {
+    toAmount = '1';
+  }
+  
+  const parsedTx = {
     txHash: tx.hash,
     blockNumber: blockNumber,
-    timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
+    timestamp: new Date(parseInt(tx.timeStamp || Date.now()/1000) * 1000).toISOString(),
     type: 'faucet_claim',
     fromToken: null,
     toToken: 'PRIOR',
@@ -396,6 +469,9 @@ function parseFaucetTransaction(tx: any): ParsedTransaction {
     toAmount: toAmount,
     status: 'completed'
   };
+  
+  console.log('Parsed faucet transaction:', parsedTx);
+  return parsedTx;
 }
 
 /**
