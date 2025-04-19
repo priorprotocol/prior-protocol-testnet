@@ -2,19 +2,28 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { User } from "@/types";
 import { formatAddress } from "@/lib/formatAddress";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FaTrophy, FaMedal, FaAward, FaExchangeAlt, FaSync } from "react-icons/fa";
+import { FaTrophy, FaMedal, FaAward, FaExchangeAlt, FaSync, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useWallet } from "@/context/WalletContext";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+
+// Updated types to match the new leaderboard format
+interface LeaderboardData {
+  users: User[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
 
 interface LeaderboardProps {
   limit?: number;
 }
 
-export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
+export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
   // Use both for compatibility during transition
   const { address: contextAddress } = useWallet();
   const { address: standaloneAddress } = useStandaloneWallet();
@@ -22,32 +31,46 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
   // Prefer standalone address but fall back to context address
   const address = standaloneAddress || contextAddress;
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  
   // For refreshing leaderboard data automatically
   const queryClient = useQueryClient();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Real-time leaderboard with short stale time and auto-refresh
-  const { data: leaderboard, isLoading, refetch } = useQuery({
-    queryKey: ["/api/leaderboard", limit],
-    queryFn: () => apiRequest<User[]>(`/api/leaderboard?limit=${limit}`),
+  // User rank query
+  const { data: userRankData, isLoading: isRankLoading } = useQuery({
+    queryKey: ["/api/users/rank", address],
+    queryFn: () => address ? apiRequest<{rank: number | null}>(`/api/users/${address}/rank`) : Promise.resolve({rank: null}),
+    staleTime: 10000, // Consider rank stale after 10 seconds
+    enabled: !!address, // Only run this query if we have an address
+  });
+  
+  // Real-time leaderboard with pagination
+  const { data: leaderboardData, isLoading, refetch } = useQuery<LeaderboardData>({
+    queryKey: ["/api/leaderboard", limit, currentPage],
+    queryFn: () => apiRequest<LeaderboardData>(`/api/leaderboard?limit=${limit}&page=${currentPage}`),
     staleTime: 5000, // Consider data stale after 5 seconds
-    refetchOnMount: true, // Refresh when component mounts
-    refetchOnWindowFocus: true, // Refresh when window regains focus
-    refetchOnReconnect: true, // Refresh when network reconnects
+    refetchOnMount: true, 
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
   
   // Function to refresh leaderboard data
   const refreshLeaderboard = useCallback(async () => {
     await refetch();
-  }, [refetch]);
+    // Also refresh user rank if available
+    if (address) {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/rank", address] });
+    }
+  }, [refetch, address, queryClient]);
   
   // Initialize real-time updates as soon as component mounts 
-  // This ensures leaderboard is showing even before wallet connects
   useEffect(() => {
     // Immediately load leaderboard data on app start
     queryClient.prefetchQuery({
-      queryKey: ["/api/leaderboard", limit],
-      queryFn: () => apiRequest<User[]>(`/api/leaderboard?limit=${limit}`)
+      queryKey: ["/api/leaderboard", limit, currentPage],
+      queryFn: () => apiRequest<LeaderboardData>(`/api/leaderboard?limit=${limit}&page=${currentPage}`)
     });
     
     // Set up interval for real-time updates
@@ -61,31 +84,47 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
         clearInterval(refreshIntervalRef.current);
       }
     };
-  }, [limit, queryClient, refreshLeaderboard]);
+  }, [limit, currentPage, queryClient, refreshLeaderboard]);
+  
+  // Pagination controls
+  const goToNextPage = () => {
+    if (leaderboardData && currentPage < leaderboardData.totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+  
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
   
   // Rank badge rendering helper
-  const getRankBadge = (index: number) => {
-    switch (index) {
-      case 0: // 1st place
+  const getRankBadge = (globalIndex: number) => {
+    // Calculate actual global rank based on pagination
+    const actualRank = ((currentPage - 1) * limit) + globalIndex + 1;
+    
+    switch (actualRank) {
+      case 1: // 1st place
         return (
           <Badge className="bg-amber-500 text-black hover:bg-amber-400">
             <FaTrophy className="mr-1" /> 1st Place
           </Badge>
         );
-      case 1: // 2nd place
+      case 2: // 2nd place
         return (
           <Badge className="bg-gray-400 text-black hover:bg-gray-300">
             <FaMedal className="mr-1" /> 2nd Place
           </Badge>
         );
-      case 2: // 3rd place
+      case 3: // 3rd place
         return (
           <Badge className="bg-amber-700 text-white hover:bg-amber-600">
             <FaMedal className="mr-1" /> 3rd Place
           </Badge>
         );
-      case 3: // 4th place
-      case 4: // 5th place
+      case 4: // 4th place
+      case 5: // 5th place
         return (
           <Badge className="bg-blue-600 hover:bg-blue-500">
             <FaAward className="mr-1" /> Top 5
@@ -113,9 +152,36 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
           </button>
         </div>
         <CardDescription>
-          Top {limit} users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
+          Top users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
         </CardDescription>
+        
+        {/* Show user's rank if wallet is connected */}
+        {address && (
+          <div className="mt-3 p-2 bg-[#1A2A40] rounded-md border border-[#2D3748]">
+            <div className="flex justify-between items-center">
+              <div className="text-sm">
+                <span className="text-[#A0AEC0]">Your Wallet:</span> 
+                <span className="ml-1 text-white">{formatAddress(address)}</span>
+              </div>
+              <div className="text-sm">
+                {isRankLoading ? (
+                  <Skeleton className="h-5 w-20" />
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#A0AEC0]">Your Rank:</span>
+                    {userRankData?.rank ? (
+                      <span className="font-bold text-[#1A5CFF]">#{userRankData.rank}</span>
+                    ) : (
+                      <span className="text-gray-400">Not ranked yet</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </CardHeader>
+      
       <CardContent>
         {isLoading ? (
           // Loading state
@@ -130,8 +196,10 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
         ) : (
           // Leaderboard list
           <div className="space-y-3">
-            {leaderboard && leaderboard.length > 0 ? (
-              leaderboard.map((user, index) => {
+            {leaderboardData?.users && leaderboardData.users.length > 0 ? (
+              leaderboardData.users.map((user, index) => {
+                // Calculate actual rank including pagination offset
+                const globalRank = ((currentPage - 1) * limit) + index + 1;
                 const isCurrentUser = address?.toLowerCase() === user.address.toLowerCase();
                 const rankBadge = getRankBadge(index);
                 
@@ -145,7 +213,7 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         <div className="flex-shrink-0 w-8 h-8 bg-[#2D3748] rounded-full flex items-center justify-center">
-                          <span className="text-sm font-semibold">{index + 1}</span>
+                          <span className="text-sm font-semibold">{globalRank}</span>
                         </div>
                         <div>
                           <div className="font-medium">
@@ -163,7 +231,7 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
                       </div>
                     </div>
                     
-                    {/* NEW SYSTEM - Activity details - shown for all users */}
+                    {/* Activity details */}
                     <div className="mt-2 grid grid-cols-1 text-xs border-t border-[#2D3748] pt-2">
                       <div className={`text-center ${user.totalSwaps >= 5 ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-md p-1' : ''}`}>
                         <span className="text-[#A0AEC0] block mb-1">Swap Activity</span>
@@ -206,6 +274,35 @@ export const Leaderboard = ({ limit = 20 }: LeaderboardProps) => {
           </div>
         )}
       </CardContent>
+      
+      {/* Pagination controls */}
+      {leaderboardData && leaderboardData.totalPages > 1 && (
+        <CardFooter className="flex justify-between items-center pt-2 pb-4 px-4 border-t border-[#2D3748]">
+          <div className="text-xs text-[#A0AEC0]">
+            Page {leaderboardData.page} of {Math.min(leaderboardData.totalPages, 5)}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToPrevPage}
+              disabled={currentPage <= 1}
+              className="h-8 px-2 py-1"
+            >
+              <FaChevronLeft className="mr-1" size={10} /> Prev
+            </Button>
+            <Button
+              variant="outline"
+              size="sm" 
+              onClick={goToNextPage}
+              disabled={currentPage >= Math.min(leaderboardData.totalPages, 5)}
+              className="h-8 px-2 py-1"
+            >
+              Next <FaChevronRight className="ml-1" size={10} />
+            </Button>
+          </div>
+        </CardFooter>
+      )}
     </Card>
   );
 };

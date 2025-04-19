@@ -10,13 +10,16 @@ import { Button } from "@/components/ui/button";
 import { Leaderboard } from "@/components/Leaderboard";
 import { PointsHistoryChart } from "@/components/PointsHistoryChart";
 import { formatAddress } from "@/lib/formatAddress";
-import { FaTrophy, FaLock, FaExchangeAlt, FaNetworkWired, FaRegLightbulb, FaDatabase } from "react-icons/fa";
+import { FaTrophy, FaLock, FaExchangeAlt, FaNetworkWired, FaRegLightbulb, FaDatabase, FaChartLine } from "react-icons/fa";
 import { FaRankingStar } from "react-icons/fa6";
 import { HiOutlineChartSquareBar, HiOutlineSparkles } from "react-icons/hi";
 import StandaloneWalletButton from "@/components/StandaloneWalletButton";
 import { UserStats } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
   // Use both wallet systems for compatibility during transition
@@ -183,6 +186,9 @@ const Dashboard = () => {
               )}
             </CardContent>
           </Card>
+          
+          {/* Global Rank Card */}
+          <UserRankCard address={address} />
         </div>
 
         {/* Right Column - Main Content */}
@@ -456,6 +462,56 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+// UserRankCard Component
+const UserRankCard = ({ address }: { address: string }) => {
+  // Fetch user rank
+  const { data: userRankData, isLoading } = useQuery({
+    queryKey: ["/api/users/rank", address],
+    queryFn: () => apiRequest<{rank: number | null}>(`/api/users/${address}/rank`),
+    staleTime: 10000, // Consider rank stale after 10 seconds
+    enabled: !!address, // Only run this query if we have an address
+  });
+
+  return (
+    <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600"></div>
+      <CardHeader className="pb-1 pt-4">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <FaChartLine className="text-amber-500" size={14} />
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-300">
+            Your Global Rank
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-1 pb-4">
+        {isLoading ? (
+          <div className="flex justify-center py-2">
+            <Skeleton className="h-10 w-16" />
+          </div>
+        ) : (
+          <div className="text-center">
+            {userRankData?.rank ? (
+              <div className="relative inline-block">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 blur-xl"></div>
+                <div className="relative bg-[#1A2234] rounded-lg px-4 py-2 border border-amber-900/50">
+                  <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-orange-400 to-red-400">
+                    #{userRankData.rank}
+                  </div>
+                  <div className="text-xs text-amber-400 mt-1">Global Ranking</div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-gray-400 py-2 text-sm">
+                Not ranked yet - Start swapping!
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
