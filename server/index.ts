@@ -3,11 +3,14 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
 import { DatabaseStorage } from "./database-storage";
+import http from "http";
 
-const app = express();
+// Export the Express app for production use
+export const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add middleware for logging API responses
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -38,7 +41,11 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+// Export the server for production use
+export let server: http.Server;
+
+// Setup function that can be called in development or production
+export const setupServer = async () => {
   // Initialize database if using DatabaseStorage
   if (storage instanceof DatabaseStorage) {
     try {
@@ -50,8 +57,10 @@ app.use((req, res, next) => {
     }
   }
   
-  const server = await registerRoutes(app);
+  // Register API routes
+  server = await registerRoutes(app);
 
+  // Add error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -60,24 +69,36 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Setup Vite in development or serve static files in production
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  return server;
+};
+
+// Start the server in development mode
+// This code will run when the file is executed directly
+// In ESM, we can't directly check if this is the main module, so we just run it
+// The server.js file will handle imports differently for production
+(async () => {
+  try {
+    const appServer = await setupServer();
+    
+    // ALWAYS serve the app on port 5000
+    // this serves both the API and the client.
+    // It is the only port that is not firewalled.
+    const port = process.env.PORT || 5000;
+    appServer.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      log(`serving on port ${port}`);
+    });
+  } catch (error) {
+    log(`Error starting server: ${error}`);
+  }
 })();
