@@ -37,6 +37,9 @@ if (!DATABASE_URL) {
   process.exit(1);
 }
 
+// Ensure DATABASE_URL is not undefined for TypeScript
+const connectionString = DATABASE_URL as string;
+
 // Log migration information
 console.log(`Running database migrations in ${NODE_ENV} mode`);
 console.log(`Migrations folder: ${migrationsFolder}`);
@@ -46,13 +49,13 @@ async function runMigrations() {
     // Use Neon with serverless mode for Vercel
     if (IS_VERCEL || NODE_ENV === 'production') {
       console.log('Using Neon serverless adapter for migrations...');
-      const pool = new Pool({ connectionString: DATABASE_URL });
+      const pool = new Pool({ connectionString });
       const db = drizzleNeon(pool, { schema });
       await migrateNeon(db, { migrationsFolder });
     } else {
       // Standard PostgreSQL for development
       console.log('Using standard PostgreSQL adapter for migrations...');
-      const migrationClient = postgres(DATABASE_URL, { max: 1 });
+      const migrationClient = postgres(connectionString, { max: 1 });
       const db = drizzle(migrationClient);
       await migrate(db, { migrationsFolder });
       await migrationClient.end();

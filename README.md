@@ -54,10 +54,35 @@ Block Explorer: [Base Sepolia](https://sepolia.basescan.org)
 This project can be deployed to various platforms:
 
 - **Vercel (Recommended)** - Follow the detailed instructions in [VERCEL-DEPLOYMENT.md](./VERCEL-DEPLOYMENT.md)
+  - Supports serverless functions with database integration
+  - Automatic GitHub integration and continuous deployment
+  - Custom domains with free SSL certificates
 
 - **Railway** - Follow the instructions in [RAILWAY-DEPLOYMENT.md](./RAILWAY-DEPLOYMENT.md)
 - **Replit** - Click the "Deploy" button in the Replit interface
 - **Hostinger** - Follow the instructions in [HOSTINGER-DEPLOYMENT.md](./HOSTINGER-DEPLOYMENT.md)
+
+## GitHub and Database Setup
+
+To prepare your project for GitHub and deploy with database support:
+
+1. Create a repository on GitHub
+2. Run the setup script to initialize Git and push to GitHub:
+   ```bash
+   chmod +x scripts/setup-github.sh
+   ./scripts/setup-github.sh
+   ```
+
+3. Set up your PostgreSQL database:
+   - For Vercel: Use [Neon](https://neon.tech) or [Vercel Postgres](https://vercel.com/storage/postgres)
+   - For other platforms: Any PostgreSQL provider (Railway, Supabase, etc.)
+
+4. The deployment will automatically:
+   - Set up database tables using the schema in `shared/schema.ts`
+   - Run migrations if needed via the deployment scripts
+   - Seed essential data for the application to function
+
+For more details, see the platform-specific deployment guides linked above.
 
 ## License
 
