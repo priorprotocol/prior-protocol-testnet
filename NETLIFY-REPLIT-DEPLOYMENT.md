@@ -52,7 +52,7 @@ This document outlines how to deploy the Prior Protocol Testnet using Netlify fo
    - The netlify.toml file already contains these settings
 
 4. **Set Environment Variables on Netlify**:
-   - VITE_API_URL: Your Replit backend URL (e.g., https://testnetpriorprotocol.your-username.repl.co)
+   - VITE_API_URL: https://prior-protocol-testnet-priorprotocol.replit.app
    - VITE_CHAIN_ID: 84532 (Base Sepolia Chain ID)
    - VITE_BLOCK_EXPLORER_URL: https://sepolia.basescan.org
 

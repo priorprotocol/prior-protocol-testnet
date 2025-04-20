@@ -66,7 +66,7 @@ requiredFiles.forEach(file => {
 // Create a .env.local file for development
 fs.writeFileSync(
   path.resolve(outputDir, 'client/.env.local'),
-  'VITE_API_URL=https://your-replit-backend-url.repl.co\n' +
+  'VITE_API_URL=https://prior-protocol-testnet-priorprotocol.replit.app\n' +
   'VITE_CHAIN_ID=84532\n' +
   'VITE_BLOCK_EXPLORER_URL=https://sepolia.basescan.org\n'
 );
