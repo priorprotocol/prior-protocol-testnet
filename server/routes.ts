@@ -984,11 +984,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userIdOrAddress } = req.params;
       let userId: number;
       
-      // Parse points from request body
-      const points = parseInt(req.body.points || "0", 10);
+      // Parse points from request body - now supports decimal points
+      const points = parseFloat(req.body.points || "0");
       if (isNaN(points) || points <= 0) {
         return res.status(400).json({ message: "Invalid points value" });
       }
+      
+      console.log(`Adding ${points} points from API request for user ${userIdOrAddress}`);
       
       // Check if this is a wallet address or a numeric ID
       if (userIdOrAddress && userIdOrAddress.toString().startsWith('0x')) {

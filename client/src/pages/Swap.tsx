@@ -647,22 +647,26 @@ export default function Swap() {
                 <div className="flex items-center gap-1">
                   <button 
                     onClick={() => {
-                      if (directAddress) {
-                        navigator.clipboard.writeText(directAddress);
-                        toast({
-                          title: "Address Copied",
-                          description: "Wallet address copied to clipboard",
-                        });
-                      } else if (address) {
-                        navigator.clipboard.writeText(address);
-                        toast({
-                          title: "Address Copied",
-                          description: "Wallet address copied to clipboard",
-                        });
+                      try {
+                        // Determine which address to use
+                        const addressToCopy = directAddress || address;
+                        
+                        if (addressToCopy) {
+                          // Copy to clipboard silently (no toast notification)
+                          navigator.clipboard.writeText(addressToCopy)
+                            .then(() => {
+                              console.log('Address copied to clipboard');
+                            })
+                            .catch(err => {
+                              console.warn('Could not copy to clipboard:', err);
+                            });
+                        }
+                      } catch (err) {
+                        console.warn('Clipboard operation failed:', err);
                       }
                     }}
                     className="text-gray-400 hover:text-white"
-                    title="Copy address"
+                    title="Copy address (click to copy)"
                   >
                     <FiCopy className="w-4 h-4" />
                   </button>
