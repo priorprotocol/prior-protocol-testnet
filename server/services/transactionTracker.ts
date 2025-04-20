@@ -39,9 +39,7 @@ export async function recordSwapTransaction(params: {
       status: 'completed'
     });
     
-    // Increment swap count for user
-    const newSwapCount = await storage.incrementUserSwapCount(user.id);
-    console.log(`User ${address} now has ${newSwapCount} swaps recorded`);
+    console.log(`Transaction recorded for user ${address}: ${txHash} - ${fromAmount} ${fromToken} to ${toAmount} ${toToken}`);
     
     // Check daily swap count to determine points
     const dailySwapCount = await storage.getDailySwapCount(user.id);

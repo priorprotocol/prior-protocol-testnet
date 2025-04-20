@@ -49,6 +49,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Maintenance endpoint to recalculate points for all users
+  app.post(`${apiPrefix}/maintenance/recalculate-points`, async (req, res) => {
+    try {
+      console.log("Starting points recalculation for all users");
+      const result = await storage.recalculateAllUserPoints();
+      
+      return res.status(200).json({
+        success: true,
+        message: `Successfully recalculated points for ${result.usersUpdated} users`,
+        summary: {
+          usersUpdated: result.usersUpdated,
+          totalPointsBefore: result.totalPointsBefore,
+          totalPointsAfter: result.totalPointsAfter,
+          difference: result.totalPointsAfter - result.totalPointsBefore
+        },
+        details: result.userDetails
+      });
+    } catch (error) {
+      console.error("Error during points recalculation:", error);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while recalculating points",
+        error: String(error)
+      });
+    }
+  });
+  
   // Get all tokens
   app.get(`${apiPrefix}/tokens`, async (req, res) => {
     const tokens = await storage.getAllTokens();
