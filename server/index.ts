@@ -9,35 +9,21 @@ import cors from "cors";
 // Export the Express app for production use
 export const app = express();
 
-// Configure CORS to allow requests from specific origins
-// Make sure to include both localhost for development and Netlify domains for production
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:5000',
-    'https://priortestnetv2.netlify.app',
-    'https://prior-protocol-testnet.netlify.app',
-    'https://testnetpriorprotocol.netlify.app',
-    'https://prior-testnet.netlify.app'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
 // Add CORS headers manually to handle preflight requests
 app.use((req, res, next) => {
   // Debug information
   const origin = req.headers.origin;
   log(`CORS request from origin: ${origin}`);
   
-  // Set CORS headers for specific Netlify origins
+  // Set CORS headers for specific Netlify origins and Replit domains
   if (origin && (
     origin.includes('priortestnetv2.netlify.app') || 
     origin.includes('prior-protocol-testnet.netlify.app') || 
     origin.includes('testnetpriorprotocol.netlify.app') || 
     origin.includes('prior-testnet.netlify.app') ||
-    origin.includes('localhost')
+    origin.includes('localhost') ||
+    origin.includes('replit.dev') ||
+    origin.includes('replit.app')
   )) {
     log(`Allowing CORS for origin: ${origin}`);
     res.header('Access-Control-Allow-Origin', origin);

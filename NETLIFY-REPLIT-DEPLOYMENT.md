@@ -81,7 +81,12 @@ This document outlines how to deploy the Prior Protocol Testnet using Netlify fo
 ### Frontend Issues
 
 - **CORS Errors**: Make sure your Replit backend has the correct CORS configuration
+  - Ensure your server's CORS middleware includes the Netlify domain in its allowed origins
+  - Check for double slashes in API URLs which can cause CORS issues
+  - If needed, add explicit CORS headers in your Express app for specific domains
 - **API Connection Errors**: Verify the VITE_API_URL environment variable on Netlify
+  - Ensure it doesn't have a trailing slash to prevent double-slash issues
+  - Make sure it points to the correct Replit backend domain
 - **Build Failures**: Check the build logs on Netlify for specific errors
 
 ### Backend Issues
