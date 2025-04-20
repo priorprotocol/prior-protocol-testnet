@@ -1,0 +1,1078 @@
+ Removing unpermitted intrinsics
+ Token cache cleared
+ Refreshing database transactions for: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions
+ App started, immediately loading global data
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens
+ App started, immediately loading global data
+ App started, immediately loading global data
+ Wallet context updated, syncing local state. Address: null
+ Found saved wallet state in localStorage, attempting to reconnect...
+ Attempting direct MetaMask connection...
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+ App mounted - prefetching global leaderboard data
+ Connected to wallet: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Refreshing database transactions for: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions
+ Refreshing database transactions for: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions
+ Account connected: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Wallet sync event received: Object
+ Wallet context updated, syncing local state. Address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Query operation for key: ["/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39"]
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users
+ [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: chrome-extension://mcohilncbfahbmgdjkbpemcciiolgcge/static/fonts/HarmonyOS_Sans_Web/HarmonyOS_Sans_Regular.woff2
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Error fetching database transactions: 
+l @ index-BPq6MUYg.js:55
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Error fetching database transactions: 
+l @ index-BPq6MUYg.js:55
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/tokens:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Global leaderboard data prefetched successfully
+ ✅ Global data pre-loaded in 456ms
+ ✅ Global data pre-loaded in 455ms
+ ✅ Global data pre-loaded in 455ms
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Query failed for key: ["/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39"] 
+(anonymous) @ index-BPq6MUYg.js:48
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Error fetching database transactions: 
+l @ index-BPq6MUYg.js:55
+ Wallet connected, immediately loading user data for: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions/swap (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions/swap
+ Wallet auto-connection disabled. User must manually connect.
+ Wallet connected, immediately loading user data for: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Wallet connected, immediately loading user data for: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ API Response: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users - Status: 200
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions/swap' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions/swap:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ ✅ User data pre-loaded in 258ms
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+ ✅ User data pre-loaded in 258ms
+ ✅ User data pre-loaded in 258ms
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ App started, immediately loading global data
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/tokens:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ ✅ Global data pre-loaded in 244ms
+ Requesting accounts from wallet...
+ Wallet connected: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Saving wallet state: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Notifying 6 listeners of wallet change to: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Wallet address changed: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Wallet address changed: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Wallet listener triggered with address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Connected to wallet: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Wallet listener triggered with address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Wallet listener triggered with address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Wallet address changed: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ Wallet sync event received: Object
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+ Refreshing database transactions for: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Error fetching database transactions: 
+l @ index-BPq6MUYg.js:55
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Error fetching user stats: 
+queryFn @ index-BPq6MUYg.js:156
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Error fetching transactions: 
+queryFn @ index-BPq6MUYg.js:156
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Error fetching transactions: 
+queryFn @ index-BPq6MUYg.js:156
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ Manual retry for historical data
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: day
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=day (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=day
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=day' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=day:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Address detected in useEffect, loading balances: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ HARD-CODED PRIOR contract address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ HARD-CODED USDC contract address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Fetching token balance for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39 and token: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ Creating token contract for address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ Is this the new PRIOR token? true
+ Is this the new USDC token? false
+ Checking allowance for PRIOR (0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb) to swap contract 0x8957e1988905311EE249e679a29fc9deCEd4D910
+ Loaded exchange rates from contract:
+ PRIOR to USDC rate: 2
+ Loaded exchange rates from contract:
+ PRIOR to USDC rate: 2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Address detected in useEffect, loading balances: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ HARD-CODED PRIOR contract address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ HARD-CODED USDC contract address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Fetching token balance for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39 and token: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ Creating token contract for address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ Is this the new PRIOR token? true
+ Is this the new USDC token? false
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Address detected in useEffect, loading balances: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ HARD-CODED PRIOR contract address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ HARD-CODED USDC contract address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Fetching token balance for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39 and token: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ Creating token contract for address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ Is this the new PRIOR token? true
+ Is this the new USDC token? false
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Already connected account found via provider: 0x63aD6EceC0B68C3c786d1548f4843f06dC3a0d39
+ HARD-CODED PRIOR contract address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ HARD-CODED USDC contract address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Fetching token balance for address: 0x63aD6EceC0B68C3c786d1548f4843f06dC3a0d39 and token: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ Creating token contract for address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ Is this the new PRIOR token? true
+ Is this the new USDC token? false
+ No saved approval found in localStorage, checking on-chain
+ Creating token contract for address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ Is this the new PRIOR token? true
+ Is this the new USDC token? false
+ Address detected in useEffect, loading balances: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ HARD-CODED PRIOR contract address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ HARD-CODED USDC contract address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Fetching token balance for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39 and token: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ Creating token contract for address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ Is this the new PRIOR token? true
+ Is this the new USDC token? false
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Contract at 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb has name: Prior Protocol Token
+ getTokenSymbol checking address: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb as new PRIOR token
+ Token symbol: PRIOR
+ Contract at 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb has name: Prior Protocol Token
+ getTokenSymbol checking address: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb as new PRIOR token
+ Token symbol: PRIOR
+ Contract at 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb has name: Prior Protocol Token
+ getTokenSymbol checking address: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb as new PRIOR token
+ Token symbol: PRIOR
+ Contract at 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb has name: Prior Protocol Token
+ getTokenSymbol checking address: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb as new PRIOR token
+ Token symbol: PRIOR
+ Contract at 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb has name: Prior Protocol Token
+ Contract at 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb has name: Prior Protocol Token
+ getTokenSymbol checking address: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb as new PRIOR token
+ Token symbol: PRIOR
+ Checking on-chain allowance for 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb to 0x8957e1988905311EE249e679a29fc9deCEd4D910
+ Raw balance result for PRIOR: 700000000000000000
+ Using decimals: 18 for PRIOR
+ PRIOR balance formatted (≥0.01): 0.700
+ Fetching token balance for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39 and token: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Creating token contract for address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Is this the new PRIOR token? false
+ Is this the new USDC token? true
+ Raw balance result for PRIOR: 700000000000000000
+ Using decimals: 18 for PRIOR
+ PRIOR balance formatted (≥0.01): 0.700
+ Fetching token balance for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39 and token: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Creating token contract for address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Is this the new PRIOR token? false
+ Is this the new USDC token? true
+ Raw balance result for PRIOR: 700000000000000000
+ Using decimals: 18 for PRIOR
+ PRIOR balance formatted (≥0.01): 0.700
+ Fetching token balance for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39 and token: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Creating token contract for address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Is this the new PRIOR token? false
+ Is this the new USDC token? true
+ Raw balance result for PRIOR: 700000000000000000
+ Using decimals: 18 for PRIOR
+ PRIOR balance formatted (≥0.01): 0.700
+ Fetching token balance for address: 0x63aD6EceC0B68C3c786d1548f4843f06dC3a0d39 and token: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Creating token contract for address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Is this the new PRIOR token? false
+ Is this the new USDC token? true
+ Raw balance result for PRIOR: 700000000000000000
+ Using decimals: 18 for PRIOR
+ PRIOR balance formatted (≥0.01): 0.700
+ Fetching token balance for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39 and token: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Creating token contract for address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Is this the new PRIOR token? false
+ Is this the new USDC token? true
+ Current allowance: 115792089237316195423570985008687907853269984665640564039457584007913129639935
+ Large allowance detected, saving to localStorage for future reference
+ PRIOR approval status: Already approved
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Contract at 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 has name: Mock USD Coin
+ getTokenSymbol checking address: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 as new USDC token
+ Token symbol: USDC
+ Contract at 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 has name: Mock USD Coin
+ getTokenSymbol checking address: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 as new USDC token
+ Token symbol: USDC
+ Contract at 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 has name: Mock USD Coin
+ getTokenSymbol checking address: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 as new USDC token
+ Token symbol: USDC
+ Contract at 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 has name: Mock USD Coin
+ getTokenSymbol checking address: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 as new USDC token
+ Token symbol: USDC
+ Contract at 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 has name: Mock USD Coin
+ getTokenSymbol checking address: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 as new USDC token
+ Token symbol: USDC
+ Raw balance result for USDC: 600000
+ Using decimals: 6 for USDC
+ USDC balance updated: 0.60
+ Loaded real token balances: Object
+ Using forced balance for PRIOR: 0.7000
+ Using forced balance for USDC: 0.60
+ Using forced balance for PRIOR: 0.7000
+ Using forced balance for USDC: 0.60
+ Raw balance result for USDC: 600000
+ Using decimals: 6 for USDC
+ USDC balance updated: 0.60
+ Loaded real token balances: Object
+ Raw balance result for USDC: 600000
+ Using decimals: 6 for USDC
+ USDC balance updated: 0.60
+ Loaded real token balances: Object
+ Raw balance result for USDC: 600000
+ Using decimals: 6 for USDC
+ USDC balance updated: 0.60
+ Loaded real token balances: Object
+ Raw balance result for USDC: 600000
+ Using decimals: 6 for USDC
+ USDC balance updated: 0.60
+ Loaded real token balances: Object
+ Using forced balance for PRIOR: 0.7000
+ Using forced balance for USDC: 0.60
+ Swap calculation: 0.1 PRIOR to USDC with rate 2
+ Result before fee: 0.2
+ Result after 0.5% fee: 0.20
+ Using forced balance for PRIOR: 0.7000
+ Using forced balance for USDC: 0.60
+ Using forced balance for PRIOR: 0.7000
+ Using forced balance for USDC: 0.60
+ Attempting to swap 0.1 from 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb to 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Using swap contract: 0x8957e1988905311EE249e679a29fc9deCEd4D910
+ getTokenSymbol checking address: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb as new PRIOR token
+ getTokenSymbol checking address: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 as new USDC token
+ getTokenSymbol checking address: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb as new PRIOR token
+ Using amount for swap: 0.1 PRIOR
+ Swap calculation: 0.1 PRIOR to USDC with rate 2
+ Result before fee: 0.2
+ Result after 0.5% fee: 0.20
+ Expected output for 0.1 PRIOR: 0.20 USDC
+ Using calculated minimum output with 1% slippage: 0.198 USDC
+ Parsed amount for PRIOR: 100000000000000000
+ About to execute PRIOR to USDC swap with contract: ua
+ Executing PRIOR to USDC swap
+ Available contract methods: Array(12)
+ Using forced balance for PRIOR: 0.7000
+ Using forced balance for USDC: 0.60
+ Transaction submitted, waiting for confirmation...
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/transactions
+ Using forced balance for PRIOR: 0.7000
+ Using forced balance for USDC: 0.60
+ API Response: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/transactions - Status: 201
+ Transaction recorded successfully: Object
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/increment-swap-count (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/increment-swap-count
+ API Response: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/increment-swap-count - Status: 200
+ Swap count incremented: Object
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/daily-swap-count (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/daily-swap-count
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/daily-swap-count - Status: 200
+ Daily swap count data: Object
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/add-points (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/add-points
+ API Response: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/add-points - Status: 200
+ Successfully awarded 0.5 points for swap, new total: Object
+ Using forced balance for PRIOR: 0.6000
+ Using forced balance for USDC: 0.80
+ Using forced balance for PRIOR: 0.6000
+ Using forced balance for USDC: 0.80
+ Using forced balance for PRIOR: 0.6000
+ Using forced balance for USDC: 0.80
+ Using forced balance for PRIOR: 0.6000
+ Using forced balance for USDC: 0.80
+ Swap calculation: 0.1 PRIOR to USDC with rate 2
+ Result before fee: 0.2
+ Result after 0.5% fee: 0.20
+ Using forced balance for PRIOR: 0.6000
+ Using forced balance for USDC: 0.80
+ Using forced balance for PRIOR: 0.6000
+ Using forced balance for USDC: 0.80
+ Attempting to swap 0.1 from 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb to 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ Using swap contract: 0x8957e1988905311EE249e679a29fc9deCEd4D910
+ getTokenSymbol checking address: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb as new PRIOR token
+ getTokenSymbol checking address: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2 as new USDC token
+ getTokenSymbol checking address: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with PRIOR: 0xefc91c5a51e8533282486fa2601dffe0a0b16edb
+ Comparing with USDC: 0xdb07b0b4e88d9d5a79a08e91fee20bb41f9989a2
+ Identified address 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb as new PRIOR token
+ Using amount for swap: 0.1 PRIOR
+ Swap calculation: 0.1 PRIOR to USDC with rate 2
+ Result before fee: 0.2
+ Result after 0.5% fee: 0.20
+ Expected output for 0.1 PRIOR: 0.20 USDC
+ Using calculated minimum output with 1% slippage: 0.198 USDC
+ Parsed amount for PRIOR: 100000000000000000
+ About to execute PRIOR to USDC swap with contract: ua
+ Executing PRIOR to USDC swap
+ Available contract methods: Array(12)
+ Using forced balance for PRIOR: 0.6000
+ Using forced balance for USDC: 0.80
+ Transaction submitted, waiting for confirmation...
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/transactions
+ Using forced balance for PRIOR: 0.6000
+ Using forced balance for USDC: 0.80
+ API Response: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/transactions - Status: 201
+ Transaction recorded successfully: Object
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/increment-swap-count (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/increment-swap-count
+ API Response: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/increment-swap-count - Status: 200
+ Swap count incremented: Object
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/daily-swap-count (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/daily-swap-count
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/daily-swap-count - Status: 200
+ Daily swap count data: Object
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/add-points (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/add-points
+ API Response: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/add-points - Status: 200
+ Successfully awarded 0.5 points for swap, new total: Object
+ Using forced balance for PRIOR: 0.5000
+ Using forced balance for USDC: 1.00
+ Using forced balance for PRIOR: 0.5000
+ Using forced balance for USDC: 1.00
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+ Refreshing database transactions for: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Error fetching database transactions: 
+l @ index-BPq6MUYg.js:55
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Error fetching transactions: 
+queryFn @ index-BPq6MUYg.js:156
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/stats:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Error fetching user stats: 
+queryFn @ index-BPq6MUYg.js:156
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions?limit=10:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Error fetching transactions: 
+queryFn @ index-BPq6MUYg.js:156
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ Manual retry for historical data
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: day
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=day (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=day
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=day' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=day:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ Fetching historical points for address: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39, period: week
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/historical-points?period=week:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ Failed to fetch historical points: 
+queryFn @ index-BPq6MUYg.js:223
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+Fe @ index-BPq6MUYg.js:48
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45796)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at oO.Yf (index-BPq6MUYg.js:48:36125)
+    at oO.fetch (index-BPq6MUYg.js:48:32783)
+    at oO.refetch (index-BPq6MUYg.js:48:32578)
+    at index-BPq6MUYg.js:155:45952
+Fe @ index-BPq6MUYg.js:48
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45631)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at index-BPq6MUYg.js:48:27852
+    at Array.map (<anonymous>)
+    at index-BPq6MUYg.js:48:27836
+    at Object.batch (index-BPq6MUYg.js:48:10679)
+Fe @ index-BPq6MUYg.js:48
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45796)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at index-BPq6MUYg.js:48:27852
+    at Array.map (<anonymous>)
+    at index-BPq6MUYg.js:48:27836
+    at Object.batch (index-BPq6MUYg.js:48:10679)
+Fe @ index-BPq6MUYg.js:48
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45796)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at index-BPq6MUYg.js:48:27852
+    at Array.map (<anonymous>)
+    at index-BPq6MUYg.js:48:27836
+    at Object.batch (index-BPq6MUYg.js:48:10679)
+Fe @ index-BPq6MUYg.js:48
+index-BPq6MUYg.js:55 Refreshing database transactions for: 0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/transactions:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at l (index-BPq6MUYg.js:55:223662)
+    at syncTransactions (index-BPq6MUYg.js:55:224530)
+    at l (index-BPq6MUYg.js:156:121852)
+    at Object.d7 (index-BPq6MUYg.js:37:9864)
+    at p7 (index-BPq6MUYg.js:37:10018)
+    at m7 (index-BPq6MUYg.js:37:10075)
+    at AP (index-BPq6MUYg.js:37:31462)
+    at pk (index-BPq6MUYg.js:37:31879)
+    at index-BPq6MUYg.js:37:36792
+Fe @ index-BPq6MUYg.js:48
+index-BPq6MUYg.js:55 Error fetching database transactions: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at l (index-BPq6MUYg.js:55:223662)
+    at syncTransactions (index-BPq6MUYg.js:55:224530)
+    at l (index-BPq6MUYg.js:156:121852)
+    at Object.d7 (index-BPq6MUYg.js:37:9864)
+    at p7 (index-BPq6MUYg.js:37:10018)
+    at m7 (index-BPq6MUYg.js:37:10075)
+    at AP (index-BPq6MUYg.js:37:31462)
+    at pk (index-BPq6MUYg.js:37:31879)
+    at index-BPq6MUYg.js:37:36792
+l @ index-BPq6MUYg.js:55
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45796)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at index-BPq6MUYg.js:48:27852
+    at Array.map (<anonymous>)
+    at index-BPq6MUYg.js:48:27836
+    at Object.batch (index-BPq6MUYg.js:48:10679)
+Fe @ index-BPq6MUYg.js:48
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45796)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at oO.Yf (index-BPq6MUYg.js:48:36125)
+    at oO.fetch (index-BPq6MUYg.js:48:32783)
+    at oO.refetch (index-BPq6MUYg.js:48:32578)
+    at index-BPq6MUYg.js:155:45952
+Fe @ index-BPq6MUYg.js:48
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45631)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at index-BPq6MUYg.js:48:27852
+    at Array.map (<anonymous>)
+    at index-BPq6MUYg.js:48:27836
+    at Object.batch (index-BPq6MUYg.js:48:10679)
+Fe @ index-BPq6MUYg.js:48
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45796)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at oO.Yf (index-BPq6MUYg.js:48:36125)
+    at oO.fetch (index-BPq6MUYg.js:48:32783)
+    at oO.refetch (index-BPq6MUYg.js:48:32578)
+    at index-BPq6MUYg.js:155:45952
+Fe @ index-BPq6MUYg.js:48
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x63ad6ecec0b68c3c786d1548f4843f06dc3a0d39/rank:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45631)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at index-BPq6MUYg.js:48:27852
+    at Array.map (<anonymous>)
+    at index-BPq6MUYg.js:48:27836
+    at Object.batch (index-BPq6MUYg.js:48:10679)
+Fe @ index-BPq6MUYg.js:48
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45796)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at index-BPq6MUYg.js:48:27852
+    at Array.map (<anonymous>)
+    at index-BPq6MUYg.js:48:27836
+    at Object.batch (index-BPq6MUYg.js:48:10679)
+Fe @ index-BPq6MUYg.js:48
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+index-BPq6MUYg.js:48 
+            
+            
+           GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 net::ERR_FAILED
+Fe @ index-BPq6MUYg.js:48
+queryFn @ index-BPq6MUYg.js:155
+o @ index-BPq6MUYg.js:48
+m @ index-BPq6MUYg.js:48
+start @ index-BPq6MUYg.js:48
+fetch @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+batch @ index-BPq6MUYg.js:48
+refetchQueries @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+batch @ index-BPq6MUYg.js:48
+invalidateQueries @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:55
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45796)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at index-BPq6MUYg.js:48:27852
+    at Array.map (<anonymous>)
+    at index-BPq6MUYg.js:48:27836
+    at Object.batch (index-BPq6MUYg.js:48:10679)
+Fe @ index-BPq6MUYg.js:48
+await in Fe
+queryFn @ index-BPq6MUYg.js:155
+o @ index-BPq6MUYg.js:48
+m @ index-BPq6MUYg.js:48
+start @ index-BPq6MUYg.js:48
+fetch @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+batch @ index-BPq6MUYg.js:48
+refetchQueries @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+batch @ index-BPq6MUYg.js:48
+invalidateQueries @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:55
+index-BPq6MUYg.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BPq6MUYg.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+index-BPq6MUYg.js:48 
+            
+            
+           GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=15&page=1 net::ERR_FAILED
+Fe @ index-BPq6MUYg.js:48
+queryFn @ index-BPq6MUYg.js:155
+o @ index-BPq6MUYg.js:48
+m @ index-BPq6MUYg.js:48
+start @ index-BPq6MUYg.js:48
+fetch @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+batch @ index-BPq6MUYg.js:48
+refetchQueries @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+batch @ index-BPq6MUYg.js:48
+invalidateQueries @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:228
+index-BPq6MUYg.js:48 API Request failed: TypeError: Failed to fetch
+    at Fe (index-BPq6MUYg.js:48:44492)
+    at queryFn (index-BPq6MUYg.js:155:45796)
+    at Object.o [as fn] (index-BPq6MUYg.js:48:14393)
+    at m (index-BPq6MUYg.js:48:9986)
+    at Object.start (index-BPq6MUYg.js:48:10445)
+    at eO.fetch (index-BPq6MUYg.js:48:15729)
+    at index-BPq6MUYg.js:48:27852
+    at Array.map (<anonymous>)
+    at index-BPq6MUYg.js:48:27836
+    at Object.batch (index-BPq6MUYg.js:48:10679)
+Fe @ index-BPq6MUYg.js:48
+await in Fe
+queryFn @ index-BPq6MUYg.js:155
+o @ index-BPq6MUYg.js:48
+m @ index-BPq6MUYg.js:48
+start @ index-BPq6MUYg.js:48
+fetch @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+batch @ index-BPq6MUYg.js:48
+refetchQueries @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:48
+batch @ index-BPq6MUYg.js:48
+invalidateQueries @ index-BPq6MUYg.js:48
+(anonymous) @ index-BPq6MUYg.js:228
