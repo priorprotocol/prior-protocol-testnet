@@ -46,8 +46,8 @@ export async function apiRequest<T = any>(
         method: 'GET',
         credentials: 'include',
         headers: {
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
+          'Accept': 'application/json'
+          // Removed Cache-Control header temporarily to avoid CORS issues
         },
       });
       
@@ -69,6 +69,7 @@ export async function apiRequest<T = any>(
       headers: {
         ...(requestData ? { "Content-Type": "application/json" } : {}),
         'Accept': 'application/json'
+        // No Cache-Control header to avoid CORS issues
       },
       body: requestData ? JSON.stringify(requestData) : undefined,
       credentials: "include",
