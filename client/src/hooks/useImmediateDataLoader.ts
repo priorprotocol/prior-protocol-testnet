@@ -60,46 +60,65 @@ export function useImmediateDataLoader(address: string | null) {
   useEffect(() => {
     if (!address) return;
     
-    console.log('Wallet connected, immediately loading user data for:', address);
+    // Keep track if component is still mounted
+    let isMounted = true;
     
-    // Track loading state
-    const userLoadStart = Date.now();
+    // Create a stable reference to avoid continuous calls
+    const currentAddress = address;
     
-    // Parallel user data loading for maximum speed
-    const userPromises = [
-      // 1. Load user stats (points, swap count, etc)
-      queryClient.prefetchQuery({
-        queryKey: [`/api/users/${address}/stats`],
-        queryFn: () => apiRequest(`/api/users/${address}/stats`)
-      }),
+    // Wait a short time to avoid multiple rapid data loading requests
+    const debounceTimer = setTimeout(() => {
+      if (!isMounted) return;
       
-      // 2. Load user transactions
-      queryClient.prefetchQuery({
-        queryKey: [`/api/users/${address}/transactions`],
-        queryFn: () => apiRequest(`/api/users/${address}/transactions`)
-      }),
+      console.log('Wallet connected, immediately loading user data for:', currentAddress);
       
-      // 3. Load user swap transactions 
-      queryClient.prefetchQuery({
-        queryKey: [`/api/users/${address}/transactions`, 'swap'],
-        queryFn: () => apiRequest(`/api/users/${address}/transactions/swap`)
-      })
-    ];
-    
-    // Execute all user data loading in parallel
-    Promise.all(userPromises)
-      .then(() => {
-        const loadTime = Date.now() - userLoadStart;
-        console.log(`✅ User data pre-loaded in ${loadTime}ms`);
+      // Track loading state
+      const userLoadStart = Date.now();
+      
+      // Parallel user data loading for maximum speed
+      const userPromises = [
+        // 1. Load user stats (points, swap count, etc)
+        queryClient.prefetchQuery({
+          queryKey: [`/api/users/${currentAddress}/stats`],
+          queryFn: () => apiRequest(`/api/users/${currentAddress}/stats`)
+        }),
         
-        // We're no longer syncing with blockchain, only using database
-        // Refresh the leaderboard after user data is loaded
-        queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
-      })
-      .catch(error => {
-        console.error('Error pre-loading user data:', error);
-      });
-  }, [address, queryClient, syncTransactions]);
+        // 2. Load user transactions
+        queryClient.prefetchQuery({
+          queryKey: [`/api/users/${currentAddress}/transactions`],
+          queryFn: () => apiRequest(`/api/users/${currentAddress}/transactions`)
+        }),
+        
+        // 3. Load user swap transactions 
+        queryClient.prefetchQuery({
+          queryKey: [`/api/users/${currentAddress}/transactions`, 'swap'],
+          queryFn: () => apiRequest(`/api/users/${currentAddress}/transactions/swap`)
+        })
+      ];
+      
+      // Execute all user data loading in parallel
+      Promise.all(userPromises)
+        .then(() => {
+          if (!isMounted) return;
+          
+          const loadTime = Date.now() - userLoadStart;
+          console.log(`✅ User data pre-loaded in ${loadTime}ms`);
+          
+          // We're no longer syncing with blockchain, only using database
+          // Refresh the leaderboard after user data is loaded
+          queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
+        })
+        .catch(error => {
+          if (!isMounted) return;
+          console.error('Error pre-loading user data:', error);
+        });
+    }, 100); // Small debounce timer to avoid repeated calls
+    
+    return () => {
+      isMounted = false;
+      clearTimeout(debounceTimer);
+    };
+  }, [address, queryClient]);
   
   // No return value needed, this hook is for side effects only
   return null;

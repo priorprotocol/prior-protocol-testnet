@@ -37,21 +37,33 @@ const StandaloneWalletButton: React.FC<StandaloneWalletButtonProps> = ({
 
   // Initialize wallet state and listeners
   useEffect(() => {
-    // Check for existing wallet connection
+    // Check for existing wallet connection - only once on mount
     const currentAddress = getConnectedWallet();
     if (currentAddress) {
       setAddress(currentAddress);
-      if (onConnect) onConnect(currentAddress);
+      // Only call onConnect with a stable reference to avoid infinite loop
+      setTimeout(() => {
+        if (onConnect) onConnect(currentAddress);
+      }, 0);
     } else {
-      // Try to restore previous connection
+      // Try to restore previous connection - only once
+      let cancelled = false;
       restoreWalletConnection().then(restoredAddress => {
+        if (cancelled) return;
         if (restoredAddress) {
           setAddress(restoredAddress);
-          if (onConnect) onConnect(restoredAddress);
+          // Only call onConnect with a stable reference to avoid infinite loop
+          setTimeout(() => {
+            if (onConnect) onConnect(restoredAddress);
+          }, 0);
         }
       });
+      return () => { cancelled = true; };
     }
-
+  }, []); // Empty dependency array - only run once on mount
+  
+  // Separate effect for listeners to avoid rerunning the initialization logic
+  useEffect(() => {
     // Add listener for wallet changes
     const removeListener = addWalletListener(newAddress => {
       console.log("Wallet listener triggered with address:", newAddress);
