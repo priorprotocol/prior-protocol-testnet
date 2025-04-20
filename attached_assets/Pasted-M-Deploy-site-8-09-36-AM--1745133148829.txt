@@ -1,0 +1,54 @@
+M: Deploy site                                                   
+8:09:36 AM: ────────────────────────────────────────────────────────────────
+8:09:36 AM: ​
+8:09:36 AM: Section completed: deploying
+8:09:36 AM: ​
+8:09:36 AM: Configuration error                                           
+8:09:36 AM: ────────────────────────────────────────────────────────────────
+8:09:36 AM: ​
+8:09:36 AM:   Error message
+8:09:36 AM:   Deploy did not succeed: Deploy directory 'client/dist' does not exist
+8:09:36 AM: ​
+8:09:36 AM:   Resolved config
+8:09:36 AM:   build:
+8:09:36 AM:     base: /opt/build/repo
+8:09:36 AM:     command: cd client && npm run build
+8:09:36 AM:     commandOrigin: config
+8:09:36 AM:     environment:
+8:09:36 AM:       - VITE_API_URL
+8:09:36 AM:       - VITE_BLOCK_EXPLORER_URL
+8:09:36 AM:       - VITE_CHAIN_ID
+8:09:36 AM:       - NODE_VERSION
+8:09:36 AM:       - NPM_FLAGS
+8:09:36 AM:       - NOT_FOUND_PAGE
+8:09:36 AM:     processing:
+8:09:36 AM:       css:
+8:09:36 AM:         bundle: true
+8:09:36 AM:         minify: true
+8:09:36 AM:       images:
+8:09:36 AM:         compress: true
+8:09:36 AM:       js:
+8:09:36 AM:         bundle: true
+8:09:36 AM:         minify: true
+8:09:36 AM:       skip_processing: false
+8:09:36 AM:     publish: /opt/build/repo/client/dist
+8:09:36 AM:     publishOrigin: config
+8:09:36 AM:   headers:
+8:09:37 AM: Failed during stage 'building site': Build script returned non-zero exit code: 2 (https://ntl.fyi/exit-code-2)
+8:09:37 AM:     - for: /*
+      values:
+        Referrer-Policy: strict-origin-when-cross-origin
+        X-Content-Type-Options: nosniff
+        X-Frame-Options: DENY
+        X-XSS-Protection: 1; mode=block
+    - for: /assets/*
+      values:
+        Cache-Control: public, max-age=31536000, immutable
+  headersOrigin: config
+  redirects:
+    - from: /*
+      status: 200
+      to: /index.html
+  redirectsOrigin: config
+8:09:37 AM: Build failed due to a user error: Build script returned non-zero exit code: 2
+8:09:37 AM: Failing build: Failed to build site
