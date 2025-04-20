@@ -91,6 +91,21 @@ export interface IStorage {
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   getTransactionPoints(transaction: Transaction): Promise<number>; // New method to get points for a transaction
   
+  // Points system management
+  recalculateAllUserPoints(): Promise<{
+    usersUpdated: number;
+    totalPointsBefore: number;
+    totalPointsAfter: number;
+    userDetails: Array<{
+      userId: number;
+      address: string;
+      pointsBefore: number;
+      pointsAfter: number;
+      totalSwaps: number;
+      pointEarningSwaps: number;
+    }>;
+  }>;
+  
   // Quiz operations
   getAllQuizzes(): Promise<Quiz[]>;
   getQuiz(id: number): Promise<Quiz | undefined>;
@@ -1468,6 +1483,115 @@ export class MemStorage implements IStorage {
     
     this.userQuizzes.set(id, updatedUserQuiz);
     return updatedUserQuiz;
+  }
+  
+  /**
+   * Recalculates points for all users based on their transaction history
+   * Following the rule: 0.5 points per swap, max 5 swaps per day (max 2.5 points daily)
+   * @returns Statistics about the recalculation
+   */
+  async recalculateAllUserPoints(): Promise<{
+    usersUpdated: number;
+    totalPointsBefore: number;
+    totalPointsAfter: number;
+    userDetails: Array<{
+      userId: number;
+      address: string;
+      pointsBefore: number;
+      pointsAfter: number;
+      totalSwaps: number;
+      pointEarningSwaps: number;
+    }>;
+  }> {
+    console.log("[PointsSystem] Starting points recalculation for all users");
+    
+    const userDetails: Array<{
+      userId: number;
+      address: string;
+      pointsBefore: number;
+      pointsAfter: number;
+      totalSwaps: number;
+      pointEarningSwaps: number;
+    }> = [];
+    
+    let totalPointsBefore = 0;
+    let totalPointsAfter = 0;
+    
+    // Process each user
+    for (const user of this.users.values()) {
+      const userId = user.id;
+      const pointsBefore = user.points || 0;
+      totalPointsBefore += pointsBefore;
+      
+      // Get all swap transactions for this user
+      const swapTransactions = Array.from(this.transactions.values())
+        .filter(tx => tx.userId === userId && tx.type === 'swap')
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      
+      // Group transactions by day
+      const transactionsByDay: Record<string, Array<Transaction>> = {};
+      let pointEarningSwaps = 0;
+      
+      for (const tx of swapTransactions) {
+        const txDate = new Date(tx.timestamp);
+        const day = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+        
+        if (!transactionsByDay[day]) {
+          transactionsByDay[day] = [];
+        }
+        
+        transactionsByDay[day].push(tx);
+      }
+      
+      // Calculate points: 0.5 per swap, max 5 swaps per day
+      let newPoints = 0;
+      
+      for (const day in transactionsByDay) {
+        const daySwaps = transactionsByDay[day];
+        const pointSwapsForDay = Math.min(daySwaps.length, 5);
+        
+        pointEarningSwaps += pointSwapsForDay;
+        newPoints += pointSwapsForDay * 0.5; // 0.5 points per swap
+      }
+      
+      // Round to 1 decimal place
+      newPoints = Math.round(newPoints * 10) / 10;
+      
+      // Update user with new points
+      const updatedUser: User = { 
+        ...user, 
+        points: newPoints,
+        // Update total swaps count as well
+        totalSwaps: swapTransactions.length
+      };
+      
+      this.users.set(userId, updatedUser);
+      this.usersByAddress.set(user.address, updatedUser);
+      
+      totalPointsAfter += newPoints;
+      
+      // Record the user's details for the report
+      userDetails.push({
+        userId,
+        address: user.address,
+        pointsBefore,
+        pointsAfter: newPoints,
+        totalSwaps: swapTransactions.length,
+        pointEarningSwaps
+      });
+      
+      console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | ${swapTransactions.length} total swaps, ${pointEarningSwaps} earned points`);
+    }
+    
+    console.log(`[PointsSystem] Recalculation complete. Updated ${userDetails.length} users.`);
+    console.log(`[PointsSystem] Total points before: ${totalPointsBefore}, after: ${totalPointsAfter}`);
+    
+    return {
+      usersUpdated: userDetails.length,
+      totalPointsBefore,
+      totalPointsAfter,
+      userDetails
+    };
   }
 }
 
