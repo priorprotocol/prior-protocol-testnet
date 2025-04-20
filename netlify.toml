@@ -1,17 +1,12 @@
 [build]
-  command = "npm run build"
-  publish = "dist"
-
+  base = "."
+  publish = "client/dist"
+  command = "cd client && npm run build"
+  
 [build.environment]
   NODE_VERSION = "20"
 
-[[redirects]]
-  from = "/api/*"
-  to = "https://your-backend-url.com/api/:splat"
-  status = 200
-  force = true
-  # Replace "your-backend-url.com" with your actual backend URL when deployed
-
+# Handle SPA routing for React app
 [[redirects]]
   from = "/*"
   to = "/index.html"

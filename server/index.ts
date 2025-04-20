@@ -4,9 +4,17 @@ import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
 import { DatabaseStorage } from "./database-storage";
 import http from "http";
+import cors from "cors";
 
 // Export the Express app for production use
 export const app = express();
+
+// Configure CORS to allow requests from your Netlify domain and local development
+app.use(cors({
+  origin: ["https://prior-protocol-testnet.netlify.app", "http://localhost:3000", "http://localhost:5000"],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

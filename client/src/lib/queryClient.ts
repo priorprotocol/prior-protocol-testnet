@@ -1,5 +1,24 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Get the API base URL from environment variables, defaults to current origin in development
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
+// Helper to determine if a path should use the external API or local API
+function getFullApiUrl(path: string): string {
+  // If the path is already a full URL, return it as is
+  if (path.startsWith('http')) {
+    return path;
+  }
+  
+  // If we have an API base URL and the path starts with '/api', use the external API
+  if (API_BASE_URL && path.startsWith('/api')) {
+    return `${API_BASE_URL}${path}`;
+  }
+  
+  // Otherwise, use the path as is (for local development or non-API paths)
+  return path;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -14,7 +33,7 @@ export async function apiRequest<T = any>(
 ): Promise<T> {
   // If the first argument starts with a slash or http, assume it's a GET request
   if (urlOrPathOrMethod.startsWith('/') || urlOrPathOrMethod.startsWith('http')) {
-    const url = urlOrPathOrMethod;
+    const url = getFullApiUrl(urlOrPathOrMethod);
     const res = await fetch(url, {
       method: 'GET',
       credentials: 'include',
@@ -26,7 +45,7 @@ export async function apiRequest<T = any>(
   
   // Otherwise, assume it's a method and the second argument is the URL
   const method = urlOrPathOrMethod;
-  const url = urlOrPathOrData as string;
+  const url = getFullApiUrl(urlOrPathOrData as string);
   const requestData = data;
   
   const res = await fetch(url, {
@@ -46,7 +65,8 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    const url = getFullApiUrl(queryKey[0] as string);
+    const res = await fetch(url, {
       credentials: "include",
     });
 
