@@ -533,27 +533,38 @@ export default function Swap() {
           }
           
           if (pointsToAdd > 0) {
-            // Add the points to the user's account
-            const pointsResponse = await fetch(`/api/users/${userId}/add-points`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
+            // Add the points to the user's account using the apiRequest function
+            try {
+              const pointsResult = await apiRequest('POST', `/api/users/${userId}/add-points`, {
                 points: pointsToAdd
-              }),
-            });
-            
-            if (pointsResponse.ok) {
-              const pointsResult = await pointsResponse.json();
-              console.log(`Successfully awarded ${pointsToAdd} points for swap, new total: ${pointsResult.points}`);
+              });
               
-              // Show a toast notification about points earned with dynamic styling
+              console.log(`Successfully awarded ${pointsToAdd} points for swap, new total:`, pointsResult);
+              
+              // Show the swap progress toast notification
+              toast({
+                title: `Swap ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS} Complete`,
+                description: `Successfully swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`,
+                variant: "default",
+                className: "bg-blue-800 text-white border-blue-600",
+              });
+              
+              // Then show a toast notification about points earned with dynamic styling
               toast({
                 title: `Points Earned: ${pointsToAdd}`,
                 description: `You earned ${pointsToAdd} points for this swap! (${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS} daily swaps)`,
                 variant: "default",
                 className: "bg-gradient-to-r from-emerald-800 to-green-900 border-emerald-600"
+              });
+            } catch (pointsError) {
+              console.error("Error awarding points:", pointsError);
+              
+              // Still show the swap progress toast even if points fail
+              toast({
+                title: `Swap ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS} Complete`,
+                description: `Successfully swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`,
+                variant: "default",
+                className: "bg-blue-800 text-white border-blue-600",
               });
             }
           } else {

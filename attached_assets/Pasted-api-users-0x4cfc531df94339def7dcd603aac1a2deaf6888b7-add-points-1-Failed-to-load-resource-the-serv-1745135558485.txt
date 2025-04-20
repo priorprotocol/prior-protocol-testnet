@@ -1,0 +1,1002 @@
+api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/add-points:1  Failed to load resource: the server responded with a status of 400 ()
+api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/add-points:1  Failed to load resource: the server responded with a status of 400 ()
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+ Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+ TokenCard updated USDC balance: 0.00 (raw: 0.00)
+ Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+ TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
+index-Bgr-aqQL.js:155 TokenCard updated PRIOR balance: 0.0000 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using PRIOR address: 0xeFC91C5a51E8533282486FA2601dFfe0a0b16EDb
+index-Bgr-aqQL.js:155 TokenCard updated USDC balance: 0.00 (raw: 0.00)
+index-Bgr-aqQL.js:155 Using USDC address: 0xdB07b0b4E88D9D5A79A08E91fEE20Bb41f9989a2
