@@ -9,12 +9,55 @@ import cors from "cors";
 // Export the Express app for production use
 export const app = express();
 
-// Configure CORS to allow requests from any origin in development
-// In production, you would want to restrict this to specific domains
+// Configure CORS to allow requests from specific origins
+// Make sure to include both localhost for development and Netlify domains for production
 app.use(cors({
-  origin: true, // Allow any origin
-  credentials: true
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5000',
+    'https://priortestnetv2.netlify.app',
+    'https://prior-protocol-testnet.netlify.app',
+    'https://testnetpriorprotocol.netlify.app',
+    'https://prior-testnet.netlify.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Add CORS headers manually to handle preflight requests
+app.use((req, res, next) => {
+  // Debug information
+  const origin = req.headers.origin;
+  log(`CORS request from origin: ${origin}`);
+  
+  // Set CORS headers for specific Netlify origins
+  if (origin && (
+    origin.includes('priortestnetv2.netlify.app') || 
+    origin.includes('prior-protocol-testnet.netlify.app') || 
+    origin.includes('testnetpriorprotocol.netlify.app') || 
+    origin.includes('prior-testnet.netlify.app') ||
+    origin.includes('localhost')
+  )) {
+    log(`Allowing CORS for origin: ${origin}`);
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+  } else {
+    // Fallback for development or unknown origins
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  }
+  
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

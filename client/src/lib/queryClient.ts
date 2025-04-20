@@ -12,7 +12,9 @@ function getFullApiUrl(path: string): string {
   
   // If we have an API base URL and the path starts with '/api', use the external API
   if (API_BASE_URL && path.startsWith('/api')) {
-    return `${API_BASE_URL}${path}`;
+    // Remove trailing slash from API_BASE_URL if it exists
+    const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+    return `${baseUrl}${path}`;
   }
   
   // Otherwise, use the path as is (for local development or non-API paths)
