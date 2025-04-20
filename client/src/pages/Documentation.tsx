@@ -389,7 +389,7 @@ const Documentation = () => {
                 <FaInfoCircle className="h-4 w-4 text-green-400" />
                 <AlertTitle className="text-green-300 font-medium">Points Earning Activity</AlertTitle>
                 <AlertDescription className="text-gray-300">
-                  Swapping tokens is now the only way to earn points in the Prior Protocol testnet. Each swap earns 0.5 points, with a maximum of 5 swaps (2.5 points) daily.
+                  Swapping tokens and NFT staking are the two ways to earn points in the Prior Protocol testnet. Each swap earns 0.5 points, with a maximum of 5 swaps (2.5 points) daily.
                 </AlertDescription>
               </Alert>
               
@@ -411,8 +411,8 @@ const Documentation = () => {
                 <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 p-4 rounded-lg border border-green-900/40">
                   <h4 className="font-medium text-green-300 mb-2">Points Earning</h4>
                   <p className="text-gray-300 text-sm">
-                    Swaps are the only way to earn points in the current system. Each swap earns 0.5 points, with a 
-                    maximum of 5 swaps (2.5 points) counted per day, regardless of the amount or token pair.
+                    Both token swaps and NFT staking earn points in the current system. Each swap earns 0.5 points, with a 
+                    maximum of 5 swaps (2.5 points) counted per day. You can also stake your Prior Pioneer NFT to earn additional points.
                   </p>
                 </div>
               </div>
@@ -703,11 +703,11 @@ const Documentation = () => {
                 NFT Staking
               </h2>
               
-              <Alert className="mb-4 bg-gradient-to-r from-gray-900/40 to-slate-900/40 border border-gray-500/30">
-                <FaInfoCircle className="h-4 w-4 text-gray-400" />
-                <AlertTitle className="text-gray-300 font-medium">Points System Update</AlertTitle>
+              <Alert className="mb-4 bg-gradient-to-r from-orange-900/40 to-amber-900/40 border border-amber-500/30">
+                <FaInfoCircle className="h-4 w-4 text-amber-400" />
+                <AlertTitle className="text-amber-300 font-medium">Points Earning Activity</AlertTitle>
                 <AlertDescription className="text-gray-300">
-                  NFT staking no longer earns points under the simplified points system. However, the feature is still available on the original testnet site for users who want to explore this aspect of the protocol.
+                  NFT staking is one of the two ways to earn points in the Prior Protocol testnet, along with token swapping. Staking your Prior Pioneer NFT provides additional points in the protocol ecosystem.
                 </AlertDescription>
               </Alert>
               
@@ -793,8 +793,8 @@ const Documentation = () => {
                   0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59
                 </div>
                 <p className="text-sm text-gray-300 mt-3">
-                  The NFT staking feature is available on the original testnet site. While it no longer earns points under the 
-                  simplified points system, it remains an important part of the full testnet experience.
+                  The NFT staking feature is available on the original testnet site. As one of two ways to earn points 
+                  in the Prior Protocol ecosystem, staking your NFT provides additional benefits and rewards.
                 </p>
               </div>
               
@@ -823,14 +823,15 @@ const Documentation = () => {
                 <FaInfoCircle className="h-4 w-4 text-blue-400" />
                 <AlertTitle className="text-blue-300 font-medium">Points System Update</AlertTitle>
                 <AlertDescription className="text-gray-300">
-                  The Prior Protocol testnet has implemented a simplified points system that exclusively rewards swap transactions. Points earned will be used to determine token allocations at the Token Generation Event (TGE).
+                  The Prior Protocol testnet awards points for both swap transactions (0.5 points per swap, max 5 swaps daily) 
+                  and NFT staking. Points earned will be used to determine token allocations at the Token Generation Event (TGE).
                 </AlertDescription>
               </Alert>
               
               <p className="text-gray-300 mb-4">
                 Active participation in the Prior Protocol testnet is tracked through our points system. 
-                We've simplified the system to focus on validating the core token swap functionality 
-                of the protocol, which is why only swap transactions currently earn points.
+                The system rewards users for engaging with key protocol features, which is why both 
+                swap transactions and NFT staking earn points in the ecosystem.
               </p>
               
               <div className="space-y-6">
@@ -904,10 +905,11 @@ const Documentation = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-gradient-to-br from-blue-900/20 to-indigo-900/20 p-4 rounded-lg border border-blue-900/40">
-                    <h4 className="font-medium text-blue-300 mb-2">Why Only Swaps?</h4>
+                    <h4 className="font-medium text-blue-300 mb-2">Two Ways to Earn Points</h4>
                     <p className="text-gray-300 text-sm">
-                      Our simplified points system focuses on optimizing and stress-testing the core swap functionality of Prior Protocol. 
-                      This focused approach helps us gather more valuable data on transaction performance, liquidity pools, and price discovery mechanisms.
+                      The Prior Protocol points system rewards users for engaging with two key aspects of the ecosystem:
+                      token swapping (which stress-tests liquidity and price discovery) and NFT staking (which
+                      demonstrates how NFTs can be integrated into DeFi applications).
                     </p>
                   </div>
                   
@@ -924,7 +926,7 @@ const Documentation = () => {
                   <h3 className="text-xl font-medium text-white mb-3">Leaderboard & Points Tracking</h3>
                   <p className="text-gray-300 mb-4">
                     Your accumulated points place you on the testnet leaderboard, which ranks participants
-                    based on their total points earned through swap transactions.
+                    based on their total points earned through both swap transactions and NFT staking.
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-start">
@@ -942,7 +944,7 @@ const Documentation = () => {
                       </div>
                       <div>
                         <h5 className="text-white font-medium">Real-time Updates</h5>
-                        <p className="text-gray-300 text-sm">The leaderboard updates in real-time as swap transactions are completed</p>
+                        <p className="text-gray-300 text-sm">The leaderboard updates in real-time as swap transactions and staking activities are completed</p>
                       </div>
                     </div>
                     <div className="flex items-start">
