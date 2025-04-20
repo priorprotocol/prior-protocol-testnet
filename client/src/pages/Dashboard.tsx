@@ -250,10 +250,10 @@ const Dashboard = () => {
                         
                         <div className="mt-2 border-t border-indigo-900/30 pt-3">
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-400">Points Earned</span>
+                            <span className="text-gray-400">Daily Eligible Swaps</span>
                             <span className="text-xl font-semibold text-indigo-400">
                               {userStats && userStats.totalSwaps > 0 ? 
-                                Math.min(userStats.totalSwaps * 0.5, 2.5).toFixed(1) : "0"}
+                                Math.min(5, userStats.totalSwaps) : "0"}
                             </span>
                           </div>
                           
