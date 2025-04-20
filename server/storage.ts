@@ -1114,15 +1114,7 @@ export class MemStorage implements IStorage {
     return newTransaction;
   }
   
-  async getTransactionPoints(transaction: Transaction): Promise<number> {
-    // For the SIMPLIFIED POINTS SYSTEM, only swaps give points
-    // 0.5 points per swap, max 5 swaps per day = 2.5 points max per day
-    if (transaction.type === 'swap') {
-      return 0.5; // Each swap is worth 0.5 points
-    }
-    
-    return 0; // All other transaction types give 0 points
-  }
+  // Removed duplicate getTransactionPoints method - using the one defined above
   
   // Quiz feature initialization
   private initializeQuizzes() {
