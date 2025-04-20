@@ -4,7 +4,7 @@
 [build]
   base = "."
   publish = "dist/public"
-  command = "npm run build"
+  command = "node scripts/netlify-build.js"
   
 [build.environment]
   NODE_VERSION = "20"
