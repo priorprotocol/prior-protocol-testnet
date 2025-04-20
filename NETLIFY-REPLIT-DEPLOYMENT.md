@@ -47,8 +47,8 @@ This document outlines how to deploy the Prior Protocol Testnet using Netlify fo
    - Select your GitHub repository
 
 3. **Configure Build Settings**:
-   - Build command: `cd client && npm run build`
-   - Publish directory: `client/dist`
+   - Build command: `node scripts/netlify-build.js`
+   - Publish directory: `dist/public`
    - The netlify.toml file already contains these settings
 
 4. **Set Environment Variables on Netlify**:

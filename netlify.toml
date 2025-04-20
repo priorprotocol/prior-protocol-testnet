@@ -3,7 +3,7 @@
 
 [build]
   base = "."
-  publish = "client/dist"
+  publish = "dist/public"
   command = "node scripts/netlify-build.js"
   
 [build.environment]
