@@ -917,9 +917,10 @@ export class DatabaseStorage implements IStorage {
           .from(transactions)
           .where(and(
             eq(transactions.userId, userId),
-            eq(transactions.type, 'swap')
+            eq(transactions.type, 'swap'),
+            eq(transactions.status, 'completed')
           ))
-          .orderBy(transactions.timestamp);
+          .orderBy(sql`${transactions.timestamp} ASC`); // Ensure chronological order
         
         // Group transactions by day for swap points calculation
         const transactionsByDay: Record<string, Transaction[]> = {};
@@ -941,10 +942,14 @@ export class DatabaseStorage implements IStorage {
         
         for (const day in transactionsByDay) {
           const daySwaps = transactionsByDay[day];
+          // Only count the first 5 swaps each day toward points
           const pointSwapsForDay = Math.min(daySwaps.length, 5);
           
           pointEarningSwaps += pointSwapsForDay;
-          newPoints += pointSwapsForDay * 0.5; // 0.5 points per swap
+          const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
+          
+          console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
+          newPoints += pointsForDay;
         }
         
         // Check for NFT staking transactions
@@ -956,12 +961,12 @@ export class DatabaseStorage implements IStorage {
             eq(transactions.type, 'nft_stake'),
             eq(transactions.status, 'completed')
           ))
-          .orderBy(transactions.timestamp);
+          .orderBy(sql`${transactions.timestamp} ASC`); // Ensure chronological order
           
-        // If user has staked NFTs, add points accordingly
+        // If user has staked NFTs, add points accordingly - only award points once
         const nftStaked = nftStakeTransactions.length > 0;
         if (nftStaked) {
-          // Add 1 point for NFT staking (this can be adjusted based on your requirements)
+          // Add 1 point for NFT staking (just once per user)
           newPoints += 1;
           console.log(`[PointsCalc] Adding 1 point for NFT staking to user ${userId}`);
         }
@@ -992,7 +997,7 @@ export class DatabaseStorage implements IStorage {
           nftStaked
         });
         
-        console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | ${swapTransactions.length} total swaps, ${pointEarningSwaps} earning points | NFT staked: ${nftStaked}`);
+        console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | ${swapTransactions.length} total swaps, ${pointEarningSwaps} earning points | NFT staked: ${nftStaked ? 'Yes' : 'No'}`);
       }
       
       console.log(`[PointsSystem] Recalculation complete. Updated ${usersUpdated} users.`);

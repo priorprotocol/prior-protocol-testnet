@@ -147,20 +147,32 @@ const Dashboard = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 flex items-center">
                         <FaExchangeAlt className="mr-1.5 text-blue-500" size={12} />
-                        Swap Points
+                        Daily Swap Points
                       </span>
-                      <span className="font-medium text-blue-400">0.5 pts/swap</span>
+                      <span className="font-medium text-blue-400">
+                        {userStats && userStats.totalSwaps > 0 ? 
+                          `${Math.min(Math.min(userStats.totalSwaps, 5) * 0.5, 2.5).toFixed(1)} / 2.5` : 
+                          "0 / 2.5"}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400">Daily Limit</span>
-                      <span className="font-medium text-emerald-400">5 swaps max</span>
+                      <span className="text-gray-400">Eligible Swaps</span>
+                      <span className="font-medium text-emerald-400">
+                        {userStats && userStats.totalSwaps > 0 ? 
+                          `${Math.min(userStats.totalSwaps, 5)} / 5` :
+                          "0 / 5"}
+                      </span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400">Max Daily</span>
-                      <span className="font-medium text-amber-400">2.5 pts</span>
-                    </div>
+                    {userStats?.totalSwaps > 5 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400">Extra Swaps</span>
+                        <span className="font-medium text-gray-400">
+                          {userStats.totalSwaps - 5} (no points)
+                        </span>
+                      </div>
+                    )}
                     <div className="mt-2 text-center text-blue-300/70 text-[10px]">
-                      All points convert to PRIOR tokens at TGE
+                      Points are capped at 0.5 × 5 swaps = 2.5 per day
                     </div>
                   </div>
                 </div>
@@ -297,9 +309,11 @@ const Dashboard = () => {
                                   </div>
                                 </div>
                                 <div className="text-xs">
-                                  {tx.type === 'swap' && 
+                                  {tx.type === 'swap' ? (
                                     <span className="text-blue-400">+0.5 pts</span>
-                                  }
+                                  ) : tx.type === 'nft_stake' ? (
+                                    <span className="text-green-400">+1.0 pts</span>
+                                  ) : null}
                                 </div>
                               </div>
                             ))}
@@ -447,7 +461,7 @@ const Dashboard = () => {
                         <div className="mt-2 inline-flex items-center bg-[#111827] rounded px-2 py-1 text-xs">
                           <span className="text-indigo-400">
                             {userStats?.totalSwaps ? 
-                              `${Math.min(userStats.totalSwaps * 0.5, 2.5).toFixed(1)} pts earned` : 
+                              `${Math.min(Math.min(userStats.totalSwaps, 5) * 0.5, 2.5).toFixed(1)} swap pts earned` : 
                               "No points yet"}
                           </span>
                         </div>
