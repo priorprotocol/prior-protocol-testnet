@@ -9,38 +9,10 @@ import cors from "cors";
 // Export the Express app for production use
 export const app = express();
 
-// Configure CORS to allow requests from your Netlify domain and local development
-const allowedOrigins = [
-  "https://prior-protocol-testnet.netlify.app",
-  "https://prior-protocol-testnet-priorprotocol.netlify.app", 
-  "https://*.netlify.app",  // Allow any Netlify subdomain
-  "http://localhost:3000", 
-  "http://localhost:5000"
-];
-
+// Configure CORS to allow requests from any origin in development
+// In production, you would want to restrict this to specific domains
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, Postman)
-    if (!origin) return callback(null, true);
-    
-    // Check if origin matches any allowed origins or patterns
-    const isAllowed = allowedOrigins.some(allowed => {
-      if (allowed.includes('*')) {
-        // Convert wildcard pattern to regex
-        const pattern = allowed.replace(/\./g, '\\.').replace(/\*/g, '.*');
-        const regex = new RegExp(`^${pattern}$`);
-        return regex.test(origin);
-      }
-      return origin === allowed;
-    });
-    
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.log(`CORS blocked request from: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Allow any origin
   credentials: true
 }));
 
