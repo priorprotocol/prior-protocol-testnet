@@ -9,7 +9,7 @@ const router = express.Router();
 
 // Validate and parse transaction type
 const validateTransactionType = (type: string): string => {
-  const validTypes = ['swap', 'faucet_claim', 'governance_vote', 'liquidity_stake', 'nft_mint'];
+  const validTypes = ['swap', 'faucet_claim', 'governance_vote', 'liquidity_stake', 'nft_mint', 'nft_stake'];
   return validTypes.includes(type) ? type : 'other';
 };
 
@@ -19,6 +19,8 @@ const getTransactionPoints = async (userId: number, type: string, txData: any): 
   const MAX_DAILY_SWAPS_FOR_POINTS = 5;
   // Points per swap (0.5 points)
   const POINTS_PER_SWAP = 0.5;
+  // Points for NFT staking (1 point)
+  const POINTS_FOR_NFT_STAKE = 1.0;
   
   if (type === 'swap') {
     // Get the date for this transaction
@@ -54,6 +56,20 @@ const getTransactionPoints = async (userId: number, type: string, txData: any): 
       return 0;
     }
   } 
+  // Award points for NFT staking
+  else if (type === 'nft_stake') {
+    // Check if the user has already staked an NFT
+    const existingStakes = await storage.getUserTransactionsByType(userId, 'nft_stake');
+    
+    // Only award points for the first successful stake
+    if (existingStakes.transactions.length <= 1) { // 1 because the current transaction is included
+      console.log(`[PointsCalc] Awarding ${POINTS_FOR_NFT_STAKE} points for NFT staking to user ${userId}`);
+      return POINTS_FOR_NFT_STAKE;
+    } else {
+      console.log(`[PointsCalc] No additional points for repeated NFT staking to user ${userId}`);
+      return 0;
+    }
+  }
   // NO POINTS FOR ANY OTHER ACTIVITY UNDER NEW SYSTEM
   else {
     console.log(`[PointsCalc] No points for ${type} transaction under new points system`);
@@ -264,11 +280,29 @@ router.post('/sync-transactions', async (req: Request, res: Response) => {
         // If it's a swap, increment the user's swap count
         await storage.incrementUserSwapCount(user.id);
         
-        // Calculate and add points - only for swaps in the new points system
+        // Calculate and add points for swap
         const points = await getTransactionPoints(user.id, tx.type, tx);
         if (points > 0) {
           await storage.addUserPoints(user.id, points);
           stats.points += points;
+        }
+        
+      } else if (tx.type === 'nft_stake') {
+        console.log(`[Transaction] Processing NFT staking transaction for user ${user.id}`);
+        
+        // Calculate and add points for NFT staking
+        const points = await getTransactionPoints(user.id, tx.type, tx);
+        if (points > 0) {
+          await storage.addUserPoints(user.id, points);
+          stats.points += points;
+          console.log(`[Transaction] Added ${points} points for NFT staking to user ${user.id}`);
+        }
+        
+        // Award NFT staking badge if this is their first stake
+        const badges = await storage.getUserBadges(user.id);
+        if (!badges.includes('nft_staked')) {
+          await storage.addUserBadge(user.id, "nft_staked");
+          console.log(`[Transaction] Added 'nft_staked' badge to user ${user.id}`);
         }
         
       } else if (tx.type === 'faucet_claim') {
@@ -400,6 +434,15 @@ router.post('/transactions', async (req: Request, res: Response) => {
       const userStats = await storage.getUserStats(user.id);
       if (userStats.totalSwaps === 1) {
         await storage.addUserBadge(user.id, "swap_completed");
+      }
+    } else if (transaction.type === 'nft_stake') {
+      console.log(`[Transaction] Processing NFT staking transaction for user ${user.id}`);
+      
+      // Award NFT staking badge if this is their first stake
+      const badges = await storage.getUserBadges(user.id);
+      if (!badges.includes('nft_staked')) {
+        await storage.addUserBadge(user.id, "nft_staked");
+        console.log(`[Transaction] Added 'nft_staked' badge to user ${user.id}`);
       }
     } else if (transaction.type === 'faucet_claim') {
       // Increment claim count

@@ -845,4 +845,143 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+  
+  async recalculateAllUserPoints(): Promise<{
+    usersUpdated: number;
+    totalPointsBefore: number;
+    totalPointsAfter: number;
+    userDetails: Array<{
+      userId: number;
+      address: string;
+      pointsBefore: number;
+      pointsAfter: number;
+      totalSwaps: number;
+      pointEarningSwaps: number;
+      nftStaked: boolean;
+    }>;
+  }> {
+    console.log("[PointsSystem] Starting points recalculation for all users");
+    
+    const userDetails: Array<{
+      userId: number;
+      address: string;
+      pointsBefore: number;
+      pointsAfter: number;
+      totalSwaps: number;
+      pointEarningSwaps: number;
+      nftStaked: boolean;
+    }> = [];
+    
+    let totalPointsBefore = 0;
+    let totalPointsAfter = 0;
+    let usersUpdated = 0;
+    
+    try {
+      // Get all users
+      const allUsers = await db.select().from(users);
+      
+      // Process each user
+      for (const user of allUsers) {
+        const userId = user.id;
+        const pointsBefore = user.points || 0;
+        totalPointsBefore += pointsBefore;
+        
+        // Get all swap transactions for this user
+        const swapTransactions = await db
+          .select()
+          .from(transactions)
+          .where(and(
+            eq(transactions.userId, userId),
+            eq(transactions.type, 'swap')
+          ))
+          .orderBy(transactions.timestamp);
+        
+        // Group transactions by day for swap points calculation
+        const transactionsByDay: Record<string, Transaction[]> = {};
+        let pointEarningSwaps = 0;
+        
+        for (const tx of swapTransactions) {
+          const txDate = new Date(tx.timestamp);
+          const day = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+          
+          if (!transactionsByDay[day]) {
+            transactionsByDay[day] = [];
+          }
+          
+          transactionsByDay[day].push(tx);
+        }
+        
+        // Calculate swap points: 0.5 per swap, max 5 swaps per day
+        let newPoints = 0;
+        
+        for (const day in transactionsByDay) {
+          const daySwaps = transactionsByDay[day];
+          const pointSwapsForDay = Math.min(daySwaps.length, 5);
+          
+          pointEarningSwaps += pointSwapsForDay;
+          newPoints += pointSwapsForDay * 0.5; // 0.5 points per swap
+        }
+        
+        // Check for NFT staking transactions
+        const nftStakeTransactions = await db
+          .select()
+          .from(transactions)
+          .where(and(
+            eq(transactions.userId, userId),
+            eq(transactions.type, 'nft_stake'),
+            eq(transactions.status, 'completed')
+          ))
+          .orderBy(transactions.timestamp);
+          
+        // If user has staked NFTs, add points accordingly
+        const nftStaked = nftStakeTransactions.length > 0;
+        if (nftStaked) {
+          // Add 1 point for NFT staking (this can be adjusted based on your requirements)
+          newPoints += 1;
+          console.log(`[PointsCalc] Adding 1 point for NFT staking to user ${userId}`);
+        }
+        
+        // Round to 1 decimal place for clean display
+        newPoints = Math.round(newPoints * 10) / 10;
+        
+        // Update user with new points
+        await db
+          .update(users)
+          .set({ 
+            points: newPoints,
+            totalSwaps: swapTransactions.length
+          })
+          .where(eq(users.id, userId));
+        
+        totalPointsAfter += newPoints;
+        usersUpdated++;
+        
+        // Record the user's details for the report
+        userDetails.push({
+          userId,
+          address: user.address,
+          pointsBefore,
+          pointsAfter: newPoints,
+          totalSwaps: swapTransactions.length,
+          pointEarningSwaps,
+          nftStaked
+        });
+        
+        console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | ${swapTransactions.length} total swaps, ${pointEarningSwaps} earning points | NFT staked: ${nftStaked}`);
+      }
+      
+      console.log(`[PointsSystem] Recalculation complete. Updated ${usersUpdated} users.`);
+      console.log(`[PointsSystem] Total points before: ${totalPointsBefore}, after: ${totalPointsAfter}`);
+      
+      return {
+        usersUpdated,
+        totalPointsBefore,
+        totalPointsAfter,
+        userDetails
+      };
+    } catch (error) {
+      console.error("[PointsSystem] Error during points recalculation:", error);
+      throw error;
+    }
+  }
 }
