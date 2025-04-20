@@ -967,7 +967,7 @@ export class MemStorage implements IStorage {
       };
     }
     
-    // Current points from user record
+    // Current points from user record (this is the single source of truth for points)
     const currentPoints = user.points || 0;
     
     // Set time range based on period
@@ -1009,14 +1009,41 @@ export class MemStorage implements IStorage {
       )
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     
-    // Group transactions by date and calculate points per period
+    // Group transactions by date and distribute points per period
     const periodData: Record<string, { points: number, swaps: number }> = {};
-    const periodTracker: Record<string, Record<string, { swaps: number }>> = {};
+    const periodTracker: Record<string, Record<string, { swaps: number, points: number }>> = {};
     const allPeriods: Set<string> = new Set();
     
-    // Process transactions
+    // First pass: count swaps per day and track which ones would earn points
+    // (without assigning points yet)
+    const dailySwaps: Record<string, { swaps: number, pointSwaps: number }> = {};
+    
     for (const tx of swapTransactions) {
       const txDate = new Date(tx.timestamp);
+      const txDay = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+      
+      if (!dailySwaps[txDay]) {
+        dailySwaps[txDay] = { swaps: 0, pointSwaps: 0 };
+      }
+      
+      dailySwaps[txDay].swaps++;
+      
+      // Only the first 5 swaps per day earn points
+      if (dailySwaps[txDay].swaps <= 5) {
+        dailySwaps[txDay].pointSwaps++;
+      }
+    }
+    
+    // Total up pointSwaps (swaps that earned points)
+    const totalPointSwaps = Object.values(dailySwaps).reduce((sum, day) => sum + day.pointSwaps, 0);
+    
+    // Calculate how many points should be assigned per swap that earned points
+    const pointsPerEarningSwap = totalPointSwaps > 0 ? currentPoints / totalPointSwaps : 0;
+    
+    // Second pass: distribute points to periods based on the calculated rate
+    for (const tx of swapTransactions) {
+      const txDate = new Date(tx.timestamp);
+      const txDay = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
       
       // Generate period key based on our format
       let periodKey: string;
@@ -1036,17 +1063,21 @@ export class MemStorage implements IStorage {
         periodTracker[periodKey] = {};
       }
       
-      // For tracking daily limits
-      const txDay = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+      // Initialize day tracker
       if (!periodTracker[periodKey][txDay]) {
-        periodTracker[periodKey][txDay] = { swaps: 0 };
+        periodTracker[periodKey][txDay] = { swaps: 0, points: 0 };
       }
       
-      // Each swap adds 0.5 points up to 5 swaps (2.5 points) per day
-      if (periodTracker[periodKey][txDay].swaps < 5) {
-        periodData[periodKey].points += 0.5;
-        periodData[periodKey].swaps += 1;
-        periodTracker[periodKey][txDay].swaps += 1;
+      // Count all swaps
+      periodData[periodKey].swaps += 1;
+      periodTracker[periodKey][txDay].swaps += 1;
+      
+      // But only add points for the first 5 swaps of each day
+      const daySwapCount = periodTracker[periodKey][txDay].swaps;
+      if (daySwapCount <= 5) {
+        // Distribution based on user's actual points (ensuring the display matches reality)
+        periodData[periodKey].points += pointsPerEarningSwap;
+        periodTracker[periodKey][txDay].points += pointsPerEarningSwap;
       }
       
       allPeriods.add(periodKey);
@@ -1081,12 +1112,16 @@ export class MemStorage implements IStorage {
       swapData.push(periodData[periodKey].swaps);
     }
     
-    // Calculate total points from transactions
-    const totalPoints = pointsData.reduce((sum, points) => sum + points, 0);
+    // We use currentPoints as the source of truth for totalPoints 
+    // to ensure consistency between displayed values and actual user points
+    const totalPoints = currentPoints;
+    
+    // Round point values to 1 decimal place for display
+    const roundedPointsData = pointsData.map(points => Math.round(points * 10) / 10);
     
     return {
       periods,
-      pointsData,
+      pointsData: roundedPointsData,
       swapData,
       totalPoints,
       currentPoints

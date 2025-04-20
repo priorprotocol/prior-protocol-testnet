@@ -140,10 +140,12 @@ export const PointsHistoryChart: React.FC<PointsHistoryChartProps> = ({ address,
               <div className="bg-[#1A2234] p-3 rounded-lg border border-blue-900/30">
                 <div className="text-xs text-blue-300 mb-1">Total Points</div>
                 <div className="text-2xl font-bold text-white">{historicalData?.totalPoints.toFixed(1)}</div>
+                <div className="text-xs text-gray-500 mt-1">Lifetime points earned</div>
               </div>
               <div className="bg-[#1A2234] p-3 rounded-lg border border-blue-900/30">
-                <div className="text-xs text-indigo-300 mb-1">Current Points</div>
-                <div className="text-2xl font-bold text-white">{historicalData?.currentPoints.toFixed(1)}</div>
+                <div className="text-xs text-indigo-300 mb-1">Total Swaps</div>
+                <div className="text-2xl font-bold text-white">{historicalData?.swapData.reduce((sum, swaps) => sum + swaps, 0)}</div>
+                <div className="text-xs text-gray-500 mt-1">For selected period</div>
               </div>
             </div>
             
