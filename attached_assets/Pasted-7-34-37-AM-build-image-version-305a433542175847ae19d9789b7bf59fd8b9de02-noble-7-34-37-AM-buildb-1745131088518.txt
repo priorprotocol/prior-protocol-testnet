@@ -1,0 +1,163 @@
+7:34:37 AM: build-image version: 305a433542175847ae19d9789b7bf59fd8b9de02 (noble)
+7:34:37 AM: buildbot version: 305a433542175847ae19d9789b7bf59fd8b9de02
+7:34:37 AM: Fetching cached dependencies
+7:34:37 AM: Failed to fetch cache, continuing with build
+7:34:37 AM: Starting to prepare the repo for build
+7:34:37 AM: No cached dependencies found. Cloning fresh repo
+7:34:37 AM: git clone --filter=blob:none https://github.com/priorprotocol/prior-protocol-testnet
+7:34:38 AM: Preparing Git Reference refs/heads/main
+7:34:39 AM: Starting to install dependencies
+7:34:40 AM: Python version set to 3.13.3
+7:34:40 AM: Ruby version set to 2.7.2
+7:34:40 AM: mise go@1.19         install
+7:34:40 AM: mise go@1.19         download go1.19.linux-amd64.tar.gz
+7:34:41 AM: mise go@1.19         checksum go1.19.linux-amd64.tar.gz
+7:34:41 AM: mise go@1.19         extract go1.19.linux-amd64.tar.gz
+7:34:44 AM: mise go@1.19         go version
+7:34:44 AM: mise go@1.19         go version go1.19 linux/amd64
+7:34:44 AM: mise go@1.19       ✓ installed
+7:34:44 AM: Go version set to 1.19
+7:34:45 AM: Using PHP version 8.3
+7:34:46 AM: Downloading and installing node v20.19.0...
+7:34:47 AM: Downloading https://nodejs.org/dist/v20.19.0/node-v20.19.0-linux-x64.tar.xz...
+7:34:47 AM: Computing checksum with sha256sum
+7:34:47 AM: Checksums matched!
+7:34:49 AM: Now using node v20.19.0 (npm v10.8.2)
+7:34:50 AM: Enabling Node.js Corepack
+7:34:50 AM: Started restoring cached build plugins
+7:34:50 AM: Finished restoring cached build plugins
+7:34:50 AM: Started restoring cached corepack dependencies
+7:34:50 AM: Finished restoring cached corepack dependencies
+7:34:50 AM: No npm workspaces detected
+7:34:50 AM: Started restoring cached node modules
+7:34:50 AM: Finished restoring cached node modules
+7:34:50 AM: Installing npm packages using npm version 10.8.2
+7:34:50 AM: npm warn config production Use `--omit=dev` instead.
+7:34:53 AM: npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+7:34:53 AM: npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+7:34:57 AM: added 541 packages in 7s
+7:34:57 AM: 97 packages are looking for funding
+7:34:57 AM:   run `npm fund` for details
+7:34:57 AM: npm packages installed
+7:34:58 AM: Successfully installed dependencies
+7:34:58 AM: Starting build script
+7:34:59 AM: Detected 1 framework(s)
+7:34:59 AM: "vite" at version "5.4.14"
+7:34:59 AM: Section completed: initializing
+7:35:00 AM: ​
+7:35:00 AM: Netlify Build                                                 
+7:35:00 AM: ────────────────────────────────────────────────────────────────
+7:35:00 AM: ​
+7:35:00 AM: ❯ Version
+7:35:00 AM:   @netlify/build 32.0.0
+7:35:00 AM: ​
+7:35:00 AM: ❯ Flags
+7:35:00 AM:   accountId: 67d94489adb4d0313cb7b561
+7:35:00 AM:   baseRelDir: true
+7:35:00 AM:   buildId: 68049573d108fd925f6c734d
+7:35:00 AM:   deployId: 68049573d108fd925f6c734f
+7:35:00 AM: ​
+7:35:00 AM: ❯ Current directory
+7:35:00 AM:   /opt/build/repo
+7:35:00 AM: ​
+7:35:00 AM: ❯ Config file
+7:35:00 AM:   /opt/build/repo/netlify.toml
+7:35:00 AM: ​
+7:35:00 AM: ❯ Context
+7:35:00 AM:   production
+7:35:00 AM: ​
+7:35:00 AM: build.command from netlify.toml                               
+7:35:00 AM: ────────────────────────────────────────────────────────────────
+7:35:00 AM: ​
+7:35:00 AM: $ cd client && npm run build
+7:35:00 AM: > rest-express@1.0.0 build
+7:35:00 AM: > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+7:35:00 AM: vite v5.4.14 building for production...
+7:35:01 AM: transforming...
+7:35:01 AM: Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+7:35:01 AM:   npx update-browserslist-db@latest
+7:35:01 AM:   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+7:35:08 AM: ✓ 3363 modules transformed.
+7:35:08 AM: rendering chunks...
+7:35:09 AM: Failed during stage 'building site': Build script returned non-zero exit code: 2 (https://ntl.fyi/exit-code-2)
+7:35:09 AM: computing gzip size...
+7:35:09 AM: ../dist/public/index.html                                   2.25 kB │ gzip:   0.89 kB
+7:35:09 AM: ../dist/public/assets/prior-protocol-logo-CsIVP3yx.png    146.54 kB
+7:35:09 AM: ../dist/public/assets/prior-pioneer-nft-CbtAigRq.jpg    1,387.00 kB
+7:35:09 AM: ../dist/public/assets/index-DOB2Lst-.css                   91.25 kB │ gzip:  15.15 kB
+7:35:09 AM: ../dist/public/assets/blockExplorerService-DzZnXaaH.js      9.42 kB │ gzip:   3.04 kB
+7:35:09 AM: ../dist/public/assets/index-CmjSQ4sZ.js                 1,295.20 kB │ gzip: 380.62 kB
+7:35:09 AM: 
+7:35:09 AM: (!) Some chunks are larger than 500 kB after minification. Consider:
+7:35:09 AM: - Using dynamic import() to code-split the application
+7:35:09 AM: - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+7:35:09 AM: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+7:35:09 AM: ✓ built in 8.36s
+7:35:09 AM: ▲ [WARNING] Duplicate member "getTransactionPoints" in class body [duplicate-class-member]
+7:35:09 AM:     server/storage.ts:1117:8:
+7:35:09 AM:       1117 │   async getTransactionPoints(transaction: Transaction): Promise<...
+7:35:09 AM:            ╵         ~~~~~~~~~~~~~~~~~~~~
+7:35:09 AM:   The original member "getTransactionPoints" is here:
+7:35:09 AM:     server/storage.ts:901:8:
+7:35:09 AM:       901 │   async getTransactionPoints(transaction: Transaction): Promise<n...
+7:35:09 AM:           ╵         ~~~~~~~~~~~~~~~~~~~~
+7:35:09 AM: 1 warning
+7:35:09 AM:   dist/index.js  109.1kb
+7:35:09 AM: ⚡ Done in 18ms
+7:35:09 AM: ​
+7:35:09 AM: (build.command completed in 8.8s)
+7:35:09 AM: ​
+7:35:09 AM: Deploy site                                                   
+7:35:09 AM: ────────────────────────────────────────────────────────────────
+7:35:09 AM: ​
+7:35:09 AM: Section completed: deploying
+7:35:09 AM: ​
+7:35:09 AM: Configuration error                                           
+7:35:09 AM: ────────────────────────────────────────────────────────────────
+7:35:09 AM: ​
+7:35:09 AM:   Error message
+7:35:09 AM:   Deploy did not succeed: Deploy directory 'client/dist' does not exist
+7:35:09 AM: ​
+7:35:09 AM:   Resolved config
+7:35:09 AM:   build:
+7:35:09 AM:     base: /opt/build/repo
+7:35:09 AM:     command: cd client && npm run build
+7:35:09 AM:     commandOrigin: config
+7:35:09 AM:     environment:
+7:35:09 AM:       - VITE_API_URL
+7:35:09 AM:       - VITE_BLOCK_EXPLORER_URL
+7:35:09 AM:       - VITE_CHAIN_ID
+7:35:09 AM:       - NODE_VERSION
+7:35:09 AM:       - NPM_FLAGS
+7:35:09 AM:       - NOT_FOUND_PAGE
+7:35:09 AM:     processing:
+7:35:09 AM:       css:
+7:35:09 AM:         bundle: true
+7:35:09 AM:         minify: true
+7:35:09 AM:       images:
+7:35:09 AM:         compress: true
+7:35:09 AM:       js:
+7:35:09 AM:         bundle: true
+7:35:09 AM:         minify: true
+7:35:09 AM:       skip_processing: false
+7:35:09 AM:     publish: /opt/build/repo/client/dist
+7:35:09 AM:     publishOrigin: config
+7:35:09 AM:   headers:
+7:35:09 AM:     - for: /*
+      values:
+        Referrer-Policy: strict-origin-when-cross-origin
+        X-Content-Type-Options: nosniff
+        X-Frame-Options: DENY
+        X-XSS-Protection: 1; mode=block
+    - for: /assets/*
+      values:
+        Cache-Control: public, max-age=31536000, immutable
+  headersOrigin: config
+  redirects:
+    - from: /*
+      status: 200
+      to: /index.html
+  redirectsOrigin: config
+7:35:09 AM: Build failed due to a user error: Build script returned non-zero exit code: 2
+7:35:09 AM: Failing build: Failed to build site
+7:35:10 AM: Finished processing build request in 32.552s
