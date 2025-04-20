@@ -15,23 +15,33 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   log(`CORS request from origin: ${origin}`);
   
-  // Set CORS headers for specific Netlify origins and Replit domains
+  // IMPORTANT: Ensure all Netlify and Replit domains are explicitly listed here
+  const allowedOrigins = [
+    'https://priortestnetv2.netlify.app',
+    'https://prior-protocol-testnet.netlify.app',
+    'https://testnetpriorprotocol.netlify.app',
+    'https://prior-testnet.netlify.app'
+  ];
+  
+  // Check if origin is in allowed list or matches our development domains
   if (origin && (
-    origin.includes('priortestnetv2.netlify.app') || 
-    origin.includes('prior-protocol-testnet.netlify.app') || 
-    origin.includes('testnetpriorprotocol.netlify.app') || 
-    origin.includes('prior-testnet.netlify.app') ||
+    allowedOrigins.includes(origin) || 
     origin.includes('localhost') ||
     origin.includes('replit.dev') ||
-    origin.includes('replit.app')
+    origin.includes('replit.app') ||
+    origin.includes('janeway.replit')
   )) {
     log(`Allowing CORS for origin: ${origin}`);
+    // Set the exact origin rather than * for security
     res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    // Important for cookies/sessions
     res.header('Access-Control-Allow-Credentials', 'true');
   } else {
-    // Fallback for development or unknown origins
+    // Fallback for development, but use more restrictive settings
+    log(`Using fallback CORS for origin: ${origin}`);
+    // Use * only if we really need to (better security would use specific origins)
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
