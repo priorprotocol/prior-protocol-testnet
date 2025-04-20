@@ -522,16 +522,7 @@ export default function Swap() {
             pointsMessage = `No points earned. Already completed ${MAX_DAILY_SWAPS_FOR_POINTS} swaps today.`;
           }
           
-          // Show toast for points earned
-          if (pointsToAdd > 0) {
-            toast({
-              title: "Points Earned!",
-              description: pointsMessage,
-              variant: "default",
-              className: "bg-green-800 text-white border-green-600",
-            });
-          }
-          
+          // Only handle points if pointsToAdd > 0
           if (pointsToAdd > 0) {
             // Add the points to the user's account using the apiRequest function
             try {
@@ -541,20 +532,12 @@ export default function Swap() {
               
               console.log(`Successfully awarded ${pointsToAdd} points for swap, new total:`, pointsResult);
               
-              // Show the swap progress toast notification
+              // Show a single, combined toast notification with swap info and points
               toast({
                 title: `Swap ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS} Complete`,
-                description: `Successfully swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`,
+                description: `Successfully swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken} • Earned ${pointsToAdd} points!`,
                 variant: "default",
-                className: "bg-blue-800 text-white border-blue-600",
-              });
-              
-              // Then show a toast notification about points earned with dynamic styling
-              toast({
-                title: `Points Earned: ${pointsToAdd}`,
-                description: `You earned ${pointsToAdd} points for this swap! (${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS} daily swaps)`,
-                variant: "default",
-                className: "bg-gradient-to-r from-emerald-800 to-green-900 border-emerald-600"
+                className: "bg-gradient-to-r from-blue-800 to-green-900 border-blue-600",
               });
             } catch (pointsError) {
               console.error("Error awarding points:", pointsError);

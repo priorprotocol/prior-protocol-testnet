@@ -111,8 +111,16 @@ export const PointsHistoryChart: React.FC<PointsHistoryChartProps> = ({ address,
           <div className="h-64 flex items-center justify-center">
             <div className="text-red-400 text-center">
               <div className="mb-2">Failed to load historical data</div>
+              <div className="text-xs text-gray-300 mb-2">
+                Ensure your wallet is connected and try again
+              </div>
               <button 
-                onClick={() => setPeriod(period)} // This will trigger a refresh
+                onClick={() => {
+                  // Force a hard refresh of the data
+                  console.log("Manual retry for historical data");
+                  setPeriod('day');
+                  setTimeout(() => setPeriod(period), 500);
+                }}
                 className="px-3 py-1 bg-red-900/20 border border-red-700/30 text-red-400 text-xs rounded-md"
               >
                 Retry
