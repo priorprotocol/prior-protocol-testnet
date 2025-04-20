@@ -122,7 +122,7 @@ const Header = () => {
             <StandaloneWalletButton
               onConnect={(newAddress) => {
                 console.log("Connected to wallet:", newAddress);
-                if (newAddress) copyToClipboard(newAddress);
+                // Removed auto-copying of address to clipboard
               }}
               onDisconnect={() => {
                 console.log("Wallet disconnected");

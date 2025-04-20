@@ -20,10 +20,24 @@ export function addWalletListener(listener: WalletListener) {
   };
 }
 
+// Track the last wallet address to prevent duplicate notifications
+let lastNotifiedAddress: string | null = null;
+
 /**
- * Notify all listeners of a wallet state change
+ * Notify all listeners of a wallet state change, but only if the address has actually changed
  */
 function notifyListeners(address: string | null) {
+  // Skip if the address hasn't changed (prevents redundant notifications)
+  if (address === lastNotifiedAddress) {
+    console.log("Skipping redundant wallet notification for:", address);
+    return;
+  }
+  
+  // Update the last notified address
+  lastNotifiedAddress = address;
+  
+  console.log(`Notifying ${listeners.length} listeners of wallet change to:`, address);
+  
   for (const listener of listeners) {
     try {
       listener(address);
@@ -44,10 +58,20 @@ interface WalletState {
  * Save wallet state to localStorage
  */
 function saveWalletState(address: string | null, chainId?: number) {
+  // Only process if the address has actually changed
+  const currentState = getWalletState();
+  
+  if (currentState?.address === address && !chainId) {
+    console.log("Wallet state unchanged, skipping update for:", address);
+    return;
+  }
+  
+  console.log("Saving wallet state:", address);
+  
   const state: WalletState = {
     address,
     timestamp: Date.now(),
-    chainId
+    chainId: chainId || currentState?.chainId
   };
   
   if (address) {
@@ -56,10 +80,19 @@ function saveWalletState(address: string | null, chainId?: number) {
     localStorage.removeItem('walletState');
   }
   
-  // Notify any listeners about the change
+  // Notify any listeners about the change - this will check for redundant notifications
   notifyListeners(address);
   
-  // Also trigger a custom event for components that listen for it
+  // Throttle custom events to prevent overload
+  if (window._lastWalletEvent && Date.now() - window._lastWalletEvent < 500) {
+    console.log("Throttling wallet change event");
+    return;
+  }
+  
+  // Store the timestamp of the last event
+  window._lastWalletEvent = Date.now();
+  
+  // Trigger a custom event for components that listen for it
   try {
     const event = new CustomEvent('walletChanged', { 
       detail: { address } 
@@ -151,6 +184,10 @@ export async function connectWallet(): Promise<string | null> {
     // Save wallet state
     saveWalletState(address, parseInt(chainId, 16));
     
+    // Remove any existing listeners first to prevent duplicates
+    window.ethereum.removeAllListeners('accountsChanged');
+    window.ethereum.removeAllListeners('chainChanged');
+    
     // Add event listener for account changes
     window.ethereum.on('accountsChanged', (accounts: string[]) => {
       console.log("Accounts changed:", accounts);
@@ -197,6 +234,9 @@ export function disconnectWallet() {
 
 // Make the disconnect function available globally
 if (typeof window !== 'undefined') {
+  // Add throttling timestamp to window object
+  window._lastWalletEvent = 0;
+  // Add disconnect method
   window.disconnectWallet = disconnectWallet;
 }
 
@@ -241,6 +281,10 @@ export async function restoreWalletConnection(): Promise<string | null> {
         const chainId = await window.ethereum.request({ 
           method: "eth_chainId" 
         });
+        
+        // Remove any existing listeners first to prevent duplicates
+        window.ethereum.removeAllListeners('accountsChanged');
+        window.ethereum.removeAllListeners('chainChanged');
         
         // Set up listeners
         window.ethereum.on('accountsChanged', (accounts: string[]) => {
