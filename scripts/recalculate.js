@@ -30,7 +30,7 @@ async function recalculatePoints() {
     // Log each user's details
     console.log('\nUser details:');
     result.details.forEach(user => {
-      console.log(`User ${user.userId} (${user.address.substring(0, 8)}...): ${user.pointsBefore} → ${user.pointsAfter} points | ${user.totalSwaps} total swaps, ${user.pointEarningSwaps} point-earning swaps`);
+      console.log(`User ${user.userId} (${user.address.substring(0, 8)}...): ${user.pointsBefore} → ${user.pointsAfter} points | ${user.totalSwaps} total swaps, ${user.pointEarningSwaps} point-earning swaps | NFT staked: ${user.nftStaked ? 'Yes' : 'No'}`);
     });
     
     return result;
