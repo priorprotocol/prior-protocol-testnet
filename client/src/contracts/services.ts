@@ -144,6 +144,12 @@ export const getNftContract = async () => {
 
 // Get token symbol from address
 export const getTokenSymbol = (tokenAddress: string): string => {
+  // Return "Unknown" for undefined, null or empty addresses
+  if (!tokenAddress) {
+    console.warn("getTokenSymbol received invalid address:", tokenAddress);
+    return "Unknown";
+  }
+  
   // Normalize the input address
   const lowerCaseAddress = tokenAddress.toLowerCase();
   
@@ -167,6 +173,17 @@ export const getTokenSymbol = (tokenAddress: string): string => {
     return "USDC";
   }
   
+  // Also check the addresses from forceCorrectAddresses.ts
+  if (lowerCaseAddress === CORRECT_ADDRESSES.PRIOR_TOKEN.toLowerCase()) {
+    console.log(`Identified address ${tokenAddress} as PRIOR token from CORRECT_ADDRESSES`);
+    return "PRIOR";
+  }
+  
+  if (lowerCaseAddress === CORRECT_ADDRESSES.USDC_TOKEN.toLowerCase()) {
+    console.log(`Identified address ${tokenAddress} as USDC token from CORRECT_ADDRESSES`);
+    return "USDC";
+  }
+  
   // Also check configured addresses as a fallback
   if (lowerCaseAddress === CONTRACT_ADDRESSES.priorToken.toLowerCase()) {
     console.log(`Identified address ${tokenAddress} as PRIOR token`);
@@ -175,8 +192,11 @@ export const getTokenSymbol = (tokenAddress: string): string => {
   
   // Check if the address matches any of our known tokens
   for (const [symbol, address] of Object.entries(CONTRACT_ADDRESSES.tokens)) {
+    // Skip empty addresses
+    if (!address) continue;
+    
     const tokenLowerAddress = (typeof address === 'string') ? address.toLowerCase() : '';
-    if (lowerCaseAddress === tokenLowerAddress) {
+    if (lowerCaseAddress === tokenLowerAddress && tokenLowerAddress !== '') {
       console.log(`Identified address ${tokenAddress} as ${symbol} token`);
       return symbol;
     }

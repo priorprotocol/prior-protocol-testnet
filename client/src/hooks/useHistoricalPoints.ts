@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 interface HistoricalPointsData {
   periods: string[];
@@ -21,23 +22,21 @@ export function useHistoricalPoints(address: string | null, period: string = 'we
         throw new Error('No address provided');
       }
       
-      const response = await fetch(`/api/users/${address}/historical-points?period=${period}`);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          // User not found or no historical data
-          return {
-            periods: [],
-            pointsData: [],
-            swapData: [],
-            totalPoints: 0,
-            currentPoints: 0
-          };
-        }
-        throw new Error('Failed to fetch historical points data');
+      try {
+        // Use apiRequest which resolves URLs correctly based on environment
+        return await apiRequest(`/api/users/${address}/historical-points?period=${period}`);
+      } catch (error) {
+        console.error('Failed to fetch historical points:', error);
+        
+        // Return empty data structure on error
+        return {
+          periods: [],
+          pointsData: [],
+          swapData: [],
+          totalPoints: 0,
+          currentPoints: 0
+        };
       }
-      
-      return response.json();
     },
     enabled: Boolean(address),
     staleTime: 60000, // Consider data stale after 1 minute
