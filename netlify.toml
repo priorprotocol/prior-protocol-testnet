@@ -1,3 +1,6 @@
+# Netlify configuration for Prior Protocol Testnet
+# This file configures how Netlify builds and serves the frontend application
+
 [build]
   base = "."
   publish = "client/dist"
@@ -5,9 +8,43 @@
   
 [build.environment]
   NODE_VERSION = "20"
+  NPM_FLAGS = "--no-audit --production=false"
+
+# Enable better performance and security features
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.images]
+  compress = true
+
+# Optimize asset caching
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
 # Handle SPA routing for React app
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  
+# Custom 404 page
+[context.production.environment]
+  NOT_FOUND_PAGE = "/index.html"

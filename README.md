@@ -53,7 +53,13 @@ Block Explorer: [Base Sepolia](https://sepolia.basescan.org)
 
 This project can be deployed to various platforms:
 
-- **Vercel (Recommended)** - Follow the detailed instructions in [VERCEL-DEPLOYMENT.md](./VERCEL-DEPLOYMENT.md)
+- **Netlify + Replit (Recommended)** - Follow the detailed instructions in [NETLIFY-REPLIT-DEPLOYMENT.md](./NETLIFY-REPLIT-DEPLOYMENT.md)
+  - Frontend hosted on Netlify, Backend on Replit
+  - Better performance and resource allocation
+  - Continuous deployment for both frontend and backend
+  - Custom domains with free SSL certificates
+
+- **Vercel** - Follow the detailed instructions in [VERCEL-DEPLOYMENT.md](./VERCEL-DEPLOYMENT.md)
   - Supports serverless functions with database integration
   - Automatic GitHub integration and continuous deployment
   - Custom domains with free SSL certificates
