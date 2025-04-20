@@ -19,6 +19,7 @@ const requiredFiles = [
   'package-lock.json',
   'README.md',
   'scripts/build-frontend.js',
+  'scripts/netlify-build.js',
   '.gitignore'
 ];
 

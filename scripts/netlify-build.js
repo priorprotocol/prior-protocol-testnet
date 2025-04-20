@@ -21,8 +21,8 @@ try {
   execSync('npm install', { stdio: 'inherit' });
   
   console.log('Building frontend...');
-  // Use vite build only without the backend part
-  execSync('vite build', { stdio: 'inherit' });
+  // Change to client directory and run build there
+  execSync('cd client && mkdir -p dist && npx vite build', { stdio: 'inherit' });
   
   console.log('Frontend build complete!');
 } catch (error) {
