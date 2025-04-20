@@ -3,13 +3,19 @@
  * This ensures every user's points match the updated points algorithm
  */
 
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 async function recalculatePoints() {
   try {
     console.log('Starting points recalculation for all users...');
     
-    const response = await fetch('http://localhost:3000/api/maintenance/recalculate-points', {
+    // Use local URL for development
+    const baseUrl = process.env.BASE_URL || 'https://prior-protocol-testnet.replit.app';
+    const url = `${baseUrl}/api/maintenance/recalculate-points`;
+    
+    console.log(`Using API endpoint: ${url}`);
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
