@@ -3,8 +3,8 @@
 
 [build]
   base = "."
-  publish = "dist/public"
-  command = "node scripts/netlify-build.js"
+  publish = "client/dist"
+  command = "cd client && npm run build"
   
 [build.environment]
   NODE_VERSION = "20"
