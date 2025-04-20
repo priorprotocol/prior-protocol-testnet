@@ -750,7 +750,7 @@ const Documentation = () => {
                       <span className="text-orange-400 text-xs">1</span>
                     </div>
                     <div>
-                      <span className="text-white">Go to the original testnet site</span>
+                      <span className="text-white">Go to the NFT staking site</span>
                       <p className="text-xs text-gray-400 mt-0.5">Click "NFT STAKE" in the main navigation menu to be redirected</p>
                     </div>
                   </li>
@@ -799,7 +799,7 @@ const Documentation = () => {
               </div>
               
               <div className="flex justify-center mt-6">
-                <a href="https://testnetpriorprotocol.xyz/" target="_blank" rel="noopener noreferrer">
+                <a href="https://priornftstake.xyz/" target="_blank" rel="noopener noreferrer">
                   <Button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white flex items-center gap-2">
                     Go to NFT Staking
                     <FaExternalLinkAlt size={12} />

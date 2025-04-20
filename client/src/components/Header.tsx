@@ -33,7 +33,7 @@ const Header = () => {
     { name: "Quest", path: "/quest" },
     { name: "Governance", path: "/governance" },
     { name: "Dashboard", path: "/dashboard" },
-    { name: "NFT STAKE", path: "https://testnetpriorprotocol.xyz/", external: true },
+    { name: "NFT STAKE", path: "https://priornftstake.xyz/", external: true },
     { name: "Docs", path: "/docs" },
     { name: "About", path: "/about" }
   ];
