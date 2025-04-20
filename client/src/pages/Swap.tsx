@@ -475,38 +475,35 @@ export default function Swap() {
       try {
         const userId = directAddress || address;
         if (userId) {
+          // Import the apiRequest function from queryClient to ensure proper API URL handling
+          const { apiRequest } = await import('@/lib/queryClient');
+          
           // Create a transaction record through the API
-          const response = await fetch('/api/transactions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: userId,
-              type: 'swap',
-              txHash: receipt.transactionHash,
-              fromToken: fromToken,
-              toToken: toToken,
-              fromAmount: fromAmount,
-              toAmount: toAmount,
-              status: 'completed',
-              blockNumber: receipt.blockNumber
-            }),
+          const transactionResult = await apiRequest('POST', '/api/transactions', {
+            userId: userId,
+            type: 'swap',
+            txHash: receipt.transactionHash,
+            fromToken: fromToken,
+            toToken: toToken,
+            fromAmount: fromAmount,
+            toAmount: toAmount,
+            status: 'completed',
+            blockNumber: receipt.blockNumber
           });
           
-          if (!response.ok) {
-            console.error('Failed to record transaction in database:', await response.text());
+          if (!transactionResult) {
+            console.error('Failed to record transaction in database');
+          } else {
+            console.log('Transaction recorded successfully:', transactionResult);
           }
           
           // Increment swap count 
-          const swapCountResponse = await fetch(`/api/users/${userId}/increment-swap-count`, {
-            method: 'POST',
-          });
-          const swapCountResult = await swapCountResponse.json();
+          const swapCountResult = await apiRequest('POST', `/api/users/${userId}/increment-swap-count`);
+          console.log('Swap count incremented:', swapCountResult);
           
-          // Check daily swap count to see if user has done 10+ swaps today
-          const dailySwapCountResponse = await fetch(`/api/users/${userId}/daily-swap-count`);
-          const dailySwapData = await dailySwapCountResponse.json();
+          // Check daily swap count to see if user has done swaps today
+          const dailySwapData = await apiRequest('GET', `/api/users/${userId}/daily-swap-count`);
+          console.log('Daily swap count data:', dailySwapData);
           const dailySwapCount = dailySwapData.count || 0;
           
           // Determine points to add based on NEW SIMPLIFIED points system
