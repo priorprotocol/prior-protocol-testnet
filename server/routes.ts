@@ -995,6 +995,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Replaced direct swap count increment with daily swap count check
+  // to prevent double-counting when transactions are recorded in multiple places
   app.post(`${apiPrefix}/users/:userIdOrAddress/increment-swap-count`, async (req, res) => {
     try {
       const { userIdOrAddress } = req.params;
@@ -1028,13 +1030,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Increment the swap count
-      const newSwapCount = await storage.incrementUserSwapCount(userId);
+      // REMOVED DIRECT INCREMENT - now just returning current count
+      // to prevent double-counting with the transaction recording
+      const user = await storage.getUserById(userId);
+      const swapCount = user?.totalSwaps || 0;
       
-      res.json({ userId, swapCount: newSwapCount });
+      console.log(`[DEPRECATED] increment-swap-count endpoint called - this is now handled by transaction recording`);
+      
+      res.json({ 
+        userId, 
+        swapCount,
+        message: "Note: Swap counts now updated automatically with transaction recording"
+      });
     } catch (error) {
-      console.error("Error incrementing swap count:", error);
-      res.status(500).json({ message: "Error incrementing swap count" });
+      console.error("Error in swap count endpoint:", error);
+      res.status(500).json({ message: "Error processing swap count request" });
     }
   });
   
