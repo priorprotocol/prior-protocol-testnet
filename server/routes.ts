@@ -345,6 +345,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { address } = req.params;
     const { period = 'week' } = req.query; // Options: 'day', 'week', 'month', 'all'
     
+    // Set explicit CORS headers for this critical endpoint
+    const origin = req.headers.origin;
+    if (origin) {
+      // Allow specific Netlify domains
+      if (origin.includes('priortestnetv2.netlify.app') || 
+          origin.includes('prior-protocol-testnet.netlify.app') ||
+          origin.includes('testnetpriorprotocol.netlify.app') ||
+          origin.includes('replit.app')) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        res.header('Access-Control-Allow-Credentials', 'true');
+      }
+    }
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+    
     // Normalize the address to lowercase
     const normalizedAddress = address.startsWith('0x') 
       ? address.toLowerCase() 
@@ -352,18 +372,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     console.log(`Processing historical points request for address: ${normalizedAddress}, period: ${period}`);
     
-    let user = await storage.getUser(normalizedAddress);
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
     try {
+      let user = await storage.getUser(normalizedAddress);
+      
+      if (!user) {
+        console.log(`No user found for address ${normalizedAddress}, creating default empty user`);
+        // Create a new user if they don't exist yet
+        user = await storage.createUser({ 
+          address: normalizedAddress,
+          lastClaim: null
+        });
+      }
+      
+      console.log(`Fetching historical points for user ID: ${user.id}, period: ${period}`);
       const historicalData = await storage.getUserHistoricalPoints(user.id, period as string);
-      res.json(historicalData);
+      
+      // Add debug log to see what's being returned
+      console.log(`Historical data for ${normalizedAddress} (${period}):`, JSON.stringify(historicalData).substring(0, 200) + '...');
+      
+      return res.json(historicalData);
     } catch (error) {
       console.error('Error fetching historical points:', error);
-      res.status(500).json({ error: 'Failed to fetch historical points data' });
+      return res.status(500).json({ 
+        error: 'Failed to fetch historical points data',
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   });
   
