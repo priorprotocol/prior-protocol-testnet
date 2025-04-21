@@ -7,6 +7,9 @@
 
 import { storage } from '../storage';
 import { ensureUserExists } from '../middleware/userTracker';
+import { db } from '../db';
+import { transactions } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 /**
  * Record a swap transaction directly to the database
@@ -26,7 +29,7 @@ export async function recordSwapTransaction(params: {
     // Make sure user exists
     const user = await ensureUserExists(address);
     
-    // Create the transaction record
+    // Create the transaction record - for swaps, points will be updated later if eligible
     const transaction = await storage.createTransaction({
       userId: user.id,
       type: 'swap',
@@ -36,7 +39,8 @@ export async function recordSwapTransaction(params: {
       fromAmount,
       toAmount,
       blockNumber: blockNumber || null,
-      status: 'completed'
+      status: 'completed',
+      points: 0 // Initialize points to 0, will update if eligible
     });
     
     console.log(`Transaction recorded for user ${address}: ${txHash} - ${fromAmount} ${fromToken} to ${toAmount} ${toToken}`);
@@ -58,8 +62,21 @@ export async function recordSwapTransaction(params: {
       await storage.addUserPoints(user.id, POINTS_PER_SWAP);
       console.log(`Awarded ${POINTS_PER_SWAP} points to user ${address} for swap. Daily swaps: ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS}`);
       
-      // Add the exact points value to the result for debugging
-      result.pointsAdded = POINTS_PER_SWAP;
+      // Update the transaction record with the points value
+      try {
+        // First update the transaction record with the points value
+        await db
+          .update(transactions)
+          .set({ points: POINTS_PER_SWAP })
+          .where(eq(transactions.id, transaction.id));
+          
+        console.log(`Updated transaction ${transaction.id} with ${POINTS_PER_SWAP} points`);
+        
+        // Add the exact points value to the result for debugging
+        result.pointsAdded = POINTS_PER_SWAP;
+      } catch (updateError) {
+        console.error("Error updating transaction with points value:", updateError);
+      }
       
       // If this is exactly the 5th swap, trigger immediate points recalculation
       if (dailySwapCount === MAX_DAILY_SWAPS_FOR_POINTS) {
