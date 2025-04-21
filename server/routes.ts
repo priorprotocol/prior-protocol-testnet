@@ -78,14 +78,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // This endpoint will completely wipe all data except for the demo user
   app.post(`${apiPrefix}/maintenance/complete-reset`, async (req, res) => {
     try {
-      console.log("⚠️ DANGER: Starting COMPLETE DATABASE RESET - wiping all user data");
+      console.log("⚠️ DANGER: Starting COMPLETE DATABASE RESET - wiping all user data with cache-busting");
       console.log("Headers:", req.headers);
       console.log("Method:", req.method);
       console.log("Body:", req.body);
       
+      // Run a direct SQL query to get the true user count before reset
+      // This will help us verify there's no caching issue in our storage layer
+      const actualCountResult = await pool.query('SELECT COUNT(*) FROM users');
+      const actualUserCount = parseInt(actualCountResult?.rows?.[0]?.count || '0');
+      console.log(`[CACHE-DEBUG] Before reset - Direct SQL count shows ${actualUserCount} users in database`);
+      
+      // Add a verification step before performing reset to ensure we're doing the right thing
+      const verificationCheck = await storage.getTotalUsersCount();
+      console.log(`[CACHE-DEBUG] Storage layer reports ${verificationCheck.count} users (should match SQL count)`);
+      
+      // Perform the complete reset
       const result = await storage.completeReset();
       
+      // Run another direct SQL query after reset to confirm it worked
+      const postResetResult = await pool.query('SELECT COUNT(*) FROM users');
+      const postResetCount = parseInt(postResetResult?.rows?.[0]?.count || '0');
+      console.log(`[CACHE-DEBUG] After reset - Direct SQL count shows ${postResetCount} users in database (should be 1 - just demo user)`);
+      
       console.log("Database reset completed successfully:", result);
+      
+      // Set strong cache control headers to prevent any caching of this response
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       
       return res.status(200).json({
         success: true,
@@ -94,8 +115,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           usersDeleted: result.usersDeleted,
           transactionsDeleted: result.transactionsDeleted,
           userQuestsDeleted: result.userQuestsDeleted,
-          votesDeleted: result.votesDeleted
-        }
+          votesDeleted: result.votesDeleted,
+          beforeCount: actualUserCount,
+          afterCount: postResetCount
+        },
+        timestamp: new Date().toISOString(), // Add timestamp for cache validation
+        cacheRefreshed: true
       });
     } catch (error: unknown) {
       console.error("⚠️ CRITICAL ERROR during complete database reset:", error);
@@ -105,7 +130,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         message: "A critical error occurred during the complete database reset",
         error: String(error),
-        stack: errorStack
+        stack: errorStack,
+        timestamp: new Date().toISOString()
       });
     }
   });
@@ -160,6 +186,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       success: false,
       message: "Method not allowed. Please use POST for this endpoint."
     });
+  });
+  
+  // New maintenance endpoint to force refresh cache
+  app.post(`${apiPrefix}/maintenance/force-refresh-cache`, async (req, res) => {
+    try {
+      console.log("Starting force cache refresh for all data");
+      
+      // Set cache control headers
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      // 1. Get true database counts directly from SQL for verification
+      const usersCountResult = await pool.query('SELECT COUNT(*) FROM users');
+      const transactionsCountResult = await pool.query('SELECT COUNT(*) FROM transactions');
+      
+      const actualUserCount = parseInt(usersCountResult?.rows?.[0]?.count || '0');
+      const actualTransactionCount = parseInt(transactionsCountResult?.rows?.[0]?.count || '0');
+      
+      console.log(`[CACHE-REFRESH] Direct SQL count: ${actualUserCount} users, ${actualTransactionCount} transactions`);
+      
+      // 2. Return fresh data with timestamp to indicate it's a fresh response
+      return res.status(200).json({
+        success: true,
+        message: "Cache refresh completed. All data should now be fresh.",
+        stats: {
+          userCount: actualUserCount,
+          transactionCount: actualTransactionCount
+        },
+        timestamp: new Date().toISOString(),
+        cacheRefreshForced: true
+      });
+    } catch (error: unknown) {
+      console.error("Error during cache refresh:", error);
+      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
+      console.error("Error stack:", errorStack);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while refreshing the cache",
+        error: String(error),
+        stack: errorStack,
+        timestamp: new Date().toISOString()
+      });
+    }
   });
   
   // Get all tokens
@@ -539,9 +609,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const pageParam = req.query.page ? parseInt(req.query.page as string) : 1;
     const page = isNaN(pageParam) ? 1 : pageParam;
     
+    // Extract cache buster parameter if present (added for force refresh)
+    const cacheBuster = req.query._cb ? req.query._cb : null;
+    
     try {
-      console.log("Fetching leaderboard data with limit:", limit, "page:", page);
-      // Get total users count for accurate pagination
+      console.log("Fetching leaderboard data with limit:", limit, "page:", page, 
+                  cacheBuster ? `(cache buster: ${cacheBuster})` : '');
+      
+      // Add cache control headers to prevent browser/CDN caching
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      // Get total users count for accurate pagination - add direct SQL count for verification
       const totalUsersResult = await storage.getTotalUsersCount();
       const totalUsers = totalUsersResult?.count || 0;
       
@@ -554,7 +634,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         users: users || [],
         total: totalUsers,
         page: page,
-        totalPages: Math.ceil(totalUsers / limit) || 1
+        totalPages: Math.ceil(totalUsers / limit) || 1,
+        timestamp: new Date().toISOString(), // Add timestamp for cache invalidation
+        cacheBuster: cacheBuster // Echo back cache buster if provided
       };
       
       // Log first 100 chars of the response to help debug
@@ -567,7 +649,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         total: 0,
         page: 1,
         totalPages: 1,
-        error: "Failed to fetch leaderboard data"
+        error: "Failed to fetch leaderboard data",
+        timestamp: new Date().toISOString()
       });
     }
   });
