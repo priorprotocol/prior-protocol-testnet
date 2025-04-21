@@ -108,8 +108,11 @@ async function fixAllTransactionPoints() {
   }
 }
 
+// Export for import elsewhere
+export { fixAllTransactionPoints };
+
 // Only run if called directly
-if (process.argv[1].includes('fix-points.js')) {
+if (process.argv[1]?.includes('fix-points.js')) {
   console.log('[FixPoints] Starting the fix-points.js script');
   fixAllTransactionPoints()
     .then(result => {
@@ -120,7 +123,4 @@ if (process.argv[1].includes('fix-points.js')) {
       console.error('[FixPoints] Script failed with error:', error);
       process.exit(1);
     });
-} else {
-  // Export for import elsewhere
-  export { fixAllTransactionPoints };
 }

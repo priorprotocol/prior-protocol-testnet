@@ -258,6 +258,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Duplicate endpoint for GET requests to support both POST and GET for fix-points
+  app.get(`${apiPrefix}/maintenance/fix-points`, async (req, res) => {
+    res.status(405).json({
+      success: false,
+      message: "Method not allowed. Please use POST for this endpoint."
+    });
+  });
+  
   // Duplicate endpoint for GET requests to support both POST and GET
   app.get(`${apiPrefix}/maintenance/recalculate-points`, async (req, res) => {
     res.status(405).json({

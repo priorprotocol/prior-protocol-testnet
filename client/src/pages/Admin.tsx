@@ -20,7 +20,8 @@ const Admin = () => {
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetResult, setResetResult] = useState<any>(null);
   const [recalcResult, setRecalcResult] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("reset");
+  const [fixPointsResult, setFixPointsResult] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("points");
   const [, setLocation] = useLocation();
   
   const isAdmin = address?.toLowerCase() === ADMIN_WALLET.toLowerCase();
@@ -153,6 +154,46 @@ const Admin = () => {
       setLoading(false);
     }
   };
+  
+  // New handler for fixing all points to exactly 0.5 per swap
+  const handleFixPoints = async () => {
+    try {
+      setLoading(true);
+      console.log("Sending fix points request (0.5 points per swap)...");
+      
+      // Use our special fix-points endpoint
+      const result = await apiRequest('POST', '/api/maintenance/fix-points', {
+        adminAddress: address,
+        timestamp: Date.now()
+      });
+
+      console.log("Fix points response:", result);
+      
+      setFixPointsResult(result);
+      toast({
+        title: "Points Fix Complete",
+        description: `Fixed ${result.summary.usersUpdated} users to 0.5 points per swap. Points before: ${result.summary.totalPointsBefore}, after: ${result.summary.totalPointsAfter}.`
+      });
+
+      // Refresh all application data after the fix
+      await forceRefreshAllData();
+      
+      toast({
+        title: "Cache Refreshed",
+        description: "All data has been refreshed from the server. The leaderboard should now reflect the fixed points."
+      });
+      
+    } catch (error) {
+      console.error("Points fix failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Points Fix Failed",
+        description: "An error occurred while fixing points to 0.5 per swap."
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isConnected) {
     return (
@@ -229,9 +270,10 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="points">Points Fix</TabsTrigger>
+          <TabsTrigger value="recalculate">Recalculation</TabsTrigger>
           <TabsTrigger value="reset">Database Reset</TabsTrigger>
-          <TabsTrigger value="recalculate">Points Recalculation</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
         </TabsList>
         
@@ -325,6 +367,56 @@ const Admin = () => {
                 className="w-full"
               >
                 {loading ? 'Processing...' : 'Recalculate All User Points'}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="points" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-green-600">
+                <HiRefresh className="mr-2" />
+                Fix Points (0.5 per swap)
+              </CardTitle>
+              <CardDescription>
+                This will update ALL transactions to use EXACTLY 0.5 points per swap and recalculate user totals.
+                Use this to fix any inconsistencies in points calculations.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Alert variant="default" className="mb-4 border-green-400 bg-green-50 dark:bg-green-950 dark:border-green-900">
+                <AlertTitle className="text-green-600">Points Fix Tool</AlertTitle>
+                <AlertDescription>
+                  <p className="mb-2">This specialized tool addresses the following issues:</p>
+                  <ul className="list-disc list-inside mt-2 text-sm">
+                    <li>Updates all swap transactions in the database to award exactly 0.5 points</li>
+                    <li>Enforces the daily maximum of 5 swaps (2.5 points per day)</li>
+                    <li>Recalculates all user point totals based on the fixed transactions</li>
+                    <li>Ensures consistency between transaction points and user total points</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+              
+              {fixPointsResult && (
+                <div className="p-4 bg-muted rounded-lg mb-4 border-green-500 border">
+                  <h3 className="font-medium mb-2 text-green-600">Points Fix Results:</h3>
+                  <ul className="list-disc list-inside text-sm">
+                    <li>Users updated: {fixPointsResult.summary.usersUpdated}</li>
+                    <li>Total points before: {fixPointsResult.summary.totalPointsBefore}</li>
+                    <li>Total points after: {fixPointsResult.summary.totalPointsAfter}</li>
+                    <li>Difference: {fixPointsResult.summary.totalPointsAfter - fixPointsResult.summary.totalPointsBefore}</li>
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+            <CardFooter>
+              <Button 
+                onClick={handleFixPoints}
+                disabled={loading}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                {loading ? 'Processing...' : 'Fix All Points To 0.5 Per Swap'}
               </Button>
             </CardFooter>
           </Card>
