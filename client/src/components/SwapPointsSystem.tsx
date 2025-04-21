@@ -18,9 +18,9 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
   isLoading,
   swapTransactions = []
 }) => {
-  // Calculate daily swap points (1.5 points per swap, max 5 swaps = 7.5 points)
-  const dailySwapPoints = Math.min(Math.min(totalSwaps, 5) * 1.5, 7.5);
-  const dailySwapPointsPercentage = (dailySwapPoints / 7.5) * 100;
+  // Calculate daily swap points (0.5 points per swap, max 5 swaps = 2.5 points)
+  const dailySwapPoints = Math.min(Math.min(totalSwaps, 5) * 0.5, 2.5);
+  const dailySwapPointsPercentage = (dailySwapPoints / 2.5) * 100;
   
   // Calculate eligible swaps (max 5)
   const eligibleSwaps = Math.min(totalSwaps, 5);
@@ -47,7 +47,7 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
     
     // Only count points for the first 5 swaps of the day
     if (transactionsByDay[dayStr].swaps.length < 5) {
-      transactionsByDay[dayStr].points += 1.5;
+      transactionsByDay[dayStr].points += 0.5;
     }
     
     transactionsByDay[dayStr].swaps.push(tx);
@@ -87,9 +87,9 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
                 How Points Work
               </h3>
               <div className="space-y-2 text-xs text-gray-300">
-                <p>• Each swap earns <span className="text-indigo-400 font-medium">1.5 points</span></p>
+                <p>• Each swap earns <span className="text-indigo-400 font-medium">0.5 points</span></p>
                 <p>• Maximum <span className="text-indigo-400 font-medium">5 swaps</span> count toward points each day</p>
-                <p>• Daily maximum: <span className="text-indigo-400 font-medium">7.5 points</span> (5 swaps × 1.5)</p>
+                <p>• Daily maximum: <span className="text-indigo-400 font-medium">2.5 points</span> (5 swaps × 0.5)</p>
               </div>
             </div>
             
@@ -107,13 +107,13 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-xs">
-                        <p className="text-xs">You earn 1.5 points per swap transaction, up to a maximum of 5 swaps (7.5 points) per day.</p>
+                        <p className="text-xs">You earn 0.5 points per swap transaction, up to a maximum of 5 swaps (2.5 points) per day.</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
                 <span className="font-medium text-indigo-400">
-                  {dailySwapPoints.toFixed(1)} / 7.5
+                  {dailySwapPoints.toFixed(1)} / 2.5
                 </span>
               </div>
               
@@ -158,7 +158,7 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
                               }`}
                             >
                               {swap ? (
-                                <span className="font-medium text-[10px] text-indigo-400">+1.5</span>
+                                <span className="font-medium text-[10px] text-indigo-400">+0.5</span>
                               ) : (
                                 <span className="text-[10px] text-gray-500">--</span>
                               )}

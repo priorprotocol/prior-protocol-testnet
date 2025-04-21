@@ -344,8 +344,8 @@ export class DatabaseStorage implements IStorage {
       // Increment swap count for this day
       swapsByDay[txDay].swapCount++;
       
-      // Calculate points for this swap (1.5 points per swap, max 5 swaps = 7.5 points per day)
-      swapsByDay[txDay].points = Math.min(swapsByDay[txDay].swapCount, 5) * 1.5;
+      // Calculate points for this swap (0.5 points per swap, max 5 swaps = 2.5 points per day)
+      swapsByDay[txDay].points = Math.min(swapsByDay[txDay].swapCount, 5) * 0.5;
       
       // Update period totals
       periodMap[periodKey].totalSwaps++;
@@ -400,7 +400,7 @@ export class DatabaseStorage implements IStorage {
           Math.min(swapsByDay[txDay].swapCount, 5) : 0;
         
         // Points are determined by the daily cap of 5 swaps
-        // Each swap adds 1.5 points up to a max of 7.5 points per day
+        // Each swap adds 0.5 points up to a max of 2.5 points per day
         // Only attribute points to this hour's transaction if it's within the first 5 swaps of the day
         const dailySwapPosition = swapTransactions
           .filter(t => new Date(t.timestamp).toISOString().split('T')[0] === txDay)
@@ -408,8 +408,8 @@ export class DatabaseStorage implements IStorage {
           .findIndex(t => t.id === tx.id) + 1;
         
         if (dailySwapPosition <= 5 && periodMap[hourKey]) {
-          // This swap is eligible for points - 1.5 points per swap, max 5 per day
-          periodMap[hourKey].points += 1.5;
+          // This swap is eligible for points - 0.5 points per swap, max 5 per day
+          periodMap[hourKey].points += 0.5;
         }
       }
     }
@@ -654,9 +654,9 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getTransactionPoints(transaction: Transaction): Promise<number> {
-    // UPDATED POINTS CALCULATION - UPGRADED POINTS SYSTEM
+    // UPDATED POINTS CALCULATION - FIX FOR INCORRECT POINTS
     // Calculate points based on transaction type with a single point source: swap transactions
-    // IMPORTANT: Always awards exactly 1.5 points per swap, max 5 swaps per day (7.5 points total)
+    // IMPORTANT: Always awards exactly 0.5 points per swap, max 5 swaps per day (2.5 points total)
     
     if (transaction.type === 'swap') {
       // Check daily swap count to determine points
@@ -681,9 +681,9 @@ export class DatabaseStorage implements IStorage {
       
       const swapsBeforeCount = Number(swapsBeforeThisOne[0]?.count || 0);
       
-      // Only award points for the first 5 swaps of the day (1.5 points per swap)
+      // Only award points for the first 5 swaps of the day (0.5 points per swap)
       if (swapsBeforeCount < 5) {
-        console.log(`[PointsCalc] Awarding 1.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
+        console.log(`[PointsCalc] Awarding 0.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
         
         // If this is the 1st or 5th swap, trigger a full recalculation to ensure accuracy
         if (swapsBeforeCount === 0 || swapsBeforeCount === 4) {
@@ -708,7 +708,7 @@ export class DatabaseStorage implements IStorage {
           }
         }
         
-        return 1.5; // Return 1.5 points per swap for first 5 swaps
+        return 0.5; // Return 0.5 points per swap for first 5 swaps
       } else {
         console.log(`[PointsCalc] No points awarded - already reached 5 swaps for the day for user ${userId}`);
         return 0;
@@ -857,7 +857,7 @@ export class DatabaseStorage implements IStorage {
       transactionsByDay[day].push(tx);
     }
     
-    // Calculate swap points: 1.5 per swap, max 5 swaps per day
+    // Calculate swap points: 0.5 per swap, max 5 swaps per day
     let newPoints = 0;
     
     for (const day in transactionsByDay) {
@@ -866,7 +866,7 @@ export class DatabaseStorage implements IStorage {
       const pointSwapsForDay = Math.min(daySwaps.length, 5);
       
       pointEarningSwaps += pointSwapsForDay;
-      const pointsForDay = pointSwapsForDay * 1.5; // 1.5 points per swap
+      const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
       
       console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
       newPoints += pointsForDay;
@@ -1426,7 +1426,7 @@ export class DatabaseStorage implements IStorage {
           transactionsByDay[day].push(tx);
         }
         
-        // Calculate swap points: 1.5 per swap, max 5 swaps per day
+        // Calculate swap points: 0.5 per swap, max 5 swaps per day
         let newPoints = 0;
         
         for (const day in transactionsByDay) {
@@ -1435,7 +1435,7 @@ export class DatabaseStorage implements IStorage {
           const pointSwapsForDay = Math.min(daySwaps.length, 5);
           
           pointEarningSwaps += pointSwapsForDay;
-          const pointsForDay = pointSwapsForDay * 1.5; // 1.5 points per swap
+          const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
           
           console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
           newPoints += pointsForDay;

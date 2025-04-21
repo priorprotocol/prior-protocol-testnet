@@ -299,8 +299,8 @@ const Admin = () => {
                 <AlertDescription>
                   Points will be recalculated according to the following rules:
                   <ul className="list-disc list-inside mt-2 text-sm">
-                    <li>1.5 points per swap transaction</li>
-                    <li>Maximum 5 swaps per day count toward points (7.5 points max per day)</li>
+                    <li>0.5 points per swap transaction</li>
+                    <li>Maximum 5 swaps per day count toward points (2.5 points max per day)</li>
                     <li>NFT staking will NOT award any points</li>
                   </ul>
                 </AlertDescription>

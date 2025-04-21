@@ -15,11 +15,11 @@ export const PRIOR_TOKEN = {
 // Point system configuration
 export const POINTS_CONFIG = {
   // Points per swap
-  POINTS_PER_SWAP: 1.5,
+  POINTS_PER_SWAP: 0.5,
   // Maximum swaps that can earn points per day
   MAX_DAILY_SWAPS: 5,
   // Maximum points per day (POINTS_PER_SWAP * MAX_DAILY_SWAPS)
-  MAX_DAILY_POINTS: 7.5
+  MAX_DAILY_POINTS: 2.5
 };
 
 // Protocol configuration

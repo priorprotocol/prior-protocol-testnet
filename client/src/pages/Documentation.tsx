@@ -476,7 +476,7 @@ const Documentation = () => {
                     </div>
                     <div>
                       <span className="text-white">Earn points</span>
-                      <p className="text-xs text-gray-400 mt-0.5">Each successful swap earns you 1.5 points (up to 5 swaps daily)</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Each successful swap earns you 0.5 points (up to 5 swaps daily)</p>
                     </div>
                   </li>
                 </ol>
@@ -535,7 +535,7 @@ const Documentation = () => {
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                   <div className="bg-green-900/20 p-3 rounded-lg border border-green-900/40 text-center">
-                    <div className="text-3xl font-bold text-green-400">1.5</div>
+                    <div className="text-3xl font-bold text-green-400">0.5</div>
                     <div className="text-xs text-gray-300 mt-1">Points per swap</div>
                   </div>
                   <div className="bg-green-900/20 p-3 rounded-lg border border-green-900/40 text-center">
@@ -543,7 +543,7 @@ const Documentation = () => {
                     <div className="text-xs text-gray-300 mt-1">Max swaps per day</div>
                   </div>
                   <div className="bg-green-900/20 p-3 rounded-lg border border-green-900/40 text-center">
-                    <div className="text-3xl font-bold text-green-400">7.5</div>
+                    <div className="text-3xl font-bold text-green-400">2.5</div>
                     <div className="text-xs text-gray-300 mt-1">Max daily points</div>
                   </div>
                 </div>
@@ -935,7 +935,7 @@ const Documentation = () => {
                 <FaInfoCircle className="h-4 w-4 text-blue-400" />
                 <AlertTitle className="text-blue-300 font-medium">Points System Update</AlertTitle>
                 <AlertDescription className="text-gray-300">
-                  The Prior Protocol testnet awards points for both swap transactions (1.5 points per swap, max 5 swaps daily for a total of 7.5 points) 
+                  The Prior Protocol testnet awards points for both swap transactions (0.5 points per swap, max 5 swaps daily for a total of 2.5 points) 
                   and NFT staking (one-time 1.0 point bonus). Points earned will be used to determine token allocations at the Token Generation Event (TGE).
                 </AlertDescription>
               </Alert>
@@ -974,11 +974,11 @@ const Documentation = () => {
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="bg-blue-900/30 text-blue-200 border-blue-700">
-                              1.5 points per swap
+                              0.5 points per swap
                             </Badge>
                           </TableCell>
                           <TableCell>5 swaps</TableCell>
-                          <TableCell className="font-bold text-amber-400">7.5 points</TableCell>
+                          <TableCell className="font-bold text-amber-400">2.5 points</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell className="font-medium">
@@ -1040,7 +1040,7 @@ const Documentation = () => {
                       The Prior Protocol points system rewards users for engaging with two key aspects of the ecosystem:
                     </p>
                     <ul className="list-disc list-inside mt-2 space-y-1 text-gray-300 text-sm pl-2">
-                      <li><span className="text-blue-300">Token Swapping:</span> Stress-tests liquidity and price discovery mechanisms (1.5 points per swap, max 5 daily)</li>
+                      <li><span className="text-blue-300">Token Swapping:</span> Stress-tests liquidity and price discovery mechanisms (0.5 points per swap, max 5 daily)</li>
                       <li><span className="text-orange-300">NFT Staking:</span> Activation earns 50 points every 12 hours (4.17 points/hour) plus a first-time bonus of 100-200 points</li>
                     </ul>
                   </div>

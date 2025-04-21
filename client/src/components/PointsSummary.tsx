@@ -16,9 +16,9 @@ export const PointsSummary: React.FC<PointsSummaryProps> = ({
   totalSwaps, 
   isLoading 
 }) => {
-  // Calculate daily swap points (1.5 points per swap, max 5 swaps = 7.5 points)
-  const dailySwapPoints = Math.min(Math.min(totalSwaps, 5) * 1.5, 7.5);
-  const dailySwapPointsPercentage = (dailySwapPoints / 7.5) * 100;
+  // Calculate daily swap points (0.5 points per swap, max 5 swaps = 2.5 points)
+  const dailySwapPoints = Math.min(Math.min(totalSwaps, 5) * 0.5, 2.5);
+  const dailySwapPointsPercentage = (dailySwapPoints / 2.5) * 100;
   
   // Calculate eligible swaps (max 5)
   const eligibleSwaps = Math.min(totalSwaps, 5);
@@ -67,13 +67,13 @@ export const PointsSummary: React.FC<PointsSummaryProps> = ({
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-xs">
-                        <p>You earn 1.5 points per swap transaction, up to a maximum of 5 swaps (7.5 points) per day.</p>
+                        <p>You earn 0.5 points per swap transaction, up to a maximum of 5 swaps (2.5 points) per day.</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
                 <span className="font-medium text-blue-400">
-                  {dailySwapPoints.toFixed(1)} / 7.5
+                  {dailySwapPoints.toFixed(1)} / 2.5
                 </span>
               </div>
               
@@ -92,7 +92,7 @@ export const PointsSummary: React.FC<PointsSummaryProps> = ({
               
               <div className="text-center mt-2">
                 <p className="text-[10px] text-gray-500">
-                  Points are capped at 1.5 × 5 swaps = 7.5 per day
+                  Points are capped at 0.5 × 5 swaps = 2.5 per day
                 </p>
               </div>
             </div>

@@ -506,16 +506,16 @@ export default function Swap() {
           console.log('Daily swap count data:', dailySwapData);
           const dailySwapCount = dailySwapData.count || 0;
           
-          // Determine points to add based on UPDATED points system
-          // 1.5 points for first 5 swaps per day (max 7.5 points daily)
+          // Determine points to add based on NEW SIMPLIFIED points system
+          // 0.5 points for first 5 swaps per day (max 2.5 points daily)
           const MAX_DAILY_SWAPS_FOR_POINTS = 5;
-          const POINTS_PER_SWAP = 1.5;
+          const POINTS_PER_SWAP = 0.5;
           
           let pointsToAdd = 0;
           let pointsMessage = "";
           
           if (dailySwapCount <= MAX_DAILY_SWAPS_FOR_POINTS) {
-            // Award 1.5 points for each of the first 5 swaps
+            // Award 0.5 points for each of the first 5 swaps
             pointsToAdd = POINTS_PER_SWAP;
             pointsMessage = `${POINTS_PER_SWAP} points for this swap! (${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS} daily swaps)`;
           } else {

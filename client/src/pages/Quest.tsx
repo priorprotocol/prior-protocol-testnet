@@ -68,10 +68,10 @@ const Quest = () => {
                 <div>
                   <h4 className="font-semibold">Swap Tokens</h4>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-green-400">1.5 points</span> for each swap
+                    <span className="text-green-400">0.5 points</span> for each swap
                   </p>
                   <p className="text-[#A0AEC0] text-sm">
-                    <span className="text-blue-400">Maximum 5 swaps daily</span> (7.5 pts max per day)
+                    <span className="text-blue-400">Maximum 5 swaps daily</span> (2.5 pts max per day)
                   </p>
                   <p className="text-[#A0AEC0] text-sm mt-1">
                     <span className="text-yellow-400">Points convert to PRIOR</span> at TGE
