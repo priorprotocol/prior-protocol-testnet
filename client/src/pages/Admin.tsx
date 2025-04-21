@@ -25,16 +25,8 @@ const Admin = () => {
   
   const isAdmin = address?.toLowerCase() === ADMIN_WALLET.toLowerCase();
 
-  useEffect(() => {
-    if (isConnected && !isAdmin) {
-      toast({
-        variant: "destructive",
-        title: "Access Denied",
-        description: "You do not have permission to access the admin panel."
-      });
-      setLocation("/");
-    }
-  }, [isConnected, isAdmin, setLocation, toast]);
+  // No longer need the access check here as it's handled by the ProtectedAdminRoute
+  // The user will never see this component if they're not an admin
 
   const handleCompleteReset = async () => {
     if (!confirmReset) {

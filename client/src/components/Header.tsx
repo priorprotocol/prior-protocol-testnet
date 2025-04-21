@@ -26,6 +26,13 @@ const Header = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
   
+  // Define the admin wallet address
+  const ADMIN_WALLET = "0x4cfc531df94339def7dcd603aac1a2deaf6888b7";
+  
+  // Check if the connected wallet is the admin
+  const isAdmin = address?.toLowerCase() === ADMIN_WALLET.toLowerCase();
+  
+  // Filter links based on admin status
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Faucet", path: "/faucet" },
@@ -34,7 +41,7 @@ const Header = () => {
     { name: "Governance", path: "/governance" },
     { name: "Dashboard", path: "/dashboard" },
     { name: "NFT STAKE", path: "https://priornftstake.xyz/", external: true },
-    { name: "Admin", path: "/admin" },
+    ...(isAdmin ? [{ name: "Admin", path: "/admin" }] : []), // Only show admin link to admin wallet
     { name: "Docs", path: "/docs" },
     { name: "About", path: "/about" }
   ];

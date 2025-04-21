@@ -1,5 +1,5 @@
 import { Switch, Route, useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, FC } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Layout from "@/components/Layout";
 import Home from "@/pages/Home";
@@ -18,6 +18,11 @@ import QuizPage from "@/pages/QuizPage";
 import QuizResultPage from "@/pages/QuizResultPage";
 import NotFound from "@/pages/not-found";
 import { apiRequest } from "@/lib/queryClient";
+import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
+import { Redirect as RedirectPage } from "wouter";
+
+// Admin wallet address for protected routes
+const ADMIN_WALLET = "0x4cfc531df94339def7dcd603aac1a2deaf6888b7";
 
 // Create page components that are wrapped with WalletProvider 
 // This avoids the circular dependency
@@ -35,6 +40,21 @@ const WrappedRedirect = () => <Redirect />;
 const WrappedLearn = () => <Learn />;
 const WrappedQuizPage = () => <QuizPage />;
 const WrappedQuizResultPage = () => <QuizResultPage />;
+
+// Protected route component to restrict access to admin only
+const ProtectedAdminRoute: FC = () => {
+  const { address } = useStandaloneWallet();
+  const isAdmin = address?.toLowerCase() === ADMIN_WALLET.toLowerCase();
+
+  // If the user is not an admin, redirect to home
+  if (!isAdmin) {
+    // Silently redirect non-admin users to home page without showing any message
+    return <RedirectPage to="/" />;
+  }
+
+  // If the user is an admin, render the admin component
+  return <Admin />;
+}
 
 function App() {
   const [location] = useLocation();
@@ -80,7 +100,7 @@ function App() {
         <Route path="/governance" component={WrappedGovernance} />
         <Route path="/dashboard" component={WrappedDashboard} />
         <Route path="/transactions" component={WrappedTransactions} />
-        <Route path="/admin" component={WrappedAdmin} />
+        <Route path="/admin" component={ProtectedAdminRoute} />
         <Route path="/about" component={WrappedAbout} />
         <Route path="/docs" component={WrappedDocumentation} />
         <Route path="/redirect" component={WrappedRedirect} />
