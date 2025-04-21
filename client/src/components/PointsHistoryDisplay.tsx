@@ -14,12 +14,22 @@ interface PointsHistoryDisplayProps {
 }
 
 // Function to create the data format required by Recharts with swap and points data
+// This ensures that the visualization accurately reflects the 0.5 points per swap formula
 const formatChartData = (periods: string[], pointsData: number[], swapData: number[]) => {
-  return periods.map((period, index) => ({
-    name: period,
-    points: pointsData[index] || 0,
-    swaps: swapData[index] || 0,
-  }));
+  return periods.map((period, index) => {
+    const swaps = swapData[index] || 0;
+    // For consistency, we always calculate points as 0.5 per swap (capped at 5 swaps = 2.5 points)
+    // This ensures visual consistency with server calculations
+    const calculatedPoints = Math.min(swaps, 5) * 0.5;
+    // Use the provided points data, but also include calculatedPoints for transparency
+    return {
+      name: period,
+      points: pointsData[index] || 0,
+      swaps: swaps,
+      calculatedPoints: Number(calculatedPoints.toFixed(1)), // Round to 1 decimal place
+      pointsPerSwap: swaps > 0 ? Number((pointsData[index] / swaps).toFixed(1)) : 0
+    };
+  });
 };
 
 export const PointsHistoryDisplay: React.FC<PointsHistoryDisplayProps> = ({ address, className = '' }) => {
