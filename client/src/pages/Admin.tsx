@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -6,16 +6,35 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { useQueryClient } from "@tanstack/react-query";
-import { HiShieldExclamation, HiRefresh, HiTrash } from "react-icons/hi";
+import { HiShieldExclamation, HiRefresh, HiTrash, HiLockClosed } from "react-icons/hi";
+import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
+import { useLocation } from "wouter";
+
+const ADMIN_WALLET = "0x4cfc531df94339def7dcd603aac1a2deaf6888b7";
 
 const Admin = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { address, isConnected } = useStandaloneWallet();
   const [loading, setLoading] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetResult, setResetResult] = useState<any>(null);
   const [recalcResult, setRecalcResult] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("reset");
+  const [, setLocation] = useLocation();
+  
+  const isAdmin = address?.toLowerCase() === ADMIN_WALLET.toLowerCase();
+
+  useEffect(() => {
+    if (isConnected && !isAdmin) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You do not have permission to access the admin panel."
+      });
+      setLocation("/");
+    }
+  }, [isConnected, isAdmin, setLocation, toast]);
 
   const handleCompleteReset = async () => {
     if (!confirmReset) {
@@ -83,6 +102,30 @@ const Admin = () => {
       setLoading(false);
     }
   };
+
+  if (!isConnected) {
+    return (
+      <div className="container px-4 py-12 max-w-6xl mx-auto text-center">
+        <HiLockClosed className="mx-auto text-5xl mb-4 text-yellow-500" />
+        <h1 className="text-3xl font-bold mb-2">Admin Access Required</h1>
+        <p className="text-muted-foreground mb-6">
+          Please connect your admin wallet to access this page.
+        </p>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="container px-4 py-12 max-w-6xl mx-auto text-center">
+        <HiShieldExclamation className="mx-auto text-5xl mb-4 text-red-500" />
+        <h1 className="text-3xl font-bold mb-2">Access Denied</h1>
+        <p className="text-muted-foreground mb-6">
+          You do not have permission to access the admin panel.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="container px-4 py-6 max-w-6xl mx-auto">
