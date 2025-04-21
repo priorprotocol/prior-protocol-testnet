@@ -122,6 +122,9 @@ export interface IStorage {
   // Add required method for user points recalculation
   recalculatePointsForUser(userId: number): Promise<number>;
   
+  // Get user points by ID
+  getUserPointsById(userId: number): Promise<number>;
+  
   // Quiz operations
   getAllQuizzes(): Promise<Quiz[]>;
   getQuiz(id: number): Promise<Quiz | undefined>;
@@ -571,6 +574,12 @@ export class MemStorage implements IStorage {
     this.usersByAddress.set(user.address, updatedUser);
     
     return newPoints;
+  }
+  
+  // Get user points by ID - required for transaction tracking and points updates
+  async getUserPointsById(userId: number): Promise<number> {
+    const user = this.users.get(userId);
+    return user?.points || 0;
   }
   
   // Implement recalculatePointsForUser for MemStorage
