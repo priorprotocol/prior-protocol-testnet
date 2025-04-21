@@ -17,6 +17,7 @@ app.use((req, res, next) => {
   
   // IMPORTANT: Ensure all Netlify and Replit domains are explicitly listed here
   const allowedOrigins = [
+    // Netlify domains
     'https://priortestnetv2.netlify.app',
     'http://priortestnetv2.netlify.app',
     'https://prior-protocol-testnet.netlify.app',
@@ -25,17 +26,31 @@ app.use((req, res, next) => {
     'http://testnetpriorprotocol.netlify.app',
     'https://prior-testnet.netlify.app',
     'http://prior-testnet.netlify.app',
+    'https://prior-test.netlify.app',
+    'http://prior-test.netlify.app',
+    'https://prior-protocol.netlify.app',
+    'http://prior-protocol.netlify.app',
+    // Don't forget the actual deploy previews on Netlify which use different domains
+    'https://deploy-preview-*.netlify.app',
+    // Replit domains
     'https://prior-protocol-testnet-priorprotocol.replit.app',
     'http://prior-protocol-testnet-priorprotocol.replit.app'
   ];
   
   // Check if origin is in allowed list or matches our development domains
+  // For Netlify deploy previews which have dynamic URLs
+  const isNetlifyPreview = origin && (
+    origin.includes('netlify.app') || 
+    origin.includes('netlify.com')
+  );
+  
   if (origin && (
     allowedOrigins.includes(origin) || 
     origin.includes('localhost') ||
     origin.includes('replit.dev') ||
     origin.includes('replit.app') ||
-    origin.includes('janeway.replit')
+    origin.includes('janeway.replit') ||
+    isNetlifyPreview
   )) {
     log(`Allowing CORS for origin: ${origin}`);
     // Set the exact origin rather than * for security

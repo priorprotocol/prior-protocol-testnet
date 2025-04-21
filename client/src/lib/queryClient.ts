@@ -62,13 +62,20 @@ export async function apiRequest<T = any>(
         ? url 
         : `${url}${url.includes('?') ? '&' : '?'}_cb=${Date.now()}`;
       
+      // Determine if we're in a Netlify environment to modify headers accordingly
+      const isNetlify = typeof window !== 'undefined' && 
+                      window.location.hostname.includes('netlify.app');
+      
+      console.log(`Environment detection: ${isNetlify ? 'Netlify detected' : 'Not running on Netlify'}`);
+      
       const res = await fetch(urlWithCacheBuster, {
         method: 'GET',
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
+          // Only include Pragma header for non-Netlify environments (causes CORS issues on Netlify)
+          ...(!isNetlify && { 'Pragma': 'no-cache' })
         },
       });
       
@@ -91,13 +98,20 @@ export async function apiRequest<T = any>(
       ? `${url}${url.includes('?') ? '&' : '?'}_cb=${Date.now()}`
       : url;
     
+    // Determine if we're in a Netlify environment to modify headers accordingly
+    const isNetlify = typeof window !== 'undefined' && 
+                    window.location.hostname.includes('netlify.app');
+    
+    console.log(`Environment detection: ${isNetlify ? 'Netlify detected' : 'Not running on Netlify'}`);
+      
     const res = await fetch(urlWithCacheBuster, {
       method,
       headers: {
         ...(requestData ? { "Content-Type": "application/json" } : {}),
         'Accept': 'application/json',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
+        // Only include Pragma header for non-Netlify environments (causes CORS issues on Netlify)
+        ...(!isNetlify && { 'Pragma': 'no-cache' })
       },
       body: requestData ? JSON.stringify(requestData) : undefined,
       credentials: "include",
