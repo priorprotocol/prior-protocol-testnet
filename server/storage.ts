@@ -1492,6 +1492,67 @@ export class MemStorage implements IStorage {
   }
   
   /**
+   * Reset all user points and swap transactions
+   * This completely wipes all accumulated points and swap transaction history
+   * @returns Statistics about the reset operation
+   */
+  async resetAllUserPointsAndTransactions(): Promise<{
+    usersReset: number;
+    transactionsDeleted: number;
+    pointsReset: number;
+  }> {
+    console.log("[PointsSystem] Starting complete reset of all user points and swap transactions");
+    
+    let usersReset = 0;
+    let pointsReset = 0;
+    let transactionsDeleted = 0;
+    
+    // Keep track of transactions to remove
+    const transactionsToDelete: number[] = [];
+    
+    // First identify all swap transactions
+    for (const [transactionId, transaction] of this.transactions.entries()) {
+      if (transaction.type === 'swap') {
+        transactionsToDelete.push(transactionId);
+      }
+    }
+    
+    // Delete the transactions
+    for (const id of transactionsToDelete) {
+      this.transactions.delete(id);
+      transactionsDeleted++;
+    }
+    
+    // Reset user points and swap counts
+    for (const [userId, user] of this.users.entries()) {
+      if (user.points && user.points > 0) {
+        const currentPoints = user.points;
+        
+        // Reset points and swap count
+        user.points = 0;
+        user.totalSwaps = 0;
+        
+        // Update user in both maps
+        this.users.set(userId, user);
+        this.usersByAddress.set(user.address, user);
+        
+        pointsReset += currentPoints;
+        usersReset++;
+        
+        console.log(`[PointsSystem] Reset ${currentPoints} points for user ${userId} (${user.address})`);
+      }
+    }
+    
+    console.log(`[PointsSystem] Reset complete: ${usersReset} users had points reset, ${pointsReset} total points removed, ${transactionsDeleted} swap transactions deleted`);
+    
+    return {
+      usersReset,
+      transactionsDeleted,
+      pointsReset
+    };
+  }
+  
+  /**
    * Recalculates points for all users based on their transaction history
    * Following the rule: 0.5 points per swap, max 5 swaps per day (max 2.5 points daily)
    * @returns Statistics about the recalculation

@@ -10,7 +10,7 @@ async function resetPointsAndTransactions() {
     console.log('Starting complete reset of all user points and swap transactions...');
     
     // Use local URL for development
-    const baseUrl = process.env.BASE_URL || 'https://prior-protocol-testnet.replit.app';
+    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
     const url = `${baseUrl}/api/maintenance/reset-points-and-transactions`;
     
     console.log(`Using API endpoint: ${url}`);
