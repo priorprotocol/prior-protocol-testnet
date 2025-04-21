@@ -17,8 +17,8 @@ const validateTransactionType = (type: string): string => {
 const getTransactionPoints = async (userId: number, type: string, txData: any): Promise<number> => {
   // Daily swap limit for points (max 5 swaps)
   const MAX_DAILY_SWAPS_FOR_POINTS = 5;
-  // Points per swap (0.5 points)
-  const POINTS_PER_SWAP = 0.5;
+  // Points per swap (1.5 points)
+  const POINTS_PER_SWAP = 1.5;
   // Points for NFT staking (1 point)
   const POINTS_FOR_NFT_STAKE = 1.0;
   
@@ -47,7 +47,7 @@ const getTransactionPoints = async (userId: number, type: string, txData: any): 
     // Count number of swaps today before this one
     const swapsCountToday = swapsBeforeThisOne.length;
     
-    // Award 0.5 points for each swap up to 5 swaps per day
+    // Award 1.5 points for each swap up to 5 swaps per day
     if (swapsCountToday < MAX_DAILY_SWAPS_FOR_POINTS) {
       console.log(`[PointsCalc] Awarding ${POINTS_PER_SWAP} points for swap #${swapsCountToday + 1} to user ${userId}`);
       return POINTS_PER_SWAP;
