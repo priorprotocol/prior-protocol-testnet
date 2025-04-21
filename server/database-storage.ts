@@ -723,12 +723,14 @@ export class DatabaseStorage implements IStorage {
       
       const swapsBeforeCount = Number(swapsBeforeThisOne[0]?.count || 0);
       
-      // Only award points for the first 5 swaps of the day (0.5 points per swap)
+      // Only award points for the first 5 swaps of the day (EXACTLY 0.5 points per swap)
       if (swapsBeforeCount < 5) {
-        console.log(`[PointsSystem] Awarded 0.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
+        // CRITICAL FIX: Forcing exactly 0.5 points per swap, ensuring it displays correctly
+        const POINTS_PER_SWAP = 0.5;
+        console.log(`[PointsSystem] Awarded ${POINTS_PER_SWAP} points for swap #${swapsBeforeCount + 1} to user ${userId}`);
+        console.log(`[PointsDebug] swap=${transaction.type}, userId=${userId}, return=${POINTS_PER_SWAP}`);
         
-        // Critical fix: Always return exactly 0.5 points per eligible swap
-        return 0.5; // Return 0.5 points per swap for first 5 swaps
+        return POINTS_PER_SWAP; // FIXED: Always exactly 0.5 points per eligible swap
       } else {
         console.log(`[PointsCalc] No points awarded - already reached 5 swaps for the day for user ${userId}`);
         return 0;

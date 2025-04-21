@@ -219,6 +219,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Special endpoint to fix all swap points to be exactly 0.5 per swap
+  app.post(`${apiPrefix}/maintenance/fix-points`, async (req, res) => {
+    try {
+      console.log("Starting special points fix for all users (forcing 0.5 points per swap)");
+      console.log("Headers:", req.headers);
+      console.log("Method:", req.method);
+      console.log("Body:", req.body);
+      
+      // Import the fix script dynamically to avoid circular dependencies
+      const { fixAllTransactionPoints } = await import('../scripts/fix-points.js');
+      
+      // Execute the fix script
+      const result = await fixAllTransactionPoints();
+      
+      console.log("Points fix completed successfully:", result);
+      
+      return res.status(200).json({
+        success: true,
+        message: `Successfully fixed points for ${result.usersUpdated} users to 0.5 points per swap`,
+        summary: {
+          usersUpdated: result.usersUpdated,
+          totalPointsBefore: result.totalPointsBefore,
+          totalPointsAfter: result.totalPointsAfter,
+          difference: result.totalPointsAfter - result.totalPointsBefore
+        }
+      });
+    } catch (error: unknown) {
+      console.error("Error during points fix process:", error);
+      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
+      console.error("Error stack:", errorStack);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while fixing points",
+        error: String(error),
+        stack: errorStack
+      });
+    }
+  });
+  
   // Duplicate endpoint for GET requests to support both POST and GET
   app.get(`${apiPrefix}/maintenance/recalculate-points`, async (req, res) => {
     res.status(405).json({
