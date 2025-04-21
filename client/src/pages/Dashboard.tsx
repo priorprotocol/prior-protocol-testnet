@@ -118,68 +118,11 @@ const Dashboard = () => {
           </Card>
 
           {/* Total Points Summary */}
-          <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 via-violet-600 to-purple-600"></div>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FaTrophy className="text-amber-500" />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-300">Points Summary</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {statsLoading ? (
-                <div className="h-20 flex items-center justify-center">
-                  <div className="w-5 h-5 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
-                  <p className="ml-2 text-[#A0AEC0] text-sm">Processing data...</p>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <div className="relative inline-block">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 blur-xl"></div>
-                    <div className="relative bg-[#1A2234] rounded-2xl p-4 border border-blue-900/50">
-                      <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-                        {userStats?.points || 0}
-                      </div>
-                      <div className="text-xs text-blue-400 mt-1">Prior Points</div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 text-xs text-left space-y-1.5 bg-[#1A2234] p-3 rounded-md border border-blue-900/50">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 flex items-center">
-                        <FaExchangeAlt className="mr-1.5 text-blue-500" size={12} />
-                        Daily Swap Points
-                      </span>
-                      <span className="font-medium text-blue-400">
-                        {userStats && userStats.totalSwaps > 0 ? 
-                          `${Math.min(Math.min(userStats.totalSwaps, 5) * 0.5, 2.5).toFixed(1)} / 2.5` : 
-                          "0 / 2.5"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400">Eligible Swaps</span>
-                      <span className="font-medium text-emerald-400">
-                        {userStats && userStats.totalSwaps > 0 ? 
-                          `${Math.min(userStats.totalSwaps, 5)} / 5` :
-                          "0 / 5"}
-                      </span>
-                    </div>
-                    {userStats?.totalSwaps > 5 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Extra Swaps</span>
-                        <span className="font-medium text-gray-400">
-                          {userStats.totalSwaps - 5} (no points)
-                        </span>
-                      </div>
-                    )}
-                    <div className="mt-2 text-center text-blue-300/70 text-[10px]">
-                      Points are capped at 0.5 × 5 swaps = 2.5 per day
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <PointsSummary 
+            points={userStats?.points || 0} 
+            totalSwaps={userStats?.totalSwaps || 0}
+            isLoading={statsLoading}
+          />
 
           {/* Sync Transactions Button */}
           <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">

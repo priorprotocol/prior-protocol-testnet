@@ -80,7 +80,7 @@ export const PointsSummary: React.FC<PointsSummaryProps> = ({
               <Progress 
                 value={dailySwapPointsPercentage} 
                 className="h-1.5 bg-blue-950"
-                indicatorClassName="bg-gradient-to-r from-blue-500 to-indigo-600" 
+                // indicatorClassName is not supported, using className for styling
               />
               
               <div className="flex justify-between items-center mt-2">
