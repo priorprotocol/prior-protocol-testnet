@@ -738,6 +738,19 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async getTotalUsersCount(): Promise<{ count: number }> {
+    try {
+      const result = await db
+        .select({ count: sql`count(*)` })
+        .from(users);
+      
+      return result[0] || { count: 0 };
+    } catch (error) {
+      console.error("Error getting total users count:", error);
+      return { count: 0 };
+    }
+  }
+  
   async getLeaderboard(limit: number = 20, page: number = 1): Promise<User[]> {
     try {
       // Calculate offset based on page and limit for pagination

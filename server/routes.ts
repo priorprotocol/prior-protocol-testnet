@@ -507,17 +507,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       console.log("Fetching leaderboard data with limit:", limit, "page:", page);
+      // Get total users count for accurate pagination
+      const totalUsersResult = await storage.getTotalUsersCount();
+      const totalUsers = totalUsersResult?.count || 0;
+      
+      // Get paginated users for leaderboard
       const users = await storage.getLeaderboard(limit, page);
-      console.log("Leaderboard data fetched, users count:", users?.length || 0);
+      console.log(`Leaderboard data fetched, users count: ${users?.length || 0}, total in DB: ${totalUsers}`);
       
       // Format the response to match the expected frontend structure
       const leaderboardData = {
         users: users || [],
-        total: users?.length || 0,
+        total: totalUsers,
         page: page,
-        totalPages: Math.ceil((users?.length || 0) / limit) || 1
+        totalPages: Math.ceil(totalUsers / limit) || 1
       };
       
+      // Log first 100 chars of the response to help debug
       console.log("Returning leaderboard data:", JSON.stringify(leaderboardData).substring(0, 100) + "...");
       res.json(leaderboardData);
     } catch (error) {
