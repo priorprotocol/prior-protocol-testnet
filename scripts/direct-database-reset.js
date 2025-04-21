@@ -2,12 +2,12 @@
  * Direct Database Reset Script
  * This script directly executes SQL to completely wipe all database tables and reset them
  */
-require('dotenv').config();
-const { Pool } = require('@neondatabase/serverless');
-const ws = require('ws');
+import 'dotenv/config';
+import { Pool } from '@neondatabase/serverless';
+import ws from 'ws';
 
 // Set up the global WebSocket constructor for neon
-global.WebSocket = ws.WebSocket;
+globalThis.WebSocket = ws.WebSocket;
 
 // Database configuration
 const connectionString = process.env.DATABASE_URL;

@@ -1,0 +1,172 @@
+Prior Protocol Leaderboard
+Refresh
+Top users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
+
+Your Wallet:0x4cfc...88b7
+Your Rank:
+#15
+1
+0x57c4...dcac
+1st Place
+25
+Prior points
+Swap Activity
+50
+(Total Swaps)
+Points Earned:
+2.5
+0.5 pts per swap (max 5 swaps)
+Max Daily Points Achieved
+2
+0xc1c8...37fd
+2nd Place
+15
+Prior points
+Swap Activity
+30
+(Total Swaps)
+Points Earned:
+2.5
+0.5 pts per swap (max 5 swaps)
+Max Daily Points Achieved
+3
+0xb788...a234
+3rd Place
+10
+Prior points
+Swap Activity
+20
+(Total Swaps)
+Points Earned:
+2.5
+0.5 pts per swap (max 5 swaps)
+Max Daily Points Achieved
+4
+0x1bf4...8933
+Top 5
+9
+Prior points
+Swap Activity
+18
+(Total Swaps)
+Points Earned:
+2.5
+0.5 pts per swap (max 5 swaps)
+Max Daily Points Achieved
+5
+0x29f9...5038
+Top 5
+8
+Prior points
+Swap Activity
+16
+(Total Swaps)
+Points Earned:
+2.5
+0.5 pts per swap (max 5 swaps)
+Max Daily Points Achieved
+6
+0x3f34...9aa1
+7
+Prior points
+Swap Activity
+14
+(Total Swaps)
+Points Earned:
+2.5
+0.5 pts per swap (max 5 swaps)
+Max Daily Points Achieved
+7
+0x9e42...5ffc
+6
+Prior points
+Swap Activity
+12
+(Total Swaps)
+Points Earned:
+2.5
+0.5 pts per swap (max 5 swaps)
+Max Daily Points Achieved
+8
+0x2ddc...e81e
+5.5
+Prior points
+Swap Activity
+11
+(Total Swaps)
+Points Earned:
+2.5
+0.5 pts per swap (max 5 swaps)
+Max Daily Points Achieved
+9
+0x4cfc...69da
+5
+Prior points
+Swap Activity
+10
+(Total Swaps)
+Points Earned:
+2.5
+0.5 pts per swap (max 5 swaps)
+Max Daily Points Achieved
+10
+0x63ab...e656
+3.5
+Prior points
+Swap Activity
+7
+(Total Swaps)
+Points Earned:
+2.5
+0.5 pts per swap (max 5 swaps)
+Max Daily Points Achieved
+11
+0x789c...d1e5
+3
+Prior points
+Swap Activity
+6
+(Total Swaps)
+Points Earned:
+2.5
+0.5 pts per swap (max 5 swaps)
+Max Daily Points Achieved
+12
+0x56e9...3a78
+2
+Prior points
+Swap Activity
+4
+(Total Swaps)
+Points Earned:
+2.0
+0.5 pts per swap (max 5 swaps)
+13
+0x12a8...3a93
+1
+Prior points
+Swap Activity
+2
+(Total Swaps)
+Points Earned:
+1.0
+0.5 pts per swap (max 5 swaps)
+14
+0xf4b0...8eae
+0
+Prior points
+Swap Activity
+0
+(Total Swaps)
+Points Earned:
+0.0
+0.5 pts per swap (max 5 swaps)
+15
+0x4cfc...88b7(You)
+0
+Prior points
+Swap Activity
+0
+(Total Swaps)
+Points Earned:
+0.0
