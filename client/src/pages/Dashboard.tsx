@@ -377,10 +377,10 @@ const TotalPointsSummary = ({ points, swaps, isLoading }: { points: number, swap
             </div>
             <div className="text-xs text-gray-400 mt-1 flex items-center justify-center">
               <FaExchangeAlt className="mr-1" size={10} />
-              <span>From {swaps} swap transactions</span>
+              <span>Points calculation: 0.5 points per swap</span>
             </div>
-            <div className="mt-3 text-xs text-gray-500 max-w-xs mx-auto">
-              Points calculation: 0.5 points per swap, max 5 swaps per day
+            <div className="mt-2 p-1 rounded bg-gradient-to-r from-indigo-900/30 to-blue-900/30 text-xs text-indigo-400 font-medium max-w-xs mx-auto flex items-center justify-center">
+              <span className="mr-1">Total swaps:</span> {swaps} {swaps >= 5 && <span className="ml-1 text-emerald-400">(Max daily points achieved)</span>}
             </div>
           </div>
         )}

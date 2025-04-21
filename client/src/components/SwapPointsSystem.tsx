@@ -19,11 +19,15 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
   swapTransactions = []
 }) => {
   // Calculate daily swap points (0.5 points per swap, max 5 swaps = 2.5 points)
-  const dailySwapPoints = Math.min(Math.min(totalSwaps, 5) * 0.5, 2.5);
-  const dailySwapPointsPercentage = (dailySwapPoints / 2.5) * 100;
+  const pointsPerSwap = 0.5; // Each swap earns exactly 0.5 points
+  const maxDailySwaps = 5; // Maximum of 5 swaps count for points per day
+  const maxDailyPoints = pointsPerSwap * maxDailySwaps; // 2.5 points maximum per day
+  
+  const dailySwapPoints = Math.min(Math.min(totalSwaps, maxDailySwaps) * pointsPerSwap, maxDailyPoints);
+  const dailySwapPointsPercentage = (dailySwapPoints / maxDailyPoints) * 100;
   
   // Calculate eligible swaps (max 5)
-  const eligibleSwaps = Math.min(totalSwaps, 5);
+  const eligibleSwaps = Math.min(totalSwaps, maxDailySwaps);
   
   // Group transactions by day for display
   const transactionsByDay: Record<string, {date: string, swaps: any[], points: number}> = {};
@@ -46,8 +50,8 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
     }
     
     // Only count points for the first 5 swaps of the day
-    if (transactionsByDay[dayStr].swaps.length < 5) {
-      transactionsByDay[dayStr].points += 0.5;
+    if (transactionsByDay[dayStr].swaps.length < maxDailySwaps) {
+      transactionsByDay[dayStr].points += pointsPerSwap;
     }
     
     transactionsByDay[dayStr].swaps.push(tx);
@@ -158,13 +162,17 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
                               }`}
                             >
                               {swap ? (
-                                <span className="font-medium text-[10px] text-indigo-400">+0.5</span>
+                                <span className="font-medium text-[10px] text-indigo-400">+{pointsPerSwap}</span>
                               ) : (
                                 <span className="text-[10px] text-gray-500">--</span>
                               )}
                             </div>
                           );
                         })}
+                      </div>
+                      
+                      <div className="mt-2 text-[10px] text-center text-indigo-300 bg-indigo-900/20 py-1 rounded-sm">
+                        Daily points: {Math.min(day.swaps.length, maxDailySwaps)} swaps × {pointsPerSwap} = {Math.min(day.swaps.length, maxDailySwaps) * pointsPerSwap} points
                       </div>
                       
                       {day.swaps.length > 5 && (
