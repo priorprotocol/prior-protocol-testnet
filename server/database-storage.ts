@@ -688,17 +688,49 @@ export class DatabaseStorage implements IStorage {
         timestamp: new Date()
       });
       
-      // Create the transaction with properly formatted points
-      const [newTransaction] = await db
-        .insert(transactions)
-        .values({
-          ...transaction,
-          points: pointsValue,
-          timestamp: new Date()
-        })
-        .returning();
+      // Try direct SQL insert first as a fallback
+      let newTransaction;
       
-      console.log(`Successfully created transaction with ID ${newTransaction.id}`);
+      try {
+        // Create the transaction with Drizzle ORM
+        [newTransaction] = await db
+          .insert(transactions)
+          .values({
+            ...transaction,
+            points: pointsValue,
+            timestamp: new Date()
+          })
+          .returning();
+        
+        console.log(`Successfully created transaction with ID ${newTransaction.id} using ORM`);
+      } catch (ormError) {
+        console.error("ORM insert failed, trying direct SQL:", ormError);
+        
+        // Fallback to direct SQL if ORM fails
+        const timestamp = new Date();
+        const result = await pool.query(
+          `INSERT INTO transactions (
+            user_id, type, from_token, to_token, from_amount, to_amount, 
+            tx_hash, status, block_number, points, timestamp
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+          [
+            transaction.userId,
+            transaction.type,
+            transaction.fromToken,
+            transaction.toToken,
+            transaction.fromAmount,
+            transaction.toAmount,
+            transaction.txHash,
+            transaction.status || "completed",
+            transaction.blockNumber || null,
+            pointsValue,
+            timestamp
+          ]
+        );
+        
+        newTransaction = result.rows[0];
+        console.log(`Successfully created transaction with ID ${newTransaction.id} using direct SQL`);
+      }
       
       // Points are handled in different ways:
       // 1. If points explicitly provided - that value is used directly with no additional points added
@@ -714,10 +746,10 @@ export class DatabaseStorage implements IStorage {
           await this.addUserPoints(transaction.userId, points);
           
           // Update the transaction record with calculated points
-          await db
-            .update(transactions)
-            .set({ points: String(points) })
-            .where(eq(transactions.id, newTransaction.id));
+          await pool.query(
+            `UPDATE transactions SET points = $1 WHERE id = $2`,
+            [String(points), newTransaction.id]
+          );
             
           console.log(`Updated transaction ${newTransaction.id} with calculated ${points} points`);
         }
@@ -732,12 +764,19 @@ export class DatabaseStorage implements IStorage {
         console.log(`Updated user ${transaction.userId} points with explicit ${numPoints} points`);
       }
       
-      // Get the updated transaction to return
-      const [updatedTransaction] = await db
-        .select()
-        .from(transactions)
-        .where(eq(transactions.id, newTransaction.id));
+      // Get the updated transaction to return - use direct SQL to ensure it's fetched
+      const updatedResult = await pool.query(
+        `SELECT * FROM transactions WHERE id = $1`,
+        [newTransaction.id]
+      );
       
+      // Update the total swaps for the user to ensure it's consistent
+      await pool.query(
+        `UPDATE users SET total_swaps = (SELECT COUNT(*) FROM transactions WHERE user_id = $1 AND type = 'swap') WHERE id = $1`,
+        [transaction.userId]
+      );
+      
+      const updatedTransaction = updatedResult.rows[0];
       return updatedTransaction || newTransaction;
     } catch (err) {
       console.error("Error creating transaction:", err);

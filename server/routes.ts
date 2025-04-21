@@ -1326,61 +1326,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[PointsSystem] No points awarded - already reached ${MAX_DAILY_SWAPS_FOR_POINTS} swaps for the day for user ${user.id}`);
       }
       
-      // Create transaction record with explicitly set points
+          // Create transaction record with explicitly set points
       // IMPORTANT: Fixed now to properly handle explicit points value in createTransaction
-      // Set points explicitly as a string to avoid type conversion errors
-  console.log(`Creating swap transaction with the following data:`, {
-    userId: user.id,
-    type: 'swap',
-    fromToken,
-    toToken,
-    fromAmount,
-    toAmount,
-    txHash,
-    points
-  });
-  
-  // Define the transaction object outside the try/catch
-  let transaction;
-  try {
-    // Create the transaction with points as a string
-    const txData = {
-      userId: user.id,
-      type: 'swap',
-      fromToken,
-      toToken,
-      fromAmount,
-      toAmount,
-      txHash,
-      status: 'completed',
-      blockNumber: blockNumber || null,
-      points: points.toString() // Convert to string explicitly for PostgreSQL compatibility
-    };
-    
-    console.log(`Creating transaction with data:`, txData);
-    transaction = await storage.createTransaction(txData);
-    
-    // Log the success
-    console.log(`Successfully created transaction: ${JSON.stringify(transaction)}`);
-    
-    // After creating transaction, let's make sure their points are consistent
-    // by triggering a recalculation
-    await storage.recalculatePointsForUser(user.id);
-    
-    // Prepare response payload
-    const responsePayload = {
-      ...transaction,
-      points // Use the numeric points for the response
-    };
-    
-    res.status(201).json(responsePayload);
-  } catch (error) {
-    console.error("CRITICAL: Failed to create transaction:", error);
-    res.status(500).json({ message: "Failed to record transaction", error: error.message });
-  }
+      console.log(`Creating swap transaction with the following data:`, {
+        userId: user.id,
+        type: 'swap',
+        fromToken,
+        toToken,
+        fromAmount,
+        toAmount,
+        txHash,
+        points
+      });
+      
+      // Create the transaction with points as a string
+      const txData = {
+        userId: user.id,
+        type: 'swap',
+        fromToken,
+        toToken,
+        fromAmount,
+        toAmount,
+        txHash,
+        status: 'completed',
+        blockNumber: blockNumber || null,
+        points: points.toString() // Convert to string explicitly for PostgreSQL compatibility
+      };
+      
+      console.log(`Creating transaction with data:`, txData);
+      const transaction = await storage.createTransaction(txData);
+      
+      // Log the success
+      console.log(`Successfully created transaction: ${JSON.stringify(transaction)}`);
+      
+      // After creating transaction, let's make sure their points are consistent
+      // by triggering a recalculation
+      await storage.recalculatePointsForUser(user.id);
+      
+      // Prepare response payload with numeric points for API consistency
+      const responsePayload = {
+        ...transaction,
+        points // Use the numeric points for the response
+      };
+      
+      res.status(201).json(responsePayload);
     } catch (error) {
       console.error("Error recording swap transaction:", error);
-      res.status(400).json({ message: "Failed to record transaction" });
+      res.status(500).json({ 
+        message: "Failed to record transaction", 
+        error: error.message || String(error)
+      });
     }
   });
   
