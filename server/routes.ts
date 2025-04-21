@@ -10,7 +10,7 @@ import quizRoutes from "./routes/quizzes";
 import { log } from "./vite";
 import { db, pool } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
-import { userTrackerMiddleware } from "./middleware/userTracker";
+import { userTrackerMiddleware, ensureUserExists } from "./middleware/userTracker";
 
 // Global WebSocket server instance
 export let wss: WebSocketServer;
@@ -577,36 +577,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(`${apiPrefix}/users/:address/stats`, async (req, res) => {
     const { address } = req.params;
     
-    // Normalize the address to lowercase
-    const normalizedAddress = address.startsWith('0x') 
-      ? address.toLowerCase() 
-      : `0x${address}`.toLowerCase();
-    
-    console.log(`Processing stats request for address: ${normalizedAddress}`);
-    
-    let user = await storage.getUser(normalizedAddress);
-    
-    // Auto-create user if not found
-    if (!user) {
-      console.log(`Auto-creating user for address: ${normalizedAddress} when requesting stats`);
-      user = await storage.createUser({
-        address: normalizedAddress,
-        lastClaim: null
-      });
+    try {
+      // Use robust ensureUserExists function to get or create the user
+      // This handles edge cases and race conditions better
+      const user = await ensureUserExists(address);
       
-      // If the user has connected their wallet before but somehow not registered,
-      // let's check if they have any transactions on the blockchain
-      try {
-        // We won't actually query the blockchain here because that's handled by the frontend
-        // but we'll create a placeholder record
-        console.log(`New user created with ID: ${user.id}`);
-      } catch (err) {
-        console.error("Error checking blockchain for user:", err);
+      if (!user) {
+        console.error(`Failed to ensure user exists for address: ${address}`);
+        return res.status(500).json({ message: "Failed to find or create user" });
       }
-    }
+      
+      console.log(`Processing stats request for user ${user.id} (${user.address})`);
+      
+      // Also log direct SQL query to verify points in database
+      try {
+        const pointsResult = await pool.query(`
+          SELECT id, address, points, total_swaps FROM users WHERE id = $1
+        `, [user.id]);
+        
+        if (pointsResult.rows && pointsResult.rows.length > 0) {
+          console.log(`DEBUG - User points in database for ${user.id}:`, pointsResult.rows[0]);
+        }
+      } catch (dbErr) {
+        console.error("Error checking user points in database:", dbErr);
+      }
     
-    const stats = await storage.getUserStats(user.id);
-    res.json(stats);
+      const stats = await storage.getUserStats(user.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error processing stats request:", error);
+      res.status(500).json({ message: "Error processing stats request" });
+    }
   });
   
   // Get user's historical points data by address
