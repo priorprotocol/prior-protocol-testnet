@@ -92,6 +92,12 @@ export interface IStorage {
   getTransactionPoints(transaction: Transaction): Promise<number>; // New method to get points for a transaction
   
   // Points system management
+  resetAllUserPointsAndTransactions(): Promise<{
+    usersReset: number;
+    transactionsDeleted: number;
+    pointsReset: number;
+  }>;
+  
   recalculateAllUserPoints(): Promise<{
     usersUpdated: number;
     totalPointsBefore: number;

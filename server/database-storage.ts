@@ -871,6 +871,67 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async resetAllUserPointsAndTransactions(): Promise<{
+    usersReset: number; 
+    transactionsDeleted: number;
+    pointsReset: number;
+  }> {
+    console.log("[PointsSystem] Starting complete reset of all user points and swap transactions");
+    
+    let usersReset = 0;
+    let pointsReset = 0;
+    let transactionsDeleted = 0;
+    
+    try {
+      // Get all users
+      const allUsers = await db.select().from(users);
+      
+      // For each user
+      for (const user of allUsers) {
+        // Track current points for logging
+        const currentPoints = user.points || 0;
+        
+        // Delete all swap transactions
+        const deletedTransactions = await db
+          .delete(transactions)
+          .where(and(
+            eq(transactions.userId, user.id),
+            eq(transactions.type, 'swap')
+          ))
+          .returning();
+          
+        transactionsDeleted += deletedTransactions.length;
+        
+        // Reset user points to 0 and total swaps
+        const [updatedUser] = await db
+          .update(users)
+          .set({ 
+            points: 0,
+            totalSwaps: 0
+          })
+          .where(eq(users.id, user.id))
+          .returning();
+          
+        if (currentPoints > 0) {
+          pointsReset += currentPoints;
+          usersReset++;
+          console.log(`[PointsSystem] Reset ${currentPoints} points and ${deletedTransactions.length} transactions for user ${user.id} (${user.address})`);
+        }
+      }
+      
+      console.log(`[PointsSystem] Reset complete: ${usersReset} users had points reset, ${pointsReset} total points removed, ${transactionsDeleted} swap transactions deleted`);
+      
+      return {
+        usersReset,
+        transactionsDeleted,
+        pointsReset
+      };
+    } catch (error) {
+      console.error("[PointsSystem] Error during points and transactions reset:", error);
+      throw error;
+    }
+  }
+  
   async recalculateAllUserPoints(): Promise<{
     usersUpdated: number;
     totalPointsBefore: number;

@@ -49,6 +49,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Maintenance endpoint to reset all user points and swap transactions
+  app.post(`${apiPrefix}/maintenance/reset-points-and-transactions`, async (req, res) => {
+    try {
+      console.log("Starting complete reset of all user points and swap transactions");
+      const result = await storage.resetAllUserPointsAndTransactions();
+      
+      return res.status(200).json({
+        success: true,
+        message: `Successfully reset points for ${result.usersReset} users and deleted ${result.transactionsDeleted} transactions`,
+        summary: {
+          usersReset: result.usersReset,
+          transactionsDeleted: result.transactionsDeleted,
+          pointsReset: result.pointsReset
+        }
+      });
+    } catch (error) {
+      console.error("Error during points and transactions reset:", error);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while resetting points and transactions",
+        error: String(error)
+      });
+    }
+  });
+
   // Maintenance endpoint to recalculate points for all users
   app.post(`${apiPrefix}/maintenance/recalculate-points`, async (req, res) => {
     try {
