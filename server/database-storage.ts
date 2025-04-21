@@ -257,12 +257,19 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(transactions.timestamp));
     
     // Group transactions by date and calculate points per period
-    const periodData: Record<string, { points: number, swaps: number }> = {};
+    type PeriodDataType = { 
+      points: number; 
+      swaps: number; 
+      dailySwaps: Record<string, number>;  // Track swaps per day with txDay as key
+    };
+    
+    const periodData: Record<string, PeriodDataType> = {};
     const allPeriods: Set<string> = new Set();
     
     // Process transactions
     for (const tx of swapTransactions) {
       const txDate = new Date(tx.timestamp);
+      const txDay = txDate.toISOString().substring(0, 10); // YYYY-MM-DD for daily tracking
       
       // Generate period key based on our format
       let periodKey: string;
@@ -278,28 +285,27 @@ export class DatabaseStorage implements IStorage {
       
       // Initialize period data if not exists
       if (!periodData[periodKey]) {
-        periodData[periodKey] = { points: 0, swaps: 0 };
+        periodData[periodKey] = { 
+          points: 0, 
+          swaps: 0, 
+          dailySwaps: {} 
+        };
+      }
+      
+      // Initialize daily swaps counter if needed
+      if (!periodData[periodKey].dailySwaps[txDay]) {
+        periodData[periodKey].dailySwaps[txDay] = 0;
       }
       
       // Each swap adds 0.5 points up to 5 swaps (2.5 points) per day
-      // For daily periods, cap at 5 swaps
-      if (period === 'day') {
-        if (periodData[periodKey].swaps < 5) {
-          periodData[periodKey].points += 0.5;
-          periodData[periodKey].swaps += 1;
-        }
+      // Only award points if we haven't hit the 5 swap limit for this day
+      if (periodData[periodKey].dailySwaps[txDay] < 5) {
+        periodData[periodKey].points += 0.5;
+        periodData[periodKey].swaps += 1;
+        periodData[periodKey].dailySwaps[txDay] += 1;
       } else {
-        // For longer periods, we need to track daily caps
-        const txDay = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
-        if (!periodData[periodKey][txDay]) {
-          periodData[periodKey][txDay] = { swaps: 0 };
-        }
-        
-        if (periodData[periodKey][txDay].swaps < 5) {
-          periodData[periodKey].points += 0.5;
-          periodData[periodKey].swaps += 1;
-          periodData[periodKey][txDay].swaps += 1;
-        }
+        // Still count the swap but don't add points
+        periodData[periodKey].swaps += 1;
       }
       
       allPeriods.add(periodKey);
