@@ -1,5 +1,20 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+/**
+ * CACHE BUSTING STRATEGY
+ * 
+ * To prevent stale data issues in the application, we employ several techniques:
+ * 
+ * 1. All GET requests automatically have a timestamp-based cache buster (_cb) parameter added
+ * 2. Cache-Control and Pragma headers are set to prevent browser caching
+ * 3. The Leaderboard component also implements its own refreshLeaderboard function with cache busting
+ * 4. Admin operations clear the queryClient cache after data modifications
+ * 5. Server-side cache headers are also set on sensitive endpoints
+ * 
+ * This multi-layered approach ensures users always see fresh data, especially after
+ * database resets or recalculations.
+ */
+
 // Get the API base URL from environment variables, defaults to current origin in development
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -42,12 +57,18 @@ export async function apiRequest<T = any>(
       const url = getFullApiUrl(urlOrPathOrMethod);
       console.log(`API Request: GET ${url}`);
       
-      const res = await fetch(url, {
+      // Add a timestamp cache buster to the URL if it doesn't already have one
+      const urlWithCacheBuster = url.includes('_cb=') 
+        ? url 
+        : `${url}${url.includes('?') ? '&' : '?'}_cb=${Date.now()}`;
+      
+      const res = await fetch(urlWithCacheBuster, {
         method: 'GET',
         credentials: 'include',
         headers: {
-          'Accept': 'application/json'
-          // Removed Cache-Control header temporarily to avoid CORS issues
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         },
       });
       
@@ -64,12 +85,19 @@ export async function apiRequest<T = any>(
     
     console.log(`API Request: ${method} ${url}`);
     
-    const res = await fetch(url, {
+    // Add a timestamp cache buster to the URL for non-POST requests
+    // For POST, we don't need a cache buster since they shouldn't be cached anyway
+    const urlWithCacheBuster = (method !== 'POST' && !url.includes('_cb='))
+      ? `${url}${url.includes('?') ? '&' : '?'}_cb=${Date.now()}`
+      : url;
+    
+    const res = await fetch(urlWithCacheBuster, {
       method,
       headers: {
         ...(requestData ? { "Content-Type": "application/json" } : {}),
-        'Accept': 'application/json'
-        // No Cache-Control header to avoid CORS issues
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
       },
       body: requestData ? JSON.stringify(requestData) : undefined,
       credentials: "include",
