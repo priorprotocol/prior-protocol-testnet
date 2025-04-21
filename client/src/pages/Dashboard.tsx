@@ -80,7 +80,7 @@ const Dashboard = () => {
     refetchOnWindowFocus: true
   });
   
-  // Function to sync all data
+  // Function to sync all data and recalculate points
   const syncAllData = async () => {
     if (!address) return;
     
@@ -88,12 +88,13 @@ const Dashboard = () => {
       setIsSyncing(true);
       setSyncError(null);
       
-      // First fetch on-chain data
-      await apiRequest(`/api/users/${address}/sync-onchain`, {
-        method: 'POST'
+      // Use the same recalculation function as the admin panel to recalculate ALL user points
+      await apiRequest('POST', '/api/maintenance/recalculate-points', {
+        requestingAddress: address,
+        timestamp: Date.now()
       });
       
-      // Then refetch all data
+      // Then refetch all data for the current user
       await Promise.all([
         refetchStats(),
         refetchTransactions()
@@ -101,8 +102,8 @@ const Dashboard = () => {
       
       setIsSyncing(false);
     } catch (error) {
-      console.error("Error syncing data:", error);
-      setSyncError("Failed to sync data. Please try again.");
+      console.error("Error recalculating points:", error);
+      setSyncError("Failed to recalculate points. Please try again.");
       setIsSyncing(false);
     }
   };
@@ -159,7 +160,7 @@ const Dashboard = () => {
             ) : (
               <>
                 <FaDatabase size={14} />
-                <span>Refresh Your Points</span>
+                <span>Recalculate All Points</span>
               </>
             )}
           </Button>
@@ -216,28 +217,7 @@ const Dashboard = () => {
             isLoading={statsLoading}
           />
 
-          {/* Admin Panel Link (only for admin) */}
-          {isAdmin && (
-            <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-600 to-red-600"></div>
-              <CardContent className="p-4">
-                <h3 className="text-amber-400 font-medium mb-2 flex items-center">
-                  <FaTrophy className="mr-2" size={14} />
-                  Admin Controls
-                </h3>
-                <p className="text-xs text-gray-400 mb-3">
-                  Access admin maintenance functions
-                </p>
-                <Button
-                  variant="outline"
-                  className="w-full text-xs bg-amber-900/20 hover:bg-amber-900/30 text-amber-400 border border-amber-900/30"
-                  onClick={() => window.location.href = '/admin'}
-                >
-                  Open Admin Panel
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+          {/* Admin panel link removed as requested */}
         </div>
 
         {/* Main Content Area */}
