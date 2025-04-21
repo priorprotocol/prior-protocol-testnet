@@ -98,6 +98,14 @@ export interface IStorage {
     pointsReset: number;
   }>;
   
+  // Complete database reset - more comprehensive than resetAllUserPointsAndTransactions
+  completeReset(): Promise<{
+    usersDeleted: number;
+    transactionsDeleted: number;
+    userQuestsDeleted: number;
+    votesDeleted: number;
+  }>;
+  
   recalculateAllUserPoints(): Promise<{
     usersUpdated: number;
     totalPointsBefore: number;

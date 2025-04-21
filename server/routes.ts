@@ -73,6 +73,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // CRITICAL MAINTENANCE ENDPOINT: Complete database wipe
+  // This endpoint will completely wipe all data except for the demo user
+  app.post(`${apiPrefix}/maintenance/complete-reset`, async (req, res) => {
+    try {
+      console.log("⚠️ DANGER: Starting COMPLETE DATABASE RESET - wiping all user data");
+      const result = await storage.completeReset();
+      
+      return res.status(200).json({
+        success: true,
+        message: `⚠️ COMPLETE DATABASE RESET SUCCESSFUL. Deleted ${result.usersDeleted} users, ${result.transactionsDeleted} transactions, ${result.userQuestsDeleted} quests, and ${result.votesDeleted} votes. Only the demo user remains.`,
+        summary: {
+          usersDeleted: result.usersDeleted,
+          transactionsDeleted: result.transactionsDeleted,
+          userQuestsDeleted: result.userQuestsDeleted,
+          votesDeleted: result.votesDeleted
+        }
+      });
+    } catch (error) {
+      console.error("⚠️ CRITICAL ERROR during complete database reset:", error);
+      return res.status(500).json({
+        success: false,
+        message: "A critical error occurred during the complete database reset",
+        error: String(error)
+      });
+    }
+  });
 
   // Maintenance endpoint to recalculate points for all users
   app.post(`${apiPrefix}/maintenance/recalculate-points`, async (req, res) => {
