@@ -244,6 +244,14 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               // Update global points state
               setTotalGlobalPoints(message.totalGlobalPoints);
               
+              // Show a toast notification for leaderboard updates
+              toast({
+                title: "Community Achievement Updated",
+                description: `Total Global Points: ${message.totalGlobalPoints.toFixed(1)} | Active Users: ${message.userCount}`,
+                duration: 4000,
+                variant: "default"
+              });
+              
               // Invalidate leaderboard query to refresh data
               queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
               break;
