@@ -857,7 +857,7 @@ export class DatabaseStorage implements IStorage {
       transactionsByDay[day].push(tx);
     }
     
-    // Calculate swap points: 0.5 per swap, max 5 swaps per day
+    // Calculate swap points: 1.5 per swap, max 5 swaps per day
     let newPoints = 0;
     
     for (const day in transactionsByDay) {
