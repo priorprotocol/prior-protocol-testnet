@@ -58,19 +58,25 @@ export async function recordSwapTransaction(params: {
     
     // Only award points for the first 5 swaps per day
     if (dailySwapCount <= MAX_DAILY_SWAPS_FOR_POINTS) {
-      // Ensure we're adding exactly 0.5 points, no more and no less
-      await storage.addUserPoints(user.id, POINTS_PER_SWAP);
-      console.log(`Awarded ${POINTS_PER_SWAP} points to user ${address} for swap. Daily swaps: ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS}`);
+      // IMPORTANT FIX: Instead of calling addUserPoints directly, update the 
+      // transaction record with the points value. The createTransaction method
+      // we called earlier will properly handle adding points to the user.
+      
+      console.log(`Setting ${POINTS_PER_SWAP} points for transaction ${transaction.id}. Daily swaps: ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS}`);
       
       // Update the transaction record with the points value
       try {
-        // First update the transaction record with the points value
+        // Update the transaction record with the points value
         await db
           .update(transactions)
           .set({ points: POINTS_PER_SWAP })
           .where(eq(transactions.id, transaction.id));
           
         console.log(`Updated transaction ${transaction.id} with ${POINTS_PER_SWAP} points`);
+        
+        // Now add the points to the user
+        await storage.addUserPoints(user.id, POINTS_PER_SWAP);
+        console.log(`Awarded ${POINTS_PER_SWAP} points to user ${address} for swap. Daily swaps: ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS}`);
         
         // Add the exact points value to the result for debugging
         result.pointsAdded = POINTS_PER_SWAP;

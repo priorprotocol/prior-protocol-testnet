@@ -634,6 +634,9 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
+    // IMPORTANT FIX: If points are explicitly provided, use them instead of calculating
+    // This prevents double-counting points from various parts of the application
+    
     // Create the transaction
     const [newTransaction] = await db
       .insert(transactions)
@@ -643,11 +646,30 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     
-    // Calculate and add points for this transaction
-    const points = await this.getTransactionPoints(newTransaction);
-    if (points > 0) {
-      console.log(`Adding ${points} points to user ${transaction.userId} for ${transaction.type} transaction`);
-      await this.addUserPoints(transaction.userId, points);
+    // Points are handled in different ways:
+    // 1. If points explicitly provided - that value is used directly with no additional points added
+    // 2. If points not provided - calculate and add points based on transaction type
+    
+    if (transaction.points === undefined) {
+      // No points explicitly provided - calculate them
+      const points = await this.getTransactionPoints(newTransaction);
+      if (points > 0) {
+        console.log(`Calculated ${points} points for user ${transaction.userId} ${transaction.type} transaction`);
+        
+        // Add points to the user
+        await this.addUserPoints(transaction.userId, points);
+        
+        // Update the transaction record with calculated points
+        await db
+          .update(transactions)
+          .set({ points })
+          .where(eq(transactions.id, newTransaction.id));
+          
+        console.log(`Updated transaction ${newTransaction.id} with calculated ${points} points`);
+      }
+    } else if (transaction.points > 0) {
+      // Points explicitly provided - don't add points, assuming that the caller will handle it
+      console.log(`Transaction created with explicit ${transaction.points} points value - not adding points automatically`);
     }
     
     return newTransaction;

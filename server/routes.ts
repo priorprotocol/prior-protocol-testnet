@@ -1169,9 +1169,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`No points awarded - already reached ${MAX_DAILY_SWAPS_FOR_POINTS} swaps for the day for user ${user.id}`);
       }
       
-      // Create transaction record 
-      // Note: Points will be automatically calculated and added by createTransaction
-      // DO NOT add points here as it would result in double-counting
+      // Create transaction record with explicitly set points
+      // IMPORTANT: We explicitly set points here to prevent double-counting
+      // This ensures that the transaction has the exact right amount (0.5 if eligible)
       const transaction = await storage.createTransaction({
         userId: user.id,
         type: 'swap',
@@ -1181,7 +1181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         toAmount,
         txHash,
         status: 'completed',
-        blockNumber: blockNumber || null
+        blockNumber: blockNumber || null,
+        points: points // Explicitly set points here to avoid double-counting
       });
       
       // Points are already added in the createTransaction method
