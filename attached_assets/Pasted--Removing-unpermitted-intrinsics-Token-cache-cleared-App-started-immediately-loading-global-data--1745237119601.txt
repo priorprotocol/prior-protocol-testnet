@@ -1,0 +1,232 @@
+ Removing unpermitted intrinsics
+ Token cache cleared
+ App started, immediately loading global data
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens
+ App started, immediately loading global data
+ App started, immediately loading global data
+ Wallet context updated, syncing local state. Address: null
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+ Connecting to WebSocket at /ws
+ App mounted - prefetching global leaderboard data
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+ Connecting to WebSocket at /ws
+ Connecting to WebSocket at /ws
+ Connecting to WebSocket at /ws
+ Connecting to WebSocket at /ws
+ Connecting to WebSocket at /ws
+ Connecting to WebSocket at /ws
+ WebSocket error: Event
+b.onerror @ index-DMzsrkbe.js:155
+ WebSocket connection closed 1006 
+ Connection closed abnormally (1006) - common in Replit environment
+ Connecting to WebSocket at /ws
+ WebSocket error: Event
+b.onerror @ index-DMzsrkbe.js:155
+ WebSocket connection closed 1006 
+ Connection closed abnormally (1006) - common in Replit environment
+ WebSocket error: Event
+b.onerror @ index-DMzsrkbe.js:155
+ WebSocket connection closed 1006 
+ Connection closed abnormally (1006) - common in Replit environment
+ WebSocket error: Event
+b.onerror @ index-DMzsrkbe.js:155
+ WebSocket connection closed 1006 
+ Connection closed abnormally (1006) - common in Replit environment
+ WebSocket error: Event
+b.onerror @ index-DMzsrkbe.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 5 times. Switching to polling fallback.
+ Starting polling fallback mechanism
+ WebSocket error: Event
+b.onerror @ index-DMzsrkbe.js:155
+ WebSocket connection closed 1006 
+index-DMzsrkbe.js:155 WebSocket connection failed 6 times. Switching to polling fallback.
+index-DMzsrkbe.js:155 Polling fallback already active
+index-DMzsrkbe.js:155 In polling mode, skipping WebSocket connection attempt
+index-DMzsrkbe.js:155 WebSocket error: Event
+b.onerror @ index-DMzsrkbe.js:155
+index-DMzsrkbe.js:155 WebSocket connection closed 1006 
+index-DMzsrkbe.js:155 WebSocket connection failed 7 times. Switching to polling fallback.
+index-DMzsrkbe.js:155 Polling fallback already active
+index-DMzsrkbe.js:55 Wallet auto-connection disabled. User must manually connect.
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?_cb=1745236865835' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field pragma is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?_cb=1745236865835:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-DMzsrkbe.js:48 API Request failed: TypeError: Failed to fetch
+    at Ne (index-DMzsrkbe.js:48:44655)
+    at queryFn (index-DMzsrkbe.js:55:224742)
+    at Object.o [as fn] (index-DMzsrkbe.js:48:14483)
+    at m (index-DMzsrkbe.js:48:10076)
+    at Object.start (index-DMzsrkbe.js:48:10535)
+    at l6.fetch (index-DMzsrkbe.js:48:15819)
+    at d6.fetchQuery (index-DMzsrkbe.js:48:28240)
+    at d6.prefetchQuery (index-DMzsrkbe.js:48:28308)
+    at index-DMzsrkbe.js:55:224685
+    at gv (index-DMzsrkbe.js:40:24283)
+Ne @ index-DMzsrkbe.js:48
+index-DMzsrkbe.js:228 Global leaderboard data prefetched successfully
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236865837' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field pragma is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236865837:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-DMzsrkbe.js:48 API Request failed: TypeError: Failed to fetch
+    at Ne (index-DMzsrkbe.js:48:44655)
+    at queryFn (index-DMzsrkbe.js:155:51515)
+    at Object.o [as fn] (index-DMzsrkbe.js:48:14483)
+    at m (index-DMzsrkbe.js:48:10076)
+    at Object.start (index-DMzsrkbe.js:48:10535)
+    at l6.fetch (index-DMzsrkbe.js:48:15819)
+    at h6.vd (index-DMzsrkbe.js:48:36215)
+    at h6.onSubscribe (index-DMzsrkbe.js:48:30749)
+    at h6.subscribe (index-DMzsrkbe.js:48:4435)
+    at index-DMzsrkbe.js:48:41739
+Ne @ index-DMzsrkbe.js:48
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens?_cb=1745236865835' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field pragma is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/tokens?_cb=1745236865835:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-DMzsrkbe.js:48 API Request failed: TypeError: Failed to fetch
+    at Ne (index-DMzsrkbe.js:48:44655)
+    at queryFn (index-DMzsrkbe.js:55:224835)
+    at Object.o [as fn] (index-DMzsrkbe.js:48:14483)
+    at m (index-DMzsrkbe.js:48:10076)
+    at Object.start (index-DMzsrkbe.js:48:10535)
+    at l6.fetch (index-DMzsrkbe.js:48:15819)
+    at d6.fetchQuery (index-DMzsrkbe.js:48:28240)
+    at d6.prefetchQuery (index-DMzsrkbe.js:48:28308)
+    at index-DMzsrkbe.js:55:224783
+    at gv (index-DMzsrkbe.js:40:24283)
+Ne @ index-DMzsrkbe.js:48
+index-DMzsrkbe.js:55 ✅ Global data pre-loaded in 335ms
+index-DMzsrkbe.js:55 ✅ Global data pre-loaded in 333ms
+index-DMzsrkbe.js:55 ✅ Global data pre-loaded in 333ms
+index-DMzsrkbe.js:155 WebSocket connection to 'wss://priortestnetv2.netlify.app/ws' failed: 
+(anonymous) @ index-DMzsrkbe.js:155
+index-DMzsrkbe.js:155 WebSocket error: Event
+b.onerror @ index-DMzsrkbe.js:155
+index-DMzsrkbe.js:155 WebSocket connection closed 1006 
+index-DMzsrkbe.js:155 WebSocket connection failed 8 times. Switching to polling fallback.
+index-DMzsrkbe.js:155 Polling fallback already active
+index-DMzsrkbe.js:155 Attempting to reconnect after Replit-specific error...
+index-DMzsrkbe.js:155 In polling mode, skipping WebSocket connection attempt
+index-DMzsrkbe.js:155 Attempting to reconnect after Replit-specific error...
+index-DMzsrkbe.js:155 In polling mode, skipping WebSocket connection attempt
+index-DMzsrkbe.js:155 Attempting to reconnect after Replit-specific error...
+index-DMzsrkbe.js:155 In polling mode, skipping WebSocket connection attempt
+index-DMzsrkbe.js:155 Attempting to reconnect after Replit-specific error...
+index-DMzsrkbe.js:155 In polling mode, skipping WebSocket connection attempt
+index-DMzsrkbe.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-DMzsrkbe.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236871168' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field pragma is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236871168:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-DMzsrkbe.js:48 API Request failed: TypeError: Failed to fetch
+    at Ne (index-DMzsrkbe.js:48:44655)
+    at queryFn (index-DMzsrkbe.js:155:51515)
+    at Object.o [as fn] (index-DMzsrkbe.js:48:14483)
+    at m (index-DMzsrkbe.js:48:10076)
+    at Object.start (index-DMzsrkbe.js:48:10535)
+    at l6.fetch (index-DMzsrkbe.js:48:15819)
+    at index-DMzsrkbe.js:48:27942
+    at Array.map (<anonymous>)
+    at index-DMzsrkbe.js:48:27926
+    at Object.batch (index-DMzsrkbe.js:48:10769)
+Ne @ index-DMzsrkbe.js:48
+index-DMzsrkbe.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236875838 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-DMzsrkbe.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236875838
+index-DMzsrkbe.js:155 Polling for leaderboard data...
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236875838' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field pragma is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236875838:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-DMzsrkbe.js:48 API Request failed: TypeError: Failed to fetch
+    at Ne (index-DMzsrkbe.js:48:44655)
+    at index-DMzsrkbe.js:155:51757
+    at index-DMzsrkbe.js:155:52136
+Ne @ index-DMzsrkbe.js:48
+index-DMzsrkbe.js:48 
+            
+            
+           
+        
+       Uncaught (in promise) TypeError: Failed to fetch
+    at Ne (index-DMzsrkbe.js:48:44655)
+    at index-DMzsrkbe.js:155:51757
+    at index-DMzsrkbe.js:155:52136
+index-DMzsrkbe.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-DMzsrkbe.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236877741' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field pragma is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236877741:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-DMzsrkbe.js:48 API Request failed: TypeError: Failed to fetch
+    at Ne (index-DMzsrkbe.js:48:44655)
+    at queryFn (index-DMzsrkbe.js:155:51515)
+    at Object.o [as fn] (index-DMzsrkbe.js:48:14483)
+    at m (index-DMzsrkbe.js:48:10076)
+    at Object.start (index-DMzsrkbe.js:48:10535)
+    at l6.fetch (index-DMzsrkbe.js:48:15819)
+    at h6.vd (index-DMzsrkbe.js:48:36215)
+    at h6.setOptions (index-DMzsrkbe.js:48:31793)
+    at index-DMzsrkbe.js:48:41871
+    at gv (index-DMzsrkbe.js:40:24283)
+Ne @ index-DMzsrkbe.js:48
+index-DMzsrkbe.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-DMzsrkbe.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236881168' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field pragma is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236881168:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-DMzsrkbe.js:48 API Request failed: TypeError: Failed to fetch
+    at Ne (index-DMzsrkbe.js:48:44655)
+    at queryFn (index-DMzsrkbe.js:155:51515)
+    at Object.o [as fn] (index-DMzsrkbe.js:48:14483)
+    at m (index-DMzsrkbe.js:48:10076)
+    at Object.start (index-DMzsrkbe.js:48:10535)
+    at l6.fetch (index-DMzsrkbe.js:48:15819)
+    at index-DMzsrkbe.js:48:27942
+    at Array.map (<anonymous>)
+    at index-DMzsrkbe.js:48:27926
+    at Object.batch (index-DMzsrkbe.js:48:10769)
+Ne @ index-DMzsrkbe.js:48
+index-DMzsrkbe.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236885838 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-DMzsrkbe.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236885838
+index-DMzsrkbe.js:155 Polling for leaderboard data...
+priortestnetv2.netlify.app/:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236885838' from origin 'https://priortestnetv2.netlify.app' has been blocked by CORS policy: Request header field pragma is not allowed by Access-Control-Allow-Headers in preflight response.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=10&page=1&_cb=1745236885838:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-DMzsrkbe.js:48 API Request failed: TypeError: Failed to fetch
+    at Ne (index-DMzsrkbe.js:48:44655)
+    at index-DMzsrkbe.js:155:51757
+    at index-DMzsrkbe.js:155:52136
+Ne @ index-DMzsrkbe.js:48
+index-DMzsrkbe.js:48 
+            
+            
+           
+        
+       Uncaught (in promise) TypeError: Failed to fetch
+    at Ne (index-DMzsrkbe.js:48:44655)
+    at index-DMzsrkbe.js:155:51757
+    at index-DMzsrkbe.js:155:52136
