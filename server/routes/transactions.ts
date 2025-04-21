@@ -7,6 +7,7 @@ import { storage } from '../storage';
 import { z } from 'zod';
 import { recordSwapTransaction, recordFaucetClaimTransaction } from '../services/transactionTracker';
 import { ensureUserExists } from '../middleware/userTracker';
+import { pool } from '../db';
 
 const router = Router();
 
@@ -85,8 +86,8 @@ router.post('/transactions', async (req, res) => {
       // Fallback to legacy method for other transaction types
       console.log(`Using legacy storage method for transaction type: ${type}`);
       
-      // Import db for direct SQL if needed
-      const { pool } = require('../db');
+      // Use db pool from import (already imported at the top of file)
+      // This will use the pool that was correctly imported
       
       try {
         // First try direct SQL for better reliability
