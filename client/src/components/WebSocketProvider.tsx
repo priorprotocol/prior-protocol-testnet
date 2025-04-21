@@ -55,14 +55,18 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   
   // Function to start polling as a fallback when WebSockets aren't working
   const startPollingFallback = useCallback(() => {
-    console.log('Starting polling fallback mechanism');
-    
-    // Clear any existing polling interval
+    // Prevent multiple calls from setting up duplicate polling
     if (pollingInterval.current) {
-      window.clearInterval(pollingInterval.current);
+      console.log('Polling fallback already active');
+      return;
     }
     
-    // Show a notification to the user
+    console.log('Starting polling fallback mechanism');
+    
+    // Make sure we show as disconnected for WebSockets when in polling mode
+    setConnected(false);
+    
+    // Show a notification to the user if this is the first time we're switching
     toast({
       title: "Switched to periodic updates",
       description: "Live updates unavailable. Data will refresh every 10 seconds.",
@@ -133,6 +137,14 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (connectionFailures.current >= 5) {
           console.log(`WebSocket connection failed ${connectionFailures.current} times. Switching to polling fallback.`);
           startPollingFallback();
+          
+          // After multiple failures, slow down reconnection attempts substantially
+          // to avoid console spam and unnecessary network requests
+          if (connectionFailures.current > 10) {
+            console.log('Too many connection failures, pausing reconnection attempts');
+            return; // Stop trying to reconnect after too many failures
+          }
+          
           return;
         }
         

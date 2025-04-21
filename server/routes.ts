@@ -1355,13 +1355,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Add permissive CORS settings for Replit environment
     verifyClient: (info, callback) => {
       // Allow all origins in Replit environment
+      const origin = info.origin;
+      console.log(`[WebSocket] Connection attempt from origin: ${origin}`);
+      
+      // Always allow connections regardless of origin (needed for Replit)
       callback(true);
-    }
+    },
+    // Increase ping timeout for Replit environment which can have higher latency
+    clientTracking: true,
   });
   
+  // Set up ping interval for keeping connections alive
+  // This is especially important in Replit's environment
+  const pingInterval = setInterval(() => {
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.ping();
+      }
+    });
+  }, 30000); // 30 second interval
+  
   // Handle WebSocket connections
-  wss.on('connection', (ws) => {
+  wss.on('connection', (ws, req) => {
     console.log('[WebSocket] Client connected');
+    
+    // Track if the client is alive with a isAlive property
+    (ws as any).isAlive = true;
+    
+    // Handle pong responses from clients
+    ws.on('pong', () => {
+      (ws as any).isAlive = true;
+    });
+    
+    // Log connection details for debugging
+    const clientIp = req.socket.remoteAddress;
+    const forwardedFor = req.headers['x-forwarded-for'];
+    const userAgent = req.headers['user-agent'];
+    
+    console.log(`[WebSocket] Client details - IP: ${clientIp}, Forwarded-For: ${forwardedFor}, UA: ${userAgent}`);
     
     // Send initial connection confirmation
     ws.send(JSON.stringify({ 
@@ -1384,6 +1415,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ws.on('close', () => {
       console.log('[WebSocket] Client disconnected');
     });
+    
+    // Handle errors
+    ws.on('error', (error) => {
+      console.error('[WebSocket] Client connection error:', error);
+    });
+  });
+  
+  // Check for dead clients that haven't responded to pings
+  const terminateInterval = setInterval(() => {
+    wss.clients.forEach(client => {
+      if ((client as any).isAlive === false) {
+        console.log('[WebSocket] Terminating inactive client');
+        return client.terminate();
+      }
+      
+      (client as any).isAlive = false;
+    });
+  }, 40000); // Check slightly after ping interval
+  
+  // Clean up intervals when server closes
+  wss.on('close', () => {
+    clearInterval(pingInterval);
+    clearInterval(terminateInterval);
   });
   
   console.log('WebSocket server initialized on path: /ws');
