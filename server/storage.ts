@@ -1501,49 +1501,58 @@ export class MemStorage implements IStorage {
     transactionsDeleted: number;
     pointsReset: number;
   }> {
-    console.log("[PointsSystem] Starting complete reset of all user points and swap transactions");
+    console.log("[PointsSystem] Starting complete reset of all user data, points and transactions");
     
     let usersReset = 0;
     let pointsReset = 0;
     let transactionsDeleted = 0;
     
-    // Keep track of transactions to remove
-    const transactionsToDelete: number[] = [];
-    
-    // First identify all swap transactions
-    for (const [transactionId, transaction] of this.transactions.entries()) {
-      if (transaction.type === 'swap') {
-        transactionsToDelete.push(transactionId);
-      }
-    }
-    
-    // Delete the transactions
-    for (const id of transactionsToDelete) {
+    // Delete all transactions
+    const transactionIds = Array.from(this.transactions.keys());
+    for (const id of transactionIds) {
       this.transactions.delete(id);
       transactionsDeleted++;
     }
     
-    // Reset user points and swap counts
-    for (const [userId, user] of this.users.entries()) {
-      if (user.points && user.points > 0) {
-        const currentPoints = user.points;
-        
-        // Reset points and swap count
+    console.log(`[PointsSystem] Deleted ${transactionsDeleted} total transactions`);
+    
+    // Delete all users EXCEPT the demo user (for testing)
+    const demoUserAddress = "0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae";
+    const userIds = Array.from(this.users.keys());
+    
+    for (const userId of userIds) {
+      const user = this.users.get(userId);
+      if (!user) continue;
+      
+      // Track current points for logging
+      const currentPoints = user.points || 0;
+      
+      if (user.address.toLowerCase() === demoUserAddress.toLowerCase()) {
+        // Just reset the demo user's points
         user.points = 0;
         user.totalSwaps = 0;
+        user.totalClaims = 0;
         
-        // Update user in both maps
+        // Update in both maps
         this.users.set(userId, user);
         this.usersByAddress.set(user.address, user);
         
+        console.log(`[PointsSystem] Reset demo user ${userId} (${user.address})`);
+      } else {
+        // Delete other users completely
+        this.users.delete(userId);
+        this.usersByAddress.delete(user.address);
+        
+        console.log(`[PointsSystem] Deleted user ${userId} (${user.address})`);
+      }
+      
+      if (currentPoints > 0) {
         pointsReset += currentPoints;
         usersReset++;
-        
-        console.log(`[PointsSystem] Reset ${currentPoints} points for user ${userId} (${user.address})`);
       }
     }
     
-    console.log(`[PointsSystem] Reset complete: ${usersReset} users had points reset, ${pointsReset} total points removed, ${transactionsDeleted} swap transactions deleted`);
+    console.log(`[PointsSystem] Reset complete: ${usersReset} users had points reset or were deleted, ${pointsReset} total points removed, ${transactionsDeleted} transactions deleted`);
     
     return {
       usersReset,

@@ -876,50 +876,60 @@ export class DatabaseStorage implements IStorage {
     transactionsDeleted: number;
     pointsReset: number;
   }> {
-    console.log("[PointsSystem] Starting complete reset of all user points and swap transactions");
+    console.log("[PointsSystem] Starting complete reset of all user data, points and transactions");
     
     let usersReset = 0;
     let pointsReset = 0;
     let transactionsDeleted = 0;
     
     try {
+      // Delete all transactions (not just swaps)
+      const deletedTransactions = await db
+        .delete(transactions)
+        .returning();
+        
+      transactionsDeleted = deletedTransactions.length;
+      console.log(`[PointsSystem] Deleted ${transactionsDeleted} total transactions`);
+
+      // Delete all users EXCEPT the demo user (for testing)
+      const demoUserAddress = "0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae";
+      
       // Get all users
       const allUsers = await db.select().from(users);
       
-      // For each user
+      // Reset points for all users or delete them completely
       for (const user of allUsers) {
         // Track current points for logging
         const currentPoints = user.points || 0;
         
-        // Delete all swap transactions
-        const deletedTransactions = await db
-          .delete(transactions)
-          .where(and(
-            eq(transactions.userId, user.id),
-            eq(transactions.type, 'swap')
-          ))
-          .returning();
-          
-        transactionsDeleted += deletedTransactions.length;
+        if (user.address.toLowerCase() === demoUserAddress.toLowerCase()) {
+          // Just reset the demo user's points
+          await db
+            .update(users)
+            .set({ 
+              points: 0,
+              totalSwaps: 0,
+              totalClaims: 0
+            })
+            .where(eq(users.id, user.id));
+            
+          console.log(`[PointsSystem] Reset demo user ${user.id} (${user.address})`);
+        } else {
+          // Delete other users completely
+          await db
+            .delete(users)
+            .where(eq(users.id, user.id));
+            
+          console.log(`[PointsSystem] Deleted user ${user.id} (${user.address})`);
+        }
         
-        // Reset user points to 0 and total swaps
-        const [updatedUser] = await db
-          .update(users)
-          .set({ 
-            points: 0,
-            totalSwaps: 0
-          })
-          .where(eq(users.id, user.id))
-          .returning();
-          
         if (currentPoints > 0) {
           pointsReset += currentPoints;
           usersReset++;
-          console.log(`[PointsSystem] Reset ${currentPoints} points and ${deletedTransactions.length} transactions for user ${user.id} (${user.address})`);
         }
       }
       
-      console.log(`[PointsSystem] Reset complete: ${usersReset} users had points reset, ${pointsReset} total points removed, ${transactionsDeleted} swap transactions deleted`);
+      console.log(`[PointsSystem] Reset complete: ${usersReset} users had points reset or were deleted, ${pointsReset} total points removed, ${transactionsDeleted} transactions deleted`);
       
       return {
         usersReset,
@@ -927,7 +937,7 @@ export class DatabaseStorage implements IStorage {
         pointsReset
       };
     } catch (error) {
-      console.error("[PointsSystem] Error during points and transactions reset:", error);
+      console.error("[PointsSystem] Error during full reset:", error);
       throw error;
     }
   }
