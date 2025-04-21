@@ -20,6 +20,7 @@ import NotFound from "@/pages/not-found";
 import { apiRequest } from "@/lib/queryClient";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import { Redirect as RedirectPage } from "wouter";
+import { WebSocketProvider } from "@/components/WebSocketProvider";
 
 // Admin wallet address for protected routes
 const ADMIN_WALLET = "0x4cfc531df94339def7dcd603aac1a2deaf6888b7";
@@ -91,25 +92,27 @@ function App() {
   }, [queryClient]);
   
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={WrappedHome} />
-        <Route path="/faucet" component={WrappedFaucet} />
-        <Route path="/swap" component={WrappedSwap} />
-        <Route path="/quest" component={WrappedQuest} />
-        <Route path="/governance" component={WrappedGovernance} />
-        <Route path="/dashboard" component={WrappedDashboard} />
-        <Route path="/transactions" component={WrappedTransactions} />
-        <Route path="/admin" component={ProtectedAdminRoute} />
-        <Route path="/about" component={WrappedAbout} />
-        <Route path="/docs" component={WrappedDocumentation} />
-        <Route path="/redirect" component={WrappedRedirect} />
-        <Route path="/learn" component={WrappedLearn} />
-        <Route path="/quiz/:quizId/:userQuizId" component={WrappedQuizPage} />
-        <Route path="/quiz-result/:userQuizId" component={WrappedQuizResultPage} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <WebSocketProvider>
+      <Layout>
+        <Switch>
+          <Route path="/" component={WrappedHome} />
+          <Route path="/faucet" component={WrappedFaucet} />
+          <Route path="/swap" component={WrappedSwap} />
+          <Route path="/quest" component={WrappedQuest} />
+          <Route path="/governance" component={WrappedGovernance} />
+          <Route path="/dashboard" component={WrappedDashboard} />
+          <Route path="/transactions" component={WrappedTransactions} />
+          <Route path="/admin" component={ProtectedAdminRoute} />
+          <Route path="/about" component={WrappedAbout} />
+          <Route path="/docs" component={WrappedDocumentation} />
+          <Route path="/redirect" component={WrappedRedirect} />
+          <Route path="/learn" component={WrappedLearn} />
+          <Route path="/quiz/:quizId/:userQuizId" component={WrappedQuizPage} />
+          <Route path="/quiz-result/:userQuizId" component={WrappedQuizResultPage} />
+          <Route component={NotFound} />
+        </Switch>
+      </Layout>
+    </WebSocketProvider>
   );
 }
 

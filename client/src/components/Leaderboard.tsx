@@ -5,11 +5,12 @@ import { formatAddress } from "@/lib/formatAddress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FaTrophy, FaMedal, FaAward, FaExchangeAlt, FaSync, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaTrophy, FaMedal, FaAward, FaExchangeAlt, FaSync, FaChevronLeft, FaChevronRight, FaWifi } from "react-icons/fa";
 import { useWallet } from "@/context/WalletContext";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import { useEffect, useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useWebSocket } from "@/components/WebSocketProvider";
 
 // Updated types to match the new leaderboard format
 interface LeaderboardData {
@@ -38,6 +39,9 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
   // For refreshing leaderboard data automatically
   const queryClient = useQueryClient();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // WebSocket connection for real-time updates
+  const { connected: wsConnected, totalGlobalPoints: wsTotalGlobalPoints, lastMessage } = useWebSocket();
   
   // User rank query
   const { data: userRankData, isLoading: isRankLoading } = useQuery({
@@ -156,30 +160,55 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
           <CardTitle className="flex items-center gap-2">
             <FaTrophy className="text-amber-500" /> Prior Protocol Leaderboard
           </CardTitle>
-          <button 
-            className="text-xs flex items-center gap-1 bg-blue-900/30 hover:bg-blue-800/40 text-blue-300 px-2 py-1 rounded-md"
-            onClick={() => refreshLeaderboard()}
-            title="Refresh Leaderboard"
-          >
-            <FaSync size={10} className="mr-1" />
-            Refresh
-          </button>
+          <div className="flex gap-2">
+            {/* WebSocket connection indicator */}
+            <div 
+              className={`text-xs flex items-center gap-1 ${
+                wsConnected 
+                ? "bg-green-900/30 text-green-300" 
+                : "bg-red-900/30 text-red-300"
+              } px-2 py-1 rounded-md`}
+              title={wsConnected ? "Real-time updates active" : "Reconnecting..."}
+            >
+              {wsConnected 
+                ? <FaWifi size={10} className="mr-1" /> 
+                : <FaWifi size={10} className="mr-1 animate-pulse" />
+              }
+              {wsConnected ? "Live" : "Connecting..."}
+            </div>
+            
+            <button 
+              className="text-xs flex items-center gap-1 bg-blue-900/30 hover:bg-blue-800/40 text-blue-300 px-2 py-1 rounded-md"
+              onClick={() => refreshLeaderboard()}
+              title="Refresh Leaderboard"
+            >
+              <FaSync size={10} className="mr-1" />
+              Refresh
+            </button>
+          </div>
         </div>
         <CardDescription>
           Top users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
         </CardDescription>
         
         {/* Total global points summary */}
-        {leaderboardData?.totalGlobalPoints !== undefined && (
-          <div className="mt-2 p-2 bg-[#1A2A40] rounded-md border border-[#2D3748]">
-            <div className="text-center">
-              <span className="text-[#A0AEC0] text-sm">Total Global Points:</span> 
-              <span className="ml-2 text-lg font-bold text-emerald-400">
-                {leaderboardData.totalGlobalPoints.toFixed(1)}
+        <div className="mt-2 p-2 bg-[#1A2A40] rounded-md border border-[#2D3748]">
+          <div className="text-center">
+            <span className="text-[#A0AEC0] text-sm">Total Global Points:</span> 
+            <span className={`ml-2 text-lg font-bold text-emerald-400 ${lastMessage?.type === 'leaderboard_update' ? 'animate-pulse' : ''}`}>
+              {/* Use WebSocket value if available, otherwise fallback to API data */}
+              {(wsTotalGlobalPoints > 0 
+                ? wsTotalGlobalPoints 
+                : leaderboardData?.totalGlobalPoints || 0
+              ).toFixed(1)}
+            </span>
+            {wsConnected && lastMessage?.type === 'leaderboard_update' && (
+              <span className="ml-2 text-xs bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded-full">
+                Updated live
               </span>
-            </div>
+            )}
           </div>
-        )}
+        </div>
         
         {/* Show user's rank if wallet is connected */}
         {address && (
