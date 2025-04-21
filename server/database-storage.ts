@@ -1426,7 +1426,7 @@ export class DatabaseStorage implements IStorage {
           transactionsByDay[day].push(tx);
         }
         
-        // Calculate swap points: 0.5 per swap, max 5 swaps per day
+        // Calculate swap points: 1.5 per swap, max 5 swaps per day
         let newPoints = 0;
         
         for (const day in transactionsByDay) {
@@ -1435,7 +1435,7 @@ export class DatabaseStorage implements IStorage {
           const pointSwapsForDay = Math.min(daySwaps.length, 5);
           
           pointEarningSwaps += pointSwapsForDay;
-          const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
+          const pointsForDay = pointSwapsForDay * 1.5; // 1.5 points per swap
           
           console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
           newPoints += pointsForDay;
