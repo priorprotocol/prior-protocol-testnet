@@ -103,7 +103,7 @@ export const transactions = pgTable("transactions", {
   toToken: text("to_token"),
   fromAmount: text("from_amount"),
   toAmount: text("to_amount"),
-  txHash: text("tx_hash").notNull().unique(), // Must be unique to prevent duplicate transactions
+  txHash: text("tx_hash").notNull(),
   timestamp: timestamp("timestamp").notNull().defaultNow(),
   status: text("status").notNull().default("completed"), // 'completed', 'pending', 'failed'
   blockNumber: integer("block_number"),

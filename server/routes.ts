@@ -10,7 +10,7 @@ import quizRoutes from "./routes/quizzes";
 import { log } from "./vite";
 import { db, pool } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
-import { userTrackerMiddleware, ensureUserExists } from "./middleware/userTracker";
+import { userTrackerMiddleware } from "./middleware/userTracker";
 
 // Global WebSocket server instance
 export let wss: WebSocketServer;
@@ -577,37 +577,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(`${apiPrefix}/users/:address/stats`, async (req, res) => {
     const { address } = req.params;
     
-    try {
-      // Use robust ensureUserExists function to get or create the user
-      // This handles edge cases and race conditions better
-      const user = await ensureUserExists(address);
-      
-      if (!user) {
-        console.error(`Failed to ensure user exists for address: ${address}`);
-        return res.status(500).json({ message: "Failed to find or create user" });
-      }
-      
-      console.log(`Processing stats request for user ${user.id} (${user.address})`);
-      
-      // Also log direct SQL query to verify points in database
-      try {
-        const pointsResult = await pool.query(`
-          SELECT id, address, points, total_swaps FROM users WHERE id = $1
-        `, [user.id]);
-        
-        if (pointsResult.rows && pointsResult.rows.length > 0) {
-          console.log(`DEBUG - User points in database for ${user.id}:`, pointsResult.rows[0]);
-        }
-      } catch (dbErr) {
-        console.error("Error checking user points in database:", dbErr);
-      }
+    // Normalize the address to lowercase
+    const normalizedAddress = address.startsWith('0x') 
+      ? address.toLowerCase() 
+      : `0x${address}`.toLowerCase();
     
-      const stats = await storage.getUserStats(user.id);
-      res.json(stats);
-    } catch (error) {
-      console.error("Error processing stats request:", error);
-      res.status(500).json({ message: "Error processing stats request" });
+    console.log(`Processing stats request for address: ${normalizedAddress}`);
+    
+    let user = await storage.getUser(normalizedAddress);
+    
+    // Auto-create user if not found
+    if (!user) {
+      console.log(`Auto-creating user for address: ${normalizedAddress} when requesting stats`);
+      user = await storage.createUser({
+        address: normalizedAddress,
+        lastClaim: null
+      });
+      
+      // If the user has connected their wallet before but somehow not registered,
+      // let's check if they have any transactions on the blockchain
+      try {
+        // We won't actually query the blockchain here because that's handled by the frontend
+        // but we'll create a placeholder record
+        console.log(`New user created with ID: ${user.id}`);
+      } catch (err) {
+        console.error("Error checking blockchain for user:", err);
+      }
     }
+    
+    const stats = await storage.getUserStats(user.id);
+    res.json(stats);
   });
   
   // Get user's historical points data by address
@@ -1422,163 +1421,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Sync on-chain data and recalculate points for a specific user
-  // This is called by the "Refresh Your Points" button on the dashboard
-  app.get(`${apiPrefix}/users/:address/sync-onchain`, async (req, res) => {
-    try {
-      const { address } = req.params;
-      
-      // Normalize the address to lowercase
-      const normalizedAddress = address.startsWith('0x') 
-        ? address.toLowerCase() 
-        : `0x${address}`.toLowerCase();
-      
-      console.log(`Processing sync-onchain GET request for address: ${normalizedAddress}`);
-      
-      // First, check if user exists using direct SQL for reliability
-      const directSqlResult = await pool.query(`
-        SELECT id, address, points, total_swaps 
-        FROM users 
-        WHERE address = $1
-      `, [normalizedAddress]);
-      
-      const directUsers = directSqlResult.rows || [];
-      let user = null;
-      let userId = null;
-      
-      if (directUsers.length > 0) {
-        // Use the first user from direct SQL results
-        const directUser = directUsers[0];
-        console.log(`Using existing user with ID ${directUser.id} from direct SQL query for sync-onchain`);
-        userId = directUser.id;
-        
-        // Get full user object
-        user = await storage.getUserById(userId);
-      } else {
-        // Try ORM method as fallback
-        user = await storage.getUser(normalizedAddress);
-        
-        // Auto-create user if not found
-        if (!user) {
-          console.log(`Auto-creating user for address: ${normalizedAddress} during sync-onchain`);
-          user = await storage.createUser({
-            address: normalizedAddress,
-            lastClaim: null
-          });
-          console.log(`New user created with ID: ${user.id}`);
-        }
-        
-        userId = user.id;
-      }
-      
-      // Get current points for comparison
-      const pointsBefore = await storage.getUserPointsById(userId);
-      console.log(`Current points for user ${userId}: ${pointsBefore}`);
-      
-      // Important: Use the recalculatePointsForUser method from database-storage
-      // This enforces the 0.5 points per swap rule with max 5 swaps per day
-      const pointsAfter = await storage.recalculatePointsForUser(userId);
-      
-      console.log(`[PointsSystem] Recalculated points for user ${userId} (${normalizedAddress}): ${pointsBefore} → ${pointsAfter}`);
-      
-      // Also get user stats for complete response
-      const stats = await storage.getUserStats(userId);
-      
-      res.json({
-        success: true,
-        message: 'Points recalculated successfully',
-        pointsBefore,
-        pointsAfter,
-        stats
-      });
-    } catch (error) {
-      console.error('Error in sync-onchain endpoint:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Error syncing on-chain data', 
-        error: String(error) 
-      });
-    }
-  });
-  
-  // Also support POST method for the sync-onchain endpoint (used by dashboard)
-  app.post(`${apiPrefix}/users/:address/sync-onchain`, async (req, res) => {
-    try {
-      const { address } = req.params;
-      
-      // Normalize the address to lowercase
-      const normalizedAddress = address.startsWith('0x') 
-        ? address.toLowerCase() 
-        : `0x${address}`.toLowerCase();
-      
-      console.log(`Processing POST sync-onchain request for address: ${normalizedAddress}`);
-      
-      // First, check if user exists using direct SQL for reliability
-      const directSqlResult = await pool.query(`
-        SELECT id, address, points, total_swaps 
-        FROM users 
-        WHERE address = $1
-      `, [normalizedAddress]);
-      
-      const directUsers = directSqlResult.rows || [];
-      let user = null;
-      let userId = null;
-      
-      if (directUsers.length > 0) {
-        // Use the first user from direct SQL results
-        const directUser = directUsers[0];
-        console.log(`Using existing user with ID ${directUser.id} from direct SQL query for sync-onchain POST`);
-        userId = directUser.id;
-        
-        // Get full user object
-        user = await storage.getUserById(userId);
-      } else {
-        // Try ORM method as fallback
-        user = await storage.getUser(normalizedAddress);
-        
-        // Auto-create user if not found
-        if (!user) {
-          console.log(`Auto-creating user for address: ${normalizedAddress} during sync-onchain POST`);
-          user = await storage.createUser({
-            address: normalizedAddress,
-            lastClaim: null
-          });
-          console.log(`New user created with ID: ${user.id}`);
-        }
-        
-        userId = user.id;
-      }
-      
-      // Get current points for comparison
-      const pointsBefore = await storage.getUserPointsById(userId);
-      console.log(`Current points for user ${userId}: ${pointsBefore}`);
-      
-      // Important: Use the recalculatePointsForUser method from database-storage
-      // This enforces the 0.5 points per swap rule with max 5 swaps per day
-      const pointsAfter = await storage.recalculatePointsForUser(userId);
-      
-      console.log(`[PointsSystem] Recalculated points for user ${userId} (${normalizedAddress}): ${pointsBefore} → ${pointsAfter}`);
-      
-      // Also get user stats for complete response
-      const stats = await storage.getUserStats(userId);
-      
-      res.json({
-        success: true,
-        message: 'Points recalculated successfully',
-        pointsBefore,
-        pointsAfter,
-        stats
-      });
-    } catch (error) {
-      console.error('Error in sync-onchain POST endpoint:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Error syncing on-chain data', 
-        error: String(error) 
-      });
-    }
-  });
-
   // Increment user swap count
   // Get daily swap count for a user
   app.get(`${apiPrefix}/users/:userIdOrAddress/daily-swap-count`, async (req, res) => {
