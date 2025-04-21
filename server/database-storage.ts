@@ -662,68 +662,18 @@ export class DatabaseStorage implements IStorage {
       if (swapsBeforeCount < 5) {
         console.log(`[PointsCalc] Awarding 0.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
         
-        // After adding this transaction's points, recalculate all points for this user
-        // to ensure consistency with recalculateAllUserPoints logic
-        setTimeout(async () => {
-          try {
-            // Get all swap transactions for this user
-            const swapTransactions = await db
-              .select()
-              .from(transactions)
-              .where(and(
-                eq(transactions.userId, userId),
-                eq(transactions.type, 'swap'),
-                eq(transactions.status, 'completed')
-              ))
-              .orderBy(sql`${transactions.timestamp} ASC`);
-            
-            // Group transactions by day
-            const transactionsByDay: Record<string, Transaction[]> = {};
-            let pointEarningSwaps = 0;
-            
-            for (const tx of swapTransactions) {
-              const txDate = new Date(tx.timestamp);
-              const day = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
-              
-              if (!transactionsByDay[day]) {
-                transactionsByDay[day] = [];
-              }
-              
-              transactionsByDay[day].push(tx);
+        // If this is the 1st or 5th swap, trigger a full recalculation to ensure accuracy
+        if (swapsBeforeCount === 0 || swapsBeforeCount === 4) {
+          // First swap of the day or fifth swap (hitting daily limit) - trigger full recalculation
+          setTimeout(async () => {
+            try {
+              console.log(`[PointsCalc] Triggering full recalculation for user ${userId} at ${swapsBeforeCount === 0 ? 'first' : 'fifth'} swap of the day`);
+              await this.recalculatePointsForUser(userId);
+            } catch (error) {
+              console.error("[PointsCalc] Error in swap milestone recalculation:", error);
             }
-            
-            // Calculate swap points: 0.5 per swap, max 5 swaps per day
-            let newPoints = 0;
-            
-            for (const day in transactionsByDay) {
-              const daySwaps = transactionsByDay[day];
-              // Only count the first 5 swaps each day toward points
-              const pointSwapsForDay = Math.min(daySwaps.length, 5);
-              
-              pointEarningSwaps += pointSwapsForDay;
-              const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
-              
-              console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
-              newPoints += pointsForDay;
-            }
-            
-            // Round to 1 decimal place for clean display
-            newPoints = Math.round(newPoints * 10) / 10;
-            
-            // Update user with recalculated points
-            await db
-              .update(users)
-              .set({ 
-                points: newPoints,
-                totalSwaps: swapTransactions.length
-              })
-              .where(eq(users.id, userId));
-              
-            console.log(`[PointsCalc] Auto-recalculated points for user ${userId}. New total: ${newPoints}`);
-          } catch (error) {
-            console.error("[PointsCalc] Error in auto-recalculation:", error);
-          }
-        }, 500); // Run 500ms after the initial transaction is processed
+          }, 500); // Run 500ms after the initial transaction is processed
+        }
         
         return 0.5; // Return 0.5 points per swap for first 5 swaps
       } else {
@@ -757,7 +707,95 @@ export class DatabaseStorage implements IStorage {
         sql`${transactions.timestamp} >= ${today}`
       ));
     
-    return result?.count || 0;
+    const currentCount = result?.count || 0;
+    
+    // If the user has just reached exactly 5 swaps for the day, trigger a full recalculation
+    // This ensures all points are properly calculated after daily limit is reached
+    if (currentCount === 5) {
+      console.log(`[PointsSystem] User ${userId} has reached daily limit of 5 swaps. Triggering automatic full recalculation.`);
+      
+      // Run this in the background so it doesn't block the current request
+      setTimeout(async () => {
+        try {
+          await this.recalculatePointsForUser(userId);
+          console.log(`[PointsSystem] Successfully completed automatic recalculation for user ${userId} after reaching daily limit`);
+        } catch (error) {
+          console.error(`[PointsSystem] Error in automatic recalculation for user ${userId}:`, error);
+        }
+      }, 500);
+    }
+    
+    return currentCount;
+  }
+  
+  // Helper function to recalculate points for a single user
+  async recalculatePointsForUser(userId: number): Promise<number> {
+    // Get user
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) {
+      console.log(`[PointsSystem] Cannot recalculate for userId ${userId} - user not found`);
+      return 0;
+    }
+    
+    const pointsBefore = user.points || 0;
+    console.log(`[PointsSystem] Recalculating points for user ${userId} (${user.address}) - currently has ${pointsBefore} points`);
+    
+    // Get all swap transactions for this user
+    const swapTransactions = await db
+      .select()
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        eq(transactions.type, 'swap'),
+        eq(transactions.status, 'completed')
+      ))
+      .orderBy(sql`${transactions.timestamp} ASC`); // Ensure chronological order
+    
+    // Group transactions by day for swap points calculation
+    const transactionsByDay: Record<string, Transaction[]> = {};
+    let pointEarningSwaps = 0;
+    
+    for (const tx of swapTransactions) {
+      const txDate = new Date(tx.timestamp);
+      const day = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+      
+      if (!transactionsByDay[day]) {
+        transactionsByDay[day] = [];
+      }
+      
+      transactionsByDay[day].push(tx);
+    }
+    
+    // Calculate swap points: 0.5 per swap, max 5 swaps per day
+    let newPoints = 0;
+    
+    for (const day in transactionsByDay) {
+      const daySwaps = transactionsByDay[day];
+      // Only count the first 5 swaps each day toward points
+      const pointSwapsForDay = Math.min(daySwaps.length, 5);
+      
+      pointEarningSwaps += pointSwapsForDay;
+      const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
+      
+      console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
+      newPoints += pointsForDay;
+    }
+    
+    // Round to 1 decimal place for clean display
+    newPoints = Math.round(newPoints * 10) / 10;
+    
+    // Update user with new points
+    await db
+      .update(users)
+      .set({ 
+        points: newPoints,
+        totalSwaps: swapTransactions.length
+      })
+      .where(eq(users.id, userId));
+      
+    console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | ${swapTransactions.length} total swaps`);
+    
+    return newPoints;
   }
   
   async incrementUserClaimCount(userId: number): Promise<number> {
