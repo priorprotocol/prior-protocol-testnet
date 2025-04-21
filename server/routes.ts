@@ -625,14 +625,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalUsersResult = await storage.getTotalUsersCount();
       const totalUsers = totalUsersResult?.count || 0;
       
-      // Get paginated users for leaderboard
-      const users = await storage.getLeaderboard(limit, page);
-      console.log(`Leaderboard data fetched, users count: ${users?.length || 0}, total in DB: ${totalUsers}`);
+      // Get paginated users for leaderboard and total global points
+      const leaderboardResult = await storage.getLeaderboard(limit, page);
+      const users = leaderboardResult.users || [];
+      const totalGlobalPoints = leaderboardResult.totalGlobalPoints || 0;
+      
+      console.log(`Leaderboard data fetched, users count: ${users.length}, total in DB: ${totalUsers}`);
       
       // Format the response to match the expected frontend structure
       const leaderboardData = {
-        users: users || [],
+        users: users,
         total: totalUsers,
+        totalGlobalPoints: totalGlobalPoints, // Add the total global points
         page: page,
         totalPages: Math.ceil(totalUsers / limit) || 1,
         timestamp: new Date().toISOString(), // Add timestamp for cache invalidation

@@ -929,7 +929,10 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async getLeaderboard(limit: number = 20, page: number = 1): Promise<User[]> {
+  async getLeaderboard(limit: number = 20, page: number = 1): Promise<{
+    users: User[],
+    totalGlobalPoints: number
+  }> {
     try {
       // Calculate offset based on page and limit for pagination
       const offset = (page - 1) * limit;
@@ -942,11 +945,26 @@ export class DatabaseStorage implements IStorage {
         .limit(limit)
         .offset(offset);
       
-      console.log(`Found ${result.length} users for leaderboard (page ${page}, limit ${limit})`);
-      return result;
+      // Calculate total global points across all users
+      const [totalPointsResult] = await db
+        .select({
+          sum: sql<number>`SUM(${users.points})`
+        })
+        .from(users);
+      
+      const totalGlobalPoints = totalPointsResult?.sum || 0;
+      
+      console.log(`Found ${result.length} users for leaderboard (page ${page}, limit ${limit}), total global points: ${totalGlobalPoints}`);
+      return {
+        users: result,
+        totalGlobalPoints
+      };
     } catch (error) {
       console.error("Error in getLeaderboard:", error);
-      return [];
+      return {
+        users: [],
+        totalGlobalPoints: 0
+      };
     }
   }
   
