@@ -344,8 +344,8 @@ export class DatabaseStorage implements IStorage {
       // Increment swap count for this day
       swapsByDay[txDay].swapCount++;
       
-      // Calculate points for this swap (0.5 points per swap, max 5 swaps = 2.5 points per day)
-      swapsByDay[txDay].points = Math.min(swapsByDay[txDay].swapCount, 5) * 0.5;
+      // Calculate points for this swap (1.5 points per swap, max 5 swaps = 7.5 points per day)
+      swapsByDay[txDay].points = Math.min(swapsByDay[txDay].swapCount, 5) * 1.5;
       
       // Update period totals
       periodMap[periodKey].totalSwaps++;
@@ -400,7 +400,7 @@ export class DatabaseStorage implements IStorage {
           Math.min(swapsByDay[txDay].swapCount, 5) : 0;
         
         // Points are determined by the daily cap of 5 swaps
-        // Each swap adds 0.5 points up to a max of 2.5 points per day
+        // Each swap adds 1.5 points up to a max of 7.5 points per day
         // Only attribute points to this hour's transaction if it's within the first 5 swaps of the day
         const dailySwapPosition = swapTransactions
           .filter(t => new Date(t.timestamp).toISOString().split('T')[0] === txDay)
@@ -408,8 +408,8 @@ export class DatabaseStorage implements IStorage {
           .findIndex(t => t.id === tx.id) + 1;
         
         if (dailySwapPosition <= 5 && periodMap[hourKey]) {
-          // This swap is eligible for points - 0.5 points per swap, max 5 per day
-          periodMap[hourKey].points += 0.5;
+          // This swap is eligible for points - 1.5 points per swap, max 5 per day
+          periodMap[hourKey].points += 1.5;
         }
       }
     }
