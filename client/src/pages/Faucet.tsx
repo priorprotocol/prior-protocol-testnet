@@ -164,7 +164,9 @@ const Faucet = () => {
   // Handle token claim using blockchain contract directly
   const claimMutation = useMutation({
     mutationFn: async () => {
-      if (!address) throw new Error("Wallet not connected");
+      if (!address) {
+        return { success: false, reason: "Wallet not connected" };
+      }
       
       try {
         // First check if we can claim using the smart contract
@@ -173,7 +175,10 @@ const Faucet = () => {
         
         if (!faucetContractInfo.canClaim) {
           const waitTimeInHours = Math.ceil(faucetContractInfo.timeRemaining / 3600);
-          throw new Error(`You must wait ${waitTimeInHours} hour(s) before claiming again. The smart contract enforces this limit.`);
+          return { 
+            success: false, 
+            reason: `You must wait ${waitTimeInHours} hour(s) before claiming again. The smart contract enforces this limit.` 
+          };
         }
         
         // Call the PRIOR token contract's claimFromFaucet function
@@ -182,7 +187,10 @@ const Faucet = () => {
         console.log("Claim transaction receipt:", txReceipt);
         
         if (!txReceipt) {
-          throw new Error("Claim transaction failed on the blockchain");
+          return { 
+            success: false, 
+            reason: "Claim transaction failed. You may have already claimed tokens today." 
+          };
         }
         
         // Handle transaction hash retrieval based on the actual structure
@@ -260,7 +268,10 @@ const Faucet = () => {
         }
       } catch (error) {
         console.error("Error in claim mutation:", error);
-        throw error;
+        return { 
+          success: false, 
+          reason: "Failed to claim tokens. You may have already claimed today." 
+        };
       }
     },
     onSuccess: (data) => {

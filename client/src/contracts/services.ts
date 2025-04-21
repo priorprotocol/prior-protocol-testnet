@@ -593,7 +593,8 @@ export const claimFromFaucet = async (userAddress?: string): Promise<boolean> =>
             tx = await faucetContract.requestTokens();
           } catch (requestError) {
             console.error("All faucet claim function attempts failed:", requestError);
-            throw new Error("Could not claim from faucet. The contract may be different than expected or may have a different function name for claims.");
+            // Return false instead of throwing an error, this avoids wallet disconnection
+            return false;
           }
         }
       }
@@ -605,7 +606,8 @@ export const claimFromFaucet = async (userAddress?: string): Promise<boolean> =>
       
       // Verify the transaction was successful
       if (receipt.status === 0) {
-        throw new Error("Transaction failed");
+        console.error("Transaction failed with status 0");
+        return false;
       }
       
       console.log("Claim transaction confirmed in block:", receipt.blockNumber);
@@ -628,11 +630,13 @@ export const claimFromFaucet = async (userAddress?: string): Promise<boolean> =>
       return true;
     } catch (error) {
       console.error("Error in claimFromFaucet:", error);
-      throw error; // Propagate the error to be handled by the caller
+      // Return false instead of throwing to avoid wallet disconnection
+      return false;
     }
   } catch (error) {
     console.error("Error claiming from faucet:", error);
-    throw error; // Propagate the error to be handled by the caller
+    // Return false instead of throwing to avoid wallet disconnection
+    return false;
   }
 };
 
