@@ -942,6 +942,92 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  /**
+   * Complete database reset - this is a more comprehensive reset than resetAllUserPointsAndTransactions
+   * It wipes everything except the demo user and completely cleans the database of any user data
+   */
+  async completeReset(): Promise<{
+    usersDeleted: number;
+    transactionsDeleted: number;
+    userQuestsDeleted: number;
+    votesDeleted: number;
+  }> {
+    console.log("[DANGER] Starting COMPLETE DATABASE RESET - wiping all user data and history");
+    
+    let usersDeleted = 0;
+    let transactionsDeleted = 0;
+    let userQuestsDeleted = 0;
+    let votesDeleted = 0;
+    
+    try {
+      // Use a transaction to ensure everything succeeds or fails together
+      return await db.transaction(async (tx) => {
+        // 1. Save the demo user for restoration
+        const demoUserAddress = "0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae";
+        const [demoUser] = await tx.select().from(users).where(eq(users.address, demoUserAddress));
+        
+        if (!demoUser) {
+          console.log("[DANGER] Demo user not found, will create one after reset");
+        } else {
+          console.log(`[DANGER] Found demo user: ${demoUser.id} (${demoUser.address})`);
+        }
+        
+        // 2. DELETE ALL DATA FROM ALL TABLES
+        // Delete transactions
+        const deletedTransactions = await tx.delete(transactions).returning();
+        transactionsDeleted = deletedTransactions.length;
+        console.log(`[DANGER] Deleted ${transactionsDeleted} transactions`);
+        
+        // Delete user quests
+        const deletedUserQuests = await tx.delete(userQuests).returning();
+        userQuestsDeleted = deletedUserQuests.length;
+        console.log(`[DANGER] Deleted ${userQuestsDeleted} user quests`);
+        
+        // Delete votes
+        const deletedVotes = await tx.delete(votes).returning();
+        votesDeleted = deletedVotes.length;
+        console.log(`[DANGER] Deleted ${votesDeleted} votes`);
+        
+        // Delete ALL users (including demo)
+        const deletedUsers = await tx.delete(users).returning();
+        usersDeleted = deletedUsers.length;
+        console.log(`[DANGER] Deleted ${usersDeleted} users`);
+        
+        // 3. Recreate the demo user with no points or history
+        const newDemoUser = await tx.insert(users).values({
+          address: demoUserAddress,
+          lastClaim: null,
+          points: 0,
+          totalSwaps: 0,
+          totalClaims: 0
+        }).returning();
+        
+        console.log(`[DANGER] Recreated demo user: ${newDemoUser[0].id} (${newDemoUser[0].address})`);
+        
+        // 4. Reset all proposal votes to zero
+        await tx.update(proposals).set({
+          upvotes: 0,
+          downvotes: 0,
+          abstainVotes: 0
+        });
+        
+        console.log(`[DANGER] Reset all proposal votes to zero`);
+        
+        console.log(`[DANGER] COMPLETE DATABASE RESET FINISHED SUCCESSFULLY`);
+        
+        return {
+          usersDeleted,
+          transactionsDeleted,
+          userQuestsDeleted,
+          votesDeleted
+        };
+      });
+    } catch (error) {
+      console.error("[DANGER] Error during complete database reset:", error);
+      throw error;
+    }
+  }
+  
   async recalculateAllUserPoints(): Promise<{
     usersUpdated: number;
     totalPointsBefore: number;
