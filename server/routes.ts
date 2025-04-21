@@ -1354,10 +1354,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       console.log(`Creating transaction with data:`, txData);
-      const transaction = await storage.createTransaction(txData);
       
-      // Log the success
-      console.log(`Successfully created transaction: ${JSON.stringify(transaction)}`);
+      // Try storage approach first
+      let transaction;
+      try {
+        transaction = await storage.createTransaction(txData);
+        console.log(`Successfully created transaction through storage layer: ${JSON.stringify(transaction)}`);
+      } catch (storageError) {
+        console.error("Storage layer failed to create transaction:", storageError);
+        
+        // If storage layer fails, try direct SQL insert as a fallback
+        try {
+          console.log("Falling back to direct SQL insert");
+          const result = await pool.query(`
+            INSERT INTO transactions (
+              user_id, type, from_token, to_token, from_amount, to_amount, 
+              tx_hash, status, block_number, points, timestamp
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+            RETURNING *
+          `, [
+            user.id,
+            'swap',
+            fromToken,
+            toToken,
+            fromAmount,
+            toAmount,
+            txHash,
+            'completed',
+            blockNumber || null,
+            points.toString()
+          ]);
+          
+          transaction = result.rows[0];
+          console.log(`Successfully created transaction with direct SQL: ${JSON.stringify(transaction)}`);
+          
+          // Also update the user's points and swap count immediately
+          await pool.query(`
+            UPDATE users 
+            SET points = points + $1, 
+                total_swaps = total_swaps + 1
+            WHERE id = $2
+          `, [points, user.id]);
+        } catch (sqlError) {
+          console.error("Direct SQL insert also failed:", sqlError);
+          throw sqlError;
+        }
+      }
       
       // After creating transaction, let's make sure their points are consistent
       // by triggering a recalculation

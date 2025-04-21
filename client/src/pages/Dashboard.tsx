@@ -154,12 +154,12 @@ const Dashboard = () => {
             {isSyncing ? (
               <>
                 <FiRefreshCw className="animate-spin" size={14} />
-                <span>Syncing Data...</span>
+                <span>Recalculating Points...</span>
               </>
             ) : (
               <>
                 <FaDatabase size={14} />
-                <span>Refresh Data</span>
+                <span>Refresh Your Points</span>
               </>
             )}
           </Button>
