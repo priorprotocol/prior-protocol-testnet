@@ -1570,6 +1570,113 @@ export class MemStorage implements IStorage {
   }
   
   /**
+   * Complete database reset - this is a more comprehensive reset than resetAllUserPointsAndTransactions
+   * It wipes everything except the demo user and completely cleans the database of any user data
+   */
+  async completeReset(): Promise<{
+    usersDeleted: number;
+    transactionsDeleted: number;
+    userQuestsDeleted: number;
+    votesDeleted: number;
+  }> {
+    console.log("[DANGER] Starting COMPLETE DATABASE RESET - wiping all user data and history");
+    
+    let usersDeleted = 0;
+    let transactionsDeleted = 0;
+    let userQuestsDeleted = 0;
+    let votesDeleted = 0;
+    
+    try {
+      // 1. Save the demo user for restoration
+      const demoUserAddress = "0xf4b08b6c0401c9568f3f3abf2a10c2950df98eae";
+      const demoUser = this.usersByAddress.get(demoUserAddress);
+      
+      // 2. DELETE ALL DATA FROM ALL TABLES
+      
+      // Delete transactions
+      transactionsDeleted = this.transactions.size;
+      this.transactions.clear();
+      console.log(`[DANGER] Deleted ${transactionsDeleted} transactions`);
+      
+      // Delete user quests
+      userQuestsDeleted = this.userQuests.size;
+      this.userQuests.clear();
+      console.log(`[DANGER] Deleted ${userQuestsDeleted} user quests`);
+      
+      // Delete votes
+      votesDeleted = this.votes.size;
+      this.votes.clear();
+      console.log(`[DANGER] Deleted ${votesDeleted} votes`);
+      
+      // Delete ALL users
+      usersDeleted = this.users.size;
+      this.users.clear();
+      this.usersByAddress.clear();
+      console.log(`[DANGER] Deleted ${usersDeleted} users`);
+      
+      // 3. Recreate the demo user with no points or history
+      if (demoUser) {
+        const newDemoUser: User = {
+          id: 1,
+          address: demoUserAddress,
+          lastClaim: null,
+          points: 0,
+          totalSwaps: 0,
+          totalClaims: 0,
+          badges: [] 
+        };
+        
+        this.users.set(1, newDemoUser);
+        this.usersByAddress.set(demoUserAddress, newDemoUser);
+        this.userId = 2; // Reset counter for next user
+        
+        console.log(`[DANGER] Recreated demo user: ${newDemoUser.id} (${newDemoUser.address})`);
+      } else {
+        // Create a new demo user from scratch
+        const newDemoUser: User = {
+          id: 1,
+          address: demoUserAddress,
+          lastClaim: null,
+          points: 0,
+          totalSwaps: 0,
+          totalClaims: 0,
+          badges: []
+        };
+        
+        this.users.set(1, newDemoUser);
+        this.usersByAddress.set(demoUserAddress, newDemoUser);
+        this.userId = 2; // Reset counter for next user
+        
+        console.log(`[DANGER] Created new demo user: ${newDemoUser.id} (${newDemoUser.address})`);
+      }
+      
+      // 4. Reset all proposal votes to zero
+      for (const proposalId of this.proposals.keys()) {
+        const proposal = this.proposals.get(proposalId);
+        if (proposal) {
+          proposal.yesVotes = 0;
+          proposal.noVotes = 0;
+          proposal.abstainVotes = 0;
+          this.proposals.set(proposalId, proposal);
+        }
+      }
+      
+      console.log(`[DANGER] Reset all proposal votes to zero`);
+      console.log(`[DANGER] COMPLETE DATABASE RESET FINISHED SUCCESSFULLY`);
+      
+      return {
+        usersDeleted,
+        transactionsDeleted,
+        userQuestsDeleted,
+        votesDeleted
+      };
+    } catch (error) {
+      console.error("[DANGER] Error during complete database reset:", error);
+      throw error;
+    }
+  }
+  
+  /**
    * Recalculates points for all users based on their transaction history
    * Following the rule: 0.5 points per swap, max 5 swaps per day (max 2.5 points daily)
    * @returns Statistics about the recalculation
