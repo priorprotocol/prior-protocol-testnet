@@ -669,54 +669,80 @@ export class DatabaseStorage implements IStorage {
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
     // IMPORTANT FIX: If points are explicitly provided, use them instead of calculating
     // This prevents double-counting points from various parts of the application
+    console.log(`Creating transaction for user ${transaction.userId}, type: ${transaction.type}`, 
+                transaction.points ? `with explicit points: ${transaction.points}` : 'without explicit points');
     
-    // Create the transaction
-    const [newTransaction] = await db
-      .insert(transactions)
-      .values({
-        ...transaction,
-        timestamp: new Date()
-      })
-      .returning();
-    
-    // Points are handled in different ways:
-    // 1. If points explicitly provided - that value is used directly with no additional points added
-    // 2. If points not provided - calculate and add points based on transaction type
-    
-    if (transaction.points === undefined) {
-      // No points explicitly provided - calculate them
-      const points = await this.getTransactionPoints(newTransaction);
-      if (points > 0) {
-        console.log(`Calculated ${points} points for user ${transaction.userId} ${transaction.type} transaction`);
-        
-        // Add points to the user
-        await this.addUserPoints(transaction.userId, points);
-        
-        // Update the transaction record with calculated points
-        await db
-          .update(transactions)
-          .set({ points })
-          .where(eq(transactions.id, newTransaction.id));
-          
-        console.log(`Updated transaction ${newTransaction.id} with calculated ${points} points`);
+    try {
+      // Convert numeric points to string for PostgreSQL compatibility
+      let pointsValue = transaction.points;
+      if (pointsValue !== undefined && pointsValue !== null) {
+        // Ensure points are handled as a string for the database
+        if (typeof pointsValue === 'number') {
+          pointsValue = String(pointsValue);
+        }
       }
-    } else if (transaction.points !== null && transaction.points > 0) {
-      // Points explicitly provided - add points to the user (was missing before)
-      console.log(`Transaction created with explicit ${transaction.points} points value - adding points directly`);
       
-      // Add the explicit points to the user (fixed TypeScript error)
-      await this.addUserPoints(transaction.userId, Number(transaction.points));
+      console.log(`DEBUG: Final transaction values:`, {
+        ...transaction,
+        points: pointsValue,
+        timestamp: new Date()
+      });
       
-      // Also update the transaction record to ensure the points value is stored correctly
-      await db
-        .update(transactions)
-        .set({ points: Number(transaction.points) })
+      // Create the transaction with properly formatted points
+      const [newTransaction] = await db
+        .insert(transactions)
+        .values({
+          ...transaction,
+          points: pointsValue,
+          timestamp: new Date()
+        })
+        .returning();
+      
+      console.log(`Successfully created transaction with ID ${newTransaction.id}`);
+      
+      // Points are handled in different ways:
+      // 1. If points explicitly provided - that value is used directly with no additional points added
+      // 2. If points not provided - calculate and add points based on transaction type
+      
+      if (transaction.points === undefined) {
+        // No points explicitly provided - calculate them
+        const points = await this.getTransactionPoints(newTransaction);
+        if (points > 0) {
+          console.log(`Calculated ${points} points for user ${transaction.userId} ${transaction.type} transaction`);
+          
+          // Add points to the user
+          await this.addUserPoints(transaction.userId, points);
+          
+          // Update the transaction record with calculated points
+          await db
+            .update(transactions)
+            .set({ points: String(points) })
+            .where(eq(transactions.id, newTransaction.id));
+            
+          console.log(`Updated transaction ${newTransaction.id} with calculated ${points} points`);
+        }
+      } else if (transaction.points !== null && Number(transaction.points) > 0) {
+        // Points explicitly provided - add points to the user (was missing before)
+        const numPoints = Number(transaction.points);
+        console.log(`Transaction created with explicit ${numPoints} points value - adding points directly`);
+        
+        // Add the explicit points to the user
+        await this.addUserPoints(transaction.userId, numPoints);
+        
+        console.log(`Updated user ${transaction.userId} points with explicit ${numPoints} points`);
+      }
+      
+      // Get the updated transaction to return
+      const [updatedTransaction] = await db
+        .select()
+        .from(transactions)
         .where(eq(transactions.id, newTransaction.id));
       
-      console.log(`Updated transaction ${newTransaction.id} with explicit ${transaction.points} points`);
+      return updatedTransaction || newTransaction;
+    } catch (err) {
+      console.error("Error creating transaction:", err);
+      throw err;
     }
-    
-    return newTransaction;
   }
   
   async getTransactionPoints(transaction: Transaction): Promise<number> {

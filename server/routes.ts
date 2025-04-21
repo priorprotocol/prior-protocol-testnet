@@ -1328,27 +1328,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create transaction record with explicitly set points
       // IMPORTANT: Fixed now to properly handle explicit points value in createTransaction
-      const transaction = await storage.createTransaction({
-        userId: user.id,
-        type: 'swap',
-        fromToken,
-        toToken,
-        fromAmount,
-        toAmount,
-        txHash,
-        status: 'completed',
-        blockNumber: blockNumber || null,
-        points: points // Explicitly set points here which will be properly handled in createTransaction
-      });
+      // Set points explicitly as a string to avoid type conversion errors
+  console.log(`Creating swap transaction with the following data:`, {
+    userId: user.id,
+    type: 'swap',
+    fromToken,
+    toToken,
+    fromAmount,
+    toAmount,
+    txHash,
+    points
+  });
+  
+  let transaction;
+  try {
+    transaction = await storage.createTransaction({
+      userId: user.id,
+      type: 'swap',
+      fromToken,
+      toToken,
+      fromAmount,
+      toAmount,
+      txHash,
+      status: 'completed',
+      blockNumber: blockNumber || null,
+      points: points.toString() // Convert to string explicitly for PostgreSQL compatibility
+    });
+    
+    // Log the success
+    console.log(`Successfully created transaction: ${JSON.stringify(transaction)}`);
+  } catch (error) {
+    console.error("CRITICAL: Failed to create transaction:", error);
+    throw error;  // Re-throw to bubble up to the error handler
+  }
       
-      // After creating transaction, let's make sure their points are consistent
-      // by triggering a recalculation
-      await storage.recalculatePointsForUser(user.id);
-      
-      res.status(201).json({
-        ...transaction,
-        points
-      });
+  // After creating transaction, let's make sure their points are consistent
+  // by triggering a recalculation
+  await storage.recalculatePointsForUser(user.id);
+  
+  res.status(201).json({
+    ...transaction,
+    points
+  });
     } catch (error) {
       console.error("Error recording swap transaction:", error);
       res.status(400).json({ message: "Failed to record transaction" });
