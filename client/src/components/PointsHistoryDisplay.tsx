@@ -52,7 +52,7 @@ export const PointsHistoryDisplay: React.FC<PointsHistoryDisplayProps> = ({ addr
               </span>
             </CardTitle>
             <CardDescription className="text-xs text-gray-400 mt-1">
-              Visualizing your earned points over time (0.5 points per swap, max 2.5 daily)
+              Visualizing your earned points over time (1.5 points per swap, max 7.5 daily)
             </CardDescription>
           </div>
           
@@ -259,7 +259,7 @@ export const PointsHistoryDisplay: React.FC<PointsHistoryDisplayProps> = ({ addr
             </div>
             
             <div className="mt-3 text-xs text-gray-500 text-center">
-              Points earning formula: 0.5 points per swap, maximum 5 swaps (2.5 points) per day
+              Points earning formula: 1.5 points per swap, maximum 5 swaps (7.5 points) per day
             </div>
           </div>
         )}

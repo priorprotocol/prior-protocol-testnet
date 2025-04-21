@@ -121,7 +121,7 @@ const Dashboard = () => {
             <div className="mb-4">
               <FaExchangeAlt className="mx-auto text-indigo-500 mb-2" size={24} />
               <p className="text-sm text-gray-400">Earn points by swapping tokens:</p>
-              <p className="text-xs text-indigo-400 mt-1">0.5 points per swap, max 5 swaps daily</p>
+              <p className="text-xs text-indigo-400 mt-1">1.5 points per swap, max 5 swaps daily</p>
             </div>
             <StandaloneWalletButton size="lg" />
           </div>
@@ -297,12 +297,12 @@ const Dashboard = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="bg-[#1A2234] rounded-lg p-3 border border-blue-900/20">
                       <div className="text-xs text-gray-400 mb-1">Points Formula</div>
-                      <div className="text-sm font-medium text-indigo-400">0.5 pts per swap</div>
+                      <div className="text-sm font-medium text-indigo-400">1.5 pts per swap</div>
                       <div className="text-xs text-gray-500 mt-1">Max 5 swaps daily</div>
                     </div>
                     <div className="bg-[#1A2234] rounded-lg p-3 border border-blue-900/20">
                       <div className="text-xs text-gray-400 mb-1">Max Daily Points</div>
-                      <div className="text-sm font-medium text-indigo-400">2.5 points</div>
+                      <div className="text-sm font-medium text-indigo-400">7.5 points</div>
                       <div className="text-xs text-gray-500 mt-1">Resets at midnight UTC</div>
                     </div>
                     <div className="bg-[#1A2234] rounded-lg p-3 border border-blue-900/20">
@@ -335,7 +335,7 @@ const Dashboard = () => {
                       </span>
                     </CardTitle>
                     <CardDescription>
-                      Top users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
+                      Top users ranked by Prior points - 1.5 points per swap, max 5 swaps daily (7.5 pts)
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -380,7 +380,7 @@ const TotalPointsSummary = ({ points, swaps, isLoading }: { points: number, swap
               <span>From {swaps} swap transactions</span>
             </div>
             <div className="mt-3 text-xs text-gray-500 max-w-xs mx-auto">
-              Points calculation: 0.5 points per swap, max 5 swaps per day
+              Points calculation: 1.5 points per swap, max 5 swaps per day
             </div>
           </div>
         )}
