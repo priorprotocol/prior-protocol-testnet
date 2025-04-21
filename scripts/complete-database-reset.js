@@ -34,10 +34,18 @@ async function completeResetDatabase() {
     const result = await response.json();
     
     console.log('Reset complete!');
-    console.log(`Reset points for ${result.usersReset} users`);
-    console.log(`Deleted ${result.transactionsDeleted} transactions`);
-    console.log(`Removed ${result.usersRemoved} users`);
-    console.log(`Total points reset: ${result.pointsReset}`);
+    console.log('Server response:', JSON.stringify(result, null, 2));
+    
+    // Check for the summary data structure in the response
+    if (result.summary) {
+      console.log(`Deleted ${result.summary.usersDeleted || 0} users`);
+      console.log(`Deleted ${result.summary.transactionsDeleted || 0} transactions`);
+      console.log(`Deleted ${result.summary.userQuestsDeleted || 0} user quests`);
+      console.log(`Deleted ${result.summary.votesDeleted || 0} votes`);
+    } else {
+      console.log('No detailed summary available in the response');
+    }
+    
     console.log('Script completed successfully');
     
   } catch (error) {
