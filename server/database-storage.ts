@@ -706,31 +706,9 @@ export class DatabaseStorage implements IStorage {
       
       // Only award points for the first 5 swaps of the day (0.5 points per swap)
       if (swapsBeforeCount < 5) {
-        console.log(`[PointsCalc] Awarding 0.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
+        console.log(`[PointsSystem] Awarded 0.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
         
-        // If this is the 1st or 5th swap, trigger a full recalculation to ensure accuracy
-        if (swapsBeforeCount === 0 || swapsBeforeCount === 4) {
-          // First swap of the day or fifth swap (hitting daily limit) - trigger full recalculation IMMEDIATELY
-          try {
-            console.log(`[PointsCalc] Triggering IMMEDIATE full recalculation for user ${userId} at ${swapsBeforeCount === 0 ? 'first' : 'fifth'} swap of the day`);
-            
-            // We'll start a recalculation in the background so the current request can complete
-            // But we'll make it almost immediate with just a very tiny delay
-            setTimeout(async () => {
-              try {
-                const pointsBefore = await this.getUserPointsById(userId);
-                console.log(`[PointsCalc] IMMEDIATE milestone recalculation starting for user ${userId} - current points: ${pointsBefore}`);
-                const newPoints = await this.recalculatePointsForUser(userId);
-                console.log(`[PointsCalc] IMMEDIATE milestone recalculation complete for user ${userId} - points: ${pointsBefore} → ${newPoints}`);
-              } catch (error) {
-                console.error("[PointsCalc] CRITICAL ERROR in milestone recalculation:", error);
-              }
-            }, 50); // Almost immediate with just a 50ms delay to allow current transaction to complete
-          } catch (error) {
-            console.error("[PointsCalc] Error scheduling milestone recalculation:", error);
-          }
-        }
-        
+        // Critical fix: Always return exactly 0.5 points per eligible swap
         return 0.5; // Return 0.5 points per swap for first 5 swaps
       } else {
         console.log(`[PointsCalc] No points awarded - already reached 5 swaps for the day for user ${userId}`);
