@@ -631,7 +631,10 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getTransactionPoints(transaction: Transaction): Promise<number> {
+    // UPDATED POINTS CALCULATION - FIX FOR INCORRECT POINTS
     // Calculate points based on transaction type with a single point source: swap transactions
+    // IMPORTANT: Always awards exactly 0.5 points per swap, max 5 swaps per day (2.5 points total)
+    
     if (transaction.type === 'swap') {
       // Check daily swap count to determine points
       const userId = transaction.userId;
@@ -658,7 +661,71 @@ export class DatabaseStorage implements IStorage {
       // Only award points for the first 5 swaps of the day (0.5 points per swap)
       if (swapsBeforeCount < 5) {
         console.log(`[PointsCalc] Awarding 0.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
-        return 0.5; // 0.5 points per swap for first 5 swaps
+        
+        // After adding this transaction's points, recalculate all points for this user
+        // to ensure consistency with recalculateAllUserPoints logic
+        setTimeout(async () => {
+          try {
+            // Get all swap transactions for this user
+            const swapTransactions = await db
+              .select()
+              .from(transactions)
+              .where(and(
+                eq(transactions.userId, userId),
+                eq(transactions.type, 'swap'),
+                eq(transactions.status, 'completed')
+              ))
+              .orderBy(sql`${transactions.timestamp} ASC`);
+            
+            // Group transactions by day
+            const transactionsByDay: Record<string, Transaction[]> = {};
+            let pointEarningSwaps = 0;
+            
+            for (const tx of swapTransactions) {
+              const txDate = new Date(tx.timestamp);
+              const day = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+              
+              if (!transactionsByDay[day]) {
+                transactionsByDay[day] = [];
+              }
+              
+              transactionsByDay[day].push(tx);
+            }
+            
+            // Calculate swap points: 0.5 per swap, max 5 swaps per day
+            let newPoints = 0;
+            
+            for (const day in transactionsByDay) {
+              const daySwaps = transactionsByDay[day];
+              // Only count the first 5 swaps each day toward points
+              const pointSwapsForDay = Math.min(daySwaps.length, 5);
+              
+              pointEarningSwaps += pointSwapsForDay;
+              const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
+              
+              console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
+              newPoints += pointsForDay;
+            }
+            
+            // Round to 1 decimal place for clean display
+            newPoints = Math.round(newPoints * 10) / 10;
+            
+            // Update user with recalculated points
+            await db
+              .update(users)
+              .set({ 
+                points: newPoints,
+                totalSwaps: swapTransactions.length
+              })
+              .where(eq(users.id, userId));
+              
+            console.log(`[PointsCalc] Auto-recalculated points for user ${userId}. New total: ${newPoints}`);
+          } catch (error) {
+            console.error("[PointsCalc] Error in auto-recalculation:", error);
+          }
+        }, 500); // Run 500ms after the initial transaction is processed
+        
+        return 0.5; // Return 0.5 points per swap for first 5 swaps
       } else {
         console.log(`[PointsCalc] No points awarded - already reached 5 swaps for the day for user ${userId}`);
         return 0;
@@ -794,7 +861,7 @@ export class DatabaseStorage implements IStorage {
   async getTotalUsersCount(): Promise<{ count: number }> {
     try {
       const result = await db
-        .select({ count: sql`count(*)` })
+        .select({ count: sql<number>`count(*)` })
         .from(users);
       
       // Log for debugging
@@ -1110,7 +1177,7 @@ export class DatabaseStorage implements IStorage {
       console.error("[DANGER] Error during complete database reset:", error);
       // Log the full error for debugging
       console.error("Full error details:", error);
-      if (error.stack) {
+      if (error && typeof error === 'object' && 'stack' in error) {
         console.error("Stack trace:", error.stack);
       }
       throw error;

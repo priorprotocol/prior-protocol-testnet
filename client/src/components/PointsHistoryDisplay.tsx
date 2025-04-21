@@ -152,8 +152,8 @@ export const PointsHistoryDisplay: React.FC<PointsHistoryDisplayProps> = ({ addr
               <div className="bg-[#1A2234] p-3 rounded-lg border border-indigo-900/30">
                 <div className="text-xs text-blue-300 mb-1">Daily Average</div>
                 <div className="text-2xl font-bold text-white">
-                  {chartData.length > 0 
-                    ? (historicalData?.totalPoints / chartData.length).toFixed(1) 
+                  {chartData.length > 0 && historicalData?.totalPoints !== undefined
+                    ? (historicalData.totalPoints / chartData.length).toFixed(1) 
                     : "0.0"}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">Points per active day</div>

@@ -96,7 +96,7 @@ const Dashboard = () => {
   };
   
   // Filter transactions to get only swap transactions
-  const swapTransactions = transactionsData?.transactions?.filter(tx => tx.type === 'swap') || [];
+  const swapTransactions = transactionsData?.transactions?.filter((tx: { type: string }) => tx.type === 'swap') || [];
   
   // Show wallet connect prompt if no wallet is connected
   if (!isConnected || !address) {
