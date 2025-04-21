@@ -15,8 +15,32 @@ import { IStorage } from "./storage";
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(address: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.address, address));
-    return user;
+    // Use direct SQL query first to ensure we get accurate results
+    try {
+      const directQuery = await db.execute(
+        sql`SELECT * FROM users WHERE address = ${address}`
+      );
+      
+      if (directQuery.length > 0) {
+        // Found a user with direct SQL
+        const userId = directQuery[0].id;
+        console.log(`[UserLookup] Found user with ID ${userId} using direct SQL`);
+        
+        // Now fetch the full user object through drizzle
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        return user;
+      }
+      
+      // Fallback to the ORM approach if direct SQL yields no results
+      console.log(`[UserLookup] No user found with direct SQL for ${address}, falling back to ORM`);
+      const [user] = await db.select().from(users).where(eq(users.address, address));
+      return user;
+    } catch (error) {
+      console.error("Error in getUser:", error);
+      // Fallback to the original approach if there's an error
+      const [user] = await db.select().from(users).where(eq(users.address, address));
+      return user;
+    }
   }
   
   async getUserById(id: number): Promise<User | undefined> {
