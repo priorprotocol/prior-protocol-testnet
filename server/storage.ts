@@ -119,6 +119,9 @@ export interface IStorage {
     }>;
   }>;
   
+  // Add required method for user points recalculation
+  recalculatePointsForUser(userId: number): Promise<number>;
+  
   // Quiz operations
   getAllQuizzes(): Promise<Quiz[]>;
   getQuiz(id: number): Promise<Quiz | undefined>;
@@ -567,6 +570,70 @@ export class MemStorage implements IStorage {
     this.users.set(userId, updatedUser);
     this.usersByAddress.set(user.address, updatedUser);
     
+    return newPoints;
+  }
+  
+  // Implement recalculatePointsForUser for MemStorage
+  async recalculatePointsForUser(userId: number): Promise<number> {
+    console.log(`[MemStorage] Recalculating points for user ${userId}`);
+    const user = this.users.get(userId);
+    if (!user) {
+      console.log(`[MemStorage] User ${userId} not found for recalculation`);
+      return 0;
+    }
+    
+    const swapTransactions = Array.from(this.transactions.values())
+      .filter(tx => 
+        tx.userId === userId && 
+        tx.type === 'swap' && 
+        tx.status === 'completed'
+      )
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    
+    // Group transactions by day for points calculation (max 5 swaps per day at 0.5 points each)
+    const transactionsByDay: Record<string, Transaction[]> = {};
+    
+    for (const tx of swapTransactions) {
+      const txDate = new Date(tx.timestamp);
+      const day = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+      
+      if (!transactionsByDay[day]) {
+        transactionsByDay[day] = [];
+      }
+      
+      transactionsByDay[day].push(tx);
+    }
+    
+    // Calculate points: 0.5 per swap, max 5 swaps per day
+    let newPoints = 0;
+    let totalPointEarningSwaps = 0;
+    
+    for (const day in transactionsByDay) {
+      const daySwaps = transactionsByDay[day];
+      // Only count the first 5 swaps each day toward points
+      const pointSwapsForDay = Math.min(daySwaps.length, 5);
+      
+      totalPointEarningSwaps += pointSwapsForDay;
+      const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
+      
+      console.log(`[MemStorage] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
+      newPoints += pointsForDay;
+    }
+    
+    // Round to 1 decimal place
+    newPoints = Math.round(newPoints * 10) / 10;
+    
+    // Update user with new points
+    const updatedUser: User = {
+      ...user,
+      points: newPoints,
+      totalSwaps: swapTransactions.length
+    };
+    
+    this.users.set(userId, updatedUser);
+    this.usersByAddress.set(user.address, updatedUser);
+    
+    console.log(`[MemStorage] Recalculated points for user ${userId}: ${newPoints} points`);
     return newPoints;
   }
   
