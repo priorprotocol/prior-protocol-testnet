@@ -1421,6 +1421,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Sync on-chain data and recalculate points for a specific user
+  // This is called by the "Refresh Your Points" button on the dashboard
+  app.get(`${apiPrefix}/users/:address/sync-onchain`, async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      // Normalize the address to lowercase
+      const normalizedAddress = address.startsWith('0x') 
+        ? address.toLowerCase() 
+        : `0x${address}`.toLowerCase();
+      
+      console.log(`Processing sync-onchain GET request for address: ${normalizedAddress}`);
+      
+      // First, check if user exists using direct SQL for reliability
+      const directSqlResult = await pool.query(`
+        SELECT id, address, points, total_swaps 
+        FROM users 
+        WHERE address = $1
+      `, [normalizedAddress]);
+      
+      const directUsers = directSqlResult.rows || [];
+      let user = null;
+      let userId = null;
+      
+      if (directUsers.length > 0) {
+        // Use the first user from direct SQL results
+        const directUser = directUsers[0];
+        console.log(`Using existing user with ID ${directUser.id} from direct SQL query for sync-onchain`);
+        userId = directUser.id;
+        
+        // Get full user object
+        user = await storage.getUserById(userId);
+      } else {
+        // Try ORM method as fallback
+        user = await storage.getUser(normalizedAddress);
+        
+        // Auto-create user if not found
+        if (!user) {
+          console.log(`Auto-creating user for address: ${normalizedAddress} during sync-onchain`);
+          user = await storage.createUser({
+            address: normalizedAddress,
+            lastClaim: null
+          });
+          console.log(`New user created with ID: ${user.id}`);
+        }
+        
+        userId = user.id;
+      }
+      
+      // Get current points for comparison
+      const pointsBefore = await storage.getUserPointsById(userId);
+      console.log(`Current points for user ${userId}: ${pointsBefore}`);
+      
+      // Important: Use the recalculatePointsForUser method from database-storage
+      // This enforces the 0.5 points per swap rule with max 5 swaps per day
+      const pointsAfter = await storage.recalculatePointsForUser(userId);
+      
+      console.log(`[PointsSystem] Recalculated points for user ${userId} (${normalizedAddress}): ${pointsBefore} → ${pointsAfter}`);
+      
+      // Also get user stats for complete response
+      const stats = await storage.getUserStats(userId);
+      
+      res.json({
+        success: true,
+        message: 'Points recalculated successfully',
+        pointsBefore,
+        pointsAfter,
+        stats
+      });
+    } catch (error) {
+      console.error('Error in sync-onchain endpoint:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error syncing on-chain data', 
+        error: String(error) 
+      });
+    }
+  });
+  
+  // Also support POST method for the sync-onchain endpoint (used by dashboard)
+  app.post(`${apiPrefix}/users/:address/sync-onchain`, async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      // Normalize the address to lowercase
+      const normalizedAddress = address.startsWith('0x') 
+        ? address.toLowerCase() 
+        : `0x${address}`.toLowerCase();
+      
+      console.log(`Processing POST sync-onchain request for address: ${normalizedAddress}`);
+      
+      // First, check if user exists using direct SQL for reliability
+      const directSqlResult = await pool.query(`
+        SELECT id, address, points, total_swaps 
+        FROM users 
+        WHERE address = $1
+      `, [normalizedAddress]);
+      
+      const directUsers = directSqlResult.rows || [];
+      let user = null;
+      let userId = null;
+      
+      if (directUsers.length > 0) {
+        // Use the first user from direct SQL results
+        const directUser = directUsers[0];
+        console.log(`Using existing user with ID ${directUser.id} from direct SQL query for sync-onchain POST`);
+        userId = directUser.id;
+        
+        // Get full user object
+        user = await storage.getUserById(userId);
+      } else {
+        // Try ORM method as fallback
+        user = await storage.getUser(normalizedAddress);
+        
+        // Auto-create user if not found
+        if (!user) {
+          console.log(`Auto-creating user for address: ${normalizedAddress} during sync-onchain POST`);
+          user = await storage.createUser({
+            address: normalizedAddress,
+            lastClaim: null
+          });
+          console.log(`New user created with ID: ${user.id}`);
+        }
+        
+        userId = user.id;
+      }
+      
+      // Get current points for comparison
+      const pointsBefore = await storage.getUserPointsById(userId);
+      console.log(`Current points for user ${userId}: ${pointsBefore}`);
+      
+      // Important: Use the recalculatePointsForUser method from database-storage
+      // This enforces the 0.5 points per swap rule with max 5 swaps per day
+      const pointsAfter = await storage.recalculatePointsForUser(userId);
+      
+      console.log(`[PointsSystem] Recalculated points for user ${userId} (${normalizedAddress}): ${pointsBefore} → ${pointsAfter}`);
+      
+      // Also get user stats for complete response
+      const stats = await storage.getUserStats(userId);
+      
+      res.json({
+        success: true,
+        message: 'Points recalculated successfully',
+        pointsBefore,
+        pointsAfter,
+        stats
+      });
+    } catch (error) {
+      console.error('Error in sync-onchain POST endpoint:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error syncing on-chain data', 
+        error: String(error) 
+      });
+    }
+  });
+
   // Increment user swap count
   // Get daily swap count for a user
   app.get(`${apiPrefix}/users/:userIdOrAddress/daily-swap-count`, async (req, res) => {
