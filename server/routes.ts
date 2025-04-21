@@ -507,17 +507,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       console.log("Fetching leaderboard data with limit:", limit, "page:", page);
-      const leaderboardUsers = await storage.getLeaderboard(limit, page);
-      console.log("Leaderboard data fetched, users count:", leaderboardUsers.length);
+      const users = await storage.getLeaderboard(limit, page);
+      console.log("Leaderboard data fetched, users count:", users?.length || 0);
       
       // Format the response to match the expected frontend structure
       const leaderboardData = {
-        users: leaderboardUsers,
-        total: leaderboardUsers.length,
+        users: users || [],
+        total: users?.length || 0,
         page: page,
-        totalPages: Math.ceil(leaderboardUsers.length / limit) || 1
+        totalPages: Math.ceil((users?.length || 0) / limit) || 1
       };
       
+      console.log("Returning leaderboard data:", JSON.stringify(leaderboardData).substring(0, 100) + "...");
       res.json(leaderboardData);
     } catch (error) {
       console.error("Error fetching leaderboard:", error);

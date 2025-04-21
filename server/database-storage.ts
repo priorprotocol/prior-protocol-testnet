@@ -738,13 +738,25 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async getLeaderboard(limit: number = 20): Promise<User[]> {
-    // Get top users by points, ensuring we get the top 20 swap users highlighted
-    return await db
-      .select()
-      .from(users)
-      .orderBy(sql`${users.points} DESC, ${users.totalSwaps} DESC`)
-      .limit(limit);
+  async getLeaderboard(limit: number = 20, page: number = 1): Promise<User[]> {
+    try {
+      // Calculate offset based on page and limit for pagination
+      const offset = (page - 1) * limit;
+      
+      // Get top users by points, ensuring we get the top users highlighted by points and swaps
+      const result = await db
+        .select()
+        .from(users)
+        .orderBy(sql`${users.points} DESC, ${users.totalSwaps} DESC`)
+        .limit(limit)
+        .offset(offset);
+      
+      console.log(`Found ${result.length} users for leaderboard (page ${page}, limit ${limit})`);
+      return result;
+    } catch (error) {
+      console.error("Error in getLeaderboard:", error);
+      return [];
+    }
   }
   
   // Function to seed the database with initial data
