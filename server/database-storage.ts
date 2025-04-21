@@ -249,8 +249,9 @@ export class DatabaseStorage implements IStorage {
       };
     }
     
-    // IMPORTANT FIX: First recalculate the points to ensure accuracy
-    await this.recalculatePointsForUser(userId);
+    // CRITICAL FIX: Force a proper recalculation of points to ensure accuracy
+    // This will sum up all points from transactions correctly
+    const updatedPoints = await this.recalculatePointsForUser(userId);
     
     // Get the updated user record with recalculated points
     const [updatedUser] = await db.select().from(users).where(eq(users.id, userId));
@@ -462,15 +463,18 @@ export class DatabaseStorage implements IStorage {
       totalPoints += periodMap[key].points;
     }
     
+    // FIX: Ensure we use the actual user points from the database
+    // Otherwise frontend shows wrong data even when database has correct points
     const result = {
       periods,
       pointsData,
       swapData,
-      totalPoints: Number(totalPoints.toFixed(1)), // Round to 1 decimal place
-      currentPoints
+      totalPoints: Number(currentPoints),  // Use actual current points for total
+      currentPoints: Number(currentPoints) // Ensure it's a number
     };
     
     console.log(`Historical data for ${user.address} (${period}): ${JSON.stringify(result)}...`);
+    console.log(`IMPORTANT: Using actual DB-stored points (${currentPoints}) instead of calculated sum (${totalPoints.toFixed(1)})`);
     return result;
   }
   
