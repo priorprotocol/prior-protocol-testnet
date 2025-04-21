@@ -53,8 +53,32 @@ export async function recordSwapTransaction(params: {
     // Try storage approach first
     let transaction;
     try {
+      console.log(`ATTEMPTING storage.createTransaction with txData:`, JSON.stringify(txData, null, 2));
+      
+      // Force fallback for testing - simulate error
+      if (txHash.includes('force_fallback')) {
+        throw new Error('Forcing fallback for testing purposes');
+      }
+      
       transaction = await storage.createTransaction(txData);
-      console.log(`Successfully created transaction through storage layer`);
+      console.log(`Successfully created transaction through storage layer - ID: ${transaction.id}`);
+      
+      // Verify it was actually saved
+      setTimeout(async () => {
+        try {
+          const verification = await pool.query(`
+            SELECT * FROM transactions WHERE tx_hash = $1
+          `, [txHash]);
+          
+          if (verification.rows && verification.rows.length > 0) {
+            console.log(`VERIFICATION: Transaction ${txHash} successfully saved in DB - ID: ${verification.rows[0].id}`);
+          } else {
+            console.error(`VERIFICATION FAILED: Transaction ${txHash} not found in DB despite successful creation!`);
+          }
+        } catch (verifyError) {
+          console.error(`Error during transaction verification:`, verifyError);
+        }
+      }, 1000); // Check after 1 second
     } catch (storageError) {
       console.error("Storage layer failed to create transaction:", storageError);
       
