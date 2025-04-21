@@ -575,25 +575,38 @@ export class DatabaseStorage implements IStorage {
       const txDay = new Date(txDate);
       txDay.setHours(0, 0, 0, 0);
       
-      // Count swaps made today BEFORE this one 
+      // Count total swaps made today (including this one)
+      const dailySwaps = await db
+        .select({ count: count() })
+        .from(transactions)
+        .where(and(
+          eq(transactions.userId, userId),
+          eq(transactions.type, 'swap'),
+          sql`DATE(${transactions.timestamp}) = DATE(${txDate})`
+        ));
+      
+      // Count swaps made today BEFORE this one (to determine if this swap is eligible for points)
       const swapsBeforeThisOne = await db
         .select({ count: count() })
         .from(transactions)
         .where(and(
           eq(transactions.userId, userId),
           eq(transactions.type, 'swap'),
-          sql`${transactions.timestamp} >= ${txDay}`,
+          sql`DATE(${transactions.timestamp}) = DATE(${txDate})`,
           transaction.id ? sql`${transactions.id} < ${transaction.id}` : sql`1=1` // If we have an ID, count only transactions before this one
         ));
       
-      const swapsBeforeCount = swapsBeforeThisOne[0]?.count || 0;
+      const swapsBeforeCount = Number(swapsBeforeThisOne[0]?.count || 0);
+      const totalDailySwaps = Number(dailySwaps[0]?.count || 0);
       
       // Only award points for the first 5 swaps of the day
       if (swapsBeforeCount < 5) {
         console.log(`[PointsCalc] Awarding 0.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
+        console.log(`[PointsCalc] User ${userId} has completed ${totalDailySwaps} swaps today`);
         return 0.5; // 0.5 points per swap for first 5 swaps
       } else {
         console.log(`[PointsCalc] No points awarded - already reached 5 swaps for the day for user ${userId}`);
+        console.log(`[PointsCalc] User ${userId} has completed ${totalDailySwaps} swaps today (max 5 for points)`);
         return 0;
       }
     } else if (transaction.type === 'nft_stake') {
