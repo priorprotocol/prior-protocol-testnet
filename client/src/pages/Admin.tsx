@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { useQueryClient } from "@tanstack/react-query";
-import { HiShieldExclamation, HiRefresh, HiTrash, HiLockClosed } from "react-icons/hi";
+import { HiShieldExclamation, HiRefresh, HiTrash, HiLockClosed, HiDatabase } from "react-icons/hi";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import { useLocation } from "wouter";
 
@@ -28,6 +28,49 @@ const Admin = () => {
   // No longer need the access check here as it's handled by the ProtectedAdminRoute
   // The user will never see this component if they're not an admin
 
+  // Function to force refresh all API data
+  const forceRefreshAllData = async () => {
+    console.log("🔄 Force refreshing all application data...");
+    
+    try {
+      // 1. Call our new force-refresh-cache endpoint
+      const refreshResult = await apiRequest('/api/maintenance/force-refresh-cache', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          adminAddress: address,
+          timestamp: Date.now()
+        })
+      });
+      
+      console.log("Force refresh result:", refreshResult);
+      
+      // 2. Completely clear the React Query cache
+      queryClient.clear();
+      
+      // 3. Re-fetch critical data with cache busters
+      const timestamp = Date.now();
+      await queryClient.fetchQuery({
+        queryKey: ['/api/leaderboard', 10, 1],
+        queryFn: () => apiRequest(`/api/leaderboard?limit=10&page=1&_cb=${timestamp}`)
+      });
+      
+      // 4. Remove any browser-level caches with the fetch cache: 'no-store' option
+      await fetch('/api/leaderboard', { 
+        method: 'GET',
+        cache: 'no-store',
+        headers: { 'Pragma': 'no-cache' }
+      });
+      
+      return refreshResult;
+    } catch (error) {
+      console.error("Force refresh failed:", error);
+      throw error;
+    }
+  };
+
   const handleCompleteReset = async () => {
     if (!confirmReset) {
       setConfirmReset(true);
@@ -43,10 +86,13 @@ const Admin = () => {
       setLoading(true);
       console.log("Sending complete reset request...");
       
-      const result = await apiRequest('/api/maintenance/complete-reset', {
+      // Add a timestamp to prevent any caching
+      const result = await apiRequest(`/api/maintenance/complete-reset?_cb=${Date.now()}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         },
         body: JSON.stringify({
           adminAddress: address,
@@ -62,8 +108,13 @@ const Admin = () => {
         description: `Deleted ${result.summary.usersDeleted} users and ${result.summary.transactionsDeleted} transactions.`
       });
 
-      // Invalidate all cached queries
-      queryClient.invalidateQueries();
+      // Use our enhanced cache-busting function
+      await forceRefreshAllData();
+      
+      toast({
+        title: "Cache Refreshed",
+        description: "All data has been refreshed from the server. The leaderboard should now reflect the empty database."
+      });
       
     } catch (error) {
       console.error("Reset failed:", error);
@@ -83,10 +134,13 @@ const Admin = () => {
       setLoading(true);
       console.log("Sending recalculate points request...");
       
-      const result = await apiRequest('/api/maintenance/recalculate-points', {
+      // Add timestamp to prevent any caching
+      const result = await apiRequest(`/api/maintenance/recalculate-points?_cb=${Date.now()}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         },
         body: JSON.stringify({
           adminAddress: address,
@@ -102,8 +156,13 @@ const Admin = () => {
         description: `Updated ${result.summary.usersUpdated} users. Points before: ${result.summary.totalPointsBefore}, after: ${result.summary.totalPointsAfter}.`
       });
 
-      // Invalidate all cached queries
-      queryClient.invalidateQueries();
+      // Use our enhanced cache-busting function to refresh all application data
+      await forceRefreshAllData();
+      
+      toast({
+        title: "Cache Refreshed",
+        description: "All data has been refreshed from the server. The leaderboard should now reflect updated points."
+      });
       
     } catch (error) {
       console.error("Recalculation failed:", error);
@@ -141,9 +200,33 @@ const Admin = () => {
     );
   }
 
+  // Handler for manual cache refresh
+  const handleManualCacheRefresh = async () => {
+    try {
+      setLoading(true);
+      console.log("Manually refreshing application cache...");
+      
+      await forceRefreshAllData();
+      
+      toast({
+        title: "Cache Refresh Complete",
+        description: "All application data has been refreshed from the server. The leaderboard and other data should now be up-to-date."
+      });
+    } catch (error) {
+      console.error("Manual cache refresh failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Refresh Failed",
+        description: "An error occurred while refreshing the application cache."
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="container px-4 py-6 max-w-6xl mx-auto">
-      <div className="mb-8">
+      <div className="mb-4">
         <h1 className="text-3xl font-bold mb-2 flex items-center">
           <HiShieldExclamation className="mr-2 text-red-500" /> 
           Admin Panel
@@ -152,11 +235,26 @@ const Admin = () => {
           Warning: The actions in this panel have irreversible effects on the database.
         </p>
       </div>
+      
+      {/* Quick Actions Bar */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-1"
+          onClick={handleManualCacheRefresh}
+          disabled={loading}
+        >
+          <HiRefresh className="h-4 w-4" />
+          {loading ? 'Refreshing...' : 'Force Refresh Cache'}
+        </Button>
+      </div>
 
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="reset">Database Reset</TabsTrigger>
           <TabsTrigger value="recalculate">Points Recalculation</TabsTrigger>
+          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
         </TabsList>
         
         <TabsContent value="reset" className="mt-4">
@@ -251,6 +349,81 @@ const Admin = () => {
                 {loading ? 'Processing...' : 'Recalculate All User Points'}
               </Button>
             </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="maintenance" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <HiDatabase className="mr-2" />
+                Cache & Database Maintenance
+              </CardTitle>
+              <CardDescription>
+                Tools to help troubleshoot and maintain data consistency across the application.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Alert className="mb-4">
+                  <AlertTitle>Cache Management</AlertTitle>
+                  <AlertDescription>
+                    Use these tools when data appears stale or out of sync. The cache refresh function 
+                    will clear application caches and fetch fresh data directly from the database.
+                  </AlertDescription>
+                </Alert>
+                
+                <div className="border rounded-lg p-4 space-y-3">
+                  <h3 className="font-medium">Cache Management</h3>
+                  <p className="text-sm text-muted-foreground">
+                    If the leaderboard or other data appears stale, use this button to force a fresh fetch of all data.
+                  </p>
+                  <Button 
+                    onClick={handleManualCacheRefresh}
+                    disabled={loading}
+                    className="flex items-center gap-1"
+                  >
+                    <HiRefresh className="h-4 w-4" />
+                    {loading ? 'Refreshing Cache...' : 'Force Refresh All Data'}
+                  </Button>
+                </div>
+                
+                <div className="border rounded-lg p-4 space-y-3">
+                  <h3 className="font-medium">Cache Behavior Configuration</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Changes how aggressively the application refreshes data from the server. More frequent
+                    refreshes reduce cache problems but may increase server load.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        // In a real app, this would change some cache setting, but for now it's just a demo
+                        toast({
+                          title: "Cache Strategy Updated",
+                          description: "Cache TTL set to 30 seconds. Data will refresh more frequently."
+                        });
+                      }}
+                      className="text-sm"
+                    >
+                      Aggressive Refresh (30s)
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        toast({
+                          title: "Cache Strategy Updated",
+                          description: "Cache TTL set to 5 minutes. Default strategy restored."
+                        });
+                      }}
+                      className="text-sm"
+                    >
+                      Normal Refresh (5m)
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>

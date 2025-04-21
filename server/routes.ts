@@ -7,7 +7,7 @@ import transactionRoutes from "./routes/transactions";
 import healthRoutes from "./routes/health";
 import quizRoutes from "./routes/quizzes";
 import { log } from "./vite";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
 import { userTrackerMiddleware } from "./middleware/userTracker";
 
