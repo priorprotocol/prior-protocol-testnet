@@ -56,14 +56,27 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
     refetchOnReconnect: true,
   });
   
-  // Function to refresh leaderboard data
+  // Function to refresh leaderboard data with cache busting
   const refreshLeaderboard = useCallback(async () => {
-    await refetch();
+    // Create a timestamp to force a cache miss
+    const cacheBuster = new Date().getTime();
+    
+    // First remove all cached leaderboard data
+    queryClient.removeQueries({ queryKey: ["/api/leaderboard"] });
+    
+    // Force refetch with fresh data (bypass cache)
+    const freshData = await apiRequest<LeaderboardData>(`/api/leaderboard?limit=${limit}&page=${currentPage}&_cb=${cacheBuster}`);
+    
+    // Update query cache with fresh data
+    queryClient.setQueryData(["/api/leaderboard", limit, currentPage], freshData);
+    
     // Also refresh user rank if available
     if (address) {
       queryClient.invalidateQueries({ queryKey: ["/api/users/rank", address] });
     }
-  }, [refetch, address, queryClient]);
+    
+    console.log("Leaderboard refresh completed with fresh data");
+  }, [limit, currentPage, address, queryClient]);
   
   // Initialize real-time updates as soon as component mounts 
   useEffect(() => {
