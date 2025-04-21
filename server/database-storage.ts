@@ -783,6 +783,37 @@ export class DatabaseStorage implements IStorage {
       // We don't have direct access to queryClient from here, so we're setting a flag
       // that will trigger a full cache refresh in other parts of the application
       global.FORCE_CACHE_REFRESH = true;
+      
+      // Get the latest global points total for WebSocket notification
+      try {
+        // Calculate total global points across all users
+        const [totalPointsResult] = await db
+          .select({
+            sum: sql<number>`SUM(${users.points})`,
+            count: sql<number>`COUNT(*)`
+          })
+          .from(users);
+        
+        const totalGlobalPoints = totalPointsResult?.sum || 0;
+        const userCount = totalPointsResult?.count || 0;
+        
+        // Import the broadcast function from routes.ts
+        const { broadcastNotification } = require('./routes');
+        
+        // Send a notification to all connected clients
+        if (typeof broadcastNotification === 'function') {
+          console.log(`[WebSocket] Broadcasting leaderboard update with total points: ${totalGlobalPoints}`);
+          
+          broadcastNotification({
+            type: 'leaderboard_update',
+            totalGlobalPoints,
+            userCount,
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error(`[WebSocket] Error broadcasting leaderboard update:`, error);
+      }
     } catch (error) {
       console.error(`[CacheManager] Failed to refresh cache:`, error);
     }
@@ -854,6 +885,29 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
       
     console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | ${swapTransactions.length} total swaps`);
+    
+    // Broadcast individual user points update via WebSocket if points changed
+    if (pointsBefore !== newPoints) {
+      try {
+        // Import the broadcast function from routes.ts
+        const { broadcastNotification } = require('./routes');
+        
+        if (typeof broadcastNotification === 'function') {
+          console.log(`[WebSocket] Broadcasting points update for user ${userId}: ${pointsBefore} → ${newPoints}`);
+          
+          broadcastNotification({
+            type: 'points_update',
+            userId,
+            address: user.address,
+            pointsBefore,
+            pointsAfter: newPoints,
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error(`[WebSocket] Error broadcasting points update:`, error);
+      }
+    }
     
     return newPoints;
   }

@@ -48,15 +48,68 @@ export async function recordSwapTransaction(params: {
     const MAX_DAILY_SWAPS_FOR_POINTS = 5;
     const POINTS_PER_SWAP = 0.5;
     
+    // Store the transaction result with additional metadata
+    let result: any = { ...transaction };
+    
     // Only award points for the first 5 swaps per day
     if (dailySwapCount <= MAX_DAILY_SWAPS_FOR_POINTS) {
       await storage.addUserPoints(user.id, POINTS_PER_SWAP);
       console.log(`Awarded ${POINTS_PER_SWAP} points to user ${address} for swap. Daily swaps: ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS}`);
+      
+      // If this is exactly the 5th swap, trigger immediate points recalculation
+      if (dailySwapCount === MAX_DAILY_SWAPS_FOR_POINTS) {
+        console.log(`[PointsSystem] 🔄 Auto-triggering points recalculation for user ${user.id} (${address}) after 5th daily swap`);
+        
+        try {
+          // Get points before recalculation for comparison
+          const pointsBefore = await storage.getUserPointsById(user.id);
+          
+          // Perform the recalculation
+          const pointsAfter = await storage.recalculatePointsForUser(user.id);
+          
+          console.log(`[PointsSystem] ✅ Auto-recalculation complete. User ${user.id} (${address}) points: ${pointsBefore} → ${pointsAfter}`);
+          
+          // Add recalculation info to the result
+          result.pointsRecalculated = true;
+          result.pointsBefore = pointsBefore;
+          result.pointsAfter = pointsAfter;
+          result.maxSwapsReached = true;
+          
+          // Import necessary functions for WebSocket notification
+          const { broadcastNotification } = require('../routes');
+          
+          if (typeof broadcastNotification === 'function') {
+            // Broadcast user-specific points update
+            broadcastNotification({
+              type: 'points_update',
+              userId: user.id,
+              address: user.address,
+              pointsBefore,
+              pointsAfter,
+              timestamp: new Date().toISOString()
+            });
+            
+            // Also broadcast global leaderboard update
+            const { totalGlobalPoints } = await storage.getLeaderboard(1);
+            const { count: userCount } = await storage.getTotalUsersCount();
+            
+            broadcastNotification({
+              type: 'leaderboard_update',
+              totalGlobalPoints,
+              userCount,
+              timestamp: new Date().toISOString()
+            });
+          }
+        } catch (recalcError) {
+          console.error("[PointsSystem] Error during automatic points recalculation:", recalcError);
+        }
+      }
     } else {
       console.log(`No points awarded to user ${address}. Daily swap limit reached: ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS}`);
+      result.maxSwapsReached = true;
     }
     
-    return transaction;
+    return result;
   } catch (error) {
     console.error('Error recording swap transaction:', error);
     throw error;
