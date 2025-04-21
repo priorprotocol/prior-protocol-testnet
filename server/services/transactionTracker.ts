@@ -18,6 +18,7 @@ const MAX_DAILY_SWAPS_FOR_POINTS = 5;
 
 /**
  * Record a swap transaction directly to the database
+ * This function is robust and prioritizes direct SQL for reliable recording
  */
 export async function recordSwapTransaction(params: {
   address: string;
@@ -31,40 +32,67 @@ export async function recordSwapTransaction(params: {
   try {
     const { address, txHash, fromToken, toToken, fromAmount, toAmount, blockNumber } = params;
     
+    console.log(`Recording swap transaction for user ${address}: ${txHash} - ${fromAmount} ${fromToken} to ${toAmount} ${toToken}`);
+    
     // Make sure user exists
     const user = await ensureUserExists(address);
+    console.log(`Using user with ID ${user.id} for transaction recording`);
     
-    // Create transaction object
-    const txData = {
-      userId: user.id,
-      type: 'swap',
-      txHash,
-      fromToken,
-      toToken,
-      fromAmount,
-      toAmount,
-      blockNumber: blockNumber || null,
-      status: 'completed',
-      points: POINTS_PER_SWAP.toString() // Convert to string for PostgreSQL compatibility
-    };
+    // First check if this transaction already exists to avoid duplicates
+    try {
+      const existingTx = await pool.query(`
+        SELECT * FROM transactions WHERE tx_hash = $1 LIMIT 1
+      `, [txHash]);
+      
+      if (existingTx.rows && existingTx.rows.length > 0) {
+        console.log(`Transaction with hash ${txHash} already exists with ID ${existingTx.rows[0].id}, returning existing record`);
+        return existingTx.rows[0];
+      }
+    } catch (checkError) {
+      console.error('Error checking for existing transaction:', checkError);
+      // Continue with creation attempt
+    }
     
-    console.log(`Creating swap transaction with the following data:`, txData);
-    
-    // Try storage approach first
+    // Direct SQL insert as primary method for reliability
     let transaction;
     try {
-      console.log(`ATTEMPTING storage.createTransaction with txData:`, JSON.stringify(txData, null, 2));
+      console.log(`Creating transaction directly via SQL for ${txHash}`);
+      const result = await pool.query(`
+        INSERT INTO transactions (
+          user_id, type, from_token, to_token, from_amount, to_amount, 
+          tx_hash, status, block_number, points, timestamp
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+        ON CONFLICT (tx_hash) DO NOTHING
+        RETURNING *
+      `, [
+        user.id,
+        'swap',
+        fromToken,
+        toToken,
+        fromAmount,
+        toAmount,
+        txHash,
+        'completed',
+        blockNumber || null,
+        POINTS_PER_SWAP.toString() // Always use string for Postgres decimal compatibility
+      ]);
       
-      // Force fallback for testing - simulate error
-      if (txHash.includes('force_fallback')) {
-        throw new Error('Forcing fallback for testing purposes');
-      }
-      
-      transaction = await storage.createTransaction(txData);
-      console.log(`Successfully created transaction through storage layer - ID: ${transaction.id}`);
-      
-      // Verify it was actually saved
-      setTimeout(async () => {
+      // Check if the insert succeeded
+      if (result.rows && result.rows.length > 0) {
+        transaction = result.rows[0];
+        console.log(`Successfully created transaction with direct SQL - ID: ${transaction.id}`);
+        
+        // Also update the user's points and swap count immediately
+        await pool.query(`
+          UPDATE users 
+          SET points = CAST(COALESCE(points, '0') AS DECIMAL(10,2)) + CAST($1 AS DECIMAL(10,2)), 
+              total_swaps = COALESCE(total_swaps, 0) + 1
+          WHERE id = $2
+        `, [POINTS_PER_SWAP.toString(), user.id]);
+        
+        console.log(`Updated user ${user.id} points and swap count`);
+        
+        // Immediately verify the transaction was saved
         try {
           const verification = await pool.query(`
             SELECT * FROM transactions WHERE tx_hash = $1
@@ -72,55 +100,77 @@ export async function recordSwapTransaction(params: {
           
           if (verification.rows && verification.rows.length > 0) {
             console.log(`VERIFICATION: Transaction ${txHash} successfully saved in DB - ID: ${verification.rows[0].id}`);
+            console.log(`VERIFICATION: Points awarded: ${verification.rows[0].points}`);
           } else {
             console.error(`VERIFICATION FAILED: Transaction ${txHash} not found in DB despite successful creation!`);
           }
         } catch (verifyError) {
           console.error(`Error during transaction verification:`, verifyError);
         }
-      }, 1000); // Check after 1 second
-    } catch (storageError) {
-      console.error("Storage layer failed to create transaction:", storageError);
-      
-      // If storage layer fails, try direct SQL insert as a fallback
-      try {
-        console.log("Falling back to direct SQL insert for swap transaction");
-        const result = await pool.query(`
-          INSERT INTO transactions (
-            user_id, type, from_token, to_token, from_amount, to_amount, 
-            tx_hash, status, block_number, points, timestamp
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
-          RETURNING *
-        `, [
-          user.id,
-          'swap',
-          fromToken,
-          toToken,
-          fromAmount,
-          toAmount,
-          txHash,
-          'completed',
-          blockNumber || null,
-          POINTS_PER_SWAP.toString()
-        ]);
+      } else {
+        // Insert might have failed due to ON CONFLICT, try to fetch the existing record
+        console.log(`No transaction returned from insert (likely due to ON CONFLICT), checking if it exists...`);
+        const checkExisting = await pool.query(`
+          SELECT * FROM transactions WHERE tx_hash = $1
+        `, [txHash]);
         
-        if (result.rows && result.rows.length > 0) {
-          transaction = result.rows[0];
-          console.log(`Successfully created transaction with direct SQL`);
-          
-          // Also update the user's points and swap count immediately
-          await pool.query(`
-            UPDATE users 
-            SET points = points + $1, 
-                total_swaps = total_swaps + 1
-            WHERE id = $2
-          `, [POINTS_PER_SWAP, user.id]);
+        if (checkExisting.rows && checkExisting.rows.length > 0) {
+          transaction = checkExisting.rows[0];
+          console.log(`Found existing transaction - ID: ${transaction.id}`);
         } else {
-          throw new Error("SQL insert did not return a transaction record");
+          // If direct SQL failed and no existing transaction, try storage as fallback
+          console.log(`Direct SQL insert returned no rows and no existing transaction found, using storage fallback`);
+          
+          // Create transaction object for storage
+          const txData = {
+            userId: user.id,
+            type: 'swap',
+            txHash,
+            fromToken,
+            toToken,
+            fromAmount,
+            toAmount,
+            blockNumber: blockNumber || null,
+            status: 'completed',
+            points: POINTS_PER_SWAP.toString() // Convert to string for PostgreSQL compatibility
+          };
+          
+          // Try storage as fallback
+          try {
+            transaction = await storage.createTransaction(txData);
+            console.log(`Successfully created transaction via storage fallback - ID: ${transaction.id}`);
+          } catch (storageError) {
+            console.error(`Storage fallback also failed:`, storageError);
+            throw new Error(`Failed to create transaction through all available methods`);
+          }
         }
-      } catch (sqlError) {
-        console.error("Direct SQL insert also failed:", sqlError);
-        throw sqlError;
+      }
+    } catch (directSqlError) {
+      console.error(`Direct SQL insert failed:`, directSqlError);
+      
+      // If direct SQL fails, try storage as fallback
+      console.log(`Attempting storage fallback after SQL failure`);
+      
+      // Create transaction object for storage
+      const txData = {
+        userId: user.id,
+        type: 'swap',
+        txHash,
+        fromToken,
+        toToken,
+        fromAmount,
+        toAmount,
+        blockNumber: blockNumber || null,
+        status: 'completed',
+        points: POINTS_PER_SWAP.toString() // Convert to string for PostgreSQL compatibility
+      };
+      
+      try {
+        transaction = await storage.createTransaction(txData);
+        console.log(`Successfully created transaction via storage fallback - ID: ${transaction.id}`);
+      } catch (storageError) {
+        console.error(`Storage fallback also failed:`, storageError);
+        throw new Error(`Failed to create transaction through all available methods`);
       }
     }
     
@@ -210,6 +260,7 @@ export async function recordSwapTransaction(params: {
 
 /**
  * Record a faucet claim transaction directly to the database
+ * Uses direct SQL for better reliability
  */
 export async function recordFaucetClaimTransaction(params: {
   address: string;
@@ -220,31 +271,113 @@ export async function recordFaucetClaimTransaction(params: {
   try {
     const { address, txHash, amount = '1', blockNumber } = params;
     
+    console.log(`Recording faucet claim transaction for ${address}: ${txHash} - ${amount} PRIOR`);
+    
     // Make sure user exists
     const user = await ensureUserExists(address);
+    console.log(`Using user with ID ${user.id} for faucet claim transaction`);
     
-    // Update user's last claim time
-    const updatedUser = await storage.updateUserLastClaim(user.address);
+    // First check if transaction already exists
+    try {
+      const existingTx = await pool.query(`
+        SELECT * FROM transactions WHERE tx_hash = $1 LIMIT 1
+      `, [txHash]);
+      
+      if (existingTx.rows && existingTx.rows.length > 0) {
+        console.log(`Faucet claim with hash ${txHash} already exists with ID ${existingTx.rows[0].id}, returning existing record`);
+        return existingTx.rows[0];
+      }
+    } catch (checkError) {
+      console.error('Error checking for existing faucet claim transaction:', checkError);
+      // Continue with creation attempt
+    }
     
-    // Create the transaction record with explicitly zero points
-    const transaction = await storage.createTransaction({
-      userId: user.id,
-      type: 'faucet_claim',
-      txHash,
-      fromToken: null,
-      toToken: 'PRIOR',
-      fromAmount: null,
-      toAmount: amount,
-      blockNumber: blockNumber || null,
-      status: 'completed',
-      points: "0" // Explicitly set to "0" as faucet claims don't earn points - use string for PostgreSQL
-    });
+    // Update user's last claim time directly with SQL
+    try {
+      await pool.query(`
+        UPDATE users 
+        SET last_claim = NOW(), 
+            total_claims = COALESCE(total_claims, 0) + 1
+        WHERE id = $1
+      `, [user.id]);
+      console.log(`Updated user ${user.id} last claim time`);
+    } catch (updateError) {
+      console.error('Error updating user last claim time:', updateError);
+      // Still continue with transaction creation
+    }
     
-    // Increment claim count for user
-    const newClaimCount = await storage.incrementUserClaimCount(user.id);
-    console.log(`User ${address} now has ${newClaimCount} faucet claims recorded`);
+    // Create the transaction record with direct SQL
+    let transaction;
+    try {
+      const result = await pool.query(`
+        INSERT INTO transactions (
+          user_id, type, from_token, to_token, from_amount, to_amount, 
+          tx_hash, status, block_number, points, timestamp
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+        ON CONFLICT (tx_hash) DO NOTHING
+        RETURNING *
+      `, [
+        user.id,
+        'faucet_claim',
+        null,
+        'PRIOR',
+        null,
+        amount,
+        txHash,
+        'completed',
+        blockNumber || null,
+        '0' // Explicitly set to "0" as faucet claims don't earn points
+      ]);
+      
+      if (result.rows && result.rows.length > 0) {
+        transaction = result.rows[0];
+        console.log(`Successfully recorded faucet claim via direct SQL - ID: ${transaction.id}`);
+      } else {
+        // Insert might have failed due to ON CONFLICT, try to fetch the existing record
+        const checkExisting = await pool.query(`
+          SELECT * FROM transactions WHERE tx_hash = $1
+        `, [txHash]);
+        
+        if (checkExisting.rows && checkExisting.rows.length > 0) {
+          transaction = checkExisting.rows[0];
+          console.log(`Found existing faucet claim transaction - ID: ${transaction.id}`);
+        } else {
+          // If direct SQL failed and no existing transaction, try storage as fallback
+          console.log(`Direct SQL insert for faucet claim returned no rows, using storage fallback`);
+          transaction = await storage.createTransaction({
+            userId: user.id,
+            type: 'faucet_claim',
+            txHash,
+            fromToken: null,
+            toToken: 'PRIOR',
+            fromAmount: null,
+            toAmount: amount,
+            blockNumber: blockNumber || null,
+            status: 'completed',
+            points: "0" // Explicitly set to "0" as faucet claims don't earn points
+          });
+        }
+      }
+    } catch (directSqlError) {
+      console.error(`Direct SQL insert for faucet claim failed:`, directSqlError);
+      
+      // If direct SQL fails, try storage as fallback
+      console.log(`Attempting storage fallback for faucet claim after SQL failure`);
+      transaction = await storage.createTransaction({
+        userId: user.id,
+        type: 'faucet_claim',
+        txHash,
+        fromToken: null,
+        toToken: 'PRIOR',
+        fromAmount: null,
+        toAmount: amount,
+        blockNumber: blockNumber || null,
+        status: 'completed',
+        points: "0" // Explicitly set to "0" as faucet claims don't earn points
+      });
+    }
     
-    // Faucet claims don't get points anymore
+    console.log(`Faucet claim transaction recorded for user ${address}: ${txHash} - ${amount} PRIOR`);
     
     return transaction;
   } catch (error) {
