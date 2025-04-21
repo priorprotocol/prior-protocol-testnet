@@ -11,6 +11,11 @@ import { db, pool } from '../db';
 import { transactions } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 
+// Constants for points calculation
+// IMPORTANT: This value must be exactly 0.5 points per swap across all code
+const POINTS_PER_SWAP = 0.5;
+const MAX_DAILY_SWAPS_FOR_POINTS = 5;
+
 /**
  * Record a swap transaction directly to the database
  */
@@ -29,9 +34,8 @@ export async function recordSwapTransaction(params: {
     // Make sure user exists
     const user = await ensureUserExists(address);
     
-    // Create the transaction record - IMPORTANT: leave points as undefined for swaps
-    // This way the createTransaction method will calculate points properly
-    const transaction = await storage.createTransaction({
+    // Create transaction object
+    const txData = {
       userId: user.id,
       type: 'swap',
       txHash,
@@ -41,18 +45,68 @@ export async function recordSwapTransaction(params: {
       toAmount,
       blockNumber: blockNumber || null,
       status: 'completed',
-      // Don't set points here - let the storage.createTransaction method calculate them
-    });
+      points: POINTS_PER_SWAP.toString() // Convert to string for PostgreSQL compatibility
+    };
+    
+    console.log(`Creating swap transaction with the following data:`, txData);
+    
+    // Try storage approach first
+    let transaction;
+    try {
+      transaction = await storage.createTransaction(txData);
+      console.log(`Successfully created transaction through storage layer`);
+    } catch (storageError) {
+      console.error("Storage layer failed to create transaction:", storageError);
+      
+      // If storage layer fails, try direct SQL insert as a fallback
+      try {
+        console.log("Falling back to direct SQL insert for swap transaction");
+        const result = await pool.query(`
+          INSERT INTO transactions (
+            user_id, type, from_token, to_token, from_amount, to_amount, 
+            tx_hash, status, block_number, points, timestamp
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+          RETURNING *
+        `, [
+          user.id,
+          'swap',
+          fromToken,
+          toToken,
+          fromAmount,
+          toAmount,
+          txHash,
+          'completed',
+          blockNumber || null,
+          POINTS_PER_SWAP.toString()
+        ]);
+        
+        if (result.rows && result.rows.length > 0) {
+          transaction = result.rows[0];
+          console.log(`Successfully created transaction with direct SQL`);
+          
+          // Also update the user's points and swap count immediately
+          await pool.query(`
+            UPDATE users 
+            SET points = points + $1, 
+                total_swaps = total_swaps + 1
+            WHERE id = $2
+          `, [POINTS_PER_SWAP, user.id]);
+        } else {
+          throw new Error("SQL insert did not return a transaction record");
+        }
+      } catch (sqlError) {
+        console.error("Direct SQL insert also failed:", sqlError);
+        throw sqlError;
+      }
+    }
     
     console.log(`Transaction recorded for user ${address}: ${txHash} - ${fromAmount} ${fromToken} to ${toAmount} ${toToken}`);
     
     // Check daily swap count to determine points
     const dailySwapCount = await storage.getDailySwapCount(user.id);
     
-    // Points logic - FIXED: EXACTLY 0.5 points per swap, max 5 swaps per day (2.5 points)
-    // Important: this value must be consistent throughout the app
-    const MAX_DAILY_SWAPS_FOR_POINTS = 5;
-    const POINTS_PER_SWAP = 0.5; // Fixed at EXACTLY 0.5 - do not modify this value
+    // Using the global constants defined at the top of this file
+    // POINTS_PER_SWAP = 0.5 and MAX_DAILY_SWAPS_FOR_POINTS = 5
     
     // Store the transaction result with additional metadata
     let result: any = { ...transaction };
@@ -159,7 +213,7 @@ export async function recordFaucetClaimTransaction(params: {
       toAmount: amount,
       blockNumber: blockNumber || null,
       status: 'completed',
-      points: 0 // Explicitly set to 0 as faucet claims don't earn points
+      points: "0" // Explicitly set to "0" as faucet claims don't earn points - use string for PostgreSQL
     });
     
     // Increment claim count for user
