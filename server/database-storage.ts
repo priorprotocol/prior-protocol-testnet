@@ -321,10 +321,8 @@ export class DatabaseStorage implements IStorage {
       // Increment swap count for this day
       swapsByDay[txDay].swapCount++;
       
-      // Calculate points for this swap (0.5 points per swap, max 5 swaps per day)
-      if (swapsByDay[txDay].swapCount <= 5) {
-        swapsByDay[txDay].points = Math.min(swapsByDay[txDay].swapCount * 0.5, 2.5);
-      }
+      // Calculate points for this swap (0.5 points per swap, max 5 swaps = 2.5 points per day)
+      swapsByDay[txDay].points = Math.min(swapsByDay[txDay].swapCount, 5) * 0.5;
       
       // Update period totals
       periodMap[periodKey].totalSwaps++;
@@ -387,7 +385,7 @@ export class DatabaseStorage implements IStorage {
           .findIndex(t => t.id === tx.id) + 1;
         
         if (dailySwapPosition <= 5 && periodMap[hourKey]) {
-          // This swap is eligible for points
+          // This swap is eligible for points - 0.5 points per swap, max 5 per day
           periodMap[hourKey].points += 0.5;
         }
       }
@@ -633,7 +631,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getTransactionPoints(transaction: Transaction): Promise<number> {
-    // Calculate points based on transaction type
+    // Calculate points based on transaction type with a single point source: swap transactions
     if (transaction.type === 'swap') {
       // Check daily swap count to determine points
       const userId = transaction.userId;
@@ -643,16 +641,6 @@ export class DatabaseStorage implements IStorage {
       const txDay = new Date(txDate);
       txDay.setHours(0, 0, 0, 0);
       
-      // Count total swaps made today (including this one)
-      const dailySwaps = await db
-        .select({ count: count() })
-        .from(transactions)
-        .where(and(
-          eq(transactions.userId, userId),
-          eq(transactions.type, 'swap'),
-          sql`DATE(${transactions.timestamp}) = DATE(${txDate})`
-        ));
-      
       // Count swaps made today BEFORE this one (to determine if this swap is eligible for points)
       const swapsBeforeThisOne = await db
         .select({ count: count() })
@@ -660,21 +648,19 @@ export class DatabaseStorage implements IStorage {
         .where(and(
           eq(transactions.userId, userId),
           eq(transactions.type, 'swap'),
+          eq(transactions.status, 'completed'),
           sql`DATE(${transactions.timestamp}) = DATE(${txDate})`,
           transaction.id ? sql`${transactions.id} < ${transaction.id}` : sql`1=1` // If we have an ID, count only transactions before this one
         ));
       
       const swapsBeforeCount = Number(swapsBeforeThisOne[0]?.count || 0);
-      const totalDailySwaps = Number(dailySwaps[0]?.count || 0);
       
-      // Only award points for the first 5 swaps of the day
+      // Only award points for the first 5 swaps of the day (0.5 points per swap)
       if (swapsBeforeCount < 5) {
         console.log(`[PointsCalc] Awarding 0.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
-        console.log(`[PointsCalc] User ${userId} has completed ${totalDailySwaps} swaps today`);
         return 0.5; // 0.5 points per swap for first 5 swaps
       } else {
         console.log(`[PointsCalc] No points awarded - already reached 5 swaps for the day for user ${userId}`);
-        console.log(`[PointsCalc] User ${userId} has completed ${totalDailySwaps} swaps today (max 5 for points)`);
         return 0;
       }
     } else if (transaction.type === 'nft_stake') {
