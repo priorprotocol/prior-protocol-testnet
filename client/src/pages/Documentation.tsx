@@ -707,14 +707,14 @@ const Documentation = () => {
                 <FaInfoCircle className="h-4 w-4 text-amber-400" />
                 <AlertTitle className="text-amber-300 font-medium">Points Earning Activity</AlertTitle>
                 <AlertDescription className="text-gray-300">
-                  NFT staking is one of the two ways to earn points in the Prior Protocol testnet, along with token swapping. Staking your Prior Pioneer NFT provides additional points in the protocol ecosystem.
+                  NFT staking is one of the two ways to earn points in the Prior Protocol testnet, along with token swapping. Staking your Prior Pioneer NFT provides a one-time 1.0 point bonus in the protocol ecosystem.
                 </AlertDescription>
               </Alert>
               
               <p className="text-gray-300 mb-4">
                 Prior Protocol features NFT staking functionality, allowing you to stake your Prior Pioneer NFT.
                 This feature demonstrates how NFTs can be integrated into DeFi protocols beyond just being 
-                collectibles.
+                collectibles and provides an innovative way to reward early supporters.
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -722,17 +722,31 @@ const Documentation = () => {
                   <h4 className="font-medium text-orange-300 mb-2">Prior Pioneer NFT</h4>
                   <p className="text-gray-300 text-sm">
                     The Prior Pioneer NFT is a special non-fungible token that represents your early participation 
-                    in the Prior Protocol ecosystem. It has a unique design and serves as proof of your testnet contribution.
+                    in the Prior Protocol ecosystem. Each NFT is unique with individualized attributes and rarity traits that showcase your commitment to the Prior ecosystem.
                   </p>
                 </div>
                 
                 <div className="bg-gradient-to-br from-orange-900/20 to-amber-900/20 p-4 rounded-lg border border-orange-900/40">
-                  <h4 className="font-medium text-orange-300 mb-2">NFT Staking</h4>
+                  <h4 className="font-medium text-orange-300 mb-2">NFT Staking Benefits</h4>
                   <p className="text-gray-300 text-sm">
-                    NFT staking allows you to lock up your NFT in a smart contract to potentially earn rewards.
-                    This feature is available on the original testnet site, accessible via the "NFT STAKE" link.
+                    NFT staking allows you to lock up your Prior Pioneer NFT in a smart contract to earn a one-time bonus of 1.0 points.
+                    These points are automatically added to your total points in the testnet leaderboard and will be factored into token allocation at TGE.
                   </p>
                 </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-amber-900/20 to-orange-900/20 p-4 rounded-lg border border-amber-900/40 mb-6">
+                <h4 className="font-medium text-amber-300 mb-2">The Prior Pioneer Collection</h4>
+                <p className="text-gray-300 text-sm">
+                  The Prior Pioneer NFT collection is a limited series of digital collectibles on the Base Sepolia testnet. 
+                  Each NFT represents early support of the Prior Protocol ecosystem and grants special benefits:
+                  <ul className="list-disc list-inside mt-2 space-y-1 pl-2">
+                    <li>One-time 1.0 point bonus when staked</li>
+                    <li>Visual representation of your early supporter status</li>
+                    <li>Potential future benefits for Prior Pioneer NFT holders</li>
+                    <li>Commemorative value as a testnet participant</li>
+                  </ul>
+                </p>
               </div>
               
               <div className="bg-[#1A1F2E] p-5 rounded-lg border border-[#1A5CFF]/20 mb-4">
@@ -751,7 +765,7 @@ const Documentation = () => {
                     </div>
                     <div>
                       <span className="text-white">Go to the NFT staking site</span>
-                      <p className="text-xs text-gray-400 mt-0.5">Click "NFT STAKE" in the main navigation menu to be redirected</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Click "NFT STAKE" in the main navigation menu to be redirected to priornftstake.xyz</p>
                     </div>
                   </li>
                   <li className="flex items-start">
@@ -760,7 +774,7 @@ const Documentation = () => {
                     </div>
                     <div>
                       <span className="text-white">Connect your wallet</span>
-                      <p className="text-xs text-gray-400 mt-0.5">Ensure your wallet is connected to the Base Sepolia testnet</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Click the "Connect Wallet" button in the top right corner and ensure your wallet is connected to the Base Sepolia testnet</p>
                     </div>
                   </li>
                   <li className="flex items-start">
@@ -769,7 +783,7 @@ const Documentation = () => {
                     </div>
                     <div>
                       <span className="text-white">Select your Prior Pioneer NFT</span>
-                      <p className="text-xs text-gray-400 mt-0.5">Choose the NFT you want to stake from your wallet</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Your available NFTs will be displayed in the staking interface. Select the one you wish to stake by clicking on it.</p>
                     </div>
                   </li>
                   <li className="flex items-start">
@@ -777,8 +791,26 @@ const Documentation = () => {
                       <span className="text-orange-400 text-xs">4</span>
                     </div>
                     <div>
-                      <span className="text-white">Approve and stake</span>
-                      <p className="text-xs text-gray-400 mt-0.5">Confirm the transaction in your wallet to complete the staking process</p>
+                      <span className="text-white">Confirm approval transaction</span>
+                      <p className="text-xs text-gray-400 mt-0.5">You'll first need to approve the NFT contract to interact with the staking contract. This is a one-time transaction.</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-orange-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-orange-400 text-xs">5</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Complete staking transaction</span>
+                      <p className="text-xs text-gray-400 mt-0.5">After approval, confirm the staking transaction. Your NFT will now be staked and visible in the "Staked NFTs" section.</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-orange-900/40 flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-orange-400 text-xs">6</span>
+                    </div>
+                    <div>
+                      <span className="text-white">Verify points in dashboard</span>
+                      <p className="text-xs text-gray-400 mt-0.5">Return to the main testnet site and check your dashboard to see your 1.0 point bonus reflected in your total points.</p>
                     </div>
                   </li>
                 </ol>
@@ -787,14 +819,27 @@ const Documentation = () => {
               <div className="bg-[#1E293B] p-4 rounded-lg mb-4">
                 <h4 className="text-base font-medium text-white mb-2 flex items-center">
                   <FaInfoCircle className="text-orange-400 mr-2" />
-                  Prior Pioneer NFT Contract
+                  Prior Pioneer NFT Contract Details
                 </h4>
                 <div className="bg-slate-900/50 p-3 rounded text-xs text-gray-400 font-mono mt-2 break-all">
-                  0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59
+                  <p className="mb-1">NFT Contract Address: 0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59</p>
+                  <p>Network: Base Sepolia Testnet (Chain ID 84532)</p>
                 </div>
                 <p className="text-sm text-gray-300 mt-3">
-                  The NFT staking feature is available on the original testnet site. As one of two ways to earn points 
-                  in the Prior Protocol ecosystem, staking your NFT provides additional benefits and rewards.
+                  The Prior Pioneer NFT is an ERC-721 standard token on the Base Sepolia testnet. Staking your NFT earns a one-time 
+                  bonus of 1.0 points, which counts toward your total points for the eventual token allocation at TGE.
+                </p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-orange-900/20 to-amber-900/20 p-4 rounded-lg border border-orange-800/40 mb-4">
+                <h4 className="font-medium text-orange-300 mb-2 flex items-center">
+                  <FaInfoCircle className="text-amber-400 mr-2" />
+                  NFT Staking Period
+                </h4>
+                <p className="text-gray-300 text-sm">
+                  Once you've staked your Prior Pioneer NFT and received your one-time 1.0 point bonus, your NFT will remain staked until 
+                  the end of the testnet period. The points earned from NFT staking are automatically reflected in your dashboard and 
+                  leaderboard position.
                 </p>
               </div>
               
@@ -823,8 +868,8 @@ const Documentation = () => {
                 <FaInfoCircle className="h-4 w-4 text-blue-400" />
                 <AlertTitle className="text-blue-300 font-medium">Points System Update</AlertTitle>
                 <AlertDescription className="text-gray-300">
-                  The Prior Protocol testnet awards points for both swap transactions (0.5 points per swap, max 5 swaps daily) 
-                  and NFT staking. Points earned will be used to determine token allocations at the Token Generation Event (TGE).
+                  The Prior Protocol testnet awards points for both swap transactions (0.5 points per swap, max 5 swaps daily for a total of 2.5 points) 
+                  and NFT staking (one-time 1.0 point bonus). Points earned will be used to determine token allocations at the Token Generation Event (TGE).
                 </AlertDescription>
               </Alert>
               
@@ -894,11 +939,11 @@ const Documentation = () => {
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="bg-orange-900/30 text-orange-200 border-orange-700">
-                              Points awarded
+                              1.0 point (one-time)
                             </Badge>
                           </TableCell>
-                          <TableCell>Per NFT staked</TableCell>
-                          <TableCell className="font-bold text-amber-400">Varies</TableCell>
+                          <TableCell>One per wallet</TableCell>
+                          <TableCell className="font-bold text-amber-400">1.0 point</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell className="font-medium">
