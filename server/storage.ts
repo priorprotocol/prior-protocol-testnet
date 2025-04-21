@@ -24,12 +24,8 @@ export interface IStorage {
   incrementUserClaimCount(userId: number): Promise<number>;
   addUserPoints(userId: number, points: number): Promise<number>;
   removePointsForFaucetClaims(): Promise<number>; // Method to remove all faucet claim points
-  getLeaderboard(limit?: number, page?: number): Promise<{
-    users: User[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }>;
+  getTotalUsersCount(): Promise<{ count: number }>;
+  getLeaderboard(limit?: number, page?: number): Promise<User[]>;
   getUserRank(address: string): Promise<number | null>;
   getUserStats(userId: number): Promise<{
     totalFaucetClaims: number;
@@ -618,12 +614,11 @@ export class MemStorage implements IStorage {
     return totalPointsRemoved;
   }
   
-  async getLeaderboard(limit: number = 15, page: number = 1): Promise<{
-    users: User[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }> {
+  async getTotalUsersCount(): Promise<{ count: number }> {
+    return { count: this.users.size };
+  }
+  
+  async getLeaderboard(limit: number = 15, page: number = 1): Promise<User[]> {
     // Get all users and sort by points (highest first)
     const allSortedUsers = Array.from(this.users.values())
       .sort((a, b) => (b.points || 0) - (a.points || 0));
@@ -639,12 +634,7 @@ export class MemStorage implements IStorage {
     // Get users for the current page
     const paginatedUsers = allSortedUsers.slice(startIdx, endIdx);
     
-    return {
-      users: paginatedUsers,
-      total,
-      page: safePage,
-      totalPages
-    };
+    return paginatedUsers;
   }
   
   async getUserRank(address: string): Promise<number | null> {
