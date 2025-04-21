@@ -33,16 +33,10 @@ const Admin = () => {
     console.log("🔄 Force refreshing all application data...");
     
     try {
-      // 1. Call our new force-refresh-cache endpoint
-      const refreshResult = await apiRequest('/api/maintenance/force-refresh-cache', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          adminAddress: address,
-          timestamp: Date.now()
-        })
+      // 1. Call our new force-refresh-cache endpoint using POST
+      const refreshResult = await apiRequest('POST', '/api/maintenance/force-refresh-cache', {
+        adminAddress: address,
+        timestamp: Date.now()
       });
       
       console.log("Force refresh result:", refreshResult);
@@ -86,18 +80,10 @@ const Admin = () => {
       setLoading(true);
       console.log("Sending complete reset request...");
       
-      // Add a timestamp to prevent any caching
-      const result = await apiRequest(`/api/maintenance/complete-reset?_cb=${Date.now()}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
-        },
-        body: JSON.stringify({
-          adminAddress: address,
-          timestamp: Date.now()
-        })
+      // We need to use POST for this endpoint as GET is not allowed
+      const result = await apiRequest('POST', '/api/maintenance/complete-reset', {
+        adminAddress: address,
+        timestamp: Date.now()
       });
 
       console.log("Complete reset response:", result);
@@ -134,18 +120,10 @@ const Admin = () => {
       setLoading(true);
       console.log("Sending recalculate points request...");
       
-      // Add timestamp to prevent any caching
-      const result = await apiRequest(`/api/maintenance/recalculate-points?_cb=${Date.now()}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
-        },
-        body: JSON.stringify({
-          adminAddress: address,
-          timestamp: Date.now()
-        })
+      // We need to use POST for this endpoint as GET is not allowed
+      const result = await apiRequest('POST', '/api/maintenance/recalculate-points', {
+        adminAddress: address,
+        timestamp: Date.now()
       });
 
       console.log("Recalculate points response:", result);
