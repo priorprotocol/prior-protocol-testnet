@@ -253,7 +253,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address:
             </div>
             <div className="mt-1 flex flex-wrap gap-1">
               {tx.points && tx.points > 0 ? (
-                <Badge className="bg-blue-600">+{tx.points} points</Badge>
+                <Badge className="bg-blue-600">+{tx.points.toFixed(1)} points</Badge>
               ) : (
                 <Badge variant="outline" className="text-gray-400">No points (Daily limit reached)</Badge>
               )}

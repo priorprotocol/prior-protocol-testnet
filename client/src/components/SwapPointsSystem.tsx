@@ -162,7 +162,7 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
                               }`}
                             >
                               {swap ? (
-                                <span className="font-medium text-[10px] text-indigo-400">+{pointsPerSwap}</span>
+                                <span className="font-medium text-[10px] text-indigo-400">+{pointsPerSwap.toFixed(1)}</span>
                               ) : (
                                 <span className="text-[10px] text-gray-500">--</span>
                               )}
@@ -172,7 +172,7 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
                       </div>
                       
                       <div className="mt-2 text-[10px] text-center text-indigo-300 bg-indigo-900/20 py-1 rounded-sm">
-                        Daily points: {Math.min(day.swaps.length, maxDailySwaps)} swaps × {pointsPerSwap} = {Math.min(day.swaps.length, maxDailySwaps) * pointsPerSwap} points
+                        Daily points: {Math.min(day.swaps.length, maxDailySwaps)} swaps × {pointsPerSwap.toFixed(1)} = {(Math.min(day.swaps.length, maxDailySwaps) * pointsPerSwap).toFixed(1)} points
                       </div>
                       
                       {day.swaps.length > 5 && (
