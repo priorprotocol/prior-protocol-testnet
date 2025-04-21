@@ -157,7 +157,14 @@ export const PointsHistoryDisplay: React.FC<PointsHistoryDisplayProps> = ({ addr
               <div className="bg-[#1A2234] p-3 rounded-lg border border-indigo-900/30">
                 <div className="text-xs text-indigo-300 mb-1">Total Points</div>
                 <div className="text-2xl font-bold text-white">{historicalData?.totalPoints.toFixed(1)}</div>
-                <div className="text-xs text-gray-500 mt-1">From {historicalData?.swapData.reduce((sum, swaps) => sum + swaps, 0) || 0} swaps</div>
+                <div className="flex flex-col">
+                  <div className="text-xs text-gray-500 mt-1">
+                    From {historicalData?.swapData.reduce((sum, swaps) => sum + swaps, 0) || 0} swaps
+                  </div>
+                  <div className="text-xs text-indigo-400 mt-1">
+                    0.5 pts × {Math.min(historicalData?.swapData.reduce((sum, swaps) => sum + Math.min(swaps, 5), 0) || 0, 5)} eligible swaps
+                  </div>
+                </div>
               </div>
               <div className="bg-[#1A2234] p-3 rounded-lg border border-indigo-900/30">
                 <div className="text-xs text-blue-300 mb-1">Daily Average</div>
@@ -166,7 +173,14 @@ export const PointsHistoryDisplay: React.FC<PointsHistoryDisplayProps> = ({ addr
                     ? (historicalData.totalPoints / chartData.length).toFixed(1) 
                     : "0.0"}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">Points per active day</div>
+                <div className="flex flex-col">
+                  <div className="text-xs text-gray-500 mt-1">Points per active day</div>
+                  <div className="text-xs text-blue-400 mt-1">
+                    {chartData.length > 0 ? 
+                      `Avg ${(historicalData?.swapData.reduce((sum, swaps) => sum + swaps, 0) / chartData.length).toFixed(1)} swaps/day` 
+                      : 'No activity yet'}
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -208,6 +222,26 @@ export const PointsHistoryDisplay: React.FC<PointsHistoryDisplayProps> = ({ addr
                       }}
                       itemStyle={{ color: '#F8FAFC' }}
                       labelStyle={{ color: '#94A3B8', fontWeight: 'bold', marginBottom: '5px' }}
+                      formatter={(value, name, props) => {
+                        if (name === 'Points') {
+                          // Show the 0.5 calculation formula
+                          const swapCount = props.payload.swaps;
+                          const eligible = Math.min(swapCount, 5);
+                          return [
+                            `${value} (${eligible} eligible swaps × 0.5)`,
+                            'Points'
+                          ];
+                        }
+                        if (name === 'Swaps') {
+                          const swapCount = value;
+                          const eligibleSwaps = Math.min(swapCount, 5);
+                          return [
+                            `${value} (${eligibleSwaps} eligible for points)`,
+                            'Swaps'
+                          ];
+                        }
+                        return [value, name];
+                      }}
                     />
                     <Legend 
                       verticalAlign="top" 
@@ -256,6 +290,26 @@ export const PointsHistoryDisplay: React.FC<PointsHistoryDisplayProps> = ({ addr
                       }}
                       itemStyle={{ color: '#F8FAFC' }}
                       labelStyle={{ color: '#94A3B8', fontWeight: 'bold', marginBottom: '5px' }}
+                      formatter={(value, name, props) => {
+                        if (name === 'Points') {
+                          // Show the 0.5 calculation formula
+                          const swapCount = props.payload.swaps;
+                          const eligible = Math.min(swapCount, 5);
+                          return [
+                            `${value} (${eligible} eligible swaps × 0.5)`,
+                            'Points'
+                          ];
+                        }
+                        if (name === 'Swaps') {
+                          const swapCount = value;
+                          const eligibleSwaps = Math.min(swapCount, 5);
+                          return [
+                            `${value} (${eligibleSwaps} eligible for points)`,
+                            'Swaps'
+                          ];
+                        }
+                        return [value, name];
+                      }}
                     />
                     <Legend 
                       verticalAlign="top" 
@@ -268,8 +322,18 @@ export const PointsHistoryDisplay: React.FC<PointsHistoryDisplayProps> = ({ addr
               </ResponsiveContainer>
             </div>
             
-            <div className="mt-3 text-xs text-gray-500 text-center">
-              Points earning formula: 0.5 points per swap, maximum 5 swaps (2.5 points) per day
+            <div className="mt-3 flex flex-col items-center">
+              <div className="text-xs text-gray-500 text-center">
+                Points earning formula: 0.5 points per swap, maximum 5 swaps (2.5 points) per day
+              </div>
+              {historicalData?.swapData.some(swaps => swaps > 5) && (
+                <div className="text-xs text-amber-500 mt-1 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Some days exceeded the 5 swap limit (only first 5 earn points)
+                </div>
+              )}
             </div>
           </div>
         )}
