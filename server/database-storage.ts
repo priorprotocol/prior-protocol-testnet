@@ -1114,7 +1114,7 @@ export class DatabaseStorage implements IStorage {
           newPoints += pointsForDay;
         }
         
-        // Check for NFT staking transactions
+        // Check for NFT staking transactions for logging/tracking only
         const nftStakeTransactions = await db
           .select()
           .from(transactions)
@@ -1125,12 +1125,10 @@ export class DatabaseStorage implements IStorage {
           ))
           .orderBy(sql`${transactions.timestamp} ASC`); // Ensure chronological order
           
-        // If user has staked NFTs, add points accordingly - only award points once
+        // NFT staking is tracked but no points are awarded since it's handled on a separate site
         const nftStaked = nftStakeTransactions.length > 0;
         if (nftStaked) {
-          // Add 1 point for NFT staking (just once per user)
-          newPoints += 1;
-          console.log(`[PointsCalc] Adding 1 point for NFT staking to user ${userId}`);
+          console.log(`[PointsCalc] NFT staking detected for user ${userId} but no points awarded - handled on separate site`);
         }
         
         // Round to 1 decimal place for clean display
