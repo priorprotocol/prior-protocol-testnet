@@ -21,6 +21,7 @@ export async function ensureUserExists(address: string) {
     // First try direct SQL to find user to avoid race conditions
     // Using a more robust approach with retry logic
     const MAX_SQL_RETRIES = 3;
+    let user = null;
     
     for (let attempt = 0; attempt < MAX_SQL_RETRIES; attempt++) {
       try {
@@ -80,7 +81,7 @@ export async function ensureUserExists(address: string) {
     }
     
     // If direct SQL failed or found no user, try storage method
-    let user = await storage.getUser(normalizedAddress);
+    user = await storage.getUser(normalizedAddress);
     
     // If still not found, use SQL to create user with ON CONFLICT to avoid duplicates
     if (!user) {
@@ -166,7 +167,6 @@ export async function ensureUserExists(address: string) {
           }
         }
       }
-    }
     }
     
     return user;
