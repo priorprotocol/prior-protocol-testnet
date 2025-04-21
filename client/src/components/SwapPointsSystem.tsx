@@ -18,9 +18,9 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
   isLoading,
   swapTransactions = []
 }) => {
-  // Calculate daily swap points (0.5 points per swap, max 5 swaps = 2.5 points)
-  const dailySwapPoints = Math.min(Math.min(totalSwaps, 5) * 0.5, 2.5);
-  const dailySwapPointsPercentage = (dailySwapPoints / 2.5) * 100;
+  // Calculate daily swap points (1.5 points per swap, max 5 swaps = 7.5 points)
+  const dailySwapPoints = Math.min(Math.min(totalSwaps, 5) * 1.5, 7.5);
+  const dailySwapPointsPercentage = (dailySwapPoints / 7.5) * 100;
   
   // Calculate eligible swaps (max 5)
   const eligibleSwaps = Math.min(totalSwaps, 5);
@@ -47,7 +47,7 @@ export const SwapPointsSystem: React.FC<SwapPointsSystemProps> = ({
     
     // Only count points for the first 5 swaps of the day
     if (transactionsByDay[dayStr].swaps.length < 5) {
-      transactionsByDay[dayStr].points += 0.5;
+      transactionsByDay[dayStr].points += 1.5;
     }
     
     transactionsByDay[dayStr].swaps.push(tx);

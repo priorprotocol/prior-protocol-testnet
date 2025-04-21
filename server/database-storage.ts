@@ -654,9 +654,9 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getTransactionPoints(transaction: Transaction): Promise<number> {
-    // UPDATED POINTS CALCULATION - FIX FOR INCORRECT POINTS
+    // UPDATED POINTS CALCULATION - UPGRADED POINTS SYSTEM
     // Calculate points based on transaction type with a single point source: swap transactions
-    // IMPORTANT: Always awards exactly 0.5 points per swap, max 5 swaps per day (2.5 points total)
+    // IMPORTANT: Always awards exactly 1.5 points per swap, max 5 swaps per day (7.5 points total)
     
     if (transaction.type === 'swap') {
       // Check daily swap count to determine points
@@ -681,9 +681,9 @@ export class DatabaseStorage implements IStorage {
       
       const swapsBeforeCount = Number(swapsBeforeThisOne[0]?.count || 0);
       
-      // Only award points for the first 5 swaps of the day (0.5 points per swap)
+      // Only award points for the first 5 swaps of the day (1.5 points per swap)
       if (swapsBeforeCount < 5) {
-        console.log(`[PointsCalc] Awarding 0.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
+        console.log(`[PointsCalc] Awarding 1.5 points for swap #${swapsBeforeCount + 1} to user ${userId}`);
         
         // If this is the 1st or 5th swap, trigger a full recalculation to ensure accuracy
         if (swapsBeforeCount === 0 || swapsBeforeCount === 4) {
@@ -708,7 +708,7 @@ export class DatabaseStorage implements IStorage {
           }
         }
         
-        return 0.5; // Return 0.5 points per swap for first 5 swaps
+        return 1.5; // Return 1.5 points per swap for first 5 swaps
       } else {
         console.log(`[PointsCalc] No points awarded - already reached 5 swaps for the day for user ${userId}`);
         return 0;
@@ -866,7 +866,7 @@ export class DatabaseStorage implements IStorage {
       const pointSwapsForDay = Math.min(daySwaps.length, 5);
       
       pointEarningSwaps += pointSwapsForDay;
-      const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
+      const pointsForDay = pointSwapsForDay * 1.5; // 1.5 points per swap
       
       console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
       newPoints += pointsForDay;
