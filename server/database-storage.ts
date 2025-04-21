@@ -591,30 +591,10 @@ export class DatabaseStorage implements IStorage {
         return 0;
       }
     } else if (transaction.type === 'nft_stake') {
-      // Points for NFT staking (1 point)
-      const POINTS_FOR_NFT_STAKE = 1.0;
-      const userId = transaction.userId;
-      
-      // Check if this user has any existing NFT stake transactions (excluding the current one)
-      const existingStakes = await db
-        .select({ count: count() })
-        .from(transactions)
-        .where(and(
-          eq(transactions.userId, userId),
-          eq(transactions.type, 'nft_stake'),
-          transaction.id ? sql`${transactions.id} != ${transaction.id}` : sql`1=1` // Exclude this transaction
-        ));
-      
-      const existingStakeCount = existingStakes[0]?.count || 0;
-      
-      // Only award points for the first successful NFT stake
-      if (existingStakeCount === 0) {
-        console.log(`[PointsCalc] Awarding ${POINTS_FOR_NFT_STAKE} point for NFT staking to user ${userId}`);
-        return POINTS_FOR_NFT_STAKE;
-      } else {
-        console.log(`[PointsCalc] No additional points for repeated NFT staking to user ${userId}`);
-        return 0;
-      }
+      // NFT staking is handled on a separate site and has its own reward system
+      // No points are awarded for NFT staking on this platform
+      console.log(`[PointsCalc] NFT staking has no points - it's handled on a separate site`);
+      return 0;
     } else {
       // No points for any other transaction types
       console.log(`[PointsCalc] No points for transaction type: ${transaction.type}`);
