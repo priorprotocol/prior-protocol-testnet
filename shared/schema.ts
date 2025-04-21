@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -10,7 +10,7 @@ export const users = pgTable("users", {
   badges: jsonb("badges").default([]).notNull(),  // Array of badge IDs
   totalSwaps: integer("total_swaps").default(0).notNull(),
   totalClaims: integer("total_claims").default(0).notNull(),
-  points: integer("points").default(0).notNull(),  // Tracks total points for leaderboard
+  points: numeric("points", { precision: 5, scale: 1 }).default("0").notNull(),  // Tracks total points for leaderboard (DECIMAL supporting 0.5)
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -107,7 +107,7 @@ export const transactions = pgTable("transactions", {
   timestamp: timestamp("timestamp").notNull().defaultNow(),
   status: text("status").notNull().default("completed"), // 'completed', 'pending', 'failed'
   blockNumber: integer("block_number"),
-  points: integer("points").default(0), // Points earned for this transaction
+  points: numeric("points", { precision: 5, scale: 1 }).default("0"), // Points earned for this transaction (DECIMAL supporting 0.5)
 });
 
 export const insertTransactionSchema = createInsertSchema(transactions).omit({
