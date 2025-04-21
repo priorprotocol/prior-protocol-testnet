@@ -9,6 +9,7 @@ import Quest from "@/pages/Quest";
 import Governance from "@/pages/Governance";
 import Dashboard from "@/pages/Dashboard";
 import Transactions from "@/pages/Transactions"; // Added Transactions page
+import Admin from "@/pages/Admin"; // Added Admin page
 import About from "@/pages/About";
 import Documentation from "@/pages/Documentation";
 import Redirect from "@/pages/Redirect";
@@ -27,6 +28,7 @@ const WrappedQuest = () => <Quest />;
 const WrappedGovernance = () => <Governance />;
 const WrappedDashboard = () => <Dashboard />;
 const WrappedTransactions = () => <Transactions />; // Add transactions component
+const WrappedAdmin = () => <Admin />; // Add admin component
 const WrappedAbout = () => <About />;
 const WrappedDocumentation = () => <Documentation />;
 const WrappedRedirect = () => <Redirect />;
@@ -78,6 +80,7 @@ function App() {
         <Route path="/governance" component={WrappedGovernance} />
         <Route path="/dashboard" component={WrappedDashboard} />
         <Route path="/transactions" component={WrappedTransactions} />
+        <Route path="/admin" component={WrappedAdmin} />
         <Route path="/about" component={WrappedAbout} />
         <Route path="/docs" component={WrappedDocumentation} />
         <Route path="/redirect" component={WrappedRedirect} />
