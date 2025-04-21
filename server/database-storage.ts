@@ -678,6 +678,14 @@ export class DatabaseStorage implements IStorage {
       
       // Add the explicit points to the user (fixed TypeScript error)
       await this.addUserPoints(transaction.userId, Number(transaction.points));
+      
+      // Also update the transaction record to ensure the points value is stored correctly
+      await db
+        .update(transactions)
+        .set({ points: Number(transaction.points) })
+        .where(eq(transactions.id, newTransaction.id));
+      
+      console.log(`Updated transaction ${newTransaction.id} with explicit ${transaction.points} points`);
     }
     
     return newTransaction;
