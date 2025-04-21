@@ -488,7 +488,8 @@ export default function Swap() {
             fromAmount: fromAmount,
             toAmount: toAmount,
             status: 'completed',
-            blockNumber: receipt.blockNumber
+            blockNumber: receipt.blockNumber,
+            // Note: Backend now calculates points automatically based on daily swap count
           });
           
           if (!transactionResult) {
@@ -497,64 +498,32 @@ export default function Swap() {
             console.log('Transaction recorded successfully:', transactionResult);
           }
           
-          // Increment swap count 
-          const swapCountResult = await apiRequest('POST', `/api/users/${userId}/increment-swap-count`);
-          console.log('Swap count incremented:', swapCountResult);
+          // After creating transaction, check if points were awarded
+          // Get current swap count
+          const swapCountResponse = await apiRequest('GET', `/api/users/${userId}/daily-swap-count`);
+          const currentDailySwaps = swapCountResponse.count || 0;
           
-          // Check daily swap count to see if user has done swaps today
-          const dailySwapData = await apiRequest('GET', `/api/users/${userId}/daily-swap-count`);
-          console.log('Daily swap count data:', dailySwapData);
-          const dailySwapCount = dailySwapData.count || 0;
+          // Define points constants
+          const DAILY_MAX_SWAPS = 5;
+          const POINTS_PER_SWAP_AMOUNT = 0.5;
           
-          // Determine points to add based on NEW SIMPLIFIED points system
-          // 0.5 points for first 5 swaps per day (max 2.5 points daily)
-          const MAX_DAILY_SWAPS_FOR_POINTS = 5;
-          const POINTS_PER_SWAP = 0.5;
+          // Calculate points for display
+          const pointsAwarded = currentDailySwaps <= DAILY_MAX_SWAPS ? POINTS_PER_SWAP_AMOUNT : 0;
           
-          let pointsToAdd = 0;
-          let pointsMessage = "";
-          
-          if (dailySwapCount <= MAX_DAILY_SWAPS_FOR_POINTS) {
-            // Award 0.5 points for each of the first 5 swaps
-            pointsToAdd = POINTS_PER_SWAP;
-            pointsMessage = `${POINTS_PER_SWAP} points for this swap! (${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS} daily swaps)`;
+          // Display transaction result with appropriate points message
+          if (pointsAwarded > 0) {
+            // Show toast with points info
+            toast({
+              title: `Swap ${currentDailySwaps}/${DAILY_MAX_SWAPS} Complete`,
+              description: `Successfully swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken} • Earned ${pointsAwarded} points!`,
+              variant: "default",
+              className: "bg-gradient-to-r from-blue-800 to-green-900 border-blue-600",
+            });
           } else {
-            pointsMessage = `No points earned. Already completed ${MAX_DAILY_SWAPS_FOR_POINTS} swaps today.`;
-          }
-          
-          // Only handle points if pointsToAdd > 0
-          if (pointsToAdd > 0) {
-            // Add the points to the user's account using the apiRequest function
-            try {
-              const pointsResult = await apiRequest('POST', `/api/users/${userId}/add-points`, {
-                points: pointsToAdd
-              });
-              
-              console.log(`Successfully awarded ${pointsToAdd} points for swap, new total:`, pointsResult);
-              
-              // Show a single, combined toast notification with swap info and points
-              toast({
-                title: `Swap ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS} Complete`,
-                description: `Successfully swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken} • Earned ${pointsToAdd} points!`,
-                variant: "default",
-                className: "bg-gradient-to-r from-blue-800 to-green-900 border-blue-600",
-              });
-            } catch (pointsError) {
-              console.error("Error awarding points:", pointsError);
-              
-              // Still show the swap progress toast even if points fail
-              toast({
-                title: `Swap ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS} Complete`,
-                description: `Successfully swapped ${fromAmount} ${fromToken} for ${toAmount} ${toToken}`,
-                variant: "default",
-                className: "bg-blue-800 text-white border-blue-600",
-              });
-            }
-          } else {
-            // They've reached maximum daily swaps for points - let them know clearly
+            // Show toast without points if limit reached
             toast({
               title: "Daily Points Limit Reached",
-              description: `You've already completed ${MAX_DAILY_SWAPS_FOR_POINTS} swaps today. Maximum ${MAX_DAILY_SWAPS_FOR_POINTS * POINTS_PER_SWAP} points per day.`,
+              description: `You've already completed ${DAILY_MAX_SWAPS} swaps today. Maximum ${DAILY_MAX_SWAPS * POINTS_PER_SWAP_AMOUNT} points per day.`,
               className: "bg-blue-800 border-blue-600"
             });
           }
