@@ -53,6 +53,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const connectionFailures = useRef<number>(0);
   const pollingInterval = useRef<number | null>(null);
   
+  // Flag to track if we've switched to polling mode
+  const isPollingMode = useRef<boolean>(false);
+  
   // Function to start polling as a fallback when WebSockets aren't working
   const startPollingFallback = useCallback(() => {
     // Prevent multiple calls from setting up duplicate polling
@@ -62,6 +65,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
     
     console.log('Starting polling fallback mechanism');
+    
+    // Flag that we're now in polling mode to prevent further WebSocket attempts
+    isPollingMode.current = true;
     
     // Make sure we show as disconnected for WebSockets when in polling mode
     setConnected(false);
@@ -84,6 +90,12 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Function to establish WebSocket connection
   const connectWebSocket = useCallback(() => {
+    // If we're already in polling mode, don't try to connect
+    if (isPollingMode.current) {
+      console.log('In polling mode, skipping WebSocket connection attempt');
+      return;
+    }
+    
     // Close existing connection if any
     if (socket) {
       socket.close();
@@ -257,16 +269,36 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   }, [toast, socket, startPollingFallback]);
   
-  // Initial connection
+  // Initial connection - with Replit detection and immediate fallback
   useEffect(() => {
-    connectWebSocket();
+    // Detect if we're in Replit environment
+    const isReplit = window.location.hostname.includes('replit') || 
+                     window.location.hostname.includes('janeway');
+    
+    if (isReplit) {
+      // In Replit environment, we've observed consistent WebSocket issues
+      // Start with immediate polling fallback to avoid excessive connection attempts
+      console.log('Replit environment detected - using polling as primary update mechanism');
+      startPollingFallback();
+      
+      // Attempt WebSocket connection once with low timeout
+      // If it succeeds, great, but we're not relying on it
+      setTimeout(() => {
+        if (!connected) {
+          connectWebSocket();
+        }
+      }, 2000);
+    } else {
+      // In non-Replit environments, WebSockets should work normally
+      connectWebSocket();
+    }
     
     return () => {
       if (socket) {
         socket.close();
       }
     };
-  }, [connectWebSocket, socket]);
+  }, [connectWebSocket, socket, connected, startPollingFallback]);
   
   // Cleanup polling on unmount
   useEffect(() => {
@@ -280,6 +312,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Manual reconnect function
   const reconnect = useCallback(() => {
     console.log('Manually reconnecting WebSocket...');
+    
+    // Reset polling flag to allow WebSocket attempts again
+    isPollingMode.current = false;
+    
     // Reset failure counter when manually reconnecting
     connectionFailures.current = 0;
     
