@@ -8,7 +8,7 @@
 import { storage } from '../storage';
 import { ensureUserExists } from '../middleware/userTracker';
 import { db } from '../db';
-import { transactions } from '@shared/schema';
+import { transactions } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 
 /**
@@ -83,11 +83,14 @@ export async function recordSwapTransaction(params: {
         console.log(`[PointsSystem] 🔄 Auto-triggering points recalculation for user ${user.id} (${address}) after 5th daily swap`);
         
         try {
-          // Get points before recalculation for comparison
-          const pointsBefore = await storage.getUserPointsById(user.id);
+          // Import the database-storage to access recalculation methods
+          const { storage: dbStorage } = require('../database-storage');
           
-          // Perform the recalculation
-          const pointsAfter = await storage.recalculatePointsForUser(user.id);
+          // Get points before recalculation for comparison using database-storage
+          const pointsBefore = await dbStorage.getUserPointsById(user.id);
+          
+          // Perform the recalculation using database-storage
+          const pointsAfter = await dbStorage.recalculatePointsForUser(user.id);
           
           console.log(`[PointsSystem] ✅ Auto-recalculation complete. User ${user.id} (${address}) points: ${pointsBefore} → ${pointsAfter}`);
           
@@ -156,7 +159,7 @@ export async function recordFaucetClaimTransaction(params: {
     // Update user's last claim time
     const updatedUser = await storage.updateUserLastClaim(user.address);
     
-    // Create the transaction record
+    // Create the transaction record with explicitly zero points
     const transaction = await storage.createTransaction({
       userId: user.id,
       type: 'faucet_claim',
@@ -166,7 +169,8 @@ export async function recordFaucetClaimTransaction(params: {
       fromAmount: null,
       toAmount: amount,
       blockNumber: blockNumber || null,
-      status: 'completed'
+      status: 'completed',
+      points: 0 // Explicitly set to 0 as faucet claims don't earn points
     });
     
     // Increment claim count for user
