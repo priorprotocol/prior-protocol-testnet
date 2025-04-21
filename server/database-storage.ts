@@ -93,6 +93,29 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     
+    // Critical: Check if this swap is exactly the 5th swap of the day
+    // If so, trigger immediate points recalculation
+    if (currentDailySwapNumber === 5) {
+      console.log(`[SwapCounter] ⭐⭐⭐ User ${userId} just completed their 5th swap today! Triggering automatic points recalculation ⭐⭐⭐`);
+      
+      try {
+        // Force immediate points recalculation
+        setTimeout(async () => {
+          const pointsBefore = await this.getUserPointsById(userId);
+          console.log(`[PointsSystem] SWAP-TRIGGERED recalculation for user ${userId} starting. Current points: ${pointsBefore}`);
+          
+          const newPoints = await this.recalculatePointsForUser(userId);
+          
+          console.log(`[PointsSystem] ✅ SWAP-TRIGGERED recalculation completed. User ${userId}: Points ${pointsBefore} → ${newPoints}`);
+          
+          // Force cache refresh to update UI
+          this.refreshLeaderboardCache();
+        }, 100); // Small delay to ensure the transaction is fully recorded first
+      } catch (error) {
+        console.error(`[PointsSystem] ERROR in swap-triggered recalculation for user ${userId}:`, error);
+      }
+    }
+    
     return updatedUser.totalSwaps || 0;
   }
   
@@ -721,8 +744,10 @@ export class DatabaseStorage implements IStorage {
     
     // If the user has just reached exactly 5 swaps for the day, trigger a full recalculation
     // This ensures all points are properly calculated after daily limit is reached
-    if (currentCount === 5) {
-      console.log(`[PointsSystem] User ${userId} has reached daily limit of 5 swaps. Triggering IMMEDIATE automatic full recalculation.`);
+    if (currentCount === 4) { // Trigger on 4 swaps since this is being checked BEFORE the 5th swap is processed
+      console.log(`[PointsSystem] User ${userId} is about to reach the daily limit of 5 swaps. Will perform automatic recalculation after transaction is processed.`);
+    } else if (currentCount === 5) {
+      console.log(`[PointsSystem] ⭐ User ${userId} has reached daily limit of 5 swaps. Triggering IMMEDIATE automatic full recalculation. ⭐`);
       
       // Run immediately to ensure recalculation happens right away
       try {
@@ -731,13 +756,36 @@ export class DatabaseStorage implements IStorage {
         
         const newPoints = await this.recalculatePointsForUser(userId);
         
-        console.log(`[PointsSystem] IMMEDIATE recalculation completed successfully for user ${userId}. Points: ${pointsBefore} → ${newPoints}`);
+        // Get user address for better logging
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        const userAddress = user?.address || 'unknown';
+        
+        console.log(`[PointsSystem] ✅ IMMEDIATE recalculation completed successfully for user ${userId} (${userAddress.substring(0, 8)}...): Points: ${pointsBefore} → ${newPoints}`);
+        
+        // After successful recalculation, force a leaderboard cache refresh
+        // This ensures all UI displays are updated with the newest point values
+        this.refreshLeaderboardCache();
       } catch (error) {
-        console.error(`[PointsSystem] CRITICAL ERROR in immediate recalculation for user ${userId}:`, error);
+        console.error(`[PointsSystem] 🔴 CRITICAL ERROR in immediate recalculation for user ${userId}:`, error);
       }
     }
     
     return currentCount;
+  }
+  
+  // Helper method to refresh leaderboard cache
+  private async refreshLeaderboardCache(): Promise<void> {
+    console.log(`[PointsSystem] 🔄 Force refreshing leaderboard cache after points recalculation`);
+    try {
+      // Clear all user data from cache
+      console.log(`[CacheManager] Clearing user cache to force update on next access`);
+      
+      // We don't have direct access to queryClient from here, so we're setting a flag
+      // that will trigger a full cache refresh in other parts of the application
+      global.FORCE_CACHE_REFRESH = true;
+    } catch (error) {
+      console.error(`[CacheManager] Failed to refresh cache:`, error);
+    }
   }
   
   // Helper function to recalculate points for a single user
