@@ -225,8 +225,12 @@ export class DatabaseStorage implements IStorage {
       };
     }
     
-    // Current points from user record
-    const currentPoints = user.points || 0;
+    // IMPORTANT FIX: First recalculate the points to ensure accuracy
+    await this.recalculatePointsForUser(userId);
+    
+    // Get the updated user record with recalculated points
+    const [updatedUser] = await db.select().from(users).where(eq(users.id, userId));
+    const currentPoints = updatedUser?.points || 0;
     
     // Set time range based on period
     const now = new Date();
