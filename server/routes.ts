@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertVoteSchema, insertTransactionSchema, transactions } from "@shared/schema";
+import { insertUserSchema, insertVoteSchema, insertTransactionSchema, transactions, users } from "@shared/schema";
 import { z } from "zod";
 import transactionRoutes from "./routes/transactions";
 import healthRoutes from "./routes/health";
@@ -640,9 +640,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       : `0x${address}`.toLowerCase();
     
     console.log(`Processing historical points request for address: ${normalizedAddress}, period: ${period}`);
+    console.log(`DEBUG - What's in the database:`);
+    
+    // Add debug query to see all existing users
+    const allUsers = await db.select({
+      id: users.id,
+      address: users.address,
+      points: users.points
+    }).from(users);
+    
+    console.log(`DEBUG - Found ${allUsers.length} users in database:`);
+    allUsers.forEach(u => {
+      console.log(`- ID: ${u.id}, Address: ${u.address}, Points: ${u.points}`);
+    });
     
     try {
       let user = await storage.getUser(normalizedAddress);
+      
+      console.log(`DEBUG - getUser result for ${normalizedAddress}:`, user ? `Found user ID ${user.id}` : "No user found");
       
       if (!user) {
         console.log(`No user found for address ${normalizedAddress}, creating default empty user`);
