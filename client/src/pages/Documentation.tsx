@@ -974,11 +974,11 @@ const Documentation = () => {
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="bg-blue-900/30 text-blue-200 border-blue-700">
-                              0.5 points per swap
+                              1.5 points per swap
                             </Badge>
                           </TableCell>
                           <TableCell>5 swaps</TableCell>
-                          <TableCell className="font-bold text-amber-400">2.5 points</TableCell>
+                          <TableCell className="font-bold text-amber-400">7.5 points</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell className="font-medium">
@@ -1040,7 +1040,7 @@ const Documentation = () => {
                       The Prior Protocol points system rewards users for engaging with two key aspects of the ecosystem:
                     </p>
                     <ul className="list-disc list-inside mt-2 space-y-1 text-gray-300 text-sm pl-2">
-                      <li><span className="text-blue-300">Token Swapping:</span> Stress-tests liquidity and price discovery mechanisms (0.5 points per swap, max 5 daily)</li>
+                      <li><span className="text-blue-300">Token Swapping:</span> Stress-tests liquidity and price discovery mechanisms (1.5 points per swap, max 5 daily)</li>
                       <li><span className="text-orange-300">NFT Staking:</span> Activation earns 50 points every 12 hours (4.17 points/hour) plus a first-time bonus of 100-200 points</li>
                     </ul>
                   </div>
