@@ -97,14 +97,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           votesDeleted: result.votesDeleted
         }
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("⚠️ CRITICAL ERROR during complete database reset:", error);
-      console.error("Error stack:", error.stack);
+      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
+      console.error("Error stack:", errorStack);
       return res.status(500).json({
         success: false,
         message: "A critical error occurred during the complete database reset",
         error: String(error),
-        stack: error.stack
+        stack: errorStack
       });
     }
   });
@@ -140,14 +141,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         details: result.userDetails
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error during points recalculation:", error);
-      console.error("Error stack:", error.stack);
+      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
+      console.error("Error stack:", errorStack);
       return res.status(500).json({
         success: false,
         message: "An error occurred while recalculating points",
         error: String(error),
-        stack: error.stack
+        stack: errorStack
       });
     }
   });

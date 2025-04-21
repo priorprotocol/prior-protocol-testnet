@@ -977,7 +977,13 @@ export class DatabaseStorage implements IStorage {
           console.log(`[DANGER] Found demo user: ${demoUser.id} (${demoUser.address})`);
         }
         
-        // 2. DELETE ALL DATA FROM ALL TABLES
+        // 2. DELETE ALL DATA FROM ALL TABLES IN THE CORRECT ORDER (to prevent foreign key constraint violations)
+        
+        // First delete votes
+        const deletedVotes = await tx.delete(votes).returning();
+        votesDeleted = deletedVotes.length;
+        console.log(`[DANGER] Deleted ${votesDeleted} votes`);
+        
         // Delete transactions
         const deletedTransactions = await tx.delete(transactions).returning();
         transactionsDeleted = deletedTransactions.length;
@@ -988,32 +994,30 @@ export class DatabaseStorage implements IStorage {
         userQuestsDeleted = deletedUserQuests.length;
         console.log(`[DANGER] Deleted ${userQuestsDeleted} user quests`);
         
-        // Delete votes
-        const deletedVotes = await tx.delete(votes).returning();
-        votesDeleted = deletedVotes.length;
-        console.log(`[DANGER] Deleted ${votesDeleted} votes`);
-        
         // Delete ALL users (including demo)
         const deletedUsers = await tx.delete(users).returning();
         usersDeleted = deletedUsers.length;
         console.log(`[DANGER] Deleted ${usersDeleted} users`);
         
         // 3. Recreate the demo user with no points or history
-        const newDemoUser = await tx.insert(users).values({
-          address: demoUserAddress,
-          lastClaim: null,
-          points: 0,
-          totalSwaps: 0,
-          totalClaims: 0
-        }).returning();
-        
-        console.log(`[DANGER] Recreated demo user: ${newDemoUser[0].id} (${newDemoUser[0].address})`);
+        if (demoUserAddress) {
+          const newDemoUser = await tx.insert(users).values({
+            address: demoUserAddress,
+            lastClaim: null,
+            badges: [],
+            points: 0,
+            totalSwaps: 0,
+            totalClaims: 0
+          }).returning();
+          
+          console.log(`[DANGER] Recreated demo user: ${newDemoUser[0].id} (${newDemoUser[0].address})`);
+        }
         
         // 4. Reset all proposal votes to zero
+        // Update the proposals table with the correct field names based on schema.ts
         await tx.update(proposals).set({
-          upvotes: 0,
-          downvotes: 0,
-          abstainVotes: 0
+          yesVotes: 0,
+          noVotes: 0
         });
         
         console.log(`[DANGER] Reset all proposal votes to zero`);
@@ -1029,6 +1033,11 @@ export class DatabaseStorage implements IStorage {
       });
     } catch (error) {
       console.error("[DANGER] Error during complete database reset:", error);
+      // Log the full error for debugging
+      console.error("Full error details:", error);
+      if (error.stack) {
+        console.error("Stack trace:", error.stack);
+      }
       throw error;
     }
   }
