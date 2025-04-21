@@ -34,6 +34,7 @@ const Header = () => {
     { name: "Governance", path: "/governance" },
     { name: "Dashboard", path: "/dashboard" },
     { name: "NFT STAKE", path: "https://priornftstake.xyz/", external: true },
+    { name: "Admin", path: "/admin" },
     { name: "Docs", path: "/docs" },
     { name: "About", path: "/about" }
   ];
