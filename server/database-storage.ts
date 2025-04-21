@@ -724,6 +724,8 @@ export class DatabaseStorage implements IStorage {
         .select({ count: sql`count(*)` })
         .from(users);
       
+      // Log for debugging
+      console.log(`Total users count from direct DB query: ${result[0]?.count || 0}`);
       return result[0] || { count: 0 };
     } catch (error) {
       console.error("Error getting total users count:", error);
