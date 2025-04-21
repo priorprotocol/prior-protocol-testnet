@@ -640,24 +640,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       : `0x${address}`.toLowerCase();
     
     console.log(`Processing historical points request for address: ${normalizedAddress}, period: ${period}`);
-    console.log(`DEBUG - What's in the database:`);
+    console.log(`DEBUG - What's in the database (using direct SQL):`);
     
-    // Add debug query to see all existing users
-    const allUsers = await db.select({
-      id: users.id,
-      address: users.address,
-      points: users.points
-    }).from(users);
+    // Use direct SQL query to check the database state
+    const directSqlResult = await pool.query(`
+      SELECT id, address, points, total_swaps 
+      FROM users 
+      WHERE address = $1
+    `, [normalizedAddress]);
     
-    console.log(`DEBUG - Found ${allUsers.length} users in database:`);
-    allUsers.forEach(u => {
-      console.log(`- ID: ${u.id}, Address: ${u.address}, Points: ${u.points}`);
+    const directUsers = directSqlResult.rows || [];
+    console.log(`DEBUG - Direct SQL found ${directUsers.length} users with address ${normalizedAddress}:`);
+    directUsers.forEach(u => {
+      console.log(`- ID: ${u.id}, Address: ${u.address}, Points: ${u.points}, Swaps: ${u.total_swaps}`);
+    });
+    
+    // Also check transactions directly
+    const directTxsResult = await pool.query(`
+      SELECT t.id, t.user_id, t.type, t.points, t.tx_hash
+      FROM transactions t
+      JOIN users u ON t.user_id = u.id
+      WHERE u.address = $1
+    `, [normalizedAddress]);
+    
+    const directTxs = directTxsResult.rows || [];
+    console.log(`DEBUG - Direct SQL found ${directTxs.length} transactions for ${normalizedAddress}:`);
+    directTxs.forEach(tx => {
+      console.log(`- TxID: ${tx.id}, UserID: ${tx.user_id}, Type: ${tx.type}, Points: ${tx.points}, Hash: ${tx.tx_hash}`);
     });
     
     try {
-      let user = await storage.getUser(normalizedAddress);
+      // IMPORTANT FIX: Use direct SQL results if available, don't trust the ORM here
+      let user = null;
       
-      console.log(`DEBUG - getUser result for ${normalizedAddress}:`, user ? `Found user ID ${user.id}` : "No user found");
+      if (directUsers.length > 0) {
+        // Take the first user from direct SQL results, which we trust more
+        const directUser = directUsers[0];
+        console.log(`Using existing user with ID ${directUser.id} from direct SQL query`);
+        
+        // Get the full user object from the ORM now that we know the ID
+        [user] = await db.select().from(users).where(eq(users.id, directUser.id));
+      } else {
+        // Try the ORM method as fallback
+        user = await storage.getUser(normalizedAddress);
+        console.log(`ORM getUser result for ${normalizedAddress}:`, user ? `Found user ID ${user.id}` : "No user found");
+      }
       
       if (!user) {
         console.log(`No user found for address ${normalizedAddress}, creating default empty user`);
@@ -918,7 +945,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     console.log(`Processing transaction history request for address: ${normalizedAddress}`);
     
-    let user = await storage.getUser(normalizedAddress);
+    // Use direct SQL query to check the database state
+    const directSqlResult = await pool.query(`
+      SELECT id, address, points, total_swaps 
+      FROM users 
+      WHERE address = $1
+    `, [normalizedAddress]);
+    
+    const directUsers = directSqlResult.rows || [];
+    
+    // IMPORTANT FIX: Use direct SQL results if available, don't trust the ORM here
+    let user = null;
+    
+    if (directUsers.length > 0) {
+      // Take the first user from direct SQL results, which we trust more
+      const directUser = directUsers[0];
+      console.log(`Using existing user with ID ${directUser.id} from direct SQL query`);
+      
+      // Get the full user object from the ORM now that we know the ID
+      [user] = await db.select().from(users).where(eq(users.id, directUser.id));
+    } else {
+      // Try the ORM method as fallback
+      user = await storage.getUser(normalizedAddress);
+    }
+    
     if (!user) {
       console.log(`Auto-creating user for address: ${normalizedAddress} when requesting transactions`);
       user = await storage.createUser({
@@ -959,7 +1009,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     console.log(`Processing transaction history by type request for address: ${normalizedAddress}`);
     
-    let user = await storage.getUser(normalizedAddress);
+    // Use direct SQL query to check the database state
+    const directSqlResult = await pool.query(`
+      SELECT id, address, points, total_swaps 
+      FROM users 
+      WHERE address = $1
+    `, [normalizedAddress]);
+    
+    const directUsers = directSqlResult.rows || [];
+    
+    // IMPORTANT FIX: Use direct SQL results if available, don't trust the ORM here
+    let user = null;
+    
+    if (directUsers.length > 0) {
+      // Take the first user from direct SQL results, which we trust more
+      const directUser = directUsers[0];
+      console.log(`Using existing user with ID ${directUser.id} from direct SQL query`);
+      
+      // Get the full user object from the ORM now that we know the ID
+      [user] = await db.select().from(users).where(eq(users.id, directUser.id));
+    } else {
+      // Try the ORM method as fallback
+      user = await storage.getUser(normalizedAddress);
+    }
+    
     if (!user) {
       console.log(`Auto-creating user for address: ${normalizedAddress} when requesting transactions by type`);
       user = await storage.createUser({
@@ -1188,8 +1261,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Processing swap transaction for address: ${normalizedAddress}`);
       
-      // Find user or auto-create if not found
-      let user = await storage.getUser(normalizedAddress);
+      // Use direct SQL query to ensure we find the existing user
+      const directSqlResult = await pool.query(`
+        SELECT id, address, points, total_swaps 
+        FROM users 
+        WHERE address = $1
+      `, [normalizedAddress]);
+      
+      const directUsers = directSqlResult.rows || [];
+      
+      // IMPORTANT FIX: Use direct SQL results if available, don't trust the ORM here
+      let user = null;
+      
+      if (directUsers.length > 0) {
+        // Take the first user from direct SQL results, which we trust more
+        const directUser = directUsers[0];
+        console.log(`Using existing user with ID ${directUser.id} from direct SQL query for swap transaction`);
+        
+        // Get the full user object from the ORM now that we know the ID
+        [user] = await db.select().from(users).where(eq(users.id, directUser.id));
+      } else {
+        // Try the ORM method as fallback
+        user = await storage.getUser(normalizedAddress);
+      }
+      
       if (!user) {
         console.log(`Auto-creating user for address: ${normalizedAddress} during swap`);
         user = await storage.createUser({
