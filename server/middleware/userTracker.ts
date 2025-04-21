@@ -7,11 +7,11 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { storage } from '../storage';
+import { pool } from '../db';
 
 export async function ensureUserExists(address: string) {
   try {
-    // Import pool for direct SQL queries
-    const { pool } = require('../db');
+    // Pool is imported at the top of the file
     
     // Normalize the address to lowercase
     const normalizedAddress = address.startsWith('0x') 
