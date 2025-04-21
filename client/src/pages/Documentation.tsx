@@ -705,49 +705,84 @@ const Documentation = () => {
               
               <Alert className="mb-4 bg-gradient-to-r from-orange-900/40 to-amber-900/40 border border-amber-500/30">
                 <FaInfoCircle className="h-4 w-4 text-amber-400" />
-                <AlertTitle className="text-amber-300 font-medium">Points Earning Activity</AlertTitle>
+                <AlertTitle className="text-amber-300 font-medium">Prior Pioneer NFT: Official Documentation</AlertTitle>
                 <AlertDescription className="text-gray-300">
-                  NFT staking is one of the two ways to earn points in the Prior Protocol testnet, along with token swapping. Staking your Prior Pioneer NFT provides a one-time 1.0 point bonus in the protocol ecosystem.
+                  The Prior Pioneer NFT is a non-transferable token that represents your status as a pioneer in the Prior Protocol ecosystem. 
+                  By holding this NFT, you are entitled to earn Prior Points, which will be converted to Prior tokens at the Token Generation Event (TGE).
                 </AlertDescription>
               </Alert>
               
               <p className="text-gray-300 mb-4">
-                Prior Protocol features NFT staking functionality, allowing you to stake your Prior Pioneer NFT.
-                This feature demonstrates how NFTs can be integrated into DeFi protocols beyond just being 
-                collectibles and provides an innovative way to reward early supporters.
+                Prior Protocol features an innovative NFT staking system that enables participants to earn points by activating their Prior Pioneer NFT.
+                This system demonstrates how NFTs can be integrated into DeFi protocols beyond just being collectibles, providing tangible 
+                benefits to early supporters of the ecosystem.
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="bg-gradient-to-br from-orange-900/20 to-amber-900/20 p-4 rounded-lg border border-orange-900/40">
                   <h4 className="font-medium text-orange-300 mb-2">Prior Pioneer NFT</h4>
                   <p className="text-gray-300 text-sm">
-                    The Prior Pioneer NFT is a special non-fungible token that represents your early participation 
-                    in the Prior Protocol ecosystem. Each NFT is unique with individualized attributes and rarity traits that showcase your commitment to the Prior ecosystem.
+                    The Prior Pioneer NFT is a non-transferable token that represents your status as a pioneer in the Prior Protocol ecosystem. 
+                    Each NFT is unique and serves as proof of your early support for the protocol, granting you special privileges within the ecosystem.
                   </p>
                 </div>
                 
                 <div className="bg-gradient-to-br from-orange-900/20 to-amber-900/20 p-4 rounded-lg border border-orange-900/40">
-                  <h4 className="font-medium text-orange-300 mb-2">NFT Staking Benefits</h4>
+                  <h4 className="font-medium text-orange-300 mb-2">NFT Points Earning System</h4>
                   <p className="text-gray-300 text-sm">
-                    NFT staking allows you to lock up your Prior Pioneer NFT in a smart contract to earn a one-time bonus of 1.0 points.
-                    These points are automatically added to your total points in the testnet leaderboard and will be factored into token allocation at TGE.
+                    The NFT platform allows you to earn points by activating your Pioneer NFT. Once activated, you earn 50 points every 12 hours (4.17 points/hour).
+                    You'll need to reactivate your NFT after each 12-hour period to continue earning points. Points can be deactivated at any time while keeping your accrued points.
                   </p>
                 </div>
               </div>
               
               <div className="bg-gradient-to-br from-amber-900/20 to-orange-900/20 p-4 rounded-lg border border-amber-900/40 mb-6">
-                <h4 className="font-medium text-amber-300 mb-2">The Prior Pioneer Collection</h4>
+                <h4 className="font-medium text-amber-300 mb-2">First-Time Activation Bonus</h4>
                 <div className="text-gray-300 text-sm">
                   <p className="mb-2">
-                    The Prior Pioneer NFT collection is a limited series of digital collectibles on the Base Sepolia testnet. 
-                    Each NFT represents early support of the Prior Protocol ecosystem and grants special benefits:
+                    When you activate your Prior Pioneer NFT for the first time, you'll receive a special one-time bonus:
                   </p>
                   <ul className="list-disc list-inside mt-2 space-y-1 pl-2">
-                    <li>One-time 1.0 point bonus when staked</li>
-                    <li>Visual representation of your early supporter status</li>
-                    <li>Potential future benefits for Prior Pioneer NFT holders</li>
-                    <li>Commemorative value as a testnet participant</li>
+                    <li>First 3,500 wallets: <span className="text-amber-300 font-medium">200 points bonus</span></li>
+                    <li>Wallets after that: <span className="text-amber-300 font-medium">100 points bonus</span></li>
+                    <li>This bonus is awarded only once per wallet</li>
                   </ul>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 p-4 rounded-lg border border-indigo-900/40 mb-6">
+                <h4 className="font-medium text-indigo-300 mb-2">Journey Roadmap</h4>
+                <div className="text-gray-300 text-sm">
+                  <p className="mb-2">
+                    The Journey Roadmap shows your progress in earning points. As you reach different milestones, you'll see your status
+                    updated on the roadmap. Key milestones include:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+                    <div className="bg-indigo-900/30 p-2 rounded text-center">
+                      <span className="text-white font-medium">50 points</span>
+                    </div>
+                    <div className="bg-indigo-900/30 p-2 rounded text-center">
+                      <span className="text-white font-medium">100 points</span>
+                    </div>
+                    <div className="bg-indigo-900/30 p-2 rounded text-center">
+                      <span className="text-white font-medium">250 points</span>
+                    </div>
+                    <div className="bg-indigo-900/30 p-2 rounded text-center">
+                      <span className="text-white font-medium">500 points</span>
+                    </div>
+                    <div className="bg-indigo-900/30 p-2 rounded text-center">
+                      <span className="text-white font-medium">1,000 points</span>
+                    </div>
+                    <div className="bg-indigo-900/30 p-2 rounded text-center">
+                      <span className="text-white font-medium">2,500 points</span>
+                    </div>
+                    <div className="bg-indigo-900/30 p-2 rounded text-center">
+                      <span className="text-white font-medium">5,000 points</span>
+                    </div>
+                    <div className="bg-indigo-900/30 p-2 rounded text-center">
+                      <span className="text-white font-medium">10,000 points</span>
+                    </div>
+                  </div>
                 </div>
               </div>
               
@@ -821,28 +856,58 @@ const Documentation = () => {
               <div className="bg-[#1E293B] p-4 rounded-lg mb-4">
                 <h4 className="text-base font-medium text-white mb-2 flex items-center">
                   <FaInfoCircle className="text-orange-400 mr-2" />
-                  Prior Pioneer NFT Contract Details
+                  Prior Pioneer NFT Technical Details
                 </h4>
                 <div className="bg-slate-900/50 p-3 rounded text-xs text-gray-400 font-mono mt-2 break-all">
                   <p className="mb-1">NFT Contract Address: 0x2a45dfDbdCfcF72CBE835435eD54f4beE7d06D59</p>
-                  <p>Network: Base Sepolia Testnet (Chain ID 84532)</p>
+                  <p className="mb-1">Network: Base Mainnet (Chain ID: 8453)</p>
+                  <p className="mb-1">Points Rate: 50 points per 12-hour period (4.17 points/hour)</p>
+                  <p>First-Time Bonus: 200 points (first 3,500 wallets), 100 points (later wallets)</p>
                 </div>
                 <p className="text-sm text-gray-300 mt-3">
-                  The Prior Pioneer NFT is an ERC-721 standard token on the Base Sepolia testnet. Staking your NFT earns a one-time 
-                  bonus of 1.0 points, which counts toward your total points for the eventual token allocation at TGE.
+                  The Prior Pioneer NFT is a non-transferable ERC-721 token that represents your pioneer status in the Prior Protocol ecosystem.
+                  By activating your NFT, you can earn points that will be converted to Prior tokens at the Token Generation Event (TGE).
                 </p>
               </div>
               
-              <div className="bg-gradient-to-br from-orange-900/20 to-amber-900/20 p-4 rounded-lg border border-orange-800/40 mb-4">
-                <h4 className="font-medium text-orange-300 mb-2 flex items-center">
-                  <FaInfoCircle className="text-amber-400 mr-2" />
-                  NFT Staking Period
+              <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 p-4 rounded-lg border border-indigo-800/40 mb-4">
+                <h4 className="font-medium text-indigo-300 mb-2 flex items-center">
+                  <FaInfoCircle className="text-indigo-400 mr-2" />
+                  NFT Journey Roadmap
                 </h4>
-                <p className="text-gray-300 text-sm">
-                  Once you've staked your Prior Pioneer NFT and received your one-time 1.0 point bonus, your NFT will remain staked until 
-                  the end of the testnet period. The points earned from NFT staking are automatically reflected in your dashboard and 
-                  leaderboard position.
+                <p className="text-gray-300 text-sm mb-2">
+                  The Journey Roadmap shows your progress in earning points through your NFT activation. As you accumulate points,
+                  you'll advance through different milestones that reflect your pioneer status in the ecosystem.
                 </p>
+                <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 p-3 rounded-lg">
+                  <h5 className="text-white text-sm font-medium mb-2">Key Journey Milestones</h5>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="bg-indigo-900/40 p-2 rounded text-center">
+                      <span className="text-white text-xs">50 points</span>
+                    </div>
+                    <div className="bg-indigo-900/40 p-2 rounded text-center">
+                      <span className="text-white text-xs">100 points</span>
+                    </div>
+                    <div className="bg-indigo-900/40 p-2 rounded text-center">
+                      <span className="text-white text-xs">250 points</span>
+                    </div>
+                    <div className="bg-indigo-900/40 p-2 rounded text-center">
+                      <span className="text-white text-xs">500 points</span>
+                    </div>
+                    <div className="bg-indigo-900/40 p-2 rounded text-center">
+                      <span className="text-white text-xs">1,000 points</span>
+                    </div>
+                    <div className="bg-indigo-900/40 p-2 rounded text-center">
+                      <span className="text-white text-xs">2,500 points</span>
+                    </div>
+                    <div className="bg-indigo-900/40 p-2 rounded text-center">
+                      <span className="text-white text-xs">5,000 points</span>
+                    </div>
+                    <div className="bg-indigo-900/40 p-2 rounded text-center">
+                      <span className="text-white text-xs">10,000 points</span>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               <div className="flex justify-center mt-6">
@@ -941,11 +1006,12 @@ const Documentation = () => {
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="bg-orange-900/30 text-orange-200 border-orange-700">
-                              1.0 point (one-time)
+                              First 3,500: 200 points
+                              <br/>After: 100 points
                             </Badge>
                           </TableCell>
-                          <TableCell>One per wallet</TableCell>
-                          <TableCell className="font-bold text-amber-400">1.0 point</TableCell>
+                          <TableCell>One-time bonus<br/><span className="text-xs">+50 pts/12hrs active</span></TableCell>
+                          <TableCell className="font-bold text-amber-400">Varies</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell className="font-medium">
@@ -972,9 +1038,11 @@ const Documentation = () => {
                     <h4 className="font-medium text-blue-300 mb-2">Two Ways to Earn Points</h4>
                     <p className="text-gray-300 text-sm">
                       The Prior Protocol points system rewards users for engaging with two key aspects of the ecosystem:
-                      token swapping (which stress-tests liquidity and price discovery) and NFT staking (which
-                      demonstrates how NFTs can be integrated into DeFi applications).
                     </p>
+                    <ul className="list-disc list-inside mt-2 space-y-1 text-gray-300 text-sm pl-2">
+                      <li><span className="text-blue-300">Token Swapping:</span> Stress-tests liquidity and price discovery mechanisms (0.5 points per swap, max 5 daily)</li>
+                      <li><span className="text-orange-300">NFT Staking:</span> Activation earns 50 points every 12 hours (4.17 points/hour) plus a first-time bonus of 100-200 points</li>
+                    </ul>
                   </div>
                   
                   <div className="bg-gradient-to-br from-amber-900/20 to-orange-900/20 p-4 rounded-lg border border-amber-900/40">
