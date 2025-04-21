@@ -345,6 +345,7 @@ export class DatabaseStorage implements IStorage {
       swapsByDay[txDay].swapCount++;
       
       // Calculate points for this swap (0.5 points per swap, max 5 swaps = 2.5 points per day)
+      // IMPORTANT: Use exactly 0.5 points per swap, max 5 swaps per day
       swapsByDay[txDay].points = Math.min(swapsByDay[txDay].swapCount, 5) * 0.5;
       
       // Update period totals
