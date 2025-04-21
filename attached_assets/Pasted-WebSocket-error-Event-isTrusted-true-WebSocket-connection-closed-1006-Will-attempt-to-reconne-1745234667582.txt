@@ -1,0 +1,77 @@
+WebSocket error: 
+Event {isTrusted: true}
+
+WebSocket connection closed 1006 
+Will attempt to reconnect WebSocket in 8s...
+WebSocket error: 
+Event {isTrusted: true}
+
+WebSocket connection closed 1006 
+Will attempt to reconnect WebSocket in 10s...
+WebSocket error: 
+Event {isTrusted: true}
+
+WebSocket connection closed 1006 
+Will attempt to reconnect WebSocket in 9s...
+WebSocket error: 
+Event {isTrusted: true}
+
+WebSocket connection closed 1006 
+Will attempt to reconnect WebSocket in 8s...
+WebSocket error: 
+Event {isTrusted: true}
+
+WebSocket connection closed 1006 
+Will attempt to reconnect WebSocket in 7s...
+Attempting to reconnect WebSocket...
+Connecting to WebSocket at wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/ws
+Attempting to reconnect WebSocket...
+Connecting to WebSocket at wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/ws
+Attempting to reconnect WebSocket...
+Connecting to WebSocket at wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/ws
+Attempting to reconnect WebSocket...
+Connecting to WebSocket at wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/ws
+WebSocket error: 
+Event {isTrusted: true}
+
+WebSocket connection closed 1006 
+Will attempt to reconnect WebSocket in 6s...
+WebSocket error: 
+Event {isTrusted: true}
+
+WebSocket connection closed 1006 
+Will attempt to reconnect WebSocket in 9s...
+Attempting to reconnect WebSocket...
+Connecting to WebSocket at wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/ws
+WebSocket error: 
+Event {isTrusted: true}
+
+WebSocket connection closed 1006 
+Will attempt to reconnect WebSocket in 5s...
+Attempting to reconnect WebSocket...
+Connecting to WebSocket at wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/ws
+Attempting to reconnect WebSocket...
+Connecting to WebSocket at wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/ws
+WebSocket error: 
+Event {isTrusted: true}
+
+WebSocket connection closed 1006 
+Will attempt to reconnect WebSocket in 7s...
+WebSocket error: 
+Event {isTrusted: true}
+
+WebSocket connection closed 1006 
+Will attempt to reconnect WebSocket in 7s...
+Attempting to reconnect WebSocket...
+Connecting to WebSocket at wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/ws
+Attempting to reconnect WebSocket...
+Connecting to WebSocket at wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/ws
+Attempting to reconnect WebSocket...
+Connecting to WebSocket at wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/ws
+WebSocket error: 
+Event {isTrusted: true}
+
+WebSocket connection closed 1006 
+Will attempt to reconnect WebSocket in 7s...
+Attempting to reconnect WebSocket...
+Connecting to WebSocket at wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/ws

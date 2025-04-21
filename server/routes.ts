@@ -1351,7 +1351,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize WebSocket server on a distinct path to avoid conflicts with Vite's HMR websocket
   wss = new WebSocketServer({ 
     server: httpServer,
-    path: '/ws' 
+    path: '/ws',
+    // Add permissive CORS settings for Replit environment
+    verifyClient: (info, callback) => {
+      // Allow all origins in Replit environment
+      callback(true);
+    }
   });
   
   // Handle WebSocket connections
