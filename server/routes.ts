@@ -1,5 +1,6 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertUserSchema, insertVoteSchema, insertTransactionSchema, transactions } from "@shared/schema";
 import { z } from "zod";
@@ -10,6 +11,44 @@ import { log } from "./vite";
 import { db, pool } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
 import { userTrackerMiddleware } from "./middleware/userTracker";
+
+// Global WebSocket server instance
+export let wss: WebSocketServer;
+
+// Notification types 
+interface PointsNotification {
+  type: 'points_update';
+  userId: number;
+  address: string;
+  pointsBefore: number;
+  pointsAfter: number;
+  timestamp: string;
+}
+
+interface LeaderboardNotification {
+  type: 'leaderboard_update';
+  totalGlobalPoints: number;
+  userCount: number;
+  timestamp: string;
+}
+
+export type PointsSystemNotification = PointsNotification | LeaderboardNotification;
+
+// Helper to broadcast notifications to all connected clients
+export function broadcastNotification(notification: PointsSystemNotification): void {
+  if (!wss) {
+    console.error('[WebSocket] Cannot broadcast - WebSocket server not initialized');
+    return;
+  }
+  
+  console.log(`[WebSocket] Broadcasting ${notification.type} notification to all clients`);
+  
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(notification));
+    }
+  });
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes prefix
@@ -1306,7 +1345,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create an HTTP server from the Express app
   const httpServer = createServer(app);
-
+  
+  // Initialize WebSocket server on a distinct path to avoid conflicts with Vite's HMR websocket
+  wss = new WebSocketServer({ 
+    server: httpServer,
+    path: '/ws' 
+  });
+  
+  // Handle WebSocket connections
+  wss.on('connection', (ws) => {
+    console.log('[WebSocket] Client connected');
+    
+    // Send initial connection confirmation
+    ws.send(JSON.stringify({ 
+      type: 'connection_established',
+      message: 'Connected to Prior Protocol WebSocket server',
+      timestamp: new Date().toISOString()
+    }));
+    
+    // Handle incoming messages (if needed)
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log('[WebSocket] Received message:', data);
+      } catch (error) {
+        console.error('[WebSocket] Error parsing message:', error);
+      }
+    });
+    
+    // Handle disconnection
+    ws.on('close', () => {
+      console.log('[WebSocket] Client disconnected');
+    });
+  });
+  
+  console.log('WebSocket server initialized on path: /ws');
+  
   return httpServer;
 }
