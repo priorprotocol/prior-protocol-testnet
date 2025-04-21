@@ -352,6 +352,9 @@ export class DatabaseStorage implements IStorage {
       // IMPORTANT: Use exactly 0.5 points per swap, max 5 swaps per day
       swapsByDay[txDay].points = Math.min(swapsByDay[txDay].swapCount, 5) * 0.5;
       
+      // Log the points calculation for transparency
+      console.log(`[HistoricalPoints] Day ${txDay}: ${swapsByDay[txDay].swapCount} swaps × 0.5 = ${swapsByDay[txDay].points} points`);
+      
       // Update period totals
       periodMap[periodKey].totalSwaps++;
     }
@@ -415,6 +418,7 @@ export class DatabaseStorage implements IStorage {
         if (dailySwapPosition <= 5 && periodMap[hourKey]) {
           // This swap is eligible for points - 0.5 points per swap, max 5 per day
           periodMap[hourKey].points += 0.5;
+          console.log(`[HistoricalPoints-Hourly] Added 0.5 points for swap #${dailySwapPosition} on ${txDay} hour ${hour}`);
         }
       }
     }
@@ -882,9 +886,9 @@ export class DatabaseStorage implements IStorage {
       const pointSwapsForDay = Math.min(daySwaps.length, 5);
       
       pointEarningSwaps += pointSwapsForDay;
-      const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
+      const pointsForDay = pointSwapsForDay * 0.5; // Exactly 0.5 points per swap
       
-      console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
+      console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps (0.5 × ${pointSwapsForDay}) on ${day}`);
       newPoints += pointsForDay;
     }
     
