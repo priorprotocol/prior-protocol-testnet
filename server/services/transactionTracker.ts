@@ -39,18 +39,38 @@ export async function recordSwapTransaction(params: {
     console.log(`Using user with ID ${user.id} for transaction recording`);
     
     // First check if this transaction already exists to avoid duplicates
-    try {
-      const existingTx = await pool.query(`
-        SELECT * FROM transactions WHERE tx_hash = $1 LIMIT 1
-      `, [txHash]);
-      
-      if (existingTx.rows && existingTx.rows.length > 0) {
-        console.log(`Transaction with hash ${txHash} already exists with ID ${existingTx.rows[0].id}, returning existing record`);
-        return existingTx.rows[0];
+    // Using a more robust approach with retry logic
+    let existingTx = null;
+    const MAX_CHECK_RETRIES = 3;
+    
+    for (let attempt = 0; attempt < MAX_CHECK_RETRIES; attempt++) {
+      try {
+        const result = await pool.query(`
+          SELECT * FROM transactions WHERE tx_hash = $1 LIMIT 1
+        `, [txHash]);
+        
+        if (result.rows && result.rows.length > 0) {
+          console.log(`Transaction with hash ${txHash} already exists with ID ${result.rows[0].id}, returning existing record (attempt ${attempt + 1})`);
+          existingTx = result.rows[0];
+          break;
+        }
+        
+        // If we reach here on the final attempt, the tx truly doesn't exist
+        if (attempt === MAX_CHECK_RETRIES - 1) {
+          console.log(`Confirmed transaction ${txHash} doesn't exist after ${MAX_CHECK_RETRIES} checks`);
+        }
+      } catch (checkError) {
+        console.error(`Error checking for existing transaction (attempt ${attempt + 1}):`, checkError);
+        // Wait a tiny bit before retrying
+        if (attempt < MAX_CHECK_RETRIES - 1) {
+          await new Promise(resolve => setTimeout(resolve, 50 * (attempt + 1)));
+        }
       }
-    } catch (checkError) {
-      console.error('Error checking for existing transaction:', checkError);
-      // Continue with creation attempt
+    }
+    
+    // If we found an existing transaction, return it
+    if (existingTx) {
+      return existingTx;
     }
     
     // Direct SQL insert as primary method for reliability
@@ -278,18 +298,38 @@ export async function recordFaucetClaimTransaction(params: {
     console.log(`Using user with ID ${user.id} for faucet claim transaction`);
     
     // First check if transaction already exists
-    try {
-      const existingTx = await pool.query(`
-        SELECT * FROM transactions WHERE tx_hash = $1 LIMIT 1
-      `, [txHash]);
-      
-      if (existingTx.rows && existingTx.rows.length > 0) {
-        console.log(`Faucet claim with hash ${txHash} already exists with ID ${existingTx.rows[0].id}, returning existing record`);
-        return existingTx.rows[0];
+    // Using a more robust approach with retry logic
+    let existingTx = null;
+    const MAX_CHECK_RETRIES = 3;
+    
+    for (let attempt = 0; attempt < MAX_CHECK_RETRIES; attempt++) {
+      try {
+        const result = await pool.query(`
+          SELECT * FROM transactions WHERE tx_hash = $1 LIMIT 1
+        `, [txHash]);
+        
+        if (result.rows && result.rows.length > 0) {
+          console.log(`Faucet claim with hash ${txHash} already exists with ID ${result.rows[0].id}, returning existing record (attempt ${attempt + 1})`);
+          existingTx = result.rows[0];
+          break;
+        }
+        
+        // If we reach here on the final attempt, the tx truly doesn't exist
+        if (attempt === MAX_CHECK_RETRIES - 1) {
+          console.log(`Confirmed faucet claim ${txHash} doesn't exist after ${MAX_CHECK_RETRIES} checks`);
+        }
+      } catch (checkError) {
+        console.error(`Error checking for existing faucet claim transaction (attempt ${attempt + 1}):`, checkError);
+        // Wait a tiny bit before retrying
+        if (attempt < MAX_CHECK_RETRIES - 1) {
+          await new Promise(resolve => setTimeout(resolve, 50 * (attempt + 1)));
+        }
       }
-    } catch (checkError) {
-      console.error('Error checking for existing faucet claim transaction:', checkError);
-      // Continue with creation attempt
+    }
+    
+    // If we found an existing transaction, return it
+    if (existingTx) {
+      return existingTx;
     }
     
     // Update user's last claim time directly with SQL
@@ -332,6 +372,21 @@ export async function recordFaucetClaimTransaction(params: {
       if (result.rows && result.rows.length > 0) {
         transaction = result.rows[0];
         console.log(`Successfully recorded faucet claim via direct SQL - ID: ${transaction.id}`);
+        
+        // Immediately verify the transaction was saved
+        try {
+          const verification = await pool.query(`
+            SELECT * FROM transactions WHERE tx_hash = $1
+          `, [txHash]);
+          
+          if (verification.rows && verification.rows.length > 0) {
+            console.log(`VERIFICATION: Faucet claim ${txHash} successfully saved in DB - ID: ${verification.rows[0].id}`);
+          } else {
+            console.error(`VERIFICATION FAILED: Faucet claim ${txHash} not found in DB despite successful creation!`);
+          }
+        } catch (verifyError) {
+          console.error(`Error during faucet claim verification:`, verifyError);
+        }
       } else {
         // Insert might have failed due to ON CONFLICT, try to fetch the existing record
         const checkExisting = await pool.query(`
