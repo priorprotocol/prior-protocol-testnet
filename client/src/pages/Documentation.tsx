@@ -737,16 +737,18 @@ const Documentation = () => {
               
               <div className="bg-gradient-to-br from-amber-900/20 to-orange-900/20 p-4 rounded-lg border border-amber-900/40 mb-6">
                 <h4 className="font-medium text-amber-300 mb-2">The Prior Pioneer Collection</h4>
-                <p className="text-gray-300 text-sm">
-                  The Prior Pioneer NFT collection is a limited series of digital collectibles on the Base Sepolia testnet. 
-                  Each NFT represents early support of the Prior Protocol ecosystem and grants special benefits:
+                <div className="text-gray-300 text-sm">
+                  <p className="mb-2">
+                    The Prior Pioneer NFT collection is a limited series of digital collectibles on the Base Sepolia testnet. 
+                    Each NFT represents early support of the Prior Protocol ecosystem and grants special benefits:
+                  </p>
                   <ul className="list-disc list-inside mt-2 space-y-1 pl-2">
                     <li>One-time 1.0 point bonus when staked</li>
                     <li>Visual representation of your early supporter status</li>
                     <li>Potential future benefits for Prior Pioneer NFT holders</li>
                     <li>Commemorative value as a testnet participant</li>
                   </ul>
-                </p>
+                </div>
               </div>
               
               <div className="bg-[#1A1F2E] p-5 rounded-lg border border-[#1A5CFF]/20 mb-4">
