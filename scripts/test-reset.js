@@ -1,11 +1,11 @@
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 async function testCompleteReset() {
   try {
     console.log("Testing the complete database reset endpoint...");
     
     // Make the POST request to the reset endpoint
-    const response = await fetch('http://localhost:4000/api/maintenance/complete-reset', {
+    const response = await fetch('https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/api/maintenance/complete-reset', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -21,7 +21,7 @@ async function testCompleteReset() {
     console.log(JSON.stringify(result, null, 2));
     
     // Now fetch the leaderboard to verify it's empty except for the demo user
-    const leaderboardResponse = await fetch('http://localhost:4000/api/leaderboard');
+    const leaderboardResponse = await fetch('https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/api/leaderboard');
     const leaderboard = await leaderboardResponse.json();
     
     console.log("\nVerifying leaderboard:");
