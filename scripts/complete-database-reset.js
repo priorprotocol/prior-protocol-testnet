@@ -13,8 +13,8 @@ async function completeResetDatabase() {
     
     // Define API endpoint
     const API_ENDPOINT = process.env.NODE_ENV === 'production'
-      ? 'https://testnet.priorprotocol.replit.app/api/maintenance/reset-points-and-transactions'
-      : 'http://localhost:5000/api/maintenance/reset-points-and-transactions';
+      ? 'https://prior-protocol-testnet-priorprotocol.replit.app/api/maintenance/complete-reset'
+      : 'http://localhost:5000/api/maintenance/complete-reset';
     
     console.log(`Using API endpoint: ${API_ENDPOINT}`);
     
@@ -36,6 +36,7 @@ async function completeResetDatabase() {
     console.log('Reset complete!');
     console.log(`Reset points for ${result.usersReset} users`);
     console.log(`Deleted ${result.transactionsDeleted} transactions`);
+    console.log(`Removed ${result.usersRemoved} users`);
     console.log(`Total points reset: ${result.pointsReset}`);
     console.log('Script completed successfully');
     
