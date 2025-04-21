@@ -45,7 +45,7 @@ const Home = () => {
             <div className="flex justify-center items-center gap-2">
               <FaExchangeAlt className="text-blue-400" />
               <p className="text-[#A0AEC0]">
-                <span className="text-emerald-400 font-bold">0.5 points</span> per swap, max <span className="text-emerald-400 font-bold">5 swaps daily</span> (2.5 points max)
+                <span className="text-emerald-400 font-bold">1.5 points</span> per swap, max <span className="text-emerald-400 font-bold">5 swaps daily</span> (7.5 points max)
               </p>
             </div>
           </div>

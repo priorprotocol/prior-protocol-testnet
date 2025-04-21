@@ -188,7 +188,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
           </div>
         </div>
         <CardDescription>
-          Top users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
+          Top users ranked by Prior points - 1.5 points per swap, max 5 swaps daily (7.5 pts)
         </CardDescription>
         
         {/* Total global points summary */}
@@ -302,11 +302,11 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                           <div className="flex justify-between px-2">
                             <span className="text-blue-400">Points Earned:</span>
                             <span className="text-emerald-400 font-bold">
-                              {Math.min(user.totalSwaps * 0.5, 2.5).toFixed(1)}
+                              {Math.min(user.totalSwaps * 1.5, 7.5).toFixed(1)}
                             </span>
                           </div>
                           <div className="text-gray-400 text-[9px] mt-1">
-                            0.5 pts per swap (max 5 swaps)
+                            1.5 pts per swap (max 5 swaps)
                           </div>
                         </div>
                         
