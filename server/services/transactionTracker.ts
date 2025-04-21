@@ -44,17 +44,22 @@ export async function recordSwapTransaction(params: {
     // Check daily swap count to determine points
     const dailySwapCount = await storage.getDailySwapCount(user.id);
     
-    // Points logic - 0.5 points per swap, max 5 swaps per day (2.5 points)
+    // Points logic - FIXED: EXACTLY 0.5 points per swap, max 5 swaps per day (2.5 points)
+    // Important: this value must be consistent throughout the app
     const MAX_DAILY_SWAPS_FOR_POINTS = 5;
-    const POINTS_PER_SWAP = 0.5;
+    const POINTS_PER_SWAP = 0.5; // Fixed at EXACTLY 0.5 - do not modify this value
     
     // Store the transaction result with additional metadata
     let result: any = { ...transaction };
     
     // Only award points for the first 5 swaps per day
     if (dailySwapCount <= MAX_DAILY_SWAPS_FOR_POINTS) {
+      // Ensure we're adding exactly 0.5 points, no more and no less
       await storage.addUserPoints(user.id, POINTS_PER_SWAP);
       console.log(`Awarded ${POINTS_PER_SWAP} points to user ${address} for swap. Daily swaps: ${dailySwapCount}/${MAX_DAILY_SWAPS_FOR_POINTS}`);
+      
+      // Add the exact points value to the result for debugging
+      result.pointsAdded = POINTS_PER_SWAP;
       
       // If this is exactly the 5th swap, trigger immediate points recalculation
       if (dailySwapCount === MAX_DAILY_SWAPS_FOR_POINTS) {
