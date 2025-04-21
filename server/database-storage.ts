@@ -672,9 +672,12 @@ export class DatabaseStorage implements IStorage {
           
         console.log(`Updated transaction ${newTransaction.id} with calculated ${points} points`);
       }
-    } else if (transaction.points > 0) {
-      // Points explicitly provided - don't add points, assuming that the caller will handle it
-      console.log(`Transaction created with explicit ${transaction.points} points value - not adding points automatically`);
+    } else if (transaction.points !== null && transaction.points > 0) {
+      // Points explicitly provided - add points to the user (was missing before)
+      console.log(`Transaction created with explicit ${transaction.points} points value - adding points directly`);
+      
+      // Add the explicit points to the user (fixed TypeScript error)
+      await this.addUserPoints(transaction.userId, Number(transaction.points));
     }
     
     return newTransaction;

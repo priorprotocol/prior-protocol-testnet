@@ -1164,14 +1164,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (swapCountToday < MAX_DAILY_SWAPS_FOR_POINTS) {
         // Award 0.5 points for each of the first 5 swaps
         points = POINTS_PER_SWAP;
-        console.log(`Awarding ${POINTS_PER_SWAP} points for swap #${swapCountToday + 1} to user ${user.id}`);
+        console.log(`[PointsSystem] Awarded ${POINTS_PER_SWAP} points for swap #${swapCountToday + 1} to user ${user.id}`);
       } else {
-        console.log(`No points awarded - already reached ${MAX_DAILY_SWAPS_FOR_POINTS} swaps for the day for user ${user.id}`);
+        console.log(`[PointsSystem] No points awarded - already reached ${MAX_DAILY_SWAPS_FOR_POINTS} swaps for the day for user ${user.id}`);
       }
       
       // Create transaction record with explicitly set points
-      // IMPORTANT: We explicitly set points here to prevent double-counting
-      // This ensures that the transaction has the exact right amount (0.5 if eligible)
+      // IMPORTANT: Fixed now to properly handle explicit points value in createTransaction
       const transaction = await storage.createTransaction({
         userId: user.id,
         type: 'swap',
@@ -1182,11 +1181,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         txHash,
         status: 'completed',
         blockNumber: blockNumber || null,
-        points: points // Explicitly set points here to avoid double-counting
+        points: points // Explicitly set points here which will be properly handled in createTransaction
       });
       
-      // Points are already added in the createTransaction method
-      // We just need to return the same points value for consistency
+      // After creating transaction, let's make sure their points are consistent
+      // by triggering a recalculation
+      await storage.recalculatePointsForUser(user.id);
       
       res.status(201).json({
         ...transaction,
