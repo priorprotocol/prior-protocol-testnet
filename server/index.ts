@@ -18,10 +18,15 @@ app.use((req, res, next) => {
   // IMPORTANT: Ensure all Netlify and Replit domains are explicitly listed here
   const allowedOrigins = [
     'https://priortestnetv2.netlify.app',
+    'http://priortestnetv2.netlify.app',
     'https://prior-protocol-testnet.netlify.app',
+    'http://prior-protocol-testnet.netlify.app',
     'https://testnetpriorprotocol.netlify.app',
+    'http://testnetpriorprotocol.netlify.app',
     'https://prior-testnet.netlify.app',
-    'https://prior-protocol-testnet-priorprotocol.replit.app'
+    'http://prior-testnet.netlify.app',
+    'https://prior-protocol-testnet-priorprotocol.replit.app',
+    'http://prior-protocol-testnet-priorprotocol.replit.app'
   ];
   
   // Check if origin is in allowed list or matches our development domains
@@ -36,7 +41,7 @@ app.use((req, res, next) => {
     // Set the exact origin rather than * for security
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, cache-control, no-cache, If-Modified-Since, Range');
     // Important for cookies/sessions
     res.header('Access-Control-Allow-Credentials', 'true');
   } else {
@@ -44,8 +49,8 @@ app.use((req, res, next) => {
     log(`Using fallback CORS for origin: ${origin}`);
     // Use * only if we really need to (better security would use specific origins)
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, cache-control, no-cache, If-Modified-Since, Range');
   }
   
   // Handle preflight OPTIONS requests
