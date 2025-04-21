@@ -25,11 +25,14 @@ export function useHistoricalPoints(address: string | null, period: string = 'we
       try {
         console.log(`Fetching historical points for address: ${address}, period: ${period}`);
         
+        // Add cache buster to prevent stale data after points calculation
+        const cacheBuster = new Date().getTime();
+        
         // Use apiRequest which provides better error handling and URL resolution
         // This is critical for resolving URLs correctly between Netlify frontend and Replit backend
-        const data = await apiRequest(`/api/users/${address}/historical-points?period=${period}`);
+        const data = await apiRequest(`/api/users/${address}/historical-points?period=${period}&_cb=${cacheBuster}`);
         
-        console.log(`Historical data received:`, data);
+        console.log(`Historical data received for ${period}:`, data);
         
         // Validate the response
         if (!data || !Array.isArray(data.periods)) {
@@ -46,9 +49,11 @@ export function useHistoricalPoints(address: string | null, period: string = 'we
       }
     },
     enabled: Boolean(address),
-    staleTime: 60000, // Consider data stale after 1 minute
+    staleTime: 30000, // Consider data stale after 30 seconds
     refetchOnWindowFocus: true,
-    retry: 2 // Retry failed requests twice
+    refetchOnMount: true,
+    refetchInterval: 60000, // Refetch every minute
+    retry: 3 // Retry failed requests more times
   });
 }
 

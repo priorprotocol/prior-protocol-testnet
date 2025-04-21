@@ -51,9 +51,15 @@ const Dashboard = () => {
     refetch: refetchStats
   } = useQuery({
     queryKey: ['/api/users/stats', address],
-    queryFn: () => address ? apiRequest(`/api/users/${address}/stats`) : Promise.resolve(null),
+    queryFn: () => {
+      if (!address) return Promise.resolve(null);
+      console.log(`Fetching stats for address: ${address}`);
+      return apiRequest(`/api/users/${address}/stats`);
+    },
     enabled: !!address,
     staleTime: 10000, // 10 seconds
+    retry: 3,
+    refetchOnWindowFocus: true
   });
   
   // Get user transactions
@@ -63,9 +69,15 @@ const Dashboard = () => {
     refetch: refetchTransactions
   } = useQuery({
     queryKey: ['/api/users/transactions', address],
-    queryFn: () => address ? apiRequest(`/api/users/${address}/transactions?limit=30`) : Promise.resolve(null),
+    queryFn: () => {
+      if (!address) return Promise.resolve(null);
+      console.log(`Fetching transactions for address: ${address}`);
+      return apiRequest(`/api/users/${address}/transactions?limit=30`);
+    },
     enabled: !!address,
     staleTime: 10000, // 10 seconds
+    retry: 3,
+    refetchOnWindowFocus: true
   });
   
   // Function to sync all data
