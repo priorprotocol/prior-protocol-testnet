@@ -505,8 +505,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const pageParam = req.query.page ? parseInt(req.query.page as string) : 1;
     const page = isNaN(pageParam) ? 1 : pageParam;
     
-    const leaderboardData = await storage.getLeaderboard(limit, page);
-    res.json(leaderboardData);
+    try {
+      console.log("Fetching leaderboard data with limit:", limit, "page:", page);
+      const leaderboardUsers = await storage.getLeaderboard(limit, page);
+      console.log("Leaderboard data fetched, users count:", leaderboardUsers.length);
+      
+      // Format the response to match the expected frontend structure
+      const leaderboardData = {
+        users: leaderboardUsers,
+        total: leaderboardUsers.length,
+        page: page,
+        totalPages: Math.ceil(leaderboardUsers.length / limit) || 1
+      };
+      
+      res.json(leaderboardData);
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      res.status(500).json({
+        users: [],
+        total: 0,
+        page: 1,
+        totalPages: 1,
+        error: "Failed to fetch leaderboard data"
+      });
+    }
   });
   
   // Get user rank in leaderboard
