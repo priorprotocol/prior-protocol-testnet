@@ -5,7 +5,7 @@
  * This script completely clears all user data, points, and transactions except for a demo user
  */
 
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 async function completeResetDatabase() {
   try {
