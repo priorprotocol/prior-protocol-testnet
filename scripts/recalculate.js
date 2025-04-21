@@ -10,7 +10,7 @@ async function recalculatePoints() {
     console.log('Starting points recalculation for all users...');
     
     // Use local URL for development
-    const baseUrl = process.env.BASE_URL || 'https://prior-protocol-testnet.replit.app';
+    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
     const url = `${baseUrl}/api/maintenance/recalculate-points`;
     
     console.log(`Using API endpoint: ${url}`);
