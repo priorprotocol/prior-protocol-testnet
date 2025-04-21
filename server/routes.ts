@@ -1340,9 +1340,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     points
   });
   
+  // Define the transaction object outside the try/catch
   let transaction;
   try {
-    transaction = await storage.createTransaction({
+    // Create the transaction with points as a string
+    const txData = {
       userId: user.id,
       type: 'swap',
       fromToken,
@@ -1353,23 +1355,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       status: 'completed',
       blockNumber: blockNumber || null,
       points: points.toString() // Convert to string explicitly for PostgreSQL compatibility
-    });
+    };
+    
+    console.log(`Creating transaction with data:`, txData);
+    transaction = await storage.createTransaction(txData);
     
     // Log the success
     console.log(`Successfully created transaction: ${JSON.stringify(transaction)}`);
+    
+    // After creating transaction, let's make sure their points are consistent
+    // by triggering a recalculation
+    await storage.recalculatePointsForUser(user.id);
+    
+    // Prepare response payload
+    const responsePayload = {
+      ...transaction,
+      points // Use the numeric points for the response
+    };
+    
+    res.status(201).json(responsePayload);
   } catch (error) {
     console.error("CRITICAL: Failed to create transaction:", error);
-    throw error;  // Re-throw to bubble up to the error handler
+    res.status(500).json({ message: "Failed to record transaction", error: error.message });
   }
-      
-  // After creating transaction, let's make sure their points are consistent
-  // by triggering a recalculation
-  await storage.recalculatePointsForUser(user.id);
-  
-  res.status(201).json({
-    ...transaction,
-    points
-  });
     } catch (error) {
       console.error("Error recording swap transaction:", error);
       res.status(400).json({ message: "Failed to record transaction" });
