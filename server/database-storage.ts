@@ -7,7 +7,7 @@ import {
   tokens, Token, InsertToken,
   transactions, Transaction, InsertTransaction
 } from "@shared/schema";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq, and, count, sql, asc } from "drizzle-orm";
 import { IStorage } from "./storage";
 

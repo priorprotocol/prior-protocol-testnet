@@ -7,7 +7,7 @@
 
 import { storage } from '../storage';
 import { ensureUserExists } from '../middleware/userTracker';
-import { db } from '../db';
+import { db, pool } from '../db';
 import { transactions } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 
