@@ -664,15 +664,25 @@ export class DatabaseStorage implements IStorage {
         
         // If this is the 1st or 5th swap, trigger a full recalculation to ensure accuracy
         if (swapsBeforeCount === 0 || swapsBeforeCount === 4) {
-          // First swap of the day or fifth swap (hitting daily limit) - trigger full recalculation
-          setTimeout(async () => {
-            try {
-              console.log(`[PointsCalc] Triggering full recalculation for user ${userId} at ${swapsBeforeCount === 0 ? 'first' : 'fifth'} swap of the day`);
-              await this.recalculatePointsForUser(userId);
-            } catch (error) {
-              console.error("[PointsCalc] Error in swap milestone recalculation:", error);
-            }
-          }, 500); // Run 500ms after the initial transaction is processed
+          // First swap of the day or fifth swap (hitting daily limit) - trigger full recalculation IMMEDIATELY
+          try {
+            console.log(`[PointsCalc] Triggering IMMEDIATE full recalculation for user ${userId} at ${swapsBeforeCount === 0 ? 'first' : 'fifth'} swap of the day`);
+            
+            // We'll start a recalculation in the background so the current request can complete
+            // But we'll make it almost immediate with just a very tiny delay
+            setTimeout(async () => {
+              try {
+                const pointsBefore = await this.getUserPointsById(userId);
+                console.log(`[PointsCalc] IMMEDIATE milestone recalculation starting for user ${userId} - current points: ${pointsBefore}`);
+                const newPoints = await this.recalculatePointsForUser(userId);
+                console.log(`[PointsCalc] IMMEDIATE milestone recalculation complete for user ${userId} - points: ${pointsBefore} → ${newPoints}`);
+              } catch (error) {
+                console.error("[PointsCalc] CRITICAL ERROR in milestone recalculation:", error);
+              }
+            }, 50); // Almost immediate with just a 50ms delay to allow current transaction to complete
+          } catch (error) {
+            console.error("[PointsCalc] Error scheduling milestone recalculation:", error);
+          }
         }
         
         return 0.5; // Return 0.5 points per swap for first 5 swaps
@@ -712,17 +722,19 @@ export class DatabaseStorage implements IStorage {
     // If the user has just reached exactly 5 swaps for the day, trigger a full recalculation
     // This ensures all points are properly calculated after daily limit is reached
     if (currentCount === 5) {
-      console.log(`[PointsSystem] User ${userId} has reached daily limit of 5 swaps. Triggering automatic full recalculation.`);
+      console.log(`[PointsSystem] User ${userId} has reached daily limit of 5 swaps. Triggering IMMEDIATE automatic full recalculation.`);
       
-      // Run this in the background so it doesn't block the current request
-      setTimeout(async () => {
-        try {
-          await this.recalculatePointsForUser(userId);
-          console.log(`[PointsSystem] Successfully completed automatic recalculation for user ${userId} after reaching daily limit`);
-        } catch (error) {
-          console.error(`[PointsSystem] Error in automatic recalculation for user ${userId}:`, error);
-        }
-      }, 500);
+      // Run immediately to ensure recalculation happens right away
+      try {
+        const pointsBefore = await this.getUserPointsById(userId);
+        console.log(`[PointsSystem] IMMEDIATE recalculation for user ${userId} starting. Current points: ${pointsBefore}`);
+        
+        const newPoints = await this.recalculatePointsForUser(userId);
+        
+        console.log(`[PointsSystem] IMMEDIATE recalculation completed successfully for user ${userId}. Points: ${pointsBefore} → ${newPoints}`);
+      } catch (error) {
+        console.error(`[PointsSystem] CRITICAL ERROR in immediate recalculation for user ${userId}:`, error);
+      }
     }
     
     return currentCount;
@@ -826,6 +838,12 @@ export class DatabaseStorage implements IStorage {
     });
     
     return updatedUser.totalClaims || 0;
+  }
+  
+  async getUserPointsById(userId: number): Promise<number> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) return 0;
+    return user.points || 0;
   }
   
   async addUserPoints(userId: number, points: number): Promise<number> {
