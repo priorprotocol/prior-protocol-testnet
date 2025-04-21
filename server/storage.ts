@@ -621,7 +621,10 @@ export class MemStorage implements IStorage {
     return { count: this.users.size };
   }
   
-  async getLeaderboard(limit: number = 15, page: number = 1): Promise<User[]> {
+  async getLeaderboard(limit: number = 15, page: number = 1): Promise<{
+    users: User[],
+    totalGlobalPoints: number
+  }> {
     // Get all users and sort by points (highest first)
     const allSortedUsers = Array.from(this.users.values())
       .sort((a, b) => (b.points || 0) - (a.points || 0));
@@ -637,7 +640,13 @@ export class MemStorage implements IStorage {
     // Get users for the current page
     const paginatedUsers = allSortedUsers.slice(startIdx, endIdx);
     
-    return paginatedUsers;
+    // Calculate total global points across all users
+    const totalGlobalPoints = allSortedUsers.reduce((sum, user) => sum + (user.points || 0), 0);
+    
+    return {
+      users: paginatedUsers,
+      totalGlobalPoints
+    };
   }
   
   async getUserRank(address: string): Promise<number | null> {

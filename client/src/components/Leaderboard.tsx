@@ -17,6 +17,7 @@ interface LeaderboardData {
   total: number;
   page: number;
   totalPages: number;
+  totalGlobalPoints: number; // Add total global points
 }
 
 interface LeaderboardProps {
@@ -167,6 +168,18 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
         <CardDescription>
           Top users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
         </CardDescription>
+        
+        {/* Total global points summary */}
+        {leaderboardData?.totalGlobalPoints !== undefined && (
+          <div className="mt-2 p-2 bg-[#1A2A40] rounded-md border border-[#2D3748]">
+            <div className="text-center">
+              <span className="text-[#A0AEC0] text-sm">Total Global Points:</span> 
+              <span className="ml-2 text-lg font-bold text-emerald-400">
+                {leaderboardData.totalGlobalPoints.toFixed(1)}
+              </span>
+            </div>
+          </div>
+        )}
         
         {/* Show user's rank if wallet is connected */}
         {address && (
