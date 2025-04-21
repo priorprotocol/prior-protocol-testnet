@@ -104,9 +104,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // Set up WebSocket connection with protocol detection for Replit environment
     // Replit requires specific WebSocket URL handling
     
-    // Get the current hostname and determine if we're in Replit environment
+    // Get the current hostname and environment 
     const isReplit = window.location.hostname.includes('replit') || 
                      window.location.hostname.includes('janeway');
+    const isNetlify = window.location.hostname.includes('netlify.app');
     
     let wsUrl;
     if (isReplit) {
@@ -114,6 +115,18 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // This is important for Replit's proxy environment
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       wsUrl = `${protocol}//${window.location.host}/ws`;
+    } else if (isNetlify) {
+      // For Netlify deployment, we need to use the Replit API URL from environment
+      // This handles cross-origin WebSocket connection
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      console.log(`Netlify detected, using API URL: ${apiUrl}`);
+      
+      // Construct WebSocket URL from API URL
+      const protocol = apiUrl.startsWith('https') ? 'wss:' : 'ws:';
+      const host = apiUrl.replace(/^https?:\/\//, '');
+      wsUrl = `${protocol}//${host}/ws`;
+      
+      console.log(`Using WebSocket URL for Netlify: ${wsUrl}`);
     } else {
       // For local development, use relative path
       wsUrl = '/ws';
@@ -269,11 +282,12 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   }, [toast, socket, startPollingFallback]);
   
-  // Initial connection - with Replit detection and immediate fallback
+  // Initial connection - with environment detection and appropriate fallback mechanisms
   useEffect(() => {
-    // Detect if we're in Replit environment
+    // Detect the environment
     const isReplit = window.location.hostname.includes('replit') || 
                      window.location.hostname.includes('janeway');
+    const isNetlify = window.location.hostname.includes('netlify.app');
     
     if (isReplit) {
       // In Replit environment, we've observed consistent WebSocket issues
@@ -288,8 +302,24 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           connectWebSocket();
         }
       }, 2000);
+    } else if (isNetlify) {
+      // In Netlify environment, WebSockets can be unreliable due to cross-origin restrictions
+      // We'll try WebSockets first but also start polling after a brief delay
+      console.log('Netlify environment detected - using hybrid connection strategy');
+      
+      // Start with WebSocket attempt
+      connectWebSocket();
+      
+      // After a brief period, if WebSockets haven't connected, add polling as a backup
+      setTimeout(() => {
+        if (!connected) {
+          console.log('WebSocket connection not established in time, adding polling fallback for Netlify');
+          startPollingFallback();
+        }
+      }, 5000);
     } else {
-      // In non-Replit environments, WebSockets should work normally
+      // In other environments (local dev, etc.), WebSockets should work normally
+      console.log('Standard environment detected - using WebSockets for real-time updates');
       connectWebSocket();
     }
     
