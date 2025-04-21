@@ -589,8 +589,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Badge functionality has been removed
       
       // If transaction details are provided, record it
+      // Note: The createTransaction method will automatically award points to the user
       if (txHash && fromToken && toToken && fromAmount && toAmount) {
-        await storage.createTransaction({
+        const transaction = await storage.createTransaction({
           userId: user.id,
           type: 'swap',
           fromToken,
@@ -601,6 +602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: 'completed',
           blockNumber: blockNumber || null
         });
+        console.log(`[PointsAudit] Swap transaction record created. Points awarded: ${await storage.getTransactionPoints(transaction)}`);
       }
       
       res.json({ 
@@ -1008,6 +1010,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create transaction record 
+      // Note: Points will be automatically calculated and added by createTransaction
+      // DO NOT add points here as it would result in double-counting
       const transaction = await storage.createTransaction({
         userId: user.id,
         type: 'swap',
@@ -1020,10 +1024,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         blockNumber: blockNumber || null
       });
       
-      // Manually add points if needed (beyond what createTransaction handles)
-      if (points > 0) {
-        await storage.addUserPoints(user.id, points);
-      }
+      // Points are already added in the createTransaction method
+      // We just need to return the same points value for consistency
       
       res.status(201).json({
         ...transaction,
