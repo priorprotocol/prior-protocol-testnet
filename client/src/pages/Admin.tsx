@@ -49,10 +49,21 @@ const Admin = () => {
 
     try {
       setLoading(true);
+      console.log("Sending complete reset request...");
+      
       const result = await apiRequest('/api/maintenance/complete-reset', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          adminAddress: address,
+          timestamp: Date.now()
+        })
       });
 
+      console.log("Complete reset response:", result);
+      
       setResetResult(result);
       toast({
         title: "Database Reset Complete",
@@ -78,10 +89,21 @@ const Admin = () => {
   const handleRecalculatePoints = async () => {
     try {
       setLoading(true);
+      console.log("Sending recalculate points request...");
+      
       const result = await apiRequest('/api/maintenance/recalculate-points', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          adminAddress: address,
+          timestamp: Date.now()
+        })
       });
 
+      console.log("Recalculate points response:", result);
+      
       setRecalcResult(result);
       toast({
         title: "Points Recalculation Complete",

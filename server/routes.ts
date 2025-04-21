@@ -79,7 +79,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(`${apiPrefix}/maintenance/complete-reset`, async (req, res) => {
     try {
       console.log("⚠️ DANGER: Starting COMPLETE DATABASE RESET - wiping all user data");
+      console.log("Headers:", req.headers);
+      console.log("Method:", req.method);
+      console.log("Body:", req.body);
+      
       const result = await storage.completeReset();
+      
+      console.log("Database reset completed successfully:", result);
       
       return res.status(200).json({
         success: true,
@@ -93,19 +99,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("⚠️ CRITICAL ERROR during complete database reset:", error);
+      console.error("Error stack:", error.stack);
       return res.status(500).json({
         success: false,
         message: "A critical error occurred during the complete database reset",
-        error: String(error)
+        error: String(error),
+        stack: error.stack
       });
     }
+  });
+
+  // Duplicate endpoint for GET requests to support both POST and GET
+  app.get(`${apiPrefix}/maintenance/complete-reset`, async (req, res) => {
+    res.status(405).json({
+      success: false,
+      message: "Method not allowed. Please use POST for this endpoint."
+    });
   });
 
   // Maintenance endpoint to recalculate points for all users
   app.post(`${apiPrefix}/maintenance/recalculate-points`, async (req, res) => {
     try {
       console.log("Starting points recalculation for all users");
+      console.log("Headers:", req.headers);
+      console.log("Method:", req.method);
+      console.log("Body:", req.body);
+      
       const result = await storage.recalculateAllUserPoints();
+      
+      console.log("Points recalculation completed successfully:", result);
       
       return res.status(200).json({
         success: true,
@@ -120,12 +142,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error during points recalculation:", error);
+      console.error("Error stack:", error.stack);
       return res.status(500).json({
         success: false,
         message: "An error occurred while recalculating points",
-        error: String(error)
+        error: String(error),
+        stack: error.stack
       });
     }
+  });
+  
+  // Duplicate endpoint for GET requests to support both POST and GET
+  app.get(`${apiPrefix}/maintenance/recalculate-points`, async (req, res) => {
+    res.status(405).json({
+      success: false,
+      message: "Method not allowed. Please use POST for this endpoint."
+    });
   });
   
   // Get all tokens
