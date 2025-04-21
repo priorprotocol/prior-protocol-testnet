@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Leaderboard } from "@/components/Leaderboard";
 import { PointsHistoryChart } from "@/components/PointsHistoryChart";
+import PointsSummary from "@/components/PointsSummary";
 import { formatAddress } from "@/lib/formatAddress";
 import { FaTrophy, FaLock, FaExchangeAlt, FaNetworkWired, FaRegLightbulb, FaDatabase, FaChartLine } from "react-icons/fa";
 import { FaRankingStar } from "react-icons/fa6";

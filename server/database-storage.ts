@@ -187,9 +187,12 @@ export class DatabaseStorage implements IStorage {
     totalPoints: number;
     currentPoints: number;
   }> {
+    console.log(`Fetching historical points for user ID: ${userId}, period: ${period}`);
+
     // Get the user for the current point balance
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) {
+      console.log(`User ${userId} not found - returning empty historical data`);
       return {
         periods: [],
         pointsData: [],
@@ -205,43 +208,35 @@ export class DatabaseStorage implements IStorage {
     // Set time range based on period
     const now = new Date();
     let startDate: Date;
-    let groupByFormat: string;
-    let labelFormat: (date: Date) => string;
+    let periodFormat: string;
     
     switch (period) {
       case 'day':
         // Last 24 hours, grouped by hour
         startDate = new Date(now);
         startDate.setHours(now.getHours() - 24);
-        groupByFormat = '%Y-%m-%d %H:00:00';
-        labelFormat = (date) => date.toLocaleTimeString(undefined, { hour: '2-digit' });
+        periodFormat = 'hourly';
         break;
         
       case 'week':
         // Last 7 days, grouped by day
         startDate = new Date(now);
         startDate.setDate(now.getDate() - 7);
-        groupByFormat = '%Y-%m-%d';
-        labelFormat = (date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        periodFormat = 'daily';
         break;
         
       case 'month':
         // Last 30 days, grouped by day
         startDate = new Date(now);
         startDate.setDate(now.getDate() - 30);
-        groupByFormat = '%Y-%m-%d';
-        labelFormat = (date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        periodFormat = 'daily';
         break;
         
       case 'all':
       default:
         // All time, grouped by week
         startDate = new Date('2024-01-01'); // From beginning of 2024
-        groupByFormat = '%Y-%U'; // Year-Week format
-        labelFormat = (date) => {
-          const weekNum = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
-          return `Week ${weekNum}`;
-        };
+        periodFormat = 'weekly';
         break;
     }
     
@@ -256,100 +251,173 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(asc(transactions.timestamp));
     
-    // Group transactions by date and calculate points per period
-    type PeriodDataType = { 
-      points: number; 
-      swaps: number; 
-      dailySwaps: Record<string, number>;  // Track swaps per day with txDay as key
+    console.log(`Found ${swapTransactions.length} swap transactions in the time period`);
+    
+    // Structure to hold processed data:
+    // - For each day, track the number of swaps and calculated points
+    // - For each period (hour, day, or week), aggregate data from the daily tracking
+    type SwapDay = {
+      swapCount: number;  // Number of swaps on this day
+      points: number;     // Points earned on this day (capped at 2.5)
     };
     
-    const periodData: Record<string, PeriodDataType> = {};
-    const allPeriods: Set<string> = new Set();
+    type PeriodData = {
+      totalSwaps: number;  // Total swaps in this period
+      points: number;      // Points earned in this period
+      periodLabel: string; // Display label for this period
+    };
     
-    // Process transactions
+    // Track swaps by date to enforce daily limits
+    const swapsByDay: Record<string, SwapDay> = {};
+    
+    // Track aggregated data by display period
+    const periodMap: Record<string, PeriodData> = {};
+    
+    // Process all transactions
     for (const tx of swapTransactions) {
+      // Extract date components for grouping
       const txDate = new Date(tx.timestamp);
-      const txDay = txDate.toISOString().substring(0, 10); // YYYY-MM-DD for daily tracking
+      const txDay = txDate.toISOString().split('T')[0]; // YYYY-MM-DD
       
-      // Generate period key based on our format
+      // Determine period key for aggregation
       let periodKey: string;
-      if (period === 'day') {
-        periodKey = txDate.toISOString().substring(0, 13) + ':00:00'; // YYYY-MM-DDTHH:00:00
-      } else if (period === 'week' || period === 'month') {
-        periodKey = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+      let periodLabel: string;
+      
+      if (periodFormat === 'hourly') {
+        // For hourly, use YYYY-MM-DD HH format
+        const hour = txDate.getHours().toString().padStart(2, '0');
+        periodKey = `${txDay} ${hour}`;
+        periodLabel = `${hour}:00`;
+      } else if (periodFormat === 'daily') {
+        // For daily, use YYYY-MM-DD format
+        periodKey = txDay;
+        const month = txDate.toLocaleString('default', { month: 'short' });
+        const day = txDate.getDate();
+        periodLabel = `${month} ${day}`;
       } else {
-        // For 'all', use year-week format
-        const weekNum = Math.floor((txDate.getTime() - new Date(txDate.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
-        periodKey = `${txDate.getFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
+        // For weekly, use YYYY-WW format
+        const weekNum = Math.ceil((txDate.getDate() + new Date(txDate.getFullYear(), txDate.getMonth(), 1).getDay()) / 7);
+        periodKey = `${txDate.getFullYear()}-W${weekNum}`;
+        periodLabel = `Week ${weekNum}`;
       }
       
-      // Initialize period data if not exists
-      if (!periodData[periodKey]) {
-        periodData[periodKey] = { 
-          points: 0, 
-          swaps: 0, 
-          dailySwaps: {} 
+      // Initialize swap day tracking if needed
+      if (!swapsByDay[txDay]) {
+        swapsByDay[txDay] = {
+          swapCount: 0,
+          points: 0
         };
       }
       
-      // Initialize daily swaps counter if needed
-      if (!periodData[periodKey].dailySwaps[txDay]) {
-        periodData[periodKey].dailySwaps[txDay] = 0;
+      // Initialize period data if needed
+      if (!periodMap[periodKey]) {
+        periodMap[periodKey] = {
+          totalSwaps: 0,
+          points: 0,
+          periodLabel
+        };
       }
       
-      // Each swap adds 0.5 points up to 5 swaps (2.5 points) per day
-      // Only award points if we haven't hit the 5 swap limit for this day
-      if (periodData[periodKey].dailySwaps[txDay] < 5) {
-        periodData[periodKey].points += 0.5;
-        periodData[periodKey].swaps += 1;
-        periodData[periodKey].dailySwaps[txDay] += 1;
-      } else {
-        // Still count the swap but don't add points
-        periodData[periodKey].swaps += 1;
+      // Increment swap count for this day
+      swapsByDay[txDay].swapCount++;
+      
+      // Calculate points for this swap (0.5 points per swap, max 5 swaps per day)
+      if (swapsByDay[txDay].swapCount <= 5) {
+        swapsByDay[txDay].points = Math.min(swapsByDay[txDay].swapCount * 0.5, 2.5);
       }
       
-      allPeriods.add(periodKey);
+      // Update period totals
+      periodMap[periodKey].totalSwaps++;
     }
     
-    // Create a sorted array of period keys
-    const sortedPeriods = Array.from(allPeriods).sort();
+    // Calculate points for each period from the daily data
+    for (const day in swapsByDay) {
+      // Determine which period this day belongs to
+      const dayDate = new Date(day);
+      let periodKey: string;
+      
+      if (periodFormat === 'hourly') {
+        // For hours, we need to handle differently - swaps are already counted per hour
+        continue;
+      } else if (periodFormat === 'daily') {
+        // For daily, the day is the period
+        periodKey = day;
+      } else {
+        // For weekly, calculate the week number
+        const weekNum = Math.ceil((dayDate.getDate() + new Date(dayDate.getFullYear(), dayDate.getMonth(), 1).getDay()) / 7);
+        periodKey = `${dayDate.getFullYear()}-W${weekNum}`;
+      }
+      
+      // Add this day's points to the period
+      if (periodMap[periodKey]) {
+        // For daily and weekly, we need to update the points from the daily calculations
+        if (periodFormat !== 'hourly') {
+          periodMap[periodKey].points += swapsByDay[day].points;
+        }
+      }
+    }
     
-    // Create arrays for points and swaps per period
+    // For hourly format, handle points calculation directly
+    if (periodFormat === 'hourly') {
+      // We need to recalculate points for each hour from the transactions
+      // This is because hourly periods can span multiple days
+      
+      // Clear existing period data points
+      for (const key in periodMap) {
+        periodMap[key].points = 0;
+      }
+      
+      // Re-process transactions to assign correct points
+      for (const tx of swapTransactions) {
+        const txDate = new Date(tx.timestamp);
+        const txDay = txDate.toISOString().split('T')[0]; // YYYY-MM-DD
+        const hour = txDate.getHours().toString().padStart(2, '0');
+        const hourKey = `${txDay} ${hour}`;
+        
+        // Calculate swap position for this day (1st swap, 2nd swap, etc.)
+        const swapPositionToday = swapsByDay[txDay] ? 
+          Math.min(swapsByDay[txDay].swapCount, 5) : 0;
+        
+        // Points are determined by the daily cap of 5 swaps
+        // Each swap adds 0.5 points up to a max of 2.5 points per day
+        // Only attribute points to this hour's transaction if it's within the first 5 swaps of the day
+        const dailySwapPosition = swapTransactions
+          .filter(t => new Date(t.timestamp).toISOString().split('T')[0] === txDay)
+          .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+          .findIndex(t => t.id === tx.id) + 1;
+        
+        if (dailySwapPosition <= 5 && periodMap[hourKey]) {
+          // This swap is eligible for points
+          periodMap[hourKey].points += 0.5;
+        }
+      }
+    }
+    
+    // Convert the period map to sorted arrays for chart display
+    const sortedPeriods = Object.keys(periodMap).sort();
+    
     const periods: string[] = [];
     const pointsData: number[] = [];
     const swapData: number[] = [];
+    let totalPoints = 0;
     
-    for (const periodKey of sortedPeriods) {
-      // Convert period key to human-readable format
-      let label: string;
-      if (period === 'day') {
-        const date = new Date(periodKey);
-        label = date.toLocaleTimeString(undefined, { hour: '2-digit' });
-      } else if (period === 'week' || period === 'month') {
-        const date = new Date(periodKey);
-        label = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      } else {
-        // For 'all', extract year and week number
-        const [year, weekPart] = periodKey.split('-');
-        const weekNum = parseInt(weekPart.substring(1), 10);
-        label = `Week ${weekNum}`;
-      }
-      
-      periods.push(label);
-      pointsData.push(periodData[periodKey].points);
-      swapData.push(periodData[periodKey].swaps);
+    for (const key of sortedPeriods) {
+      periods.push(periodMap[key].periodLabel);
+      pointsData.push(Number(periodMap[key].points.toFixed(1))); // Round to 1 decimal place
+      swapData.push(periodMap[key].totalSwaps);
+      totalPoints += periodMap[key].points;
     }
     
-    // Calculate total points from transactions
-    const totalPoints = pointsData.reduce((sum, points) => sum + points, 0);
-    
-    return {
+    const result = {
       periods,
       pointsData,
       swapData,
-      totalPoints,
+      totalPoints: Number(totalPoints.toFixed(1)), // Round to 1 decimal place
       currentPoints
     };
+    
+    console.log(`Historical data for ${user.address} (${period}): ${JSON.stringify(result)}...`);
+    return result;
   }
   
   // Quest operations
