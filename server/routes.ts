@@ -729,6 +729,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get global statistics (points, swaps, users)
+  app.get(`${apiPrefix}/global-stats`, async (req, res) => {
+    try {
+      // Add cache control headers to prevent browser/CDN caching
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      // Fetch all required statistics
+      const swapStats = await storage.getGlobalSwapStats();
+      const totalUsersResult = await storage.getTotalUsersCount();
+      const totalUsers = totalUsersResult?.count || 0;
+      
+      // Get global points data
+      const leaderboardResult = await storage.getLeaderboard(1, 1);
+      const totalGlobalPoints = leaderboardResult.totalGlobalPoints || 0;
+      
+      // Calculate additional stats
+      const pointsPerEligibleSwap = 0.5; // This is the key formula: 0.5 points per eligible swap
+      const calculatedPoints = swapStats.eligibleSwaps * pointsPerEligibleSwap;
+      
+      // Send comprehensive global stats
+      const globalStats = {
+        swaps: {
+          total: swapStats.totalSwaps,
+          eligible: swapStats.eligibleSwaps,
+          ineligible: swapStats.ineligibleSwaps,
+          formula: "Max 5 swaps per user per day count as eligible"
+        },
+        users: {
+          total: totalUsers
+        },
+        points: {
+          total: totalGlobalPoints,
+          formula: "0.5 points per eligible swap",
+          calculated: calculatedPoints.toFixed(1)
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+      console.log("Global stats computed:", JSON.stringify(globalStats).substring(0, 100) + "...");
+      res.json(globalStats);
+    } catch (error) {
+      console.error("Error fetching global stats:", error);
+      res.status(500).json({
+        error: "Failed to fetch global statistics",
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Get leaderboard (top users by points)
   app.get(`${apiPrefix}/leaderboard`, async (req, res) => {
     const limitParam = req.query.limit ? parseInt(req.query.limit as string) : 15;
@@ -758,6 +809,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const users = leaderboardResult.users || [];
       const totalGlobalPoints = leaderboardResult.totalGlobalPoints || 0;
       
+      // Get global swap statistics
+      const swapStats = await storage.getGlobalSwapStats();
+      
       console.log(`Leaderboard data fetched, users count: ${users.length}, total in DB: ${totalUsers}`);
       
       // Format the response to match the expected frontend structure
@@ -765,6 +819,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         users: users,
         total: totalUsers,
         totalGlobalPoints: totalGlobalPoints, // Add the total global points
+        globalSwaps: {
+          total: swapStats.totalSwaps,
+          eligible: swapStats.eligibleSwaps,
+          ineligible: swapStats.ineligibleSwaps
+        },
         page: page,
         totalPages: Math.ceil(totalUsers / limit) || 1,
         timestamp: new Date().toISOString(), // Add timestamp for cache invalidation

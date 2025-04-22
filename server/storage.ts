@@ -25,6 +25,11 @@ export interface IStorage {
   addUserPoints(userId: number, points: number): Promise<number>;
   removePointsForFaucetClaims(): Promise<number>; // Method to remove all faucet claim points
   getTotalUsersCount(): Promise<{ count: number }>;
+  getGlobalSwapStats(): Promise<{
+    totalSwaps: number;
+    eligibleSwaps: number;
+    ineligibleSwaps: number;
+  }>;
   getLeaderboard(limit?: number, page?: number): Promise<{
     users: User[],
     totalGlobalPoints: number
