@@ -987,6 +987,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get bonus points leaderboard (separate from regular points leaderboard)
+  app.get(`${apiPrefix}/bonus-leaderboard`, async (req, res) => {
+    const limitParam = req.query.limit ? parseInt(req.query.limit as string) : 15;
+    const limit = isNaN(limitParam) ? 15 : limitParam;
+    
+    const pageParam = req.query.page ? parseInt(req.query.page as string) : 1;
+    const page = isNaN(pageParam) ? 1 : pageParam;
+    
+    // Extract cache buster parameter if present (added for force refresh)
+    const cacheBuster = req.query._cb ? req.query._cb : null;
+    
+    try {
+      console.log("Fetching bonus points leaderboard with limit:", limit, "page:", page, 
+                  cacheBuster ? `(cache buster: ${cacheBuster})` : '');
+      
+      // Add cache control headers to prevent browser/CDN caching
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      // Get total users count for accurate pagination
+      const totalUsersResult = await storage.getTotalUsersCount();
+      const totalUsers = totalUsersResult?.count || 0;
+      
+      // Get paginated users for bonus points leaderboard and total global bonus points
+      const leaderboardResult = await storage.getBonusPointsLeaderboard(limit, page);
+      const users = leaderboardResult.users || [];
+      const totalGlobalBonusPoints = leaderboardResult.totalGlobalBonusPoints || 0;
+      
+      console.log(`Bonus points leaderboard data fetched, users count: ${users.length}, total in DB: ${totalUsers}`);
+      
+      // Format the response to match the expected frontend structure
+      const leaderboardData = {
+        users: users,
+        total: totalUsers,
+        totalGlobalBonusPoints: totalGlobalBonusPoints,
+        page: page,
+        totalPages: Math.ceil(totalUsers / limit) || 1,
+        timestamp: new Date().toISOString(),
+        cacheBuster: cacheBuster,
+        type: 'bonus' // Indicate this is the bonus points leaderboard
+      };
+      
+      // Log first 100 chars of the response to help debug
+      console.log("Returning bonus leaderboard data:", JSON.stringify(leaderboardData).substring(0, 100) + "...");
+      res.json(leaderboardData);
+    } catch (error) {
+      console.error("Error fetching bonus points leaderboard:", error);
+      res.status(500).json({
+        users: [],
+        total: 0,
+        page: 1,
+        totalPages: 1,
+        error: "Failed to fetch bonus points leaderboard data",
+        timestamp: new Date().toISOString(),
+        type: 'bonus'
+      });
+    }
+  });
+  
   // Get user rank in leaderboard
   app.get(`${apiPrefix}/users/:address/rank`, async (req, res) => {
     const { address } = req.params;

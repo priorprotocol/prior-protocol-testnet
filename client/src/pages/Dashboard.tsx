@@ -238,7 +238,16 @@ const Dashboard = () => {
               >
                 <div className="flex items-center gap-1.5">
                   <FaChartBar className="text-sm" />
-                  Global Leaderboard
+                  Swap Points
+                </div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="bonus-leaderboard"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-900/50 data-[state=active]:to-orange-900/50"
+              >
+                <div className="flex items-center gap-1.5">
+                  <FaTrophy className="text-sm" />
+                  Bonus Points
                 </div>
               </TabsTrigger>
             </TabsList>
@@ -296,26 +305,51 @@ const Dashboard = () => {
               </Card>
             </TabsContent>
 
-            {/* Leaderboard Tab */}
+            {/* Swap Points Leaderboard Tab */}
             <TabsContent value="leaderboard">
+              <div className="space-y-6">
+                <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600"></div>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-indigo-500 bg-opacity-20 flex items-center justify-center">
+                        <FaGlobe className="text-indigo-400" size={12} />
+                      </div>
+                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-blue-300">
+                        Swap Points Leaderboard
+                      </span>
+                    </CardTitle>
+                    <CardDescription>
+                      Top users ranked by swap points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Leaderboard limit={20} />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+            
+            {/* Bonus Points Leaderboard Tab */}
+            <TabsContent value="bonus-leaderboard">
               <div className="space-y-6">
                 <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">
                   <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600"></div>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-amber-500 bg-opacity-20 flex items-center justify-center">
-                        <FaGlobe className="text-amber-400" size={12} />
+                        <FaTrophy className="text-amber-400" size={12} />
                       </div>
                       <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-300">
-                        Global Leaderboard
+                        Bonus Points Leaderboard
                       </span>
                     </CardTitle>
                     <CardDescription>
-                      Top users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
+                      Top users ranked by bonus points - special rewards for community contributions
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Leaderboard limit={20} />
+                    <BonusLeaderboard limit={20} />
                   </CardContent>
                 </Card>
               </div>
@@ -331,6 +365,25 @@ const Dashboard = () => {
 const TotalPointsSummary = ({ points, swaps, isLoading }: { points: number | string, swaps: number, isLoading: boolean }) => {
   // Convert points to a number if it's a string
   const numericPoints = typeof points === 'string' ? parseFloat(points) : points;
+  
+  // Get the wallet address for querying bonus points
+  const { address: walletAddress } = useStandaloneWallet();
+  
+  // Get bonus points from userStats
+  const { 
+    data: userStats
+  } = useQuery({
+    queryKey: ['/api/users/stats', walletAddress],
+    enabled: false, // This will use the existing data from the parent component's query
+  });
+  
+  // Parse the bonus points (default to 0 if not available)
+  const bonusPoints = userStats?.bonusPoints 
+    ? (typeof userStats.bonusPoints === 'string' ? parseFloat(userStats.bonusPoints) : userStats.bonusPoints) 
+    : 0;
+  
+  // Calculate swap points (total points minus bonus points)
+  const swapPoints = Math.max(0, numericPoints - bonusPoints);
   
   return (
     <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">
@@ -354,11 +407,20 @@ const TotalPointsSummary = ({ points, swaps, isLoading }: { points: number | str
             <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400">
               {isNaN(numericPoints) ? '0.0' : numericPoints.toFixed(1)}
             </div>
-            <div className="text-xs text-gray-400 mt-1 flex items-center justify-center">
-              <FaExchangeAlt className="mr-1" size={10} />
-              <span>Points calculation: 0.5 points per swap</span>
+            
+            {/* Display the breakdown of points */}
+            <div className="mt-3 text-xs">
+              <div className="flex justify-between items-center mb-1.5 px-2">
+                <span className="text-gray-400">Swap Points:</span>
+                <span className="text-indigo-400 font-medium">{swapPoints.toFixed(1)}</span>
+              </div>
+              <div className="flex justify-between items-center px-2">
+                <span className="text-gray-400">Bonus Points:</span>
+                <span className="text-amber-400 font-medium">{bonusPoints.toFixed(1)}</span>
+              </div>
             </div>
-            <div className="mt-2 p-1 rounded bg-gradient-to-r from-indigo-900/30 to-blue-900/30 text-xs text-indigo-400 font-medium max-w-xs mx-auto flex items-center justify-center">
+            
+            <div className="mt-3 p-1 rounded bg-gradient-to-r from-indigo-900/30 to-blue-900/30 text-xs text-indigo-400 font-medium max-w-xs mx-auto flex items-center justify-center">
               <span className="mr-1">Total swaps:</span> {swaps} {swaps >= 5 && <span className="ml-1 text-emerald-400">(Max daily points achieved)</span>}
             </div>
           </div>
