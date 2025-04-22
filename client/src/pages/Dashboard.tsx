@@ -328,7 +328,10 @@ const Dashboard = () => {
 };
 
 // Total Points Summary Component
-const TotalPointsSummary = ({ points, swaps, isLoading }: { points: number, swaps: number, isLoading: boolean }) => {
+const TotalPointsSummary = ({ points, swaps, isLoading }: { points: number | string, swaps: number, isLoading: boolean }) => {
+  // Convert points to a number if it's a string
+  const numericPoints = typeof points === 'string' ? parseFloat(points) : points;
+  
   return (
     <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600"></div>
@@ -349,7 +352,7 @@ const TotalPointsSummary = ({ points, swaps, isLoading }: { points: number, swap
         ) : (
           <div className="text-center py-2">
             <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400">
-              {points.toFixed(1)}
+              {isNaN(numericPoints) ? '0.0' : numericPoints.toFixed(1)}
             </div>
             <div className="text-xs text-gray-400 mt-1 flex items-center justify-center">
               <FaExchangeAlt className="mr-1" size={10} />

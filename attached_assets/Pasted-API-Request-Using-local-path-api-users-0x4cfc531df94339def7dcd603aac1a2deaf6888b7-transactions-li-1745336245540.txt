@@ -1,0 +1,30 @@
+API Request: Using local path: /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30
+API Request: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30
+Environment detection: Not running on Netlify
+API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank - Status: 200
+API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats - Status: 200
+points.toFixed is not a function
+points.toFixed is not a function
+The above error occurred in the <TotalPointsSummary> component:
+
+    at TotalPointsSummary (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/pages/Dashboard.tsx:681:31)
+    at div
+    at div
+    at div
+    at Dashboard (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/pages/Dashboard.tsx:43:55)
+    at WrappedDashboard
+    at Route (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/wouter.js?v=639a815f:323:16)
+    at Switch (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/wouter.js?v=639a815f:379:17)
+    at main
+    at div
+    at Layout (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/components/Layout.tsx:19:19)
+    at WebSocketProvider (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/components/WebSocketProvider.tsx:33:37)
+    at App (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/App.tsx?v=feMh2eKj7xRFsgig0izO4:149:22)
+    at WalletProvider (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/context/WalletContext.tsx?v=feMh2eKj7xRFsgig0izO4:89:34)
+    at QueryClientProvider (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/@tanstack_react-query.js?v=639a815f:2805:3)
+    at BootstrapApp
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+points.toFixed is not a function
+API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30 - Status: 200
