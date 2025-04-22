@@ -1075,12 +1075,16 @@ export class DatabaseStorage implements IStorage {
       
     // Create a transaction record for this points addition if it's a bonus
     if (reason) {
+      // Generate a unique transaction hash for the bonus
+      const bonusTxHash = `bonus_${userId}_${Date.now()}`;
+      
       await this.createTransaction({
         userId,
         type: 'bonus',
         points: points.toString(),
-        details: reason,
-        status: 'completed'
+        txHash: bonusTxHash,
+        status: 'completed',
+        metadata: { reason } // Store the reason in the metadata JSON field
       });
       
       // Broadcast the points update
@@ -1794,7 +1798,22 @@ export class DatabaseStorage implements IStorage {
           if (tx.points) {
             const txPoints = parseFloat(tx.points.toString());
             bonusPoints += txPoints;
-            console.log(`[DEBUG] Bonus tx found: ${tx.id}, points: ${txPoints}, metadata: ${JSON.stringify(tx.metadata || {})}, timestamp: ${tx.timestamp}`);
+            // Safe access to metadata since it might not exist in the actual db schema
+            let metadataInfo = "No metadata";
+            try {
+              // Handle both object and string formats of metadata
+              if (tx.metadata) {
+                if (typeof tx.metadata === 'object') {
+                  metadataInfo = JSON.stringify(tx.metadata);
+                } else if (typeof tx.metadata === 'string') {
+                  metadataInfo = tx.metadata;
+                }
+              }
+            } catch (e) {
+              metadataInfo = "Error accessing metadata";
+            }
+            
+            console.log(`[DEBUG] Bonus tx found: ${tx.id}, points: ${txPoints}, metadata: ${metadataInfo}, timestamp: ${tx.timestamp}`);
           }
         }
         

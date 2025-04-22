@@ -108,6 +108,7 @@ export const transactions = pgTable("transactions", {
   status: text("status").notNull().default("completed"), // 'completed', 'pending', 'failed'
   blockNumber: integer("block_number"),
   points: numeric("points", { precision: 5, scale: 1 }).default("0"), // Points earned for this transaction (DECIMAL supporting 0.5)
+  metadata: jsonb("metadata"), // Additional metadata for the transaction (reason field for bonus transactions)
 });
 
 export const insertTransactionSchema = createInsertSchema(transactions).omit({
