@@ -1204,7 +1204,8 @@ export class DatabaseStorage implements IStorage {
       // Calculate offset based on page and limit for pagination
       const offset = (page - 1) * limit;
       
-      // Get top users by points, ensuring we get the top users highlighted by points and swaps
+      // Get top users by points as primary criteria, then by swaps as secondary
+      // This ensures users with the same points but more swaps rank higher
       const result = await db
         .select()
         .from(users)

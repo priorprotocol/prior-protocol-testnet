@@ -778,17 +778,54 @@ export class MemStorage implements IStorage {
     // Normalize address
     const normalizedAddress = address.toLowerCase();
     
-    // Get all users sorted by points 
+    // Get all users sorted by points (primary) and swap count (secondary)
     const allSortedUsers = Array.from(this.users.values())
-      .sort((a, b) => (b.points || 0) - (a.points || 0));
+      .sort((a, b) => {
+        // First compare by points (descending)
+        const pointsDiff = (b.points || 0) - (a.points || 0);
+        if (pointsDiff !== 0) return pointsDiff;
+        
+        // If points are equal, compare by swap count (descending)
+        return (b.totalSwaps || 0) - (a.totalSwaps || 0);
+      });
     
-    // Find the index of the user
-    const userIndex = allSortedUsers.findIndex(
+    // Find the user's entry
+    const targetUser = allSortedUsers.find(
       user => user.address.toLowerCase() === normalizedAddress
     );
     
-    // Return the rank (index + 1) or null if not found
-    return userIndex !== -1 ? userIndex + 1 : null;
+    // If user not found, return null
+    if (!targetUser) return null;
+    
+    // Calculate rank using equal rank for users with identical points and swaps
+    let rank = 1;
+    let usersWithSameRank = 0;
+    
+    for (let i = 0; i < allSortedUsers.length; i++) {
+      const user = allSortedUsers[i];
+      
+      // If we found our user, we've reached the right position
+      if (user.address.toLowerCase() === normalizedAddress) {
+        return rank;
+      }
+      
+      // Check next user if one exists
+      if (i + 1 < allSortedUsers.length) {
+        const nextUser = allSortedUsers[i + 1];
+        
+        // If points and swaps are different, increase rank
+        if (user.points !== nextUser.points || user.totalSwaps !== nextUser.totalSwaps) {
+          rank += 1 + usersWithSameRank;
+          usersWithSameRank = 0;
+        } else {
+          // If points and swaps are the same, count as same rank
+          usersWithSameRank++;
+        }
+      }
+    }
+    
+    // Fallback
+    return rank;
   }
   
   async getUserStats(userId: number): Promise<{
