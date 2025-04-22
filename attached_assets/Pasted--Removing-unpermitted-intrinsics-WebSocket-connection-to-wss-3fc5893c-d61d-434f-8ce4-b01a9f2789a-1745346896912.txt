@@ -1,0 +1,169 @@
+ Removing unpermitted intrinsics
+ WebSocket connection to 'wss://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/?token=hTHZnrzZz8TT' failed: 
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) 
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ Module "buffer" has been externalized for browser compatibility. Cannot access "buffer.Buffer" in client code. See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+get @ ethers.js:13
+ Token cache cleared
+ App started, immediately loading global data
+ API Request: Using local path: /api/leaderboard
+ API Request: GET /api/leaderboard
+ Environment detection: Not running on Netlify
+ API Request: Using local path: /api/tokens
+ API Request: GET /api/tokens
+ Environment detection: Not running on Netlify
+ App started, immediately loading global data
+ App started, immediately loading global data
+ Wallet context updated, syncing local state. Address: null
+ App started, immediately loading global data
+ Replit environment detected - using polling as primary update mechanism
+ Starting polling fallback mechanism
+ App mounted - prefetching global leaderboard data
+ Wallet auto-connection disabled. User must manually connect.
+ API Response: GET /api/tokens - Status: 200
+ API Response: GET /api/leaderboard - Status: 200
+ Global leaderboard data prefetched successfully
+ ✅ Global data pre-loaded in 281ms
+ ✅ Global data pre-loaded in 280ms
+ ✅ Global data pre-loaded in 280ms
+ ✅ Global data pre-loaded in 280ms
+ In polling mode, skipping WebSocket connection attempt
+ Requesting accounts from wallet...
+ Wallet connected: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Saving wallet state: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Notifying 6 listeners of wallet change to: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet address changed: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet listener triggered with address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Connected to wallet: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet listener triggered with address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet address changed: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet listener triggered with address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet address changed: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+useWalletSync.ts:35 Wallet sync event received: Object
+useBlockExplorerSync.ts:23 Refreshing database transactions for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+queryClient.ts:38 API Request: Using local path: /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+queryClient.ts:58 API Request: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+queryClient.ts:69 Environment detection: Not running on Netlify
+useBlockExplorerSync.ts:23 Refreshing database transactions for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+queryClient.ts:38 API Request: Using local path: /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+queryClient.ts:58 API Request: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+queryClient.ts:69 Environment detection: Not running on Netlify
+useBlockExplorerSync.ts:23 Refreshing database transactions for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+queryClient.ts:38 API Request: Using local path: /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+queryClient.ts:58 API Request: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+queryClient.ts:69 Environment detection: Not running on Netlify
+queryClient.ts:38 API Request: Using local path: /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank
+queryClient.ts:58 API Request: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank
+queryClient.ts:69 Environment detection: Not running on Netlify
+Dashboard.tsx:57 Fetching stats for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+queryClient.ts:38 API Request: Using local path: /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats
+queryClient.ts:58 API Request: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats
+queryClient.ts:69 Environment detection: Not running on Netlify
+Dashboard.tsx:75 Fetching transactions for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+queryClient.ts:38 API Request: Using local path: /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30
+queryClient.ts:58 API Request: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30
+queryClient.ts:69 Environment detection: Not running on Netlify
+useImmediateDataLoader.ts:73 Wallet connected, immediately loading user data for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+queryClient.ts:38 API Request: Using local path: /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats
+queryClient.ts:58 API Request: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats
+queryClient.ts:69 Environment detection: Not running on Netlify
+queryClient.ts:38 API Request: Using local path: /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+queryClient.ts:58 API Request: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+queryClient.ts:69 Environment detection: Not running on Netlify
+queryClient.ts:38 API Request: Using local path: /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions/swap
+queryClient.ts:58 API Request: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions/swap
+queryClient.ts:69 Environment detection: Not running on Netlify
+useImmediateDataLoader.ts:73 Wallet connected, immediately loading user data for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+useImmediateDataLoader.ts:73 Wallet connected, immediately loading user data for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+queryClient.ts:84 API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats - Status: 200
+queryClient.ts:84 API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank - Status: 200
+queryClient.ts:84 API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+useBlockExplorerSync.ts:31 Local database transactions: Object
+useBlockExplorerSync.ts:41 Local data refresh completed successfully.
+queryClient.ts:84 API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+useBlockExplorerSync.ts:31 Local database transactions: Object
+useBlockExplorerSync.ts:41 Local data refresh completed successfully.
+queryClient.ts:84 API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30 - Status: 200
+queryClient.ts:84 API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+useBlockExplorerSync.ts:31 Local database transactions: Object
+useBlockExplorerSync.ts:41 Local data refresh completed successfully.
+queryClient.ts:84 API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats - Status: 200
+queryClient.ts:84 API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions/swap - Status: 200
+queryClient.ts:84 API Response: GET /api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+useImmediateDataLoader.ts:105 ✅ User data pre-loaded in 849ms
+useImmediateDataLoader.ts:105 ✅ User data pre-loaded in 847ms
+useImmediateDataLoader.ts:105 ✅ User data pre-loaded in 847ms
+queryClient.ts:38 API Request: Using local path: /api/bonus-leaderboard?limit=20&page=1
+queryClient.ts:58 API Request: GET /api/bonus-leaderboard?limit=20&page=1
+queryClient.ts:69 Environment detection: Not running on Netlify
+queryClient.ts:84 API Response: GET /api/bonus-leaderboard?limit=20&page=1 - Status: 200
+BonusLeaderboard.tsx:319 Uncaught TypeError: Cannot read properties of undefined (reading 'toFixed')
+    at BonusLeaderboard.tsx:319:46
+    at Array.map (<anonymous>)
+    at BonusLeaderboard (BonusLeaderboard.tsx:284:37)
+    at renderWithHooks (chunk-7SSXMLWA.js?v=639a815f:11548:26)
+    at updateFunctionComponent (chunk-7SSXMLWA.js?v=639a815f:14582:28)
+    at beginWork (chunk-7SSXMLWA.js?v=639a815f:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-7SSXMLWA.js?v=639a815f:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-7SSXMLWA.js?v=639a815f:3699:24)
+    at invokeGuardedCallback (chunk-7SSXMLWA.js?v=639a815f:3733:39)
+    at beginWork$1 (chunk-7SSXMLWA.js?v=639a815f:19765:15)
+BonusLeaderboard.tsx:319 Uncaught TypeError: Cannot read properties of undefined (reading 'toFixed')
+    at BonusLeaderboard.tsx:319:46
+    at Array.map (<anonymous>)
+    at BonusLeaderboard (BonusLeaderboard.tsx:284:37)
+    at renderWithHooks (chunk-7SSXMLWA.js?v=639a815f:11548:26)
+    at updateFunctionComponent (chunk-7SSXMLWA.js?v=639a815f:14582:28)
+    at beginWork (chunk-7SSXMLWA.js?v=639a815f:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-7SSXMLWA.js?v=639a815f:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-7SSXMLWA.js?v=639a815f:3699:24)
+    at invokeGuardedCallback (chunk-7SSXMLWA.js?v=639a815f:3733:39)
+    at beginWork$1 (chunk-7SSXMLWA.js?v=639a815f:19765:15)
+chunk-7SSXMLWA.js?v=639a815f:14032 The above error occurred in the <BonusLeaderboard> component:
+
+    at BonusLeaderboard (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/components/BonusLeaderboard.tsx:31:36)
+    at div
+    at _c9 (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at div
+    at https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/chunk-75PPGM7I.js?v=639a815f:41:13
+    at Presence (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/chunk-O3YRMLVP.js?v=639a815f:115:11)
+    at https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=639a815f:169:13
+    at _c5 (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/chunk-75PPGM7I.js?v=639a815f:41:13
+    at Provider (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/chunk-O3YRMLVP.js?v=639a815f:35:15)
+    at https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=639a815f:47:7
+    at div
+    at div
+    at div
+    at Dashboard (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/pages/Dashboard.tsx:45:55)
+    at WrappedDashboard
+    at Route (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/wouter.js?v=639a815f:323:16)
+    at Switch (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/wouter.js?v=639a815f:379:17)
+    at main
+    at div
+    at Layout (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/components/Layout.tsx:19:19)
+    at WebSocketProvider (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/components/WebSocketProvider.tsx:33:37)
+    at App (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/App.tsx?v=U-gMdfYdZLiEy4rZ6bDFS:149:22)
+    at WalletProvider (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/src/context/WalletContext.tsx?v=U-gMdfYdZLiEy4rZ6bDFS:89:34)
+    at QueryClientProvider (https://3fc5893c-d61d-434f-8ce4-b01a9f2789a4-00-1spg6srf64d1g.janeway.replit.dev/node_modules/.vite/deps/@tanstack_react-query.js?v=639a815f:2805:3)
+    at BootstrapApp
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-7SSXMLWA.js?v=639a815f:14032
+chunk-7SSXMLWA.js?v=639a815f:9129 Uncaught TypeError: Cannot read properties of undefined (reading 'toFixed')
+    at BonusLeaderboard.tsx:319:46
+    at Array.map (<anonymous>)
+    at BonusLeaderboard (BonusLeaderboard.tsx:284:37)
+    at renderWithHooks (chunk-7SSXMLWA.js?v=639a815f:11548:26)
+    at updateFunctionComponent (chunk-7SSXMLWA.js?v=639a815f:14582:28)
+    at beginWork (chunk-7SSXMLWA.js?v=639a815f:15924:22)
+    at beginWork$1 (chunk-7SSXMLWA.js?v=639a815f:19753:22)
+    at performUnitOfWork (chunk-7SSXMLWA.js?v=639a815f:19198:20)
+    at workLoopSync (chunk-7SSXMLWA.js?v=639a815f:19137:13)
+    at renderRootSync (chunk-7SSXMLWA.js?v=639a815f:19116:15)

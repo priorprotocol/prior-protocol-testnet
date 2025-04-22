@@ -314,9 +314,9 @@ export const BonusLeaderboard = ({ limit = 15 }: BonusLeaderboardProps) => {
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-lg text-amber-400">
-                          {typeof user.bonusPoints === 'string' ? 
-                            parseFloat(user.bonusPoints).toFixed(1) : 
-                            user.bonusPoints.toFixed(1)}
+                          {typeof user.bonusPoints === 'string' 
+                            ? parseFloat(user.bonusPoints || '0').toFixed(1) 
+                            : (user.bonusPoints || 0).toFixed(1)}
                         </div>
                         <div className="text-xs text-[#BFBA90]">Bonus points</div>
                       </div>
@@ -337,9 +337,9 @@ export const BonusLeaderboard = ({ limit = 15 }: BonusLeaderboardProps) => {
                           <div className="flex justify-between px-2">
                             <span className="text-amber-400">Bonus Points:</span>
                             <span className="text-amber-200 font-bold">
-                              {typeof user.bonusPoints === 'string' ? 
-                                parseFloat(user.bonusPoints).toFixed(1) : 
-                                user.bonusPoints.toFixed(1)}
+                              {typeof user.bonusPoints === 'string' 
+                                ? parseFloat(user.bonusPoints || '0').toFixed(1) 
+                                : (user.bonusPoints || 0).toFixed(1)}
                             </span>
                           </div>
                           <div className="text-gray-400 text-[9px] mt-1">
