@@ -9,7 +9,7 @@ import healthRoutes from "./routes/health";
 import quizRoutes from "./routes/quizzes";
 import { log } from "./vite";
 import { db, pool } from "./db";
-import { eq, and, count, sql } from "drizzle-orm";
+import { eq, and, count, sql, gte } from "drizzle-orm";
 import { userTrackerMiddleware } from "./middleware/userTracker";
 
 // Admin wallet address - only this wallet can perform admin actions
@@ -339,6 +339,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find all swap transactions from today from our official swap contract
       const SWAP_CONTRACT_ADDRESS = '0x8957e1988905311EE249e679a29fc9deCEd4D910';
       
+      // Get the current date
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+      
       const todaysSwapTxs = await db.select({
         userId: transactions.userId
       })
@@ -346,7 +350,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .where(
         and(
           eq(transactions.type, 'swap'),
-          sql`DATE(${transactions.createdAt}) = CURRENT_DATE`,
+          // Use explicit date comparison instead of DATE() function
+          gte(transactions.createdAt, currentDate),
           sql`LOWER(metadata::text) LIKE LOWER('%${SWAP_CONTRACT_ADDRESS}%')` // Check metadata for the swap contract address
         )
       );
