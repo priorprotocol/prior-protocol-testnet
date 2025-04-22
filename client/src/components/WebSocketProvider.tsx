@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { queryClient } from '@/lib/queryClient';
+import { queryClient, apiRequest } from '@/lib/queryClient';
 
 // Define the notification types that match the server's types
 interface PointsNotification {
@@ -79,11 +79,63 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       duration: 5000,
     });
     
-    // Set up polling for leaderboard data
+    // Set up polling for leaderboard data with improved error handling
     pollingInterval.current = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
         console.log('Polling for leaderboard data...');
-        queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
+        
+        // Use our enhanced apiRequest with retry logic rather than just invalidating
+        apiRequest('/api/leaderboard?limit=10&page=1', undefined, undefined, 2)
+          .then(data => {
+            if (data.totalGlobalPoints) {
+              setTotalGlobalPoints(data.totalGlobalPoints);
+            }
+            
+            // Reset connection failures on successful poll
+            connectionFailures.current = 0;
+            
+            // Also invalidate the query cache to ensure UI updates
+            queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
+          })
+          .catch(err => {
+            console.error('Error polling for leaderboard data:', err);
+            
+            // Increment connection failures counter
+            connectionFailures.current++;
+            
+            // If we've had multiple poll failures, reduce polling frequency to save resources
+            if (connectionFailures.current > 3 && pollingInterval.current) {
+              clearInterval(pollingInterval.current);
+              
+              // Set a longer polling interval (30 seconds) to reduce server load
+              pollingInterval.current = window.setInterval(() => {
+                console.log('Reduced frequency polling for leaderboard data...');
+                
+                apiRequest('/api/leaderboard?limit=10&page=1', undefined, undefined, 2)
+                  .then(data => {
+                    if (data.totalGlobalPoints) {
+                      setTotalGlobalPoints(data.totalGlobalPoints);
+                    }
+                    
+                    // Also invalidate the query cache to ensure UI updates
+                    queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
+                    
+                    // If successful, reset to normal polling frequency
+                    if (connectionFailures.current > 3 && pollingInterval.current) {
+                      clearInterval(pollingInterval.current);
+                      connectionFailures.current = 0;
+                      pollingInterval.current = null;
+                      
+                      // Restart polling at normal frequency
+                      startPollingFallback();
+                    }
+                  })
+                  .catch(err => {
+                    console.error('Error in reduced frequency polling:', err);
+                  });
+              }, 30000);
+            }
+          });
       }
     }, 10000); // Poll every 10 seconds
   }, [toast]);
