@@ -349,7 +349,7 @@ const TotalPointsSummary = ({ points, swaps, isLoading }: { points: number, swap
         ) : (
           <div className="text-center py-2">
             <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400">
-              {points.toFixed(1)}
+              {(typeof points === 'string' ? parseFloat(points) : points).toFixed(1)}
             </div>
             <div className="text-xs text-gray-400 mt-1 flex items-center justify-center">
               <FaExchangeAlt className="mr-1" size={10} />

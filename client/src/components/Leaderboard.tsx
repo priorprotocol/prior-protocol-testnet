@@ -191,25 +191,29 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
             {/* Points Stats */}
             <div className="text-center">
               <span className="text-[#A0AEC0] text-sm uppercase tracking-wider">Points Achievement:</span> 
-              <div className="flex items-center justify-center mt-1">
-                <span className="text-[#A0AEC0] mr-2 text-sm">Total Global Points:</span>
-                <span className={`text-xl font-bold text-amber-400 ${(lastMessage?.type === 'leaderboard_update' || isRefreshing) ? 'animate-pulse' : ''}`}>
+              <div className="flex flex-col items-center justify-center mt-1">
+                <div className="text-[#A0AEC0] mb-1 text-xs uppercase tracking-wider">Total Global Points</div>
+                <span className={`text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-300 ${(lastMessage?.type === 'leaderboard_update' || isRefreshing) ? 'animate-pulse' : ''}`}>
                   {/* Use WebSocket value if available, otherwise fallback to API data */}
-                  {(wsTotalGlobalPoints > 0 
-                    ? wsTotalGlobalPoints 
-                    : leaderboardData?.totalGlobalPoints || 0
+                  {(typeof wsTotalGlobalPoints === 'number' && wsTotalGlobalPoints > 0 
+                    ? Number(wsTotalGlobalPoints) 
+                    : typeof leaderboardData?.totalGlobalPoints === 'string' 
+                      ? parseFloat(leaderboardData?.totalGlobalPoints) 
+                      : Number(leaderboardData?.totalGlobalPoints) || 0
                   ).toFixed(1)}
                 </span>
-                {isRefreshing && (
-                  <span className="ml-2 text-xs bg-blue-900/40 text-blue-300 px-1.5 py-0.5 rounded-full animate-pulse">
-                    Refreshing...
-                  </span>
-                )}
-                {wsConnected && lastMessage?.type === 'leaderboard_update' && !isRefreshing && (
-                  <span className="ml-2 text-xs bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded-full">
-                    Updated live
-                  </span>
-                )}
+                <div className="flex items-center justify-center mt-1">
+                  {isRefreshing && (
+                    <span className="mx-1 text-xs bg-blue-900/40 text-blue-300 px-1.5 py-0.5 rounded-full animate-pulse">
+                      Refreshing...
+                    </span>
+                  )}
+                  {wsConnected && lastMessage?.type === 'leaderboard_update' && !isRefreshing && (
+                    <span className="mx-1 text-xs bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded-full">
+                      Updated live
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="text-xs text-gray-400 mt-1">
                 0.5 points per swap (max 5 swaps daily = 2.5 points)
@@ -322,7 +326,9 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-lg">{user.points}</div>
+                        <div className="font-bold text-lg">
+                          {(typeof user.points === 'string' ? parseFloat(user.points) : user.points).toFixed(1)}
+                        </div>
                         <div className="text-xs text-[#A0AEC0]">Prior points</div>
                       </div>
                     </div>
