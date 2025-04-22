@@ -46,85 +46,111 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+/**
+ * Improved apiRequest function with retry logic for better resilience 
+ * against temporary network issues and connection problems
+ */
 export async function apiRequest<T = any>(
   urlOrPathOrMethod: string,
   urlOrPathOrData?: string | unknown | undefined,
   data?: unknown | undefined,
+  retryCount: number = 2, // Default to 2 retries (3 total attempts)
 ): Promise<T> {
-  try {
-    // If the first argument starts with a slash or http, assume it's a GET request
-    if (urlOrPathOrMethod.startsWith('/') || urlOrPathOrMethod.startsWith('http')) {
-      const url = getFullApiUrl(urlOrPathOrMethod);
-      console.log(`API Request: GET ${url}`);
+  // Maximum retries to prevent infinite loops
+  const MAX_RETRIES = 3;
+  const actualRetryCount = Math.min(retryCount, MAX_RETRIES);
+  
+  // Function to delay execution for a given time
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  
+  // Try the request with retry logic
+  for (let attempt = 0; attempt <= actualRetryCount; attempt++) {
+    try {
+      // If the first argument starts with a slash or http, assume it's a GET request
+      if (urlOrPathOrMethod.startsWith('/') || urlOrPathOrMethod.startsWith('http')) {
+        const url = getFullApiUrl(urlOrPathOrMethod);
+        console.log(`API Request: GET ${url}`);
+        
+        // Add a timestamp cache buster to the URL if it doesn't already have one
+        const urlWithCacheBuster = url.includes('_cb=') 
+          ? url 
+          : `${url}${url.includes('?') ? '&' : '?'}_cb=${Date.now()}`;
+        
+        // Determine if we're in a Netlify environment to modify headers accordingly
+        const isNetlify = typeof window !== 'undefined' && 
+                        window.location.hostname.includes('netlify.app');
+        
+        console.log(`Environment detection: ${isNetlify ? 'Netlify detected' : 'Not running on Netlify'}`);
+        
+        const res = await fetch(urlWithCacheBuster, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            // Only include Pragma header for non-Netlify environments (causes CORS issues on Netlify)
+            ...(!isNetlify && { 'Pragma': 'no-cache' })
+          },
+        });
+        
+        await throwIfResNotOk(res);
+        const jsonData = await res.json();
+        console.log(`API Response: GET ${url} - Status: ${res.status}`);
+        return jsonData as T;
+      }
       
-      // Add a timestamp cache buster to the URL if it doesn't already have one
-      const urlWithCacheBuster = url.includes('_cb=') 
-        ? url 
-        : `${url}${url.includes('?') ? '&' : '?'}_cb=${Date.now()}`;
+      // Otherwise, assume it's a method and the second argument is the URL
+      const method = urlOrPathOrMethod;
+      const url = getFullApiUrl(urlOrPathOrData as string);
+      const requestData = data;
+      
+      console.log(`API Request: ${method} ${url}`);
+      
+      // Add a timestamp cache buster to the URL for non-POST requests
+      // For POST, we don't need a cache buster since they shouldn't be cached anyway
+      const urlWithCacheBuster = (method !== 'POST' && !url.includes('_cb='))
+        ? `${url}${url.includes('?') ? '&' : '?'}_cb=${Date.now()}`
+        : url;
       
       // Determine if we're in a Netlify environment to modify headers accordingly
       const isNetlify = typeof window !== 'undefined' && 
                       window.location.hostname.includes('netlify.app');
       
       console.log(`Environment detection: ${isNetlify ? 'Netlify detected' : 'Not running on Netlify'}`);
-      
+        
       const res = await fetch(urlWithCacheBuster, {
-        method: 'GET',
-        credentials: 'include',
+        method,
         headers: {
+          ...(requestData ? { "Content-Type": "application/json" } : {}),
           'Accept': 'application/json',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           // Only include Pragma header for non-Netlify environments (causes CORS issues on Netlify)
           ...(!isNetlify && { 'Pragma': 'no-cache' })
         },
+        body: requestData ? JSON.stringify(requestData) : undefined,
+        credentials: "include",
       });
-      
+    
       await throwIfResNotOk(res);
       const jsonData = await res.json();
-      console.log(`API Response: GET ${url} - Status: ${res.status}`);
+      console.log(`API Response: ${method} ${url} - Status: ${res.status}`);
       return jsonData as T;
-    }
-    
-    // Otherwise, assume it's a method and the second argument is the URL
-    const method = urlOrPathOrMethod;
-    const url = getFullApiUrl(urlOrPathOrData as string);
-    const requestData = data;
-    
-    console.log(`API Request: ${method} ${url}`);
-    
-    // Add a timestamp cache buster to the URL for non-POST requests
-    // For POST, we don't need a cache buster since they shouldn't be cached anyway
-    const urlWithCacheBuster = (method !== 'POST' && !url.includes('_cb='))
-      ? `${url}${url.includes('?') ? '&' : '?'}_cb=${Date.now()}`
-      : url;
-    
-    // Determine if we're in a Netlify environment to modify headers accordingly
-    const isNetlify = typeof window !== 'undefined' && 
-                    window.location.hostname.includes('netlify.app');
-    
-    console.log(`Environment detection: ${isNetlify ? 'Netlify detected' : 'Not running on Netlify'}`);
+    } catch (error) {
+      // Last attempt - throw the error
+      if (attempt === actualRetryCount) {
+        console.error('API Request failed after all retry attempts:', error);
+        throw error;
+      }
       
-    const res = await fetch(urlWithCacheBuster, {
-      method,
-      headers: {
-        ...(requestData ? { "Content-Type": "application/json" } : {}),
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        // Only include Pragma header for non-Netlify environments (causes CORS issues on Netlify)
-        ...(!isNetlify && { 'Pragma': 'no-cache' })
-      },
-      body: requestData ? JSON.stringify(requestData) : undefined,
-      credentials: "include",
-    });
-  
-    await throwIfResNotOk(res);
-    const jsonData = await res.json();
-    console.log(`API Response: ${method} ${url} - Status: ${res.status}`);
-    return jsonData as T;
-  } catch (error) {
-    console.error('API Request failed:', error);
-    throw error;
+      // Not the last attempt - retry after exponential backoff delay
+      const backoffTime = Math.min(1000 * Math.pow(2, attempt), 8000);
+      console.warn(`API request attempt ${attempt + 1} failed, retrying in ${backoffTime/1000}s...`, error);
+      await delay(backoffTime);
+    }
   }
+  
+  // This should never be reached due to the throw in the catch block
+  throw new Error('Unexpected API request failure');
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
