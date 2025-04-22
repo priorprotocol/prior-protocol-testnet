@@ -1286,16 +1286,21 @@ export class DatabaseStorage implements IStorage {
         const userRecord = userResult.rows[0];
         const userId = userRecord.id;
         const pointsBefore = userRecord.points || 0;
+        const bonusPointsBefore = userRecord.bonus_points || 0;
         
-        console.log(`[PointsSystem] Found user with ID ${userId}, current points: ${pointsBefore}`);
+        console.log(`[PointsSystem] Found user with ID ${userId}, current points: ${pointsBefore}, bonus points: ${bonusPointsBefore}`);
         
         // Calculate new points
         const newPoints = Number(pointsBefore) + points;
+        const newBonusPoints = Number(bonusPointsBefore) + points;
         
-        // Update user points directly
+        // Update user points directly - both total points and bonus points
         await db
           .update(users)
-          .set({ points: newPoints.toString() })
+          .set({ 
+            points: newPoints.toString(),
+            bonusPoints: newBonusPoints.toString()
+          })
           .where(eq(users.id, userId));
           
         // Create transaction record
@@ -1309,14 +1314,17 @@ export class DatabaseStorage implements IStorage {
           metadata: { reason }
         });
         
-        console.log(`[PointsSystem] Updated user ${userId} points: ${pointsBefore} → ${newPoints}`);
+        console.log(`[PointsSystem] Updated user ${userId} points: ${pointsBefore} → ${newPoints}, bonus points: ${bonusPointsBefore} → ${newBonusPoints}`);
         
         return {
           success: true,
           message: `Successfully added ${points} points to user ${userId} (${userRecord.address})`,
           userId,
           pointsBefore: Number(pointsBefore),
-          pointsAfter: newPoints
+          pointsAfter: newPoints,
+          bonusPointsBefore: Number(bonusPointsBefore),
+          bonusPointsAfter: newBonusPoints,
+          reason: reason
         };
       }
       
@@ -1327,10 +1335,13 @@ export class DatabaseStorage implements IStorage {
         address: address
       });
       
-      // Set initial points for the new user
+      // Set initial points for the new user - both total and bonus points
       await db
         .update(users)
-        .set({ points: points.toString() })
+        .set({ 
+          points: points.toString(),
+          bonusPoints: points.toString()
+        })
         .where(eq(users.id, newUser.id));
         
       // Create transaction record
@@ -1351,7 +1362,10 @@ export class DatabaseStorage implements IStorage {
         message: `Created new user and added ${points} points to wallet address ${address}`,
         userId: newUser.id,
         pointsBefore: 0,
-        pointsAfter: points
+        pointsAfter: points,
+        bonusPointsBefore: 0,
+        bonusPointsAfter: points,
+        reason: reason
       };
     } catch (error) {
       console.error(`[PointsSystem] Error adding points to wallet address:`, error);
@@ -1465,6 +1479,46 @@ export class DatabaseStorage implements IStorage {
       return {
         users: [],
         totalGlobalPoints: 0
+      };
+    }
+  }
+  
+  // New function to get the bonus points leaderboard
+  async getBonusPointsLeaderboard(limit: number = 20, page: number = 1): Promise<{
+    users: User[],
+    totalGlobalBonusPoints: number
+  }> {
+    try {
+      // Calculate offset based on page and limit for pagination
+      const offset = (page - 1) * limit;
+      
+      // Get top users by bonus points
+      const result = await db
+        .select()
+        .from(users)
+        .orderBy(sql`CAST(${users.bonusPoints} AS NUMERIC) DESC`)
+        .limit(limit)
+        .offset(offset);
+      
+      // Calculate total global bonus points across all users
+      const [totalPointsResult] = await db
+        .select({
+          sum: sql<number>`SUM(CAST(${users.bonusPoints} AS NUMERIC))`
+        })
+        .from(users);
+      
+      const totalGlobalBonusPoints = totalPointsResult?.sum || 0;
+      
+      console.log(`Found ${result.length} users for bonus points leaderboard (page ${page}, limit ${limit}), total global bonus points: ${totalGlobalBonusPoints}`);
+      return {
+        users: result,
+        totalGlobalBonusPoints
+      };
+    } catch (error) {
+      console.error("Error in getBonusPointsLeaderboard:", error);
+      return {
+        users: [],
+        totalGlobalBonusPoints: 0
       };
     }
   }
