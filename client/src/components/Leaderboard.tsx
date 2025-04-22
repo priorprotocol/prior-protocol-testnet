@@ -66,26 +66,52 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
     refetchOnReconnect: true,
   });
   
+  // State to track refresh operation
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
   // Function to refresh leaderboard data with cache busting
   const refreshLeaderboard = useCallback(async () => {
-    // Create a timestamp to force a cache miss
-    const cacheBuster = new Date().getTime();
-    
-    // First remove all cached leaderboard data
-    queryClient.removeQueries({ queryKey: ["/api/leaderboard"] });
-    
-    // Force refetch with fresh data (bypass cache)
-    const freshData = await apiRequest<LeaderboardData>(`/api/leaderboard?limit=${limit}&page=${currentPage}&_cb=${cacheBuster}`);
-    
-    // Update query cache with fresh data
-    queryClient.setQueryData(["/api/leaderboard", limit, currentPage], freshData);
-    
-    // Also refresh user rank if available
-    if (address) {
-      queryClient.invalidateQueries({ queryKey: ["/api/users/rank", address] });
+    try {
+      // Set refreshing state to show loading indicator
+      setIsRefreshing(true);
+      
+      // Create a timestamp to force a cache miss
+      const cacheBuster = new Date().getTime();
+      
+      // First remove all cached leaderboard data
+      queryClient.removeQueries({ queryKey: ["/api/leaderboard"] });
+      
+      // Force refetch with fresh data (bypass cache)
+      const freshData = await apiRequest<LeaderboardData>(`/api/leaderboard?limit=${limit}&page=${currentPage}&_cb=${cacheBuster}`);
+      
+      // Update query cache with fresh data
+      queryClient.setQueryData(["/api/leaderboard", limit, currentPage], freshData);
+      
+      // Also refresh user rank if available
+      if (address) {
+        queryClient.invalidateQueries({ queryKey: ["/api/users/rank", address] });
+      }
+      
+      // Fetch global stats to ensure latest data
+      // Make a request to recalculate points - this ensures we have the most accurate data
+      await apiRequest('/api/maintenance/recalculate-points', {
+        method: 'POST'
+      });
+      
+      // Refresh all user data
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      
+      // Update the leaderboard data after recalculation
+      const updatedData = await apiRequest<LeaderboardData>(`/api/leaderboard?limit=${limit}&page=${currentPage}`);
+      queryClient.setQueryData(["/api/leaderboard", limit, currentPage], updatedData);
+      
+      console.log("Leaderboard refresh completed with fresh data");
+    } catch (err) {
+      console.error("Error refreshing global stats:", err);
+    } finally {
+      // Always reset the refreshing state when done
+      setIsRefreshing(false);
     }
-    
-    console.log("Leaderboard refresh completed with fresh data");
   }, [limit, currentPage, address, queryClient]);
   
   // Initialize real-time updates as soon as component mounts 
@@ -183,9 +209,10 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
               className="text-xs flex items-center gap-1 bg-blue-900/30 hover:bg-blue-800/40 text-blue-300 px-2 py-1 rounded-md"
               onClick={() => refreshLeaderboard()}
               title="Refresh Leaderboard"
+              disabled={isRefreshing}
             >
-              <FaSync size={10} className="mr-1" />
-              Refresh
+              <FaSync size={10} className={`mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh'}
             </button>
           </div>
         </div>
@@ -201,14 +228,19 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
               <span className="text-[#A0AEC0] text-sm uppercase tracking-wider">Points Achievement:</span> 
               <div className="flex items-center justify-center mt-1">
                 <span className="text-[#A0AEC0] mr-2 text-sm">Total Global Points:</span>
-                <span className={`text-xl font-bold text-amber-400 ${lastMessage?.type === 'leaderboard_update' ? 'animate-pulse' : ''}`}>
+                <span className={`text-xl font-bold text-amber-400 ${(lastMessage?.type === 'leaderboard_update' || isRefreshing) ? 'animate-pulse' : ''}`}>
                   {/* Use WebSocket value if available, otherwise fallback to API data */}
                   {(wsTotalGlobalPoints > 0 
                     ? wsTotalGlobalPoints 
                     : leaderboardData?.totalGlobalPoints || 0
                   ).toFixed(1)}
                 </span>
-                {wsConnected && lastMessage?.type === 'leaderboard_update' && (
+                {isRefreshing && (
+                  <span className="ml-2 text-xs bg-blue-900/40 text-blue-300 px-1.5 py-0.5 rounded-full animate-pulse">
+                    Refreshing...
+                  </span>
+                )}
+                {wsConnected && lastMessage?.type === 'leaderboard_update' && !isRefreshing && (
                   <span className="ml-2 text-xs bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded-full">
                     Updated live
                   </span>
@@ -224,19 +256,19 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
               <span className="text-[#A0AEC0] text-sm uppercase tracking-wider">Community Swaps:</span>
               <div className="mt-1 grid grid-cols-3 gap-2">
                 <div>
-                  <div className="text-lg font-semibold text-blue-400">
+                  <div className={`text-lg font-semibold text-blue-400 ${isRefreshing ? 'animate-pulse' : ''}`}>
                     {leaderboardData?.globalSwaps?.total || 0}
                   </div>
                   <div className="text-xs text-gray-400">Total</div>
                 </div>
                 <div>
-                  <div className="text-lg font-semibold text-green-400">
+                  <div className={`text-lg font-semibold text-green-400 ${isRefreshing ? 'animate-pulse' : ''}`}>
                     {leaderboardData?.globalSwaps?.eligible || 0}
                   </div>
                   <div className="text-xs text-gray-400">Eligible</div>
                 </div>
                 <div>
-                  <div className="text-lg font-semibold text-gray-400">
+                  <div className={`text-lg font-semibold text-gray-400 ${isRefreshing ? 'animate-pulse' : ''}`}>
                     {leaderboardData?.globalSwaps?.ineligible || 0}
                   </div>
                   <div className="text-xs text-gray-400">Ineligible</div>
