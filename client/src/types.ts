@@ -17,8 +17,8 @@ export interface User {
   totalSwaps: number;
   totalClaims: number;
   points: number;
-  bonusPoints?: number;
-  userRole?: string;
+  bonusPoints: number | string;  // Make this required and support both number and string types
+  userRole: string;  // Make this required
   lastClaim: string | null;
   badges?: string[];
 }
