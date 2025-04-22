@@ -942,7 +942,9 @@ export class DatabaseStorage implements IStorage {
     const pointsBefore = user.points || 0;
     console.log(`[PointsSystem] Recalculating points for user ${userId} (${user.address}) - currently has ${pointsBefore} points`);
     
-    // Get all swap transactions for this user
+    // CRITICAL: Get all transactions for this user by type to properly calculate points from different sources
+    
+    // 1. Get swap transactions (these are calculated with daily limits)
     const swapTransactions = await db
       .select()
       .from(transactions)
@@ -953,7 +955,7 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(sql`${transactions.timestamp} ASC`); // Ensure chronological order
     
-    // Get all bonus point transactions for this user
+    // 2. Get bonus transactions (to be preserved in the recalculation)
     const bonusTransactions = await db
       .select()
       .from(transactions)
@@ -964,22 +966,47 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(sql`${transactions.timestamp} ASC`);
     
-    console.log(`[DEBUG] User ${userId} has ${bonusTransactions.length} bonus transactions`);
+    // 3. Get admin_points transactions (another type to be preserved)
+    const adminPointsTransactions = await db
+      .select()
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        eq(transactions.type, 'admin_points'),
+        eq(transactions.status, 'completed')
+      ))
+      .orderBy(sql`${transactions.timestamp} ASC`);
+    
+    console.log(`[DEBUG] User ${userId} has: 
+    - ${swapTransactions.length} swap transactions
+    - ${bonusTransactions.length} bonus transactions
+    - ${adminPointsTransactions.length} admin_points transactions`);
     
     // Calculate total bonus points (these will be preserved)
     let bonusPoints = 0;
+    
+    // First count points from 'bonus' transactions
     for (const tx of bonusTransactions) {
       if (tx.points) {
         const txPoints = parseFloat(tx.points.toString());
         bonusPoints += txPoints;
-        console.log(`[DEBUG] Bonus tx found: ${tx.id}, points: ${txPoints}, timestamp: ${tx.timestamp}`);
+        console.log(`[DEBUG] Bonus tx found: ${tx.id}, points: ${txPoints}, type: 'bonus', timestamp: ${tx.timestamp}`);
+      }
+    }
+    
+    // Also count points from 'admin_points' transactions
+    for (const tx of adminPointsTransactions) {
+      if (tx.points) {
+        const txPoints = parseFloat(tx.points.toString());
+        bonusPoints += txPoints;
+        console.log(`[DEBUG] Admin points tx found: ${tx.id}, points: ${txPoints}, type: 'admin_points', timestamp: ${tx.timestamp}`);
       }
     }
     
     // Round to 1 decimal place for consistency
     bonusPoints = Math.round(bonusPoints * 10) / 10;
     
-    console.log(`[PointsCalc] User ${userId} has ${bonusPoints} bonus points to preserve from ${bonusTransactions.length} bonus transactions`);
+    console.log(`[PointsCalc] User ${userId} has ${bonusPoints} bonus points to preserve from ${bonusTransactions.length + adminPointsTransactions.length} total bonus/admin transactions`);
     
     // Group transactions by day for swap points calculation
     const transactionsByDay: Record<string, Transaction[]> = {};
@@ -996,7 +1023,7 @@ export class DatabaseStorage implements IStorage {
       transactionsByDay[day].push(tx);
     }
     
-    // Calculate swap points: 0.5 per swap, max 5 swaps per day
+    // Calculate swap points: 0.5 per swap, max 5 swaps per day (= 2.5 daily max)
     let swapPoints = 0;
     
     for (const day in transactionsByDay) {
