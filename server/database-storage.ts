@@ -1120,14 +1120,42 @@ export class DatabaseStorage implements IStorage {
     userId?: number;
   }> {
     try {
+      console.log(`[PointsSystem] Adding ${points} points to wallet address: ${address}`);
+      
       // Normalize the address
       const normalizedAddress = address.toLowerCase();
+      console.log(`[PointsSystem] Normalized address: ${normalizedAddress}`);
       
-      // Find the user by wallet address
-      const [user] = await db.select().from(users).where(eq(users.address, normalizedAddress));
+      // Find the user by wallet address - use direct SQL first to debug
+      console.log(`[PointsSystem] Running SQL query to find user with address: ${normalizedAddress}`);
+      const directSqlResult = await pool.query(`
+        SELECT id, address, points, total_swaps 
+        FROM users 
+        WHERE address = $1
+      `, [normalizedAddress]);
+      
+      const directUsers = directSqlResult.rows || [];
+      console.log(`[PointsSystem] Direct SQL found ${directUsers.length} users:`, directUsers);
+      
+      // If direct SQL found users, use the first one
+      let user = null;
+      
+      if (directUsers.length > 0) {
+        // Take the first user from direct SQL results
+        const directUser = directUsers[0];
+        console.log(`[PointsSystem] Using existing user with ID ${directUser.id} from direct SQL query`);
+        
+        // Get the full user object from the ORM now that we know the ID
+        [user] = await db.select().from(users).where(eq(users.id, directUser.id));
+      } else {
+        // Fall back to regular ORM lookup if direct SQL fails
+        console.log(`[PointsSystem] Direct SQL found no users, trying ORM lookup for: ${normalizedAddress}`);
+        [user] = await db.select().from(users).where(eq(users.address, normalizedAddress));
+      }
       
       // If user doesn't exist, return an error
       if (!user) {
+        console.log(`[PointsSystem] No user found with address: ${normalizedAddress}`);
         return {
           success: false,
           message: `User with wallet address ${normalizedAddress} not found`
@@ -1136,9 +1164,12 @@ export class DatabaseStorage implements IStorage {
       
       const userId = user.id;
       const pointsBefore = user.points || 0;
+      console.log(`[PointsSystem] Found user ID: ${userId}, current points: ${pointsBefore}`);
       
       // Add points to the user
+      console.log(`[PointsSystem] Adding ${points} points to user ${userId}`);
       const pointsAfter = await this.addUserPoints(userId, points, reason);
+      console.log(`[PointsSystem] User ${userId} points updated: ${pointsBefore} → ${pointsAfter}`);
       
       return {
         success: true,
@@ -1150,6 +1181,8 @@ export class DatabaseStorage implements IStorage {
       
     } catch (error) {
       console.error(`[PointsSystem] Error adding points to wallet address:`, error);
+      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
+      console.error(`[PointsSystem] Error stack:`, errorStack);
       return {
         success: false,
         message: `Error adding points: ${error instanceof Error ? error.message : String(error)}`
