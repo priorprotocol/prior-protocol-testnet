@@ -258,6 +258,423 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // NEW ENDPOINTS FOR ADVANCED POINTS MANAGEMENT
+  
+  // Allocate points to all users who have performed swaps with the specific contract
+  app.post(`${apiPrefix}/maintenance/allocate-points-all-swaps`, async (req, res) => {
+    try {
+      const { pointsPerSwap, maxPointsPerUser } = req.body;
+      
+      // Default to 0.5 points per swap if not specified
+      const pointsPerSwapValue = pointsPerSwap ? parseFloat(pointsPerSwap) : 0.5;
+      
+      // Default to no maximum if not specified (use -1 to represent unlimited)
+      const maxPointsPerUserValue = maxPointsPerUser ? parseFloat(maxPointsPerUser) : -1;
+      
+      console.log(`Starting points allocation for all users with swaps`);
+      console.log(`Points per swap: ${pointsPerSwapValue}, Max points per user: ${maxPointsPerUserValue === -1 ? 'unlimited' : maxPointsPerUserValue}`);
+      
+      // Get all users with swap transactions via the contract address
+      const SWAP_CONTRACT = '0x8957e1988905311EE249e679a29fc9deCEd4D910';
+      
+      // First get all transactions involving the swap contract
+      const swapTransactions = await db
+        .select({
+          id: transactions.id,
+          userId: transactions.userId,
+          type: transactions.type
+        })
+        .from(transactions)
+        .where(
+          sql`${transactions.type} = 'swap' AND 
+              (${transactions.data}->>'contract' = ${SWAP_CONTRACT} OR 
+               ${transactions.data}->>'to' = ${SWAP_CONTRACT} OR
+               ${transactions.data}->>'from' = ${SWAP_CONTRACT})`
+        );
+      
+      console.log(`Found ${swapTransactions.length} swap transactions with contract ${SWAP_CONTRACT}`);
+      
+      // Group transactions by user
+      const userSwaps: Record<number, number> = {};
+      
+      for (const tx of swapTransactions) {
+        if (!userSwaps[tx.userId]) {
+          userSwaps[tx.userId] = 0;
+        }
+        userSwaps[tx.userId]++;
+      }
+      
+      // Allocate points to each user
+      const results: any[] = [];
+      let totalPointsAllocated = 0;
+      let totalUsersAffected = 0;
+      
+      for (const [userIdStr, swapCount] of Object.entries(userSwaps)) {
+        const userId = parseInt(userIdStr);
+        
+        // Calculate points based on number of swaps
+        const calculatedPoints = swapCount * pointsPerSwapValue;
+        
+        // Apply max points cap if specified
+        const pointsToAllocate = maxPointsPerUserValue > 0 
+          ? Math.min(calculatedPoints, maxPointsPerUserValue) 
+          : calculatedPoints;
+        
+        // Get the user's current points
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        
+        if (user) {
+          const pointsBefore = user.points || 0;
+          
+          // Add the new points
+          const newPoints = pointsBefore + pointsToAllocate;
+          
+          // Update the user record
+          await db
+            .update(users)
+            .set({ points: newPoints })
+            .where(eq(users.id, userId));
+          
+          console.log(`Allocated ${pointsToAllocate} points to user ${userId} (${user.address.slice(0, 8)}...): ${pointsBefore} → ${newPoints}`);
+          
+          results.push({
+            userId,
+            address: user.address,
+            swapCount,
+            pointsAllocated: pointsToAllocate,
+            pointsBefore,
+            pointsAfter: newPoints
+          });
+          
+          totalPointsAllocated += pointsToAllocate;
+          totalUsersAffected++;
+          
+          // Broadcast points update via WebSocket if available
+          try {
+            const { broadcastNotification } = require('./routes');
+            if (typeof broadcastNotification === 'function') {
+              broadcastNotification({
+                type: 'points_update',
+                userId: user.id,
+                address: user.address,
+                pointsBefore,
+                pointsAfter: newPoints,
+                timestamp: new Date().toISOString()
+              });
+            }
+          } catch (error) {
+            console.error(`Error broadcasting points update: ${error}`);
+          }
+        }
+      }
+      
+      return res.status(200).json({
+        success: true,
+        message: `Successfully allocated points to ${totalUsersAffected} users with swaps`,
+        summary: {
+          usersUpdated: totalUsersAffected,
+          totalPointsAllocated,
+          averagePerUser: totalUsersAffected > 0 ? totalPointsAllocated / totalUsersAffected : 0
+        },
+        details: results
+      });
+    } catch (error) {
+      console.error("Error during points allocation:", error);
+      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
+      return res.status(500).json({
+        success: false,
+        message: "Error allocating points to users with swaps",
+        error: String(error),
+        stack: errorStack
+      });
+    }
+  });
+  
+  // Batch allocate points to specific addresses
+  app.post(`${apiPrefix}/maintenance/allocate-points-batch`, async (req, res) => {
+    try {
+      const { addresses, pointsPerAddress } = req.body;
+      
+      if (!addresses || !Array.isArray(addresses) || addresses.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No addresses provided for batch points allocation"
+        });
+      }
+      
+      if (!pointsPerAddress || isNaN(parseFloat(pointsPerAddress)) || parseFloat(pointsPerAddress) <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid points value"
+        });
+      }
+      
+      const pointsValue = parseFloat(pointsPerAddress);
+      
+      console.log(`Starting batch points allocation for ${addresses.length} addresses, ${pointsValue} points each`);
+      
+      const results: any[] = [];
+      let totalPointsAllocated = 0;
+      let usersUpdated = 0;
+      
+      for (const address of addresses) {
+        // Normalize address to lowercase
+        const normalizedAddress = address.toLowerCase();
+        
+        // Find or create the user
+        let user = await storage.getUser(normalizedAddress);
+        
+        if (!user) {
+          console.log(`Creating new user for address: ${normalizedAddress}`);
+          user = await storage.createUser({
+            address: normalizedAddress,
+            lastClaim: null
+          });
+        }
+        
+        const pointsBefore = user.points || 0;
+        
+        // Add points to user
+        const newPoints = await storage.addUserPoints(user.id, pointsValue);
+        
+        console.log(`Allocated ${pointsValue} points to ${normalizedAddress}: ${pointsBefore} → ${newPoints}`);
+        
+        results.push({
+          userId: user.id,
+          address: normalizedAddress,
+          pointsBefore,
+          pointsAllocated: pointsValue,
+          pointsAfter: newPoints
+        });
+        
+        totalPointsAllocated += pointsValue;
+        usersUpdated++;
+      }
+      
+      return res.status(200).json({
+        success: true,
+        message: `Successfully allocated points to ${usersUpdated} addresses`,
+        summary: {
+          addressesProcessed: addresses.length,
+          usersUpdated,
+          totalPointsAllocated
+        },
+        details: results
+      });
+    } catch (error) {
+      console.error("Error during batch points allocation:", error);
+      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
+      return res.status(500).json({
+        success: false,
+        message: "Error in batch points allocation",
+        error: String(error),
+        stack: errorStack
+      });
+    }
+  });
+  
+  // Deduct points from all or selected users
+  app.post(`${apiPrefix}/maintenance/deduct-points`, async (req, res) => {
+    try {
+      const { addresses, pointsToDeduct, deductAll } = req.body;
+      
+      // Validate input
+      if (!pointsToDeduct || isNaN(parseFloat(pointsToDeduct)) || parseFloat(pointsToDeduct) <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid points value for deduction"
+        });
+      }
+      
+      const deductionAmount = parseFloat(pointsToDeduct);
+      
+      console.log(`Starting points deduction: ${deductionAmount} points per user`);
+      
+      let targetUsers = [];
+      
+      // If deductAll is true, get all users
+      if (deductAll === true) {
+        console.log("Deducting points from ALL users in the system");
+        targetUsers = await db
+          .select()
+          .from(users)
+          .where(sql`${users.points} > 0`); // Only target users with positive points
+      } 
+      // If specific addresses provided, use those
+      else if (addresses && Array.isArray(addresses) && addresses.length > 0) {
+        console.log(`Deducting points from ${addresses.length} specified addresses`);
+        
+        // Convert all addresses to lowercase for consistent lookup
+        const normalizedAddresses = addresses.map(addr => addr.toLowerCase());
+        
+        // Get all specified users
+        targetUsers = await db
+          .select()
+          .from(users)
+          .where(sql`LOWER(${users.address}) IN (${normalizedAddresses.join(',')}) AND ${users.points} > 0`);
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Must specify either deductAll=true or provide an array of addresses"
+        });
+      }
+      
+      console.log(`Found ${targetUsers.length} users for points deduction`);
+      
+      const results = [];
+      let totalPointsDeducted = 0;
+      let usersAffected = 0;
+      
+      // Process each user
+      for (const user of targetUsers) {
+        const pointsBefore = user.points || 0;
+        
+        // Ensure we don't go below zero
+        const actualDeduction = Math.min(pointsBefore, deductionAmount);
+        const newPoints = Math.max(0, pointsBefore - deductionAmount);
+        
+        // Update user's points
+        await db
+          .update(users)
+          .set({ points: newPoints })
+          .where(eq(users.id, user.id));
+        
+        console.log(`Deducted ${actualDeduction} points from user ${user.id} (${user.address.slice(0, 8)}...): ${pointsBefore} → ${newPoints}`);
+        
+        // Track results
+        results.push({
+          userId: user.id,
+          address: user.address,
+          pointsBefore,
+          pointsDeducted: actualDeduction,
+          pointsAfter: newPoints
+        });
+        
+        totalPointsDeducted += actualDeduction;
+        usersAffected++;
+        
+        // Broadcast points update via WebSocket if available
+        try {
+          const { broadcastNotification } = require('./routes');
+          if (typeof broadcastNotification === 'function') {
+            broadcastNotification({
+              type: 'points_update',
+              userId: user.id,
+              address: user.address,
+              pointsBefore,
+              pointsAfter: newPoints,
+              timestamp: new Date().toISOString()
+            });
+          }
+        } catch (error) {
+          console.error(`Error broadcasting points update: ${error}`);
+        }
+      }
+      
+      return res.status(200).json({
+        success: true,
+        message: `Successfully deducted points from ${usersAffected} users`,
+        summary: {
+          usersProcessed: targetUsers.length,
+          usersAffected,
+          totalPointsDeducted,
+          averagePerUser: usersAffected > 0 ? totalPointsDeducted / usersAffected : 0
+        },
+        details: results
+      });
+    } catch (error) {
+      console.error("Error during points deduction:", error);
+      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
+      return res.status(500).json({
+        success: false,
+        message: "Error deducting points",
+        error: String(error),
+        stack: errorStack
+      });
+    }
+  });
+  
+  // Get community swap statistics
+  app.get(`${apiPrefix}/stats/community-swaps`, async (req, res) => {
+    try {
+      const SWAP_CONTRACT = '0x8957e1988905311EE249e679a29fc9deCEd4D910';
+      
+      // Query all swap transactions involving the contract
+      const swapTransactions = await db
+        .select({
+          id: transactions.id,
+          userId: transactions.userId,
+          timestamp: transactions.timestamp
+        })
+        .from(transactions)
+        .where(
+          sql`${transactions.type} = 'swap' AND 
+              (${transactions.data}->>'contract' = ${SWAP_CONTRACT} OR 
+               ${transactions.data}->>'to' = ${SWAP_CONTRACT} OR 
+               ${transactions.data}->>'from' = ${SWAP_CONTRACT})`
+        )
+        .orderBy(sql`${transactions.timestamp} DESC`);
+      
+      // Calculate swaps per day, identifying eligible vs ineligible
+      const swapsByDay: Record<string, {userId: number, swaps: number}[]> = {};
+      
+      for (const tx of swapTransactions) {
+        const date = new Date(tx.timestamp).toISOString().split('T')[0]; // YYYY-MM-DD
+        
+        if (!swapsByDay[date]) {
+          swapsByDay[date] = [];
+        }
+        
+        // Find if user already has swaps on this day
+        const userDayRecord = swapsByDay[date].find(record => record.userId === tx.userId);
+        
+        if (userDayRecord) {
+          userDayRecord.swaps++;
+        } else {
+          swapsByDay[date].push({ userId: tx.userId, swaps: 1 });
+        }
+      }
+      
+      // Calculate eligible vs ineligible swaps
+      let totalSwaps = swapTransactions.length;
+      let eligibleSwaps = 0;
+      let ineligibleSwaps = 0;
+      
+      for (const date in swapsByDay) {
+        for (const userRecord of swapsByDay[date]) {
+          const eligibleSwapsForUser = Math.min(userRecord.swaps, 5); // Max 5 per day
+          eligibleSwaps += eligibleSwapsForUser;
+          ineligibleSwaps += userRecord.swaps - eligibleSwapsForUser;
+        }
+      }
+      
+      return res.status(200).json({
+        success: true,
+        data: {
+          totalSwaps,
+          eligibleSwaps,
+          ineligibleSwaps,
+          dailyBreakdown: Object.keys(swapsByDay).map(date => ({
+            date,
+            totalSwaps: swapsByDay[date].reduce((sum, record) => sum + record.swaps, 0),
+            uniqueUsers: swapsByDay[date].length,
+            eligibleSwaps: swapsByDay[date].reduce((sum, record) => sum + Math.min(record.swaps, 5), 0),
+            ineligibleSwaps: swapsByDay[date].reduce((sum, record) => sum + Math.max(0, record.swaps - 5), 0)
+          }))
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching community swap statistics:", error);
+      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
+      return res.status(500).json({
+        success: false,
+        message: "Error fetching community swap statistics",
+        error: String(error),
+        stack: errorStack
+      });
+    }
+  });
+  
   // Duplicate endpoint for GET requests to support both POST and GET for fix-points
   app.get(`${apiPrefix}/maintenance/fix-points`, async (req, res) => {
     res.status(405).json({
