@@ -18,7 +18,12 @@ interface LeaderboardData {
   total: number;
   page: number;
   totalPages: number;
-  totalGlobalPoints: number; // Add total global points
+  totalGlobalPoints: number; // Total global points
+  globalSwaps?: {
+    total: number;
+    eligible: number;
+    ineligible: number;
+  }
 }
 
 interface LeaderboardProps {

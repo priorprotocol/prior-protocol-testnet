@@ -693,6 +693,57 @@ export class MemStorage implements IStorage {
     return { count: this.users.size };
   }
   
+  async getGlobalSwapStats(): Promise<{
+    totalSwaps: number;
+    eligibleSwaps: number;
+    ineligibleSwaps: number;
+  }> {
+    // Count all swap transactions
+    let totalSwaps = 0;
+    let eligibleSwaps = 0;
+    
+    // Get all swap transactions and count total swaps
+    const swaps = Array.from(this.transactions.values()).filter(tx => tx.type === 'swap');
+    totalSwaps = swaps.length;
+    
+    // Group swaps by user and day to calculate eligible swaps (max 5 per user per day)
+    interface UserDailySwaps {
+      [key: string]: { [day: string]: number };
+    }
+    
+    const userDailySwaps: UserDailySwaps = {};
+    
+    swaps.forEach(swap => {
+      const userId = swap.userId.toString();
+      const swapDate = new Date(swap.timestamp || Date.now()).toISOString().split('T')[0]; // Get YYYY-MM-DD
+      
+      if (!userDailySwaps[userId]) {
+        userDailySwaps[userId] = {};
+      }
+      
+      if (!userDailySwaps[userId][swapDate]) {
+        userDailySwaps[userId][swapDate] = 0;
+      }
+      
+      userDailySwaps[userId][swapDate]++;
+    });
+    
+    // For each user's daily swaps, count those eligible for points (max 5 per day)
+    Object.values(userDailySwaps).forEach(userDays => {
+      Object.values(userDays).forEach(dailySwaps => {
+        eligibleSwaps += Math.min(dailySwaps, 5); // Maximum of 5 eligible swaps per day
+      });
+    });
+    
+    const ineligibleSwaps = totalSwaps - eligibleSwaps;
+    
+    return {
+      totalSwaps,
+      eligibleSwaps,
+      ineligibleSwaps
+    };
+  }
+  
   async getLeaderboard(limit: number = 15, page: number = 1): Promise<{
     users: User[],
     totalGlobalPoints: number
