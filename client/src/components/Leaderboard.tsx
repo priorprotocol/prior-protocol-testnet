@@ -69,7 +69,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
   // State to track refresh operation
   const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Function to refresh leaderboard data with cache busting
+  // Function to refresh leaderboard data - only triggered manually by button click
   const refreshLeaderboard = useCallback(async () => {
     try {
       // Set refreshing state to show loading indicator
@@ -78,6 +78,20 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
       // Create a timestamp to force a cache miss
       const cacheBuster = new Date().getTime();
       
+      console.log("Starting refresh - first recalculating all user points...");
+      
+      // STEP 1: First recalculate all points to ensure swap stats and points are consistent
+      // This ensures community swap statistics align properly with points
+      await fetch('/api/maintenance/recalculate-points', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log("Points recalculated, now refreshing leaderboard data...");
+      
+      // STEP 2: After recalculation is complete, fetch the freshest data
       // First remove all cached leaderboard data
       queryClient.removeQueries({ queryKey: ["/api/leaderboard"] });
       
@@ -89,24 +103,9 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
       
       // Also refresh user rank if available
       if (address) {
-        queryClient.invalidateQueries({ queryKey: ["/api/users/rank", address] });
+        const rankData = await apiRequest(`/api/users/${address}/rank`);
+        queryClient.setQueryData(["/api/users/rank", address], rankData);
       }
-      
-      // Fetch global stats to ensure latest data
-      // Make a request to recalculate points - this ensures we have the most accurate data
-      await fetch('/api/maintenance/recalculate-points', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      // Refresh all user data
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      
-      // Update the leaderboard data after recalculation
-      const updatedData = await apiRequest<LeaderboardData>(`/api/leaderboard?limit=${limit}&page=${currentPage}`);
-      queryClient.setQueryData(["/api/leaderboard", limit, currentPage], updatedData);
       
       console.log("Leaderboard refresh completed with fresh data");
     } catch (err) {
@@ -117,26 +116,16 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
     }
   }, [limit, currentPage, address, queryClient]);
   
-  // Initialize real-time updates as soon as component mounts 
+  // Initialize data loading as soon as component mounts
   useEffect(() => {
-    // Immediately load leaderboard data on app start
+    // Immediately load leaderboard data on app start - only once
     queryClient.prefetchQuery({
       queryKey: ["/api/leaderboard", limit, currentPage],
       queryFn: () => apiRequest<LeaderboardData>(`/api/leaderboard?limit=${limit}&page=${currentPage}`)
     });
     
-    // Set up interval for real-time updates
-    refreshIntervalRef.current = setInterval(() => {
-      refreshLeaderboard();
-    }, 10000); // Refresh every 10 seconds
-    
-    // Clean up interval on unmount
-    return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-      }
-    };
-  }, [limit, currentPage, queryClient, refreshLeaderboard]);
+    // No automatic refresh interval - refresh only happens on button click
+  }, [limit, currentPage, queryClient]);
   
   // Pagination controls
   const goToNextPage = () => {
