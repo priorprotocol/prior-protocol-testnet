@@ -1059,7 +1059,7 @@ export class DatabaseStorage implements IStorage {
     return user.points || 0;
   }
   
-  async addUserPoints(userId: number, points: number): Promise<number> {
+  async addUserPoints(userId: number, points: number, reason: string = ''): Promise<number> {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) return 0;
     
@@ -1072,8 +1072,89 @@ export class DatabaseStorage implements IStorage {
       .set({ points: newPoints })
       .where(eq(users.id, userId))
       .returning();
+      
+    // Create a transaction record for this points addition if it's a bonus
+    if (reason) {
+      await this.createTransaction({
+        userId,
+        type: 'bonus',
+        points: points.toString(),
+        details: reason,
+        status: 'completed'
+      });
+      
+      // Broadcast the points update
+      try {
+        const { broadcastNotification } = require('./routes');
+        if (typeof broadcastNotification === 'function') {
+          broadcastNotification({
+            type: 'points_update',
+            userId,
+            address: user.address,
+            pointsBefore: currentPoints,
+            pointsAfter: newPoints,
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error(`[WebSocket] Error broadcasting points update:`, error);
+      }
+      
+      console.log(`[PointsSystem] Admin added ${points} bonus points to user ${userId} (${user.address}). Reason: ${reason}`);
+    }
     
     return updatedUser.points || 0;
+  }
+  
+  /**
+   * Add bonus points to a specific user by wallet address
+   * @param address The wallet address of the user
+   * @param points The number of points to add
+   * @param reason The reason for awarding the points
+   */
+  async addPointsByWalletAddress(address: string, points: number, reason: string): Promise<{
+    success: boolean;
+    message: string;
+    pointsBefore?: number;
+    pointsAfter?: number;
+    userId?: number;
+  }> {
+    try {
+      // Normalize the address
+      const normalizedAddress = address.toLowerCase();
+      
+      // Find the user by wallet address
+      const [user] = await db.select().from(users).where(eq(users.address, normalizedAddress));
+      
+      // If user doesn't exist, return an error
+      if (!user) {
+        return {
+          success: false,
+          message: `User with wallet address ${normalizedAddress} not found`
+        };
+      }
+      
+      const userId = user.id;
+      const pointsBefore = user.points || 0;
+      
+      // Add points to the user
+      const pointsAfter = await this.addUserPoints(userId, points, reason);
+      
+      return {
+        success: true,
+        message: `Successfully added ${points} points to user ${userId} (${normalizedAddress})`,
+        userId,
+        pointsBefore,
+        pointsAfter
+      };
+      
+    } catch (error) {
+      console.error(`[PointsSystem] Error adding points to wallet address:`, error);
+      return {
+        success: false,
+        message: `Error adding points: ${error instanceof Error ? error.message : String(error)}`
+      };
+    }
   }
   
   async removePointsForFaucetClaims(): Promise<number> {
@@ -1467,6 +1548,143 @@ export class DatabaseStorage implements IStorage {
       if (error && typeof error === 'object' && 'stack' in error) {
         console.error("Stack trace:", error.stack);
       }
+      throw error;
+    }
+  }
+  
+  /**
+   * Add bonus points to all users who have made at least one swap transaction
+   * @param bonusPoints The number of points to add to each user
+   * @param reason The reason for the bonus (for transaction recording)
+   * @param minSwaps Minimum number of swaps a user must have to qualify for the bonus
+   */
+  async addBonusPointsToAllSwapUsers(bonusPoints: number, reason: string, minSwaps: number = 1): Promise<{
+    usersRewarded: number;
+    totalPointsAdded: number;
+    totalPointsBefore: number;
+    totalPointsAfter: number;
+    userDetails: any[];
+  }> {
+    console.log(`[PointsSystem] Starting bonus points distribution of ${bonusPoints} points to all users with at least ${minSwaps} swap(s)`);
+    
+    let usersRewarded = 0;
+    let totalPointsAdded = 0;
+    let totalPointsBefore = 0;
+    let totalPointsAfter = 0;
+    const userDetails: any[] = [];
+    
+    try {
+      // Get distinct user IDs that have made at least one swap transaction
+      const userSwapCounts = await db
+        .select({
+          userId: transactions.userId,
+          swapCount: count(transactions.id)
+        })
+        .from(transactions)
+        .where(and(
+          eq(transactions.type, 'swap'),
+          eq(transactions.status, 'completed')
+        ))
+        .groupBy(transactions.userId);
+        
+      // Filter users who meet the minimum swap requirement
+      const eligibleUsers = userSwapCounts.filter(u => u.swapCount >= minSwaps);
+      
+      console.log(`[PointsSystem] Found ${eligibleUsers.length} eligible users with at least ${minSwaps} swap(s)`);
+      
+      // Add bonus points to each eligible user
+      for (const { userId, swapCount } of eligibleUsers) {
+        // Get user details
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        if (!user) {
+          console.log(`[PointsSystem] User ${userId} not found, skipping`);
+          continue;
+        }
+        
+        const pointsBefore = user.points || 0;
+        totalPointsBefore += pointsBefore;
+        
+        // Calculate new points (add bonus to current points)
+        const newPoints = pointsBefore + bonusPoints;
+        totalPointsAdded += bonusPoints;
+        
+        // Update user with new points
+        await db
+          .update(users)
+          .set({ points: newPoints })
+          .where(eq(users.id, userId));
+          
+        totalPointsAfter += newPoints;
+        usersRewarded++;
+        
+        // Create a record of this bonus transaction
+        await this.createTransaction({
+          userId,
+          type: 'bonus',
+          points: bonusPoints.toString(),
+          details: reason,
+          status: 'completed'
+        });
+        
+        // Record user details for the report
+        userDetails.push({
+          userId,
+          address: user.address,
+          pointsBefore,
+          pointsAfter: newPoints,
+          bonusPoints,
+          totalSwaps: swapCount
+        });
+        
+        console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | Added ${bonusPoints} bonus points`);
+        
+        // Broadcast the points update
+        try {
+          const { broadcastNotification } = require('./routes');
+          if (typeof broadcastNotification === 'function') {
+            broadcastNotification({
+              type: 'points_update',
+              userId,
+              address: user.address,
+              pointsBefore,
+              pointsAfter: newPoints,
+              timestamp: new Date().toISOString()
+            });
+          }
+        } catch (error) {
+          console.error(`[WebSocket] Error broadcasting points update:`, error);
+        }
+      }
+      
+      // Broadcast global leaderboard update
+      try {
+        const { broadcastNotification } = require('./routes');
+        if (typeof broadcastNotification === 'function') {
+          const totalCount = await this.getTotalUsersCount();
+          broadcastNotification({
+            type: 'leaderboard_update',
+            totalGlobalPoints: totalPointsAfter,
+            userCount: totalCount.count,
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error(`[WebSocket] Error broadcasting leaderboard update:`, error);
+      }
+      
+      console.log(`[PointsSystem] Bonus distribution complete. Rewarded ${usersRewarded} users with ${bonusPoints} points each.`);
+      console.log(`[PointsSystem] Total points before: ${totalPointsBefore}, after: ${totalPointsAfter}`);
+      
+      return {
+        usersRewarded,
+        totalPointsAdded,
+        totalPointsBefore,
+        totalPointsAfter,
+        userDetails
+      };
+      
+    } catch (error) {
+      console.error("[PointsSystem] Error during bonus points distribution:", error);
       throw error;
     }
   }

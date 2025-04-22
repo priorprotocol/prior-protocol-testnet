@@ -219,6 +219,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Admin endpoint to award bonus points to all users who have swapped
+  app.post(`${apiPrefix}/admin/reward/global`, async (req, res) => {
+    try {
+      // Parse request body
+      const { points, reason, minSwaps, adminAddress } = req.body;
+      
+      // Validate the admin address
+      const ADMIN_WALLET = "0x4cfc531df94339def7dcd603aac1a2deaf6888b7";
+      if (!adminAddress || adminAddress.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized - Admin access required"
+        });
+      }
+      
+      // Validate points input
+      if (!points || isNaN(Number(points)) || Number(points) <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid points value - must be a positive number"
+        });
+      }
+      
+      // Parse and validate minimum swaps requirement
+      const minSwapsCount = minSwaps ? parseInt(minSwaps) : 1;
+      if (isNaN(minSwapsCount) || minSwapsCount < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid minimum swaps value - must be a positive integer"
+        });
+      }
+      
+      // Parse the reward reason
+      const rewardReason = reason || `Admin global bonus: ${points} points`;
+      
+      // Call the storage method to add bonus points to all eligible users
+      const result = await storage.addBonusPointsToAllSwapUsers(Number(points), rewardReason, minSwapsCount);
+      
+      // Return successful response
+      return res.status(200).json({
+        success: true,
+        message: `Successfully rewarded ${result.usersRewarded} users with ${points} points each`,
+        summary: {
+          usersRewarded: result.usersRewarded,
+          totalPointsAdded: result.totalPointsAdded,
+          totalPointsBefore: result.totalPointsBefore,
+          totalPointsAfter: result.totalPointsAfter
+        },
+        details: result.userDetails
+      });
+    } catch (error: unknown) {
+      console.error("Error during global rewards distribution:", error);
+      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
+      console.error("Error stack:", errorStack);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while distributing rewards",
+        error: String(error),
+        stack: errorStack
+      });
+    }
+  });
+  
+  // Admin endpoint to award bonus points to a specific user by wallet address
+  app.post(`${apiPrefix}/admin/reward/user`, async (req, res) => {
+    try {
+      // Parse request body
+      const { address, points, reason, adminAddress } = req.body;
+      
+      // Validate the admin address
+      const ADMIN_WALLET = "0x4cfc531df94339def7dcd603aac1a2deaf6888b7";
+      if (!adminAddress || adminAddress.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized - Admin access required"
+        });
+      }
+      
+      // Validate address input
+      if (!address || !address.startsWith('0x')) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid wallet address"
+        });
+      }
+      
+      // Validate points input
+      if (!points || isNaN(Number(points)) || Number(points) <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid points value - must be a positive number"
+        });
+      }
+      
+      // Parse the reward reason
+      const rewardReason = reason || `Admin individual bonus: ${points} points`;
+      
+      // Call the storage method to add bonus points to the specific user
+      const result = await storage.addPointsByWalletAddress(address, Number(points), rewardReason);
+      
+      // Return appropriate response based on result
+      if (result.success) {
+        return res.status(200).json({
+          success: true,
+          message: result.message,
+          userId: result.userId,
+          pointsBefore: result.pointsBefore,
+          pointsAfter: result.pointsAfter
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: result.message
+        });
+      }
+    } catch (error: unknown) {
+      console.error("Error during individual reward distribution:", error);
+      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
+      console.error("Error stack:", errorStack);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while distributing rewards",
+        error: String(error),
+        stack: errorStack
+      });
+    }
+  });
+  
   // Special endpoint to fix all swap points to be exactly 0.5 per swap
   app.post(`${apiPrefix}/maintenance/fix-points`, async (req, res) => {
     try {

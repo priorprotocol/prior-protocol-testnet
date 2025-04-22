@@ -21,7 +21,19 @@ const Admin = () => {
   const [resetResult, setResetResult] = useState<any>(null);
   const [recalcResult, setRecalcResult] = useState<any>(null);
   const [fixPointsResult, setFixPointsResult] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("points");
+  const [rewardResult, setRewardResult] = useState<any>(null);
+  const [individualRewardResult, setIndividualRewardResult] = useState<any>(null);
+  
+  // Reward inputs
+  const [globalRewardPoints, setGlobalRewardPoints] = useState<number>(1);
+  const [globalRewardReason, setGlobalRewardReason] = useState<string>("Community bonus");
+  const [globalMinSwaps, setGlobalMinSwaps] = useState<number>(1);
+  
+  const [individualAddress, setIndividualAddress] = useState<string>("");
+  const [individualPoints, setIndividualPoints] = useState<number>(1);
+  const [individualReason, setIndividualReason] = useState<string>("Individual bonus");
+  
+  const [activeTab, setActiveTab] = useState("rewards");
   const [, setLocation] = useLocation();
   
   const isAdmin = address?.toLowerCase() === ADMIN_WALLET.toLowerCase();
@@ -270,7 +282,8 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="rewards">Reward Users</TabsTrigger>
           <TabsTrigger value="points">Points Fix</TabsTrigger>
           <TabsTrigger value="recalculate">Recalculation</TabsTrigger>
           <TabsTrigger value="reset">Database Reset</TabsTrigger>
