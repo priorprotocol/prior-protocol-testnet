@@ -216,6 +216,8 @@ const Dashboard = () => {
             points={userStats?.points || 0}
             swaps={userStats?.totalSwaps || 0}
             isLoading={statsLoading}
+            bonusPoints={userStats?.bonusPoints || 0}
+            userRole={userStats?.userRole || 'user'}
           />
 
           {/* Admin panel link removed as requested */}
@@ -364,7 +366,19 @@ const Dashboard = () => {
 };
 
 // Total Points Summary Component
-const TotalPointsSummary = ({ points, swaps, isLoading }: { points: number | string, swaps: number, isLoading: boolean }) => {
+const TotalPointsSummary = ({ 
+  points, 
+  swaps, 
+  isLoading, 
+  bonusPoints: passedBonusPoints, 
+  userRole: passedUserRole 
+}: { 
+  points: number | string, 
+  swaps: number, 
+  isLoading: boolean,
+  bonusPoints?: number | string,
+  userRole?: string
+}) => {
   // Convert points to a number if it's a string
   const numericPoints = typeof points === 'string' ? parseFloat(points) : points;
   
@@ -379,13 +393,18 @@ const TotalPointsSummary = ({ points, swaps, isLoading }: { points: number | str
     enabled: false, // This will use the existing data from the parent component's query
   });
   
-  // Parse the bonus points (default to 0 if not available)
-  const bonusPoints = userStats?.bonusPoints 
-    ? (typeof userStats.bonusPoints === 'string' ? parseFloat(userStats.bonusPoints || '0') : (userStats.bonusPoints || 0)) 
-    : 0;
+  // Parse the bonus points (use passed value first, fallback to userStats if available)
+  const bonusPointsValue = passedBonusPoints !== undefined 
+    ? (typeof passedBonusPoints === 'string' ? parseFloat(passedBonusPoints) : passedBonusPoints) 
+    : userStats?.bonusPoints 
+      ? (typeof userStats.bonusPoints === 'string' ? parseFloat(userStats.bonusPoints || '0') : (userStats.bonusPoints || 0)) 
+      : 0;
+  
+  // Get user role (use passed value first, fallback to userStats)
+  const userRoleValue = passedUserRole || userStats?.userRole || 'user';
   
   // Calculate swap points (total points minus bonus points)
-  const swapPoints = Math.max(0, numericPoints - bonusPoints);
+  const swapPoints = Math.max(0, numericPoints - bonusPointsValue);
   
   return (
     <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">
