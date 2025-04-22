@@ -317,11 +317,23 @@ const Admin = () => {
       console.log("Sending individual reward request...");
       
       // Validate input values
-      if (!individualAddress || !individualAddress.startsWith('0x')) {
+      if (!individualAddress) {
         toast({
           variant: "destructive",
           title: "Invalid Input",
-          description: "Please enter a valid wallet address starting with 0x."
+          description: "Please enter a wallet address."
+        });
+        return;
+      }
+      
+      // Normalize the address to ensure consistent format
+      const normalizedAddress = individualAddress.trim().toLowerCase();
+      
+      if (!normalizedAddress.startsWith('0x') || normalizedAddress.length !== 42) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Input",
+          description: "Please enter a valid wallet address (0x followed by 40 hex characters)."
         });
         return;
       }
@@ -335,10 +347,12 @@ const Admin = () => {
         return;
       }
       
+      console.log(`Submitting reward request for address: ${normalizedAddress} with ${individualPoints} points`);
+      
       // Use the admin/reward/user endpoint
       const result = await apiRequest('POST', '/api/admin/reward/user', {
         adminAddress: address,
-        address: individualAddress,
+        address: normalizedAddress, // Use normalized address
         points: individualPoints,
         reason: individualReason
       });
@@ -350,7 +364,7 @@ const Admin = () => {
       if (result.success) {
         toast({
           title: "Individual Reward Sent",
-          description: `Rewarded user ${individualAddress.substring(0, 6)}...${individualAddress.substring(individualAddress.length - 4)} with ${individualPoints} points. Points before: ${result.pointsBefore}, after: ${result.pointsAfter}.`
+          description: `Rewarded user ${normalizedAddress.substring(0, 6)}...${normalizedAddress.substring(normalizedAddress.length - 4)} with ${individualPoints} points. Points before: ${result.pointsBefore}, after: ${result.pointsAfter}.`
         });
   
         // Refresh all application data after the reward
@@ -370,10 +384,19 @@ const Admin = () => {
       
     } catch (error) {
       console.error("Individual reward failed:", error);
+      
+      // Extract error message if available
+      let errorMessage = "An error occurred while distributing the individual reward.";
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = String((error as any).message) || errorMessage;
+      }
+      
       toast({
         variant: "destructive",
         title: "Reward Distribution Failed",
-        description: "An error occurred while distributing the individual reward."
+        description: errorMessage
       });
     } finally {
       setLoading(false);

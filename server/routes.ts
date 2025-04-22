@@ -285,12 +285,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin endpoint to award bonus points to a specific user by wallet address
   app.post(`${apiPrefix}/admin/reward/user`, async (req, res) => {
     try {
+      console.log('[AdminReward] Individual reward request received:', req.body);
+      
       // Parse request body
       const { address, points, reason, adminAddress } = req.body;
+      
+      console.log(`[AdminReward] Parsed values - address: ${address}, points: ${points}, adminAddress: ${adminAddress}`);
       
       // Validate the admin address
       const ADMIN_WALLET = "0x4cfc531df94339def7dcd603aac1a2deaf6888b7";
       if (!adminAddress || adminAddress.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
+        console.log(`[AdminReward] Admin validation failed - provided: ${adminAddress}, expected: ${ADMIN_WALLET}`);
         return res.status(403).json({
           success: false,
           message: "Unauthorized - Admin access required"
@@ -299,6 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate address input
       if (!address || !address.startsWith('0x')) {
+        console.log(`[AdminReward] Address validation failed - provided: ${address}`);
         return res.status(400).json({
           success: false,
           message: "Invalid wallet address"
@@ -307,6 +313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate points input
       if (!points || isNaN(Number(points)) || Number(points) <= 0) {
+        console.log(`[AdminReward] Points validation failed - provided: ${points}`);
         return res.status(400).json({
           success: false,
           message: "Invalid points value - must be a positive number"
@@ -315,8 +322,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Parse the reward reason
       const rewardReason = reason || `Admin individual bonus: ${points} points`;
+      console.log(`[AdminReward] Using reward reason: "${rewardReason}"`);
       
       // Call the storage method to add bonus points to the specific user
+      console.log(`[AdminReward] Calling addPointsByWalletAddress for ${address} with ${points} points`);
       const result = await storage.addPointsByWalletAddress(address, Number(points), rewardReason);
       
       // Return appropriate response based on result
