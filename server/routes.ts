@@ -339,15 +339,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const adminUser = await db.select().from(users).where(eq(users.id, 3042)).limit(1);
           
           if (adminUser && adminUser.length > 0) {
-            // Get current points
+            // Get current points and bonus points
             const pointsBefore = adminUser[0].points || 0;
+            const bonusPointsBefore = adminUser[0].bonusPoints || 0;
             const numericPointsBefore = Number(pointsBefore);
+            const numericBonusPointsBefore = Number(bonusPointsBefore);
             const newPoints = numericPointsBefore + Number(points);
+            const newBonusPoints = numericBonusPointsBefore + Number(points);
             
-            // Update admin user points directly
+            // Update admin user points directly - both regular and bonus points
             await db
               .update(users)
-              .set({ points: newPoints.toString() })
+              .set({ 
+                points: newPoints.toString(),
+                bonusPoints: newBonusPoints.toString() 
+              })
               .where(eq(users.id, 3042));
               
             // Create transaction record
@@ -361,15 +367,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
               metadata: { reason: rewardReason }
             });
             
-            console.log(`[AdminReward] Successfully added ${points} points to admin user (ID 3042): ${numericPointsBefore} → ${newPoints}`);
+            console.log(`[AdminReward] Successfully added ${points} points to admin user (ID 3042): ${numericPointsBefore} → ${newPoints}, bonus points: ${numericBonusPointsBefore} → ${newBonusPoints}`);
             
-            // Return success result
+            // Return success result with bonus points information
             return res.status(200).json({
               success: true,
               message: `Successfully added ${points} points to admin user (${adminUser[0].address})`,
               userId: 3042,
               pointsBefore: numericPointsBefore,
-              pointsAfter: newPoints
+              pointsAfter: newPoints,
+              bonusPointsBefore: numericBonusPointsBefore,
+              bonusPointsAfter: newBonusPoints,
+              reason: rewardReason
             });
           }
         } catch (error) {
