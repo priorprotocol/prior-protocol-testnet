@@ -143,6 +143,62 @@ export class DatabaseStorage implements IStorage {
     return updatedUser.totalSwaps || 0;
   }
   
+  // Get user's rank on the leaderboard based on points (primary) and swap count (secondary)
+  async getUserRank(address: string): Promise<number | null> {
+    if (!address) return null;
+    
+    try {
+      // Normalize address
+      const normalizedAddress = address.toLowerCase();
+      
+      // Get user's data
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(sql`LOWER(${users.address}) = ${normalizedAddress}`);
+      
+      if (!user) return null;
+      
+      // Get points and swap count for ranking
+      const userPoints = user.points || 0;
+      const userSwaps = user.totalSwaps || 0;
+      
+      // First, count users with strictly more points
+      const { higherPointsCount } = await db
+        .select({
+          higherPointsCount: sql<number>`COUNT(*)`
+        })
+        .from(users)
+        .where(sql`${users.points} > ${userPoints}`)
+        .then(rows => rows[0]);
+        
+      // Next, count users with equal points but more swaps
+      const { equalPointsMoreSwapsCount } = await db
+        .select({
+          equalPointsMoreSwapsCount: sql<number>`COUNT(*)`
+        })
+        .from(users)
+        .where(sql`${users.points} = ${userPoints} AND ${users.totalSwaps} > ${userSwaps}`)
+        .then(rows => rows[0]);
+        
+      // Count users with the exact same rank (same points and same swaps)
+      const { sameRankCount } = await db
+        .select({
+          sameRankCount: sql<number>`COUNT(*)`
+        })
+        .from(users)
+        .where(sql`${users.points} = ${userPoints} AND ${users.totalSwaps} = ${userSwaps} AND LOWER(${users.address}) != ${normalizedAddress}`)
+        .then(rows => rows[0]);
+        
+      // Add 1 to get the user's rank (1-indexed)
+      // Users with equal points and swaps share the same rank
+      return higherPointsCount + equalPointsMoreSwapsCount + 1;
+    } catch (error) {
+      console.error("Error in getUserRank:", error);
+      return null;
+    }
+  }
+
   async getUserStats(userId: number): Promise<{
     totalFaucetClaims: number;
     totalSwaps: number;
