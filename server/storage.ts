@@ -815,6 +815,8 @@ export class MemStorage implements IStorage {
     proposalsVoted: number;
     proposalsCreated: number;
     points: number;
+    bonusPoints: number;
+    userRole: string;
   }> {
     const user = this.users.get(userId);
     if (!user) {
@@ -825,7 +827,9 @@ export class MemStorage implements IStorage {
         totalQuests: 0,
         proposalsVoted: 0,
         proposalsCreated: 0,
-        points: 0
+        points: 0,
+        bonusPoints: 0,
+        userRole: 'user'
       };
     }
     
@@ -855,6 +859,12 @@ export class MemStorage implements IStorage {
     // Get user points
     const points = user.points || 0;
     
+    // Get user bonus points
+    const bonusPoints = user.bonusPoints || 0;
+    
+    // Get user role
+    const userRole = user.userRole || 'user';
+    
     return {
       totalFaucetClaims,
       totalSwaps,
@@ -862,7 +872,9 @@ export class MemStorage implements IStorage {
       totalQuests,
       proposalsVoted,
       proposalsCreated,
-      points
+      points,
+      bonusPoints,
+      userRole
     };
   }
   
