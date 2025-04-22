@@ -597,70 +597,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get community swap statistics
   app.get(`${apiPrefix}/stats/community-swaps`, async (req, res) => {
     try {
-      const SWAP_CONTRACT = '0x8957e1988905311EE249e679a29fc9deCEd4D910';
+      console.log("Fetching community swap statistics");
       
-      // Query all swap transactions involving the contract
-      const swapTransactions = await db
-        .select({
-          id: transactions.id,
-          userId: transactions.userId,
-          timestamp: transactions.timestamp
-        })
-        .from(transactions)
-        .where(
-          sql`${transactions.type} = 'swap' AND 
-              (${transactions.data}->>'contract' = ${SWAP_CONTRACT} OR 
-               ${transactions.data}->>'to' = ${SWAP_CONTRACT} OR 
-               ${transactions.data}->>'from' = ${SWAP_CONTRACT})`
-        )
-        .orderBy(sql`${transactions.timestamp} DESC`);
+      // Call the getCommunitySwapStats method from storage
+      const stats = await storage.getCommunitySwapStats();
       
-      // Calculate swaps per day, identifying eligible vs ineligible
-      const swapsByDay: Record<string, {userId: number, swaps: number}[]> = {};
+      console.log("Returning community swap stats:", stats);
       
-      for (const tx of swapTransactions) {
-        const date = new Date(tx.timestamp).toISOString().split('T')[0]; // YYYY-MM-DD
-        
-        if (!swapsByDay[date]) {
-          swapsByDay[date] = [];
-        }
-        
-        // Find if user already has swaps on this day
-        const userDayRecord = swapsByDay[date].find(record => record.userId === tx.userId);
-        
-        if (userDayRecord) {
-          userDayRecord.swaps++;
-        } else {
-          swapsByDay[date].push({ userId: tx.userId, swaps: 1 });
-        }
-      }
-      
-      // Calculate eligible vs ineligible swaps
-      let totalSwaps = swapTransactions.length;
-      let eligibleSwaps = 0;
-      let ineligibleSwaps = 0;
-      
-      for (const date in swapsByDay) {
-        for (const userRecord of swapsByDay[date]) {
-          const eligibleSwapsForUser = Math.min(userRecord.swaps, 5); // Max 5 per day
-          eligibleSwaps += eligibleSwapsForUser;
-          ineligibleSwaps += userRecord.swaps - eligibleSwapsForUser;
-        }
-      }
-      
+      // Return stats with consistent format
       return res.status(200).json({
         success: true,
         data: {
-          totalSwaps,
-          eligibleSwaps,
-          ineligibleSwaps,
-          dailyBreakdown: Object.keys(swapsByDay).map(date => ({
-            date,
-            totalSwaps: swapsByDay[date].reduce((sum, record) => sum + record.swaps, 0),
-            uniqueUsers: swapsByDay[date].length,
-            eligibleSwaps: swapsByDay[date].reduce((sum, record) => sum + Math.min(record.swaps, 5), 0),
-            ineligibleSwaps: swapsByDay[date].reduce((sum, record) => sum + Math.max(0, record.swaps - 5), 0)
-          }))
+          ...stats,
+          totalPoints: Number(stats.totalPoints.toFixed(1))
         }
       });
     } catch (error) {
