@@ -8,7 +8,8 @@ import {
   transactions, Transaction, InsertTransaction,
   quizzes, Quiz, InsertQuiz,
   quizQuestions, QuizQuestion, InsertQuizQuestion,
-  userQuizzes, UserQuiz, InsertUserQuiz
+  userQuizzes, UserQuiz, InsertUserQuiz,
+  nftStakingRecords, NftStakingRecord, InsertNftStakingRecord
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -144,6 +145,24 @@ export interface IStorage {
   getUserQuizByUserAndQuizId(userId: number, quizId: number): Promise<UserQuiz | undefined>;
   createUserQuiz(userQuiz: InsertUserQuiz): Promise<UserQuiz>;
   updateUserQuiz(id: number, updates: Partial<Omit<UserQuiz, 'id'>>): Promise<UserQuiz | undefined>;
+  
+  // NFT Staking operations
+  getNftStakingRecords(userId: number): Promise<NftStakingRecord[]>;
+  getNftStakingRecordsByAddress(address: string): Promise<NftStakingRecord[]>;
+  getNftStakingRecord(id: number): Promise<NftStakingRecord | undefined>;
+  createNftStakingRecord(record: InsertNftStakingRecord): Promise<NftStakingRecord>;
+  updateNftStakingRecord(id: number, updates: Partial<Omit<NftStakingRecord, 'id'>>): Promise<NftStakingRecord | undefined>;
+  recordFirstTimeBonus(userId: number, address: string, amount: number): Promise<{
+    stakingRecord: NftStakingRecord,
+    transaction: Transaction
+  }>;
+  getStakingJourneySummary(address: string): Promise<{
+    totalActivations: number;
+    daysStaked: number;
+    firstTimeBonusReceived: boolean;
+    bonusAmount: number;
+    activeStakes: NftStakingRecord[];
+  }>;
 }
 
 // In-memory implementation of storage
@@ -174,6 +193,10 @@ export class MemStorage implements IStorage {
   private quizQuestionId: number;
   private userQuizId: number;
   
+  // NFT Staking fields
+  private nftStakingRecords: Map<number, NftStakingRecord>;
+  private nftStakingId: number;
+  
   constructor() {
     this.users = new Map();
     this.usersByAddress = new Map();
@@ -187,6 +210,7 @@ export class MemStorage implements IStorage {
     this.quizzes = new Map();
     this.quizQuestions = new Map();
     this.userQuizzes = new Map();
+    this.nftStakingRecords = new Map();
     
     this.userId = 1;
     this.questId = 1;
@@ -198,6 +222,7 @@ export class MemStorage implements IStorage {
     this.quizId = 1;
     this.quizQuestionId = 1;
     this.userQuizId = 1;
+    this.nftStakingId = 1;
     
     // Initialize with sample tokens
     this.initializeTokens();
@@ -1896,7 +1921,156 @@ export class MemStorage implements IStorage {
       userDetails
     };
   }
+  // NFT Staking operations
+  async getNftStakingRecords(userId: number): Promise<NftStakingRecord[]> {
+    return Array.from(this.nftStakingRecords.values())
+      .filter(record => record.userId === userId);
+  }
+  
+  async getNftStakingRecordsByAddress(address: string): Promise<NftStakingRecord[]> {
+    return Array.from(this.nftStakingRecords.values())
+      .filter(record => record.address.toLowerCase() === address.toLowerCase());
+  }
+  
+  async getNftStakingRecord(id: number): Promise<NftStakingRecord | undefined> {
+    return this.nftStakingRecords.get(id);
+  }
+  
+  async createNftStakingRecord(record: InsertNftStakingRecord): Promise<NftStakingRecord> {
+    const id = this.nftStakingId++;
+    const newRecord: NftStakingRecord = {
+      ...record,
+      id,
+      stakedAt: new Date(),
+      status: record.status || 'active',
+      bonusReceived: record.bonusReceived || false,
+      bonusAmount: record.bonusAmount || 0,
+      activations: record.activations || 1
+    };
+    
+    this.nftStakingRecords.set(id, newRecord);
+    return newRecord;
+  }
+  
+  async updateNftStakingRecord(id: number, updates: Partial<Omit<NftStakingRecord, 'id'>>): Promise<NftStakingRecord | undefined> {
+    const record = this.nftStakingRecords.get(id);
+    if (!record) return undefined;
+    
+    const updatedRecord: NftStakingRecord = {
+      ...record,
+      ...updates
+    };
+    
+    this.nftStakingRecords.set(id, updatedRecord);
+    return updatedRecord;
+  }
+  
+  async recordFirstTimeBonus(userId: number, address: string, amount: number): Promise<{
+    stakingRecord: NftStakingRecord,
+    transaction: Transaction
+  }> {
+    // First, find any staking record for this user
+    const userStakingRecords = await this.getNftStakingRecords(userId);
+    let stakingRecord: NftStakingRecord;
+    
+    if (userStakingRecords.length > 0) {
+      // Update an existing staking record
+      stakingRecord = userStakingRecords[0];
+      stakingRecord = await this.updateNftStakingRecord(stakingRecord.id, {
+        bonusReceived: true,
+        bonusAmount: amount
+      }) as NftStakingRecord;
+    } else {
+      // Create a new staking record if none exists
+      stakingRecord = await this.createNftStakingRecord({
+        userId,
+        address,
+        nftContractAddress: '0x5B2ddc2d576cCB103E380C8D45585CbB8e1245Af', // NFT contract address
+        tokenId: '1', // Default token ID
+        status: 'active',
+        bonusReceived: true,
+        bonusAmount: amount,
+        activations: 1
+      });
+    }
+    
+    // Create a transaction to record the bonus
+    const transaction = await this.createTransaction({
+      userId,
+      type: 'staking_bonus',
+      fromToken: null,
+      toToken: null,
+      fromAmount: null,
+      toAmount: amount.toString(),
+      txHash: `0x${Math.random().toString(16).substring(2)}${Date.now().toString(16)}`,
+      status: 'completed',
+      blockNumber: null
+    });
+    
+    // Update the record with the transaction ID
+    await this.updateNftStakingRecord(stakingRecord.id, {
+      bonusTxId: transaction.id
+    });
+    
+    // Add the points to the user
+    await this.addUserPoints(userId, amount);
+    
+    return {
+      stakingRecord,
+      transaction
+    };
+  }
+  
+  async getStakingJourneySummary(address: string): Promise<{
+    totalActivations: number;
+    daysStaked: number;
+    firstTimeBonusReceived: boolean;
+    bonusAmount: number;
+    activeStakes: NftStakingRecord[];
+  }> {
+    const stakingRecords = await this.getNftStakingRecordsByAddress(address);
+    
+    if (stakingRecords.length === 0) {
+      return {
+        totalActivations: 0,
+        daysStaked: 0,
+        firstTimeBonusReceived: false,
+        bonusAmount: 0,
+        activeStakes: []
+      };
+    }
+    
+    // Calculate total activations
+    const totalActivations = stakingRecords.reduce((sum, record) => sum + record.activations, 0);
+    
+    // Calculate days staked
+    const now = new Date();
+    let totalDaysStaked = 0;
+    
+    stakingRecords.forEach(record => {
+      const stakedAt = new Date(record.stakedAt);
+      const unstakeAt = record.unstakeAt ? new Date(record.unstakeAt) : now;
+      const daysStaked = Math.ceil((unstakeAt.getTime() - stakedAt.getTime()) / (1000 * 60 * 60 * 24));
+      totalDaysStaked += daysStaked;
+    });
+    
+    // Check for first time bonus
+    const hasBonusRecord = stakingRecords.some(record => record.bonusReceived);
+    const bonusAmount = hasBonusRecord 
+      ? stakingRecords.find(record => record.bonusReceived)?.bonusAmount || 0 
+      : 0;
+    
+    // Get active stakes
+    const activeStakes = stakingRecords.filter(record => record.status === 'active');
+    
+    return {
+      totalActivations,
+      daysStaked: totalDaysStaked,
+      firstTimeBonusReceived: hasBonusRecord,
+      bonusAmount,
+      activeStakes
+    };
+  }
 }
 
-// Export the MemStorage implementation
 export const storage = new MemStorage();
