@@ -381,7 +381,7 @@ const TotalPointsSummary = ({ points, swaps, isLoading }: { points: number | str
   
   // Parse the bonus points (default to 0 if not available)
   const bonusPoints = userStats?.bonusPoints 
-    ? (typeof userStats.bonusPoints === 'string' ? parseFloat(userStats.bonusPoints) : userStats.bonusPoints) 
+    ? (typeof userStats.bonusPoints === 'string' ? parseFloat(userStats.bonusPoints || '0') : (userStats.bonusPoints || 0)) 
     : 0;
   
   // Calculate swap points (total points minus bonus points)
