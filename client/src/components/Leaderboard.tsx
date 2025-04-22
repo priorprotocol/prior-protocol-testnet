@@ -196,27 +196,58 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
           Top users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
         </CardDescription>
         
-        {/* Total global points summary - Enhanced visibility as requested */}
+        {/* Total global points and swap statistics summary - Enhanced visibility as requested */}
         <div className="mt-2 p-3 bg-gradient-to-r from-[#1A2A40] to-[#162138] rounded-md border border-[#2D3748] shadow-lg">
-          <div className="text-center">
-            <span className="text-[#A0AEC0] text-sm uppercase tracking-wider">Community Achievement:</span> 
-            <div className="flex items-center justify-center mt-1">
-              <span className="text-[#A0AEC0] mr-2 text-sm">Total Global Points:</span>
-              <span className={`text-xl font-bold text-amber-400 ${lastMessage?.type === 'leaderboard_update' ? 'animate-pulse' : ''}`}>
-                {/* Use WebSocket value if available, otherwise fallback to API data */}
-                {(wsTotalGlobalPoints > 0 
-                  ? wsTotalGlobalPoints 
-                  : leaderboardData?.totalGlobalPoints || 0
-                ).toFixed(1)}
-              </span>
-              {wsConnected && lastMessage?.type === 'leaderboard_update' && (
-                <span className="ml-2 text-xs bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded-full">
-                  Updated live
+          <div className="grid gap-3 sm:grid-cols-2">
+            {/* Points Stats */}
+            <div className="text-center">
+              <span className="text-[#A0AEC0] text-sm uppercase tracking-wider">Points Achievement:</span> 
+              <div className="flex items-center justify-center mt-1">
+                <span className="text-[#A0AEC0] mr-2 text-sm">Total Global Points:</span>
+                <span className={`text-xl font-bold text-amber-400 ${lastMessage?.type === 'leaderboard_update' ? 'animate-pulse' : ''}`}>
+                  {/* Use WebSocket value if available, otherwise fallback to API data */}
+                  {(wsTotalGlobalPoints > 0 
+                    ? wsTotalGlobalPoints 
+                    : leaderboardData?.totalGlobalPoints || 0
+                  ).toFixed(1)}
                 </span>
-              )}
+                {wsConnected && lastMessage?.type === 'leaderboard_update' && (
+                  <span className="ml-2 text-xs bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded-full">
+                    Updated live
+                  </span>
+                )}
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                0.5 points per swap (max 5 swaps daily = 2.5 points)
+              </div>
             </div>
-            <div className="text-xs text-gray-400 mt-1">
-              Accumulated through community participation (0.5 points per swap, max 5 swaps daily)
+            
+            {/* Swap Stats */}
+            <div className="text-center border-t sm:border-t-0 sm:border-l border-[#2D3748] pt-3 sm:pt-0 sm:pl-3">
+              <span className="text-[#A0AEC0] text-sm uppercase tracking-wider">Community Swaps:</span>
+              <div className="mt-1 grid grid-cols-3 gap-2">
+                <div>
+                  <div className="text-lg font-semibold text-blue-400">
+                    {leaderboardData?.globalSwaps?.total || 0}
+                  </div>
+                  <div className="text-xs text-gray-400">Total</div>
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-green-400">
+                    {leaderboardData?.globalSwaps?.eligible || 0}
+                  </div>
+                  <div className="text-xs text-gray-400">Eligible</div>
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-gray-400">
+                    {leaderboardData?.globalSwaps?.ineligible || 0}
+                  </div>
+                  <div className="text-xs text-gray-400">Ineligible</div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                Max 5 eligible swaps per user per day
+              </div>
             </div>
           </div>
         </div>
