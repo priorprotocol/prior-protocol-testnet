@@ -198,6 +198,8 @@ export class DatabaseStorage implements IStorage {
     proposalsVoted: number;
     proposalsCreated: number;
     points: number;
+    bonusPoints: number;
+    userRole: string;
   }> {
     // Get user
     const [user] = await db.select().from(users).where(eq(users.id, userId));
@@ -209,7 +211,9 @@ export class DatabaseStorage implements IStorage {
         totalQuests: 0,
         proposalsVoted: 0,
         proposalsCreated: 0,
-        points: 0
+        points: 0,
+        bonusPoints: 0,
+        userRole: 'user'
       };
     }
     
@@ -255,8 +259,10 @@ export class DatabaseStorage implements IStorage {
     // For now, we're not tracking who created proposals, so it's 0
     const proposalsCreated = 0;
     
-    // Get total points from user record
+    // Get total points and bonus points from user record
     const points = user.points || 0;
+    const bonusPoints = user.bonusPoints || 0;
+    const userRole = user.userRole || 'user';
     
     return {
       totalFaucetClaims,
@@ -265,7 +271,9 @@ export class DatabaseStorage implements IStorage {
       totalQuests,
       proposalsVoted,
       proposalsCreated,
-      points
+      points,
+      bonusPoints,
+      userRole
     };
   }
   
