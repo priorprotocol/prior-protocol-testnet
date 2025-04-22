@@ -39,7 +39,7 @@ export const useStakingJourney = (address: string | undefined) => {
       if (!address) return null;
       try {
         setSyncError(null);
-        const response = await apiRequest<{ success: boolean; data: StakingJourneySummary }>(`/api/staking/${address}/journey`);
+        const response = await apiRequest<{ success: boolean; data: StakingJourneySummary; message?: string }>(`/api/staking/${address}/journey`);
         
         if (!response.success) {
           throw new Error(response.message || 'Failed to fetch staking journey data');
@@ -67,7 +67,7 @@ export const useStakingJourney = (address: string | undefined) => {
       if (!address) return [];
       try {
         setSyncError(null);
-        const response = await apiRequest<{ success: boolean; data: NftStakingRecord[] }>(`/api/staking/${address}/records`);
+        const response = await apiRequest<{ success: boolean; data: NftStakingRecord[]; message?: string }>(`/api/staking/${address}/records`);
         
         if (!response.success) {
           throw new Error(response.message || 'Failed to fetch staking records');
