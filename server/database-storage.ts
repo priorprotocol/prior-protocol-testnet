@@ -1142,6 +1142,60 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  /**
+   * Get global swap statistics
+   * This includes total swaps, eligible swaps (those that earn points), and ineligible swaps
+   */
+  async getGlobalSwapStats(): Promise<{
+    totalSwaps: number;
+    eligibleSwaps: number;
+    ineligibleSwaps: number;
+  }> {
+    try {
+      // Get total swaps from transactions table
+      const [totalSwapsResult] = await db
+        .select({
+          count: sql<number>`COUNT(*)`
+        })
+        .from(transactions)
+        .where(eq(transactions.type, 'swap'));
+      
+      // Calculate total transactions that were eligible for points (max 5 per day per user)
+      // First, we need to group transactions by user and day
+      const swapsByUserAndDay = await db
+        .select({
+          userId: transactions.userId,
+          day: sql<string>`DATE(${transactions.timestamp})`,
+          count: sql<number>`COUNT(*)`
+        })
+        .from(transactions)
+        .where(eq(transactions.type, 'swap'))
+        .groupBy(transactions.userId, sql`DATE(${transactions.timestamp})`);
+      
+      // Now calculate eligible swaps (max 5 per user per day)
+      let eligibleSwaps = 0;
+      for (const entry of swapsByUserAndDay) {
+        eligibleSwaps += Math.min(entry.count, 5);
+      }
+      
+      const totalSwaps = totalSwapsResult?.count || 0;
+      const ineligibleSwaps = totalSwaps - eligibleSwaps;
+      
+      return {
+        totalSwaps,
+        eligibleSwaps,
+        ineligibleSwaps
+      };
+    } catch (error) {
+      console.error("Error getting global swap stats:", error);
+      return {
+        totalSwaps: 0,
+        eligibleSwaps: 0,
+        ineligibleSwaps: 0
+      };
+    }
+  }
+
   async getLeaderboard(limit: number = 20, page: number = 1): Promise<{
     users: User[],
     totalGlobalPoints: number
