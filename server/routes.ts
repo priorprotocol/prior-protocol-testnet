@@ -12,6 +12,9 @@ import { db, pool } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
 import { userTrackerMiddleware } from "./middleware/userTracker";
 
+// Admin wallet address - only this wallet can perform admin actions
+const ADMIN_WALLET = '0x4cfc531df94339def7dcd603aac1a2deaf6888b7';
+
 // Global WebSocket server instance
 export let wss: WebSocketServer;
 
@@ -315,6 +318,184 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stack: errorStack,
         timestamp: new Date().toISOString()
       });
+    }
+  });
+  
+  // Endpoint to allocate points to all wallets that swapped today
+  app.post(`${apiPrefix}/maintenance/allocate-points-all-swaps`, async (req, res) => {
+    try {
+      const { adminAddress, pointsPerWallet } = req.body;
+      
+      if (!adminAddress || adminAddress.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
+        return res.status(403).json({ success: false, message: 'Not authorized' });
+      }
+      
+      console.log(`[Admin] Point allocation requested by ${adminAddress} for all wallets that swapped today (${pointsPerWallet} points each)`);
+      
+      // Get all unique wallets with swap transactions from today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Find all swap transactions from today from our official swap contract
+      const SWAP_CONTRACT_ADDRESS = '0x8957e1988905311EE249e679a29fc9deCEd4D910';
+      
+      const todaysSwapTxs = await db.select({
+        userId: transactions.userId
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.type, 'swap'),
+          sql`DATE(${transactions.createdAt}) = CURRENT_DATE`,
+          sql`LOWER(metadata::text) LIKE LOWER('%${SWAP_CONTRACT_ADDRESS}%')` // Check metadata for the swap contract address
+        )
+      );
+      
+      // Get unique user IDs
+      const uniqueUserIds = [...new Set(todaysSwapTxs.map(tx => tx.userId))];
+      console.log(`Found ${uniqueUserIds.length} unique users who swapped today`);
+      
+      // Allocate points to each user
+      let updatedUsers = 0;
+      let totalPointsAllocated = 0;
+      
+      for (const userId of uniqueUserIds) {
+        const newPoints = await storage.addUserPoints(userId, Number(pointsPerWallet));
+        updatedUsers++;
+        totalPointsAllocated += Number(pointsPerWallet);
+        
+        // Create a transaction record for this point allocation
+        await storage.createTransaction({
+          userId,
+          type: 'admin_points',
+          fromToken: 'SYSTEM',
+          toToken: 'POINTS',
+          fromAmount: '0',
+          toAmount: pointsPerWallet.toString(),
+          txHash: `admin-points-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
+          status: 'completed',
+          blockNumber: 0,
+          metadata: JSON.stringify({
+            reason: 'Admin allocated points to wallets that swapped today',
+            adminAddress,
+            timestamp: new Date().toISOString()
+          })
+        });
+      }
+      
+      // Broadcast leaderboard update notification
+      const latestStats = await storage.getLeaderboard(10, 1);
+      broadcastNotification({
+        type: 'leaderboard_update',
+        totalGlobalPoints: latestStats.totalGlobalPoints,
+        userCount: (await storage.getTotalUsersCount()).count,
+        timestamp: new Date().toISOString()
+      });
+      
+      res.json({ 
+        success: true, 
+        summary: {
+          usersUpdated: updatedUsers,
+          totalPointsAllocated,
+          pointsPerUser: pointsPerWallet,
+          timestamp: new Date().toISOString()
+        }
+      });
+      
+    } catch (error) {
+      console.error('[Error] Failed to allocate points to wallets:', error);
+      res.status(500).json({ success: false, message: 'Failed to allocate points' });
+    }
+  });
+
+  // Endpoint to allocate points to specific wallet addresses
+  app.post(`${apiPrefix}/maintenance/allocate-points-specific`, async (req, res) => {
+    try {
+      const { adminAddress, walletAddresses, pointsPerWallet } = req.body;
+      
+      if (!adminAddress || adminAddress.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
+        return res.status(403).json({ success: false, message: 'Not authorized' });
+      }
+      
+      if (!Array.isArray(walletAddresses) || walletAddresses.length === 0) {
+        return res.status(400).json({ success: false, message: 'No wallet addresses provided' });
+      }
+      
+      console.log(`[Admin] Point allocation requested by ${adminAddress} for ${walletAddresses.length} specific wallets (${pointsPerWallet} points each)`);
+      
+      let updatedUsers = 0;
+      let totalPointsAllocated = 0;
+      let skippedWallets = 0;
+      const processedWallets = [];
+      
+      for (const address of walletAddresses) {
+        // Normalize the address
+        const normalizedAddress = address.toLowerCase();
+        
+        // Find the user by address
+        const user = await storage.getUser(normalizedAddress);
+        
+        if (!user) {
+          skippedWallets++;
+          console.log(`User with address ${normalizedAddress} not found, skipping`);
+          continue;
+        }
+        
+        // Add points to the user
+        const newPoints = await storage.addUserPoints(user.id, Number(pointsPerWallet));
+        updatedUsers++;
+        totalPointsAllocated += Number(pointsPerWallet);
+        
+        // Create a transaction record for this point allocation
+        await storage.createTransaction({
+          userId: user.id,
+          type: 'admin_points',
+          fromToken: 'SYSTEM',
+          toToken: 'POINTS',
+          fromAmount: '0',
+          toAmount: pointsPerWallet.toString(),
+          txHash: `admin-points-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
+          status: 'completed',
+          blockNumber: 0,
+          metadata: JSON.stringify({
+            reason: 'Admin allocated points to specific wallet',
+            adminAddress,
+            timestamp: new Date().toISOString()
+          })
+        });
+        
+        processedWallets.push({
+          address: normalizedAddress,
+          userId: user.id,
+          pointsAdded: pointsPerWallet,
+          newTotalPoints: newPoints
+        });
+      }
+      
+      // Broadcast leaderboard update notification
+      const latestStats = await storage.getLeaderboard(10, 1);
+      broadcastNotification({
+        type: 'leaderboard_update',
+        totalGlobalPoints: latestStats.totalGlobalPoints,
+        userCount: (await storage.getTotalUsersCount()).count,
+        timestamp: new Date().toISOString()
+      });
+      
+      res.json({ 
+        success: true, 
+        summary: {
+          usersUpdated: updatedUsers,
+          totalPointsAllocated,
+          pointsPerUser: pointsPerWallet,
+          skippedWallets,
+          processedWallets,
+          timestamp: new Date().toISOString()
+        }
+      });
+      
+    } catch (error) {
+      console.error('[Error] Failed to allocate points to specific wallets:', error);
+      res.status(500).json({ success: false, message: 'Failed to allocate points' });
     }
   });
   
