@@ -7,23 +7,15 @@ import { HiInformationCircle } from 'react-icons/hi';
 
 interface PointsSummaryProps {
   points: number;
-  bonusPoints?: number;
   totalSwaps: number;
   isLoading: boolean;
-  userRole?: string;
 }
 
 export const PointsSummary: React.FC<PointsSummaryProps> = ({ 
   points, 
-  bonusPoints = 0,
   totalSwaps, 
-  isLoading,
-  userRole = 'user'
+  isLoading 
 }) => {
-  // Ensure points and bonusPoints are numbers by converting from strings if needed
-  const numericPoints = typeof points === 'string' ? parseFloat(points) : points || 0;
-  const numericBonusPoints = typeof bonusPoints === 'string' ? parseFloat(bonusPoints as string) : (bonusPoints || 0);
-  
   // Calculate daily swap points (0.5 points per swap, max 5 swaps = 2.5 points)
   const dailySwapPoints = Math.min(Math.min(totalSwaps, 5) * 0.5, 2.5);
   const dailySwapPointsPercentage = (dailySwapPoints / 2.5) * 100;
@@ -54,7 +46,7 @@ export const PointsSummary: React.FC<PointsSummaryProps> = ({
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 blur-xl"></div>
                 <div className="relative bg-[#1A2234] rounded-2xl p-4 border border-blue-900/50">
                   <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-                    {numericPoints.toFixed(1)}
+                    {points.toFixed(1)}
                   </div>
                   <div className="text-xs text-blue-400 mt-1">Prior Points</div>
                 </div>
@@ -104,41 +96,6 @@ export const PointsSummary: React.FC<PointsSummaryProps> = ({
                 </p>
               </div>
             </div>
-            
-            {/* Bonus Points Section - Only show if user has bonus points or special role */}
-            {(numericBonusPoints > 0 || userRole !== 'user') && (
-              <div className="mt-4 space-y-2 bg-[#1A2234] p-4 rounded-md border border-indigo-900/40">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center text-sm text-gray-400">
-                    <span className="mr-1.5 text-indigo-500">✨</span>
-                    <span>Bonus Points</span>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button className="ml-1 text-gray-500 hover:text-gray-400">
-                            <HiInformationCircle size={14} />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <p>Bonus points are special rewards for community participation and contributions.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <span className="font-medium text-indigo-400">
-                    {numericBonusPoints.toFixed(1)}
-                  </span>
-                </div>
-                
-                <div className="text-center mt-2">
-                  <p className="text-xs text-indigo-300/70">
-                    {userRole !== 'user' ? 
-                      `You have ${numericBonusPoints.toFixed(1)} bonus points as a ${userRole}` : 
-                      'Bonus points for community contributions'}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </CardContent>

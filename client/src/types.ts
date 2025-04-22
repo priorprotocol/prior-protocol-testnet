@@ -7,8 +7,6 @@ export interface UserStats {
   proposalsVoted: number;
   proposalsCreated: number;
   points: number;
-  bonusPoints?: number;
-  userRole?: string;
 }
 
 export interface User {
@@ -17,10 +15,7 @@ export interface User {
   totalSwaps: number;
   totalClaims: number;
   points: number;
-  bonusPoints: number | string;  // Make this required and support both number and string types
-  userRole: string;  // Make this required
   lastClaim: string | null;
-  badges?: string[];
 }
 
 export interface TokenInfo {

@@ -29,10 +29,6 @@ export interface IStorage {
     users: User[],
     totalGlobalPoints: number
   }>;
-  getBonusPointsLeaderboard(limit?: number, page?: number): Promise<{
-    users: User[],
-    totalGlobalBonusPoints: number
-  }>;
   getUserRank(address: string): Promise<number | null>;
   getUserStats(userId: number): Promise<{
     totalFaucetClaims: number;
@@ -52,29 +48,6 @@ export interface IStorage {
     // Add any additional data needed for the dashboard
   }>;
   getDailySwapCount(userId: number): Promise<number>; // New method to track daily swap count
-  
-  // Reward management functions
-  addBonusPointsToAllSwapUsers(bonusPoints: number, reason: string, minSwaps?: number): Promise<{
-    usersRewarded: number;
-    totalPointsAdded: number;
-    totalPointsBefore: number;
-    totalPointsAfter: number;
-    userDetails: Array<{
-      userId: number;
-      address: string;
-      pointsBefore: number;
-      pointsAfter: number;
-      pointsAdded: number;
-    }>;
-  }>;
-  
-  addPointsByWalletAddress(address: string, points: number, reason: string): Promise<{
-    success: boolean;
-    message: string;
-    userId?: number;
-    pointsBefore?: number;
-    pointsAfter?: number;
-  }>;
   
   // Quest operations
   getAllQuests(): Promise<Quest[]>;
@@ -143,8 +116,6 @@ export interface IStorage {
       pointsAfter: number;
       totalSwaps: number;
       pointEarningSwaps: number;
-      nftStaked?: boolean;
-      bonusPointsPreserved?: number;
     }>;
   }>;
   
@@ -745,49 +716,6 @@ export class MemStorage implements IStorage {
     };
   }
   
-  /**
-   * Get the bonus points leaderboard
-   * Shows users sorted by their bonus points (for community contributions, etc.)
-   * @param limit Number of users to include per page
-   * @param page Page number (1-indexed)
-   * @returns Leaderboard data with users and total global bonus points
-   */
-  async getBonusPointsLeaderboard(limit: number = 15, page: number = 1): Promise<{
-    users: User[],
-    totalGlobalBonusPoints: number
-  }> {
-    // Get all users and sort by bonus points (highest first)
-    const allSortedUsers = Array.from(this.users.values())
-      .sort((a, b) => {
-        const bonusA = a.bonusPoints ? (typeof a.bonusPoints === 'string' ? parseFloat(a.bonusPoints) : a.bonusPoints) : 0;
-        const bonusB = b.bonusPoints ? (typeof b.bonusPoints === 'string' ? parseFloat(b.bonusPoints) : b.bonusPoints) : 0;
-        return bonusB - bonusA;
-      });
-    
-    const total = allSortedUsers.length;
-    const totalPages = Math.ceil(total / limit) || 1;
-    const safePage = Math.min(Math.max(1, page), totalPages);
-    
-    // Calculate start and end indices for pagination
-    const startIdx = (safePage - 1) * limit;
-    const endIdx = Math.min(startIdx + limit, total);
-    
-    // Get users for the current page
-    const paginatedUsers = allSortedUsers.slice(startIdx, endIdx);
-    
-    // Calculate total global bonus points across all users
-    const totalGlobalBonusPoints = allSortedUsers.reduce((sum, user) => {
-      const bonusPoints = user.bonusPoints ? 
-        (typeof user.bonusPoints === 'string' ? parseFloat(user.bonusPoints) : user.bonusPoints) : 0;
-      return sum + bonusPoints;
-    }, 0);
-    
-    return {
-      users: paginatedUsers,
-      totalGlobalBonusPoints
-    };
-  }
-  
   async getUserRank(address: string): Promise<number | null> {
     if (!address) return null;
     
@@ -815,8 +743,6 @@ export class MemStorage implements IStorage {
     proposalsVoted: number;
     proposalsCreated: number;
     points: number;
-    bonusPoints: number;
-    userRole: string;
   }> {
     const user = this.users.get(userId);
     if (!user) {
@@ -827,9 +753,7 @@ export class MemStorage implements IStorage {
         totalQuests: 0,
         proposalsVoted: 0,
         proposalsCreated: 0,
-        points: 0,
-        bonusPoints: 0,
-        userRole: 'user'
+        points: 0
       };
     }
     
@@ -859,12 +783,6 @@ export class MemStorage implements IStorage {
     // Get user points
     const points = user.points || 0;
     
-    // Get user bonus points
-    const bonusPoints = user.bonusPoints || 0;
-    
-    // Get user role
-    const userRole = user.userRole || 'user';
-    
     return {
       totalFaucetClaims,
       totalSwaps,
@@ -872,9 +790,7 @@ export class MemStorage implements IStorage {
       totalQuests,
       proposalsVoted,
       proposalsCreated,
-      points,
-      bonusPoints,
-      userRole
+      points
     };
   }
   
@@ -1935,175 +1851,6 @@ export class MemStorage implements IStorage {
       totalPointsBefore,
       totalPointsAfter,
       userDetails
-    };
-  }
-  
-  /**
-   * Add bonus points to all users who have made at least one swap transaction
-   * @param bonusPoints The number of points to add to each user
-   * @param reason The reason for the bonus (for transaction recording)
-   * @param minSwaps Minimum number of swaps a user must have to qualify for the bonus
-   */
-  async addBonusPointsToAllSwapUsers(bonusPoints: number, reason: string, minSwaps: number = 1): Promise<{
-    usersRewarded: number;
-    totalPointsAdded: number;
-    totalPointsBefore: number;
-    totalPointsAfter: number;
-    userDetails: Array<{
-      userId: number;
-      address: string;
-      pointsBefore: number;
-      pointsAfter: number;
-      pointsAdded: number;
-    }>;
-  }> {
-    console.log(`[PointsSystem] Starting global reward distribution. Award ${bonusPoints} points to all users with at least ${minSwaps} swaps.`);
-    
-    let usersRewarded = 0;
-    let totalPointsAdded = 0;
-    let totalPointsBefore = 0;
-    let totalPointsAfter = 0;
-    const userDetails: Array<{
-      userId: number;
-      address: string;
-      pointsBefore: number;
-      pointsAfter: number;
-      pointsAdded: number;
-    }> = [];
-    
-    // Find all users with at least the minimum required swaps
-    for (const [id, user] of this.users.entries()) {
-      if (user.totalSwaps >= minSwaps) {
-        // Calculate points before and after
-        const pointsBefore = parseFloat(user.points);
-        totalPointsBefore += pointsBefore;
-        
-        // Add bonus points to the user
-        const pointsAfter = pointsBefore + bonusPoints;
-        const updatedUser: User = {
-          ...user,
-          points: pointsAfter.toString()
-        };
-        
-        // Update user record
-        this.users.set(id, updatedUser);
-        this.usersByAddress.set(user.address, updatedUser);
-        
-        // Record this bonus transaction
-        this.createTransaction({
-          userId: id,
-          type: 'bonus_points',
-          fromToken: null,
-          toToken: null,
-          fromAmount: null,
-          toAmount: null,
-          points: bonusPoints.toString(),
-          txHash: `bonus-${Date.now()}-${id}`,
-          status: 'completed',
-          details: reason
-        });
-        
-        // Track statistics
-        usersRewarded++;
-        totalPointsAdded += bonusPoints;
-        totalPointsAfter += pointsAfter;
-        
-        // Add to user details
-        userDetails.push({
-          userId: id,
-          address: user.address,
-          pointsBefore,
-          pointsAfter,
-          pointsAdded: bonusPoints
-        });
-        
-        console.log(`[PointsSystem] Rewarded user ${id} (${user.address.substring(0, 8)}...): +${bonusPoints} points (${pointsBefore} → ${pointsAfter})`);
-      }
-    }
-    
-    console.log(`[PointsSystem] Global reward complete. Rewarded ${usersRewarded} users with ${bonusPoints} points each (total: ${totalPointsAdded})`);
-    
-    return {
-      usersRewarded,
-      totalPointsAdded,
-      totalPointsBefore,
-      totalPointsAfter,
-      userDetails
-    };
-  }
-  
-  /**
-   * Add bonus points to a specific user by wallet address
-   * @param address The wallet address of the user
-   * @param points The number of points to add
-   * @param reason The reason for awarding the points
-   */
-  async addPointsByWalletAddress(address: string, points: number, reason: string): Promise<{
-    success: boolean;
-    message: string;
-    userId?: number;
-    pointsBefore?: number;
-    pointsAfter?: number;
-  }> {
-    console.log(`[PointsSystem] Starting bonus reward. Add ${points} BONUS points to user ${address} for reason: ${reason}`);
-    
-    // Find the user by address
-    const user = this.usersByAddress.get(address);
-    
-    if (!user) {
-      console.log(`[PointsSystem] Failed to reward user: Address ${address} not found`);
-      return {
-        success: false,
-        message: `User with address ${address} not found`
-      };
-    }
-    
-    // Calculate bonus points before and after
-    const bonusPointsBefore = user.bonusPoints ? parseFloat(user.bonusPoints.toString()) : 0;
-    const bonusPointsAfter = bonusPointsBefore + points;
-    
-    // Set user role based on reason (if not already set)
-    let userRole = user.userRole || 'user';
-    if (reason.toLowerCase().includes('ambassador')) {
-      userRole = 'ambassador';
-    } else if (reason.toLowerCase().includes('tester')) {
-      userRole = 'tester';
-    } else if (reason.toLowerCase().includes('helper')) {
-      userRole = 'helper';
-    }
-    
-    // Update user record with new bonus points
-    const updatedUser: User = {
-      ...user,
-      bonusPoints: bonusPointsAfter.toString(),
-      userRole: userRole
-    };
-    
-    this.users.set(user.id, updatedUser);
-    this.usersByAddress.set(address, updatedUser);
-    
-    // Record this bonus transaction
-    this.createTransaction({
-      userId: user.id,
-      type: 'bonus_points',
-      fromToken: null,
-      toToken: null,
-      fromAmount: null,
-      toAmount: null,
-      points: points.toString(),
-      txHash: `bonus-${Date.now()}-${user.id}`,
-      status: 'completed',
-      details: reason
-    });
-    
-    console.log(`[PointsSystem] Successfully rewarded user ${user.id} (${address.substring(0, 8)}...): +${points} BONUS points (${bonusPointsBefore} → ${bonusPointsAfter})`);
-    
-    return {
-      success: true,
-      message: `Successfully added ${points} bonus points to user ${address}`,
-      userId: user.id,
-      pointsBefore: bonusPointsBefore,
-      pointsAfter: bonusPointsAfter
     };
   }
 }

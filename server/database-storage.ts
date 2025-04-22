@@ -15,29 +15,10 @@ import { IStorage } from "./storage";
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(address: string): Promise<User | undefined> {
-    // Normalize the address for consistent lookup
-    const normalizedAddress = address.toLowerCase();
-    console.log(`[UserLookup] Looking up user with normalized address: ${normalizedAddress}`);
-    
+    // Use direct SQL query first to ensure we get accurate results
     try {
-      // Try case-insensitive search first (most reliable)
-      const caseInsensitiveResult = await pool.query(`
-        SELECT * FROM users WHERE LOWER(address) = LOWER($1)
-      `, [normalizedAddress]);
-      
-      if (caseInsensitiveResult.rows && caseInsensitiveResult.rows.length > 0) {
-        const userId = caseInsensitiveResult.rows[0].id;
-        console.log(`[UserLookup] Found user with ID ${userId} using case-insensitive SQL`);
-        
-        // Now fetch the full user object through drizzle
-        const [user] = await db.select().from(users).where(eq(users.id, userId));
-        return user;
-      }
-      
-      // If case-insensitive search failed, try direct SQL with exact match
-      console.log(`[UserLookup] No user found with case-insensitive lookup, trying direct SQL`);
       const directQuery = await db.execute(
-        sql`SELECT * FROM users WHERE address = ${normalizedAddress}`
+        sql`SELECT * FROM users WHERE address = ${address}`
       );
       
       if (directQuery.length > 0) {
@@ -50,43 +31,15 @@ export class DatabaseStorage implements IStorage {
         return user;
       }
       
-      // Try with LIKE as a last resort
-      console.log(`[UserLookup] No exact matches found, trying LIKE pattern match`);
-      const likeResult = await pool.query(`
-        SELECT * FROM users WHERE address LIKE $1
-      `, [`%${normalizedAddress}%`]);
-      
-      if (likeResult.rows && likeResult.rows.length > 0) {
-        const userId = likeResult.rows[0].id;
-        console.log(`[UserLookup] Found user with ID ${userId} using LIKE pattern match`);
-        
-        // Now fetch the full user object through drizzle
-        const [user] = await db.select().from(users).where(eq(users.id, userId));
-        return user;
-      }
-      
-      // As a last resort, try ORM with non-normalized address
-      console.log(`[UserLookup] No user found with any SQL method, falling back to ORM with original address: ${address}`);
+      // Fallback to the ORM approach if direct SQL yields no results
+      console.log(`[UserLookup] No user found with direct SQL for ${address}, falling back to ORM`);
       const [user] = await db.select().from(users).where(eq(users.address, address));
-      
-      if (user) {
-        console.log(`[UserLookup] Found user with ID ${user.id} using original address`);
-        return user;
-      }
-      
-      console.log(`[UserLookup] User not found with address: ${normalizedAddress}`);
-      return undefined;
+      return user;
     } catch (error) {
-      console.error(`[UserLookup] Error looking up user with address ${normalizedAddress}:`, error);
-      
-      // Last ditch effort - try the raw address with ORM
-      try {
-        const [user] = await db.select().from(users).where(eq(users.address, address));
-        return user;
-      } catch (e) {
-        console.error(`[UserLookup] Final fallback lookup failed:`, e);
-        return undefined;
-      }
+      console.error("Error in getUser:", error);
+      // Fallback to the original approach if there's an error
+      const [user] = await db.select().from(users).where(eq(users.address, address));
+      return user;
     }
   }
   
@@ -198,8 +151,6 @@ export class DatabaseStorage implements IStorage {
     proposalsVoted: number;
     proposalsCreated: number;
     points: number;
-    bonusPoints: number;
-    userRole: string;
   }> {
     // Get user
     const [user] = await db.select().from(users).where(eq(users.id, userId));
@@ -211,9 +162,7 @@ export class DatabaseStorage implements IStorage {
         totalQuests: 0,
         proposalsVoted: 0,
         proposalsCreated: 0,
-        points: 0,
-        bonusPoints: 0,
-        userRole: 'user'
+        points: 0
       };
     }
     
@@ -259,10 +208,8 @@ export class DatabaseStorage implements IStorage {
     // For now, we're not tracking who created proposals, so it's 0
     const proposalsCreated = 0;
     
-    // Get total points and bonus points from user record, ensuring they're converted to numbers
-    const points = typeof user.points === 'string' ? parseFloat(user.points) : user.points || 0;
-    const bonusPoints = typeof user.bonusPoints === 'string' ? parseFloat(user.bonusPoints) : user.bonusPoints || 0;
-    const userRole = user.userRole || 'user';
+    // Get total points from user record
+    const points = user.points || 0;
     
     return {
       totalFaucetClaims,
@@ -271,9 +218,7 @@ export class DatabaseStorage implements IStorage {
       totalQuests,
       proposalsVoted,
       proposalsCreated,
-      points,
-      bonusPoints,
-      userRole
+      points
     };
   }
   
@@ -309,7 +254,7 @@ export class DatabaseStorage implements IStorage {
     
     // Get the updated user record with recalculated points
     const [updatedUser] = await db.select().from(users).where(eq(users.id, userId));
-    const currentPoints = typeof updatedUser?.points === 'string' ? parseFloat(updatedUser.points) : (updatedUser?.points || 0);
+    const currentPoints = updatedUser?.points || 0;
     
     // Set time range based on period
     const now = new Date();
@@ -997,9 +942,7 @@ export class DatabaseStorage implements IStorage {
     const pointsBefore = user.points || 0;
     console.log(`[PointsSystem] Recalculating points for user ${userId} (${user.address}) - currently has ${pointsBefore} points`);
     
-    // CRITICAL: Get all transactions for this user by type to properly calculate points from different sources
-    
-    // 1. Get swap transactions (these are calculated with daily limits)
+    // Get all swap transactions for this user
     const swapTransactions = await db
       .select()
       .from(transactions)
@@ -1009,59 +952,6 @@ export class DatabaseStorage implements IStorage {
         eq(transactions.status, 'completed')
       ))
       .orderBy(sql`${transactions.timestamp} ASC`); // Ensure chronological order
-    
-    // 2. Get bonus transactions (to be preserved in the recalculation)
-    const bonusTransactions = await db
-      .select()
-      .from(transactions)
-      .where(and(
-        eq(transactions.userId, userId),
-        eq(transactions.type, 'bonus'),
-        eq(transactions.status, 'completed')
-      ))
-      .orderBy(sql`${transactions.timestamp} ASC`);
-    
-    // 3. Get admin_points transactions (another type to be preserved)
-    const adminPointsTransactions = await db
-      .select()
-      .from(transactions)
-      .where(and(
-        eq(transactions.userId, userId),
-        eq(transactions.type, 'admin_points'),
-        eq(transactions.status, 'completed')
-      ))
-      .orderBy(sql`${transactions.timestamp} ASC`);
-    
-    console.log(`[DEBUG] User ${userId} has: 
-    - ${swapTransactions.length} swap transactions
-    - ${bonusTransactions.length} bonus transactions
-    - ${adminPointsTransactions.length} admin_points transactions`);
-    
-    // Calculate total bonus points (these will be preserved)
-    let bonusPoints = 0;
-    
-    // First count points from 'bonus' transactions
-    for (const tx of bonusTransactions) {
-      if (tx.points) {
-        const txPoints = parseFloat(tx.points.toString());
-        bonusPoints += txPoints;
-        console.log(`[DEBUG] Bonus tx found: ${tx.id}, points: ${txPoints}, type: 'bonus', timestamp: ${tx.timestamp}`);
-      }
-    }
-    
-    // Also count points from 'admin_points' transactions
-    for (const tx of adminPointsTransactions) {
-      if (tx.points) {
-        const txPoints = parseFloat(tx.points.toString());
-        bonusPoints += txPoints;
-        console.log(`[DEBUG] Admin points tx found: ${tx.id}, points: ${txPoints}, type: 'admin_points', timestamp: ${tx.timestamp}`);
-      }
-    }
-    
-    // Round to 1 decimal place for consistency
-    bonusPoints = Math.round(bonusPoints * 10) / 10;
-    
-    console.log(`[PointsCalc] User ${userId} has ${bonusPoints} bonus points to preserve from ${bonusTransactions.length + adminPointsTransactions.length} total bonus/admin transactions`);
     
     // Group transactions by day for swap points calculation
     const transactionsByDay: Record<string, Transaction[]> = {};
@@ -1078,8 +968,8 @@ export class DatabaseStorage implements IStorage {
       transactionsByDay[day].push(tx);
     }
     
-    // Calculate swap points: 0.5 per swap, max 5 swaps per day (= 2.5 daily max)
-    let swapPoints = 0;
+    // Calculate swap points: 0.5 per swap, max 5 swaps per day
+    let newPoints = 0;
     
     for (const day in transactionsByDay) {
       const daySwaps = transactionsByDay[day];
@@ -1090,14 +980,11 @@ export class DatabaseStorage implements IStorage {
       const pointsForDay = pointSwapsForDay * 0.5; // Exactly 0.5 points per swap
       
       console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps (0.5 × ${pointSwapsForDay}) on ${day}`);
-      swapPoints += pointsForDay;
+      newPoints += pointsForDay;
     }
     
-    // Round swap points to 1 decimal place for clean display
-    swapPoints = Math.round(swapPoints * 10) / 10;
-    
-    // Combine swap points with preserved bonus points for total points
-    const newPoints = swapPoints + bonusPoints;
+    // Round to 1 decimal place for clean display
+    newPoints = Math.round(newPoints * 10) / 10;
     
     // Update user with new points
     await db
@@ -1108,7 +995,7 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(users.id, userId));
       
-    console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points (${swapPoints} swap + ${bonusPoints} bonus) | ${swapTransactions.length} total swaps, ${pointEarningSwaps} earning points`);
+    console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | ${swapTransactions.length} total swaps`);
     
     // Broadcast individual user points update via WebSocket if points changed
     if (pointsBefore !== newPoints) {
@@ -1172,7 +1059,7 @@ export class DatabaseStorage implements IStorage {
     return user.points || 0;
   }
   
-  async addUserPoints(userId: number, points: number, reason: string = 'Bonus points'): Promise<number> {
+  async addUserPoints(userId: number, points: number): Promise<number> {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) return 0;
     
@@ -1185,205 +1072,8 @@ export class DatabaseStorage implements IStorage {
       .set({ points: newPoints })
       .where(eq(users.id, userId))
       .returning();
-      
-    // Always create a transaction record for points additions as a 'bonus' type
-    // Generate a unique transaction hash for the bonus
-    const bonusTxHash = `bonus_${userId}_${Date.now()}`;
-    
-    await this.createTransaction({
-      userId,
-      type: 'bonus', // This is critical - must be 'bonus' type to be preserved during recalculation
-      points: points.toString(),
-      txHash: bonusTxHash,
-      status: 'completed',
-      metadata: { reason } // Store the reason in the metadata JSON field
-    });
-    
-    // Log the creation of the bonus transaction
-    console.log(`[PointsSystem] Created bonus transaction: ${bonusTxHash} for ${points} points`);
-    
-    // Broadcast the points update
-    try {
-      const { broadcastNotification } = require('./routes');
-      if (typeof broadcastNotification === 'function') {
-        broadcastNotification({
-          type: 'points_update',
-          userId,
-          address: user.address,
-          pointsBefore: currentPoints,
-          pointsAfter: newPoints,
-          timestamp: new Date().toISOString()
-        });
-      }
-    } catch (error) {
-      console.error(`[WebSocket] Error broadcasting points update:`, error);
-    }
-    
-    console.log(`[PointsSystem] Admin added ${points} bonus points to user ${userId} (${user.address}). Reason: ${reason}`);
     
     return updatedUser.points || 0;
-  }
-  
-  /**
-   * Add bonus points to a specific user by wallet address
-   * @param address The wallet address of the user
-   * @param points The number of points to add
-   * @param reason The reason for awarding the points
-   */
-  async addPointsByWalletAddress(address: string, points: number, reason: string): Promise<{
-    success: boolean;
-    message: string;
-    pointsBefore?: number;
-    pointsAfter?: number;
-    userId?: number;
-  }> {
-    try {
-      console.log(`[PointsSystem] Starting individual reward. Add ${points} points to user ${address} for reason: ${reason}`);
-      
-      // Special case for admin wallet (ID 3042)
-      if (address.toLowerCase() === '0x4cfc531df94339def7dcd603aac1a2deaf6888b7'.toLowerCase()) {
-        console.log(`[PointsSystem] Special case: Using known admin user ID 3042`);
-        
-        // Update user points directly with ID 3042
-        const [adminUser] = await db.select().from(users).where(eq(users.id, 3042));
-        
-        if (adminUser) {
-          const pointsBefore = adminUser.points || 0;
-          const newPoints = Number(pointsBefore) + points;
-          
-          // Update admin user points directly
-          await db
-            .update(users)
-            .set({ points: newPoints.toString() })
-            .where(eq(users.id, 3042));
-            
-          // Create transaction record
-          const bonusTxHash = `bonus_3042_${Date.now()}`;
-          await this.createTransaction({
-            userId: 3042,
-            type: 'bonus',
-            points: points.toString(),
-            txHash: bonusTxHash,
-            status: 'completed',
-            metadata: { reason }
-          });
-          
-          console.log(`[PointsSystem] Updated admin user points: ${pointsBefore} → ${newPoints}`);
-          
-          return {
-            success: true,
-            message: `Successfully added ${points} points to admin user (${adminUser.address})`,
-            userId: 3042,
-            pointsBefore: Number(pointsBefore),
-            pointsAfter: newPoints
-          };
-        }
-      }
-      
-      // For all other users, try to find them with a simple direct query
-      console.log(`[PointsSystem] Looking up user with address: ${address}`);
-      const normalizedAddress = address.toLowerCase();
-      
-      // Try a direct SQL query with case insensitivity
-      const userResult = await pool.query(`
-        SELECT * FROM users WHERE LOWER(address) = LOWER($1)
-      `, [normalizedAddress]);
-      
-      // Check if we found a user
-      if (userResult.rows && userResult.rows.length > 0) {
-        const userRecord = userResult.rows[0];
-        const userId = userRecord.id;
-        const pointsBefore = userRecord.points || 0;
-        const bonusPointsBefore = userRecord.bonus_points || 0;
-        
-        console.log(`[PointsSystem] Found user with ID ${userId}, current points: ${pointsBefore}, bonus points: ${bonusPointsBefore}`);
-        
-        // Calculate new points
-        const newPoints = Number(pointsBefore) + points;
-        const newBonusPoints = Number(bonusPointsBefore) + points;
-        
-        // Update user points directly - both total points and bonus points
-        await db
-          .update(users)
-          .set({ 
-            points: newPoints.toString(),
-            bonusPoints: newBonusPoints.toString()
-          })
-          .where(eq(users.id, userId));
-          
-        // Create transaction record
-        const bonusTxHash = `bonus_${userId}_${Date.now()}`;
-        await this.createTransaction({
-          userId,
-          type: 'bonus',
-          points: points.toString(),
-          txHash: bonusTxHash,
-          status: 'completed',
-          metadata: { reason }
-        });
-        
-        console.log(`[PointsSystem] Updated user ${userId} points: ${pointsBefore} → ${newPoints}, bonus points: ${bonusPointsBefore} → ${newBonusPoints}`);
-        
-        return {
-          success: true,
-          message: `Successfully added ${points} points to user ${userId} (${userRecord.address})`,
-          userId,
-          pointsBefore: Number(pointsBefore),
-          pointsAfter: newPoints,
-          bonusPointsBefore: Number(bonusPointsBefore),
-          bonusPointsAfter: newBonusPoints,
-          reason: reason
-        };
-      }
-      
-      // If no user found, create a new one
-      console.log(`[PointsSystem] User not found, creating new user for address: ${address}`);
-      
-      const newUser = await this.createUser({
-        address: address
-      });
-      
-      // Set initial points for the new user - both total and bonus points
-      await db
-        .update(users)
-        .set({ 
-          points: points.toString(),
-          bonusPoints: points.toString()
-        })
-        .where(eq(users.id, newUser.id));
-        
-      // Create transaction record
-      const bonusTxHash = `bonus_${newUser.id}_${Date.now()}`;
-      await this.createTransaction({
-        userId: newUser.id,
-        type: 'bonus',
-        points: points.toString(),
-        txHash: bonusTxHash,
-        status: 'completed',
-        metadata: { reason }
-      });
-      
-      console.log(`[PointsSystem] Created new user with ID ${newUser.id} and added ${points} points`);
-      
-      return {
-        success: true,
-        message: `Created new user and added ${points} points to wallet address ${address}`,
-        userId: newUser.id,
-        pointsBefore: 0,
-        pointsAfter: points,
-        bonusPointsBefore: 0,
-        bonusPointsAfter: points,
-        reason: reason
-      };
-    } catch (error) {
-      console.error(`[PointsSystem] Error adding points to wallet address:`, error);
-      const errorStack = error instanceof Error ? error.stack : 'Stack not available';
-      console.error(`[PointsSystem] Error stack:`, errorStack);
-      return {
-        success: false,
-        message: `Error adding points: ${error instanceof Error ? error.message : String(error)}`
-      };
-    }
   }
   
   async removePointsForFaucetClaims(): Promise<number> {
@@ -1487,46 +1177,6 @@ export class DatabaseStorage implements IStorage {
       return {
         users: [],
         totalGlobalPoints: 0
-      };
-    }
-  }
-  
-  // New function to get the bonus points leaderboard
-  async getBonusPointsLeaderboard(limit: number = 20, page: number = 1): Promise<{
-    users: User[],
-    totalGlobalBonusPoints: number
-  }> {
-    try {
-      // Calculate offset based on page and limit for pagination
-      const offset = (page - 1) * limit;
-      
-      // Get top users by bonus points
-      const result = await db
-        .select()
-        .from(users)
-        .orderBy(sql`CAST(${users.bonusPoints} AS NUMERIC) DESC`)
-        .limit(limit)
-        .offset(offset);
-      
-      // Calculate total global bonus points across all users
-      const [totalPointsResult] = await db
-        .select({
-          sum: sql<number>`SUM(CAST(${users.bonusPoints} AS NUMERIC))`
-        })
-        .from(users);
-      
-      const totalGlobalBonusPoints = totalPointsResult?.sum || 0;
-      
-      console.log(`Found ${result.length} users for bonus points leaderboard (page ${page}, limit ${limit}), total global bonus points: ${totalGlobalBonusPoints}`);
-      return {
-        users: result,
-        totalGlobalBonusPoints
-      };
-    } catch (error) {
-      console.error("Error in getBonusPointsLeaderboard:", error);
-      return {
-        users: [],
-        totalGlobalBonusPoints: 0
       };
     }
   }
@@ -1821,143 +1471,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  /**
-   * Add bonus points to all users who have made at least one swap transaction
-   * @param bonusPoints The number of points to add to each user
-   * @param reason The reason for the bonus (for transaction recording)
-   * @param minSwaps Minimum number of swaps a user must have to qualify for the bonus
-   */
-  async addBonusPointsToAllSwapUsers(bonusPoints: number, reason: string, minSwaps: number = 1): Promise<{
-    usersRewarded: number;
-    totalPointsAdded: number;
-    totalPointsBefore: number;
-    totalPointsAfter: number;
-    userDetails: any[];
-  }> {
-    console.log(`[PointsSystem] Starting bonus points distribution of ${bonusPoints} points to all users with at least ${minSwaps} swap(s)`);
-    
-    let usersRewarded = 0;
-    let totalPointsAdded = 0;
-    let totalPointsBefore = 0;
-    let totalPointsAfter = 0;
-    const userDetails: any[] = [];
-    
-    try {
-      // Get distinct user IDs that have made at least one swap transaction
-      const userSwapCounts = await db
-        .select({
-          userId: transactions.userId,
-          swapCount: count(transactions.id)
-        })
-        .from(transactions)
-        .where(and(
-          eq(transactions.type, 'swap'),
-          eq(transactions.status, 'completed')
-        ))
-        .groupBy(transactions.userId);
-        
-      // Filter users who meet the minimum swap requirement
-      const eligibleUsers = userSwapCounts.filter(u => u.swapCount >= minSwaps);
-      
-      console.log(`[PointsSystem] Found ${eligibleUsers.length} eligible users with at least ${minSwaps} swap(s)`);
-      
-      // Add bonus points to each eligible user
-      for (const { userId, swapCount } of eligibleUsers) {
-        // Get user details
-        const [user] = await db.select().from(users).where(eq(users.id, userId));
-        if (!user) {
-          console.log(`[PointsSystem] User ${userId} not found, skipping`);
-          continue;
-        }
-        
-        const pointsBefore = user.points || 0;
-        totalPointsBefore += pointsBefore;
-        
-        // Calculate new points (add bonus to current points)
-        const newPoints = pointsBefore + bonusPoints;
-        totalPointsAdded += bonusPoints;
-        
-        // Update user with new points
-        await db
-          .update(users)
-          .set({ points: newPoints })
-          .where(eq(users.id, userId));
-          
-        totalPointsAfter += newPoints;
-        usersRewarded++;
-        
-        // Create a record of this bonus transaction
-        await this.createTransaction({
-          userId,
-          type: 'bonus',
-          points: bonusPoints.toString(),
-          details: reason,
-          status: 'completed'
-        });
-        
-        // Record user details for the report
-        userDetails.push({
-          userId,
-          address: user.address,
-          pointsBefore,
-          pointsAfter: newPoints,
-          bonusPoints,
-          totalSwaps: swapCount
-        });
-        
-        console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | Added ${bonusPoints} bonus points`);
-        
-        // Broadcast the points update
-        try {
-          const { broadcastNotification } = require('./routes');
-          if (typeof broadcastNotification === 'function') {
-            broadcastNotification({
-              type: 'points_update',
-              userId,
-              address: user.address,
-              pointsBefore,
-              pointsAfter: newPoints,
-              timestamp: new Date().toISOString()
-            });
-          }
-        } catch (error) {
-          console.error(`[WebSocket] Error broadcasting points update:`, error);
-        }
-      }
-      
-      // Broadcast global leaderboard update
-      try {
-        const { broadcastNotification } = require('./routes');
-        if (typeof broadcastNotification === 'function') {
-          const totalCount = await this.getTotalUsersCount();
-          broadcastNotification({
-            type: 'leaderboard_update',
-            totalGlobalPoints: totalPointsAfter,
-            userCount: totalCount.count,
-            timestamp: new Date().toISOString()
-          });
-        }
-      } catch (error) {
-        console.error(`[WebSocket] Error broadcasting leaderboard update:`, error);
-      }
-      
-      console.log(`[PointsSystem] Bonus distribution complete. Rewarded ${usersRewarded} users with ${bonusPoints} points each.`);
-      console.log(`[PointsSystem] Total points before: ${totalPointsBefore}, after: ${totalPointsAfter}`);
-      
-      return {
-        usersRewarded,
-        totalPointsAdded,
-        totalPointsBefore,
-        totalPointsAfter,
-        userDetails
-      };
-      
-    } catch (error) {
-      console.error("[PointsSystem] Error during bonus points distribution:", error);
-      throw error;
-    }
-  }
-  
   async recalculateAllUserPoints(): Promise<{
     usersUpdated: number;
     totalPointsBefore: number;
@@ -1970,7 +1483,6 @@ export class DatabaseStorage implements IStorage {
       totalSwaps: number;
       pointEarningSwaps: number;
       nftStaked: boolean;
-      bonusPointsPreserved: number;
     }>;
   }> {
     console.log("[PointsSystem] Starting points recalculation for all users");
@@ -1983,7 +1495,6 @@ export class DatabaseStorage implements IStorage {
       totalSwaps: number;
       pointEarningSwaps: number;
       nftStaked: boolean;
-      bonusPointsPreserved: number;
     }> = [];
     
     let totalPointsBefore = 0;
@@ -2011,49 +1522,6 @@ export class DatabaseStorage implements IStorage {
           ))
           .orderBy(sql`${transactions.timestamp} ASC`); // Ensure chronological order
         
-        // Get all bonus point transactions for this user
-        const bonusTransactions = await db
-          .select()
-          .from(transactions)
-          .where(and(
-            eq(transactions.userId, userId),
-            eq(transactions.type, 'bonus'),
-            eq(transactions.status, 'completed')
-          ))
-          .orderBy(sql`${transactions.timestamp} ASC`);
-        
-        console.log(`[DEBUG] User ${userId} (${user.address.substring(0, 6)}...) has ${bonusTransactions.length} bonus transactions`);
-        
-        // Calculate total bonus points (these will be preserved)
-        let bonusPoints = 0;
-        for (const tx of bonusTransactions) {
-          if (tx.points) {
-            const txPoints = parseFloat(tx.points.toString());
-            bonusPoints += txPoints;
-            // Safe access to metadata since it might not exist in the actual db schema
-            let metadataInfo = "No metadata";
-            try {
-              // Handle both object and string formats of metadata
-              if (tx.metadata) {
-                if (typeof tx.metadata === 'object') {
-                  metadataInfo = JSON.stringify(tx.metadata);
-                } else if (typeof tx.metadata === 'string') {
-                  metadataInfo = tx.metadata;
-                }
-              }
-            } catch (e) {
-              metadataInfo = "Error accessing metadata";
-            }
-            
-            console.log(`[DEBUG] Bonus tx found: ${tx.id}, points: ${txPoints}, metadata: ${metadataInfo}, timestamp: ${tx.timestamp}`);
-          }
-        }
-        
-        // Round to 1 decimal place for consistency
-        bonusPoints = Math.round(bonusPoints * 10) / 10;
-        
-        console.log(`[PointsCalc] User ${userId} (${user.address}) has ${bonusPoints} bonus points to preserve from ${bonusTransactions.length} bonus transactions`);
-        
         // Group transactions by day for swap points calculation
         const transactionsByDay: Record<string, Transaction[]> = {};
         let pointEarningSwaps = 0;
@@ -2070,7 +1538,7 @@ export class DatabaseStorage implements IStorage {
         }
         
         // Calculate swap points: 0.5 per swap, max 5 swaps per day
-        let swapPoints = 0;
+        let newPoints = 0;
         
         for (const day in transactionsByDay) {
           const daySwaps = transactionsByDay[day];
@@ -2081,7 +1549,7 @@ export class DatabaseStorage implements IStorage {
           const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
           
           console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
-          swapPoints += pointsForDay;
+          newPoints += pointsForDay;
         }
         
         // Check for NFT staking transactions for logging/tracking only
@@ -2101,11 +1569,8 @@ export class DatabaseStorage implements IStorage {
           console.log(`[PointsCalc] NFT staking detected for user ${userId} but no points awarded - handled on separate site`);
         }
         
-        // Round swap points to 1 decimal place for clean display
-        swapPoints = Math.round(swapPoints * 10) / 10;
-        
-        // Combine swap points with preserved bonus points for total points
-        const newPoints = swapPoints + bonusPoints;
+        // Round to 1 decimal place for clean display
+        newPoints = Math.round(newPoints * 10) / 10;
         
         // Update user with new points
         await db
@@ -2127,11 +1592,10 @@ export class DatabaseStorage implements IStorage {
           pointsAfter: newPoints,
           totalSwaps: swapTransactions.length,
           pointEarningSwaps,
-          nftStaked,
-          bonusPointsPreserved: bonusPoints
+          nftStaked
         });
         
-        console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points (${swapPoints} swap + ${bonusPoints} bonus) | ${swapTransactions.length} total swaps, ${pointEarningSwaps} earning points | NFT staked: ${nftStaked ? 'Yes' : 'No'}`);
+        console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | ${swapTransactions.length} total swaps, ${pointEarningSwaps} earning points | NFT staked: ${nftStaked ? 'Yes' : 'No'}`);
       }
       
       console.log(`[PointsSystem] Recalculation complete. Updated ${usersUpdated} users.`);

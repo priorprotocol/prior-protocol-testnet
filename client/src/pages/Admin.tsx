@@ -6,12 +6,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { useQueryClient } from "@tanstack/react-query";
-import { HiShieldExclamation, HiRefresh, HiTrash, HiLockClosed, HiDatabase, HiGift, HiUser } from "react-icons/hi";
+import { HiShieldExclamation, HiRefresh, HiTrash, HiLockClosed, HiDatabase } from "react-icons/hi";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import { useLocation } from "wouter";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 
 const ADMIN_WALLET = "0x4cfc531df94339def7dcd603aac1a2deaf6888b7";
 
@@ -24,19 +21,7 @@ const Admin = () => {
   const [resetResult, setResetResult] = useState<any>(null);
   const [recalcResult, setRecalcResult] = useState<any>(null);
   const [fixPointsResult, setFixPointsResult] = useState<any>(null);
-  const [rewardResult, setRewardResult] = useState<any>(null);
-  const [individualRewardResult, setIndividualRewardResult] = useState<any>(null);
-  
-  // Reward inputs
-  const [globalRewardPoints, setGlobalRewardPoints] = useState<number>(1);
-  const [globalRewardReason, setGlobalRewardReason] = useState<string>("Community bonus");
-  const [globalMinSwaps, setGlobalMinSwaps] = useState<number>(1);
-  
-  const [individualAddress, setIndividualAddress] = useState<string>("");
-  const [individualPoints, setIndividualPoints] = useState<number>(1);
-  const [individualReason, setIndividualReason] = useState<string>("Individual bonus");
-  
-  const [activeTab, setActiveTab] = useState("rewards");
+  const [activeTab, setActiveTab] = useState("points");
   const [, setLocation] = useLocation();
   
   const isAdmin = address?.toLowerCase() === ADMIN_WALLET.toLowerCase();
@@ -257,151 +242,6 @@ const Admin = () => {
       setLoading(false);
     }
   };
-  
-  // Handler for global rewards
-  const handleGlobalReward = async () => {
-    try {
-      setLoading(true);
-      console.log("Sending global reward request...");
-      
-      // Validate input values
-      if (globalRewardPoints <= 0) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Input",
-          description: "Points must be a positive number."
-        });
-        return;
-      }
-      
-      // Use the admin/reward/global endpoint
-      const result = await apiRequest('POST', '/api/admin/reward/global', {
-        adminAddress: address,
-        points: globalRewardPoints,
-        reason: globalRewardReason,
-        minSwaps: globalMinSwaps
-      });
-
-      console.log("Global reward response:", result);
-      
-      setRewardResult(result);
-      toast({
-        title: "Global Reward Distributed",
-        description: `Rewarded ${result.summary.usersRewarded} users with ${globalRewardPoints} points each. Total points added: ${result.summary.totalPointsAdded}.`
-      });
-
-      // Refresh all application data after the reward distribution
-      await forceRefreshAllData();
-      
-      toast({
-        title: "Cache Refreshed",
-        description: "All data has been refreshed from the server. The leaderboard should now reflect the updated points."
-      });
-      
-    } catch (error) {
-      console.error("Global reward failed:", error);
-      toast({
-        variant: "destructive",
-        title: "Reward Distribution Failed",
-        description: "An error occurred while distributing global rewards."
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Handler for individual rewards
-  const handleIndividualReward = async () => {
-    try {
-      setLoading(true);
-      console.log("Sending individual reward request...");
-      
-      // Validate input values
-      if (!individualAddress) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Input",
-          description: "Please enter a wallet address."
-        });
-        return;
-      }
-      
-      // Normalize the address to ensure consistent format
-      const normalizedAddress = individualAddress.trim().toLowerCase();
-      
-      if (!normalizedAddress.startsWith('0x') || normalizedAddress.length !== 42) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Input",
-          description: "Please enter a valid wallet address (0x followed by 40 hex characters)."
-        });
-        return;
-      }
-      
-      if (individualPoints <= 0) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Input",
-          description: "Points must be a positive number."
-        });
-        return;
-      }
-      
-      console.log(`Submitting reward request for address: ${normalizedAddress} with ${individualPoints} points`);
-      
-      // Use the admin/reward/user endpoint
-      const result = await apiRequest('POST', '/api/admin/reward/user', {
-        adminAddress: address,
-        address: normalizedAddress, // Use normalized address
-        points: individualPoints,
-        reason: individualReason
-      });
-
-      console.log("Individual reward response:", result);
-      
-      setIndividualRewardResult(result);
-      
-      if (result.success) {
-        toast({
-          title: "Individual Reward Sent",
-          description: `Rewarded user ${normalizedAddress.substring(0, 6)}...${normalizedAddress.substring(normalizedAddress.length - 4)} with ${individualPoints} points. Points before: ${result.pointsBefore}, after: ${result.pointsAfter}.`
-        });
-  
-        // Refresh all application data after the reward
-        await forceRefreshAllData();
-        
-        toast({
-          title: "Cache Refreshed",
-          description: "All data has been refreshed from the server. The leaderboard should now reflect the updated points."
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Reward Distribution Failed",
-          description: result.message || "An error occurred while distributing the individual reward."
-        });
-      }
-      
-    } catch (error) {
-      console.error("Individual reward failed:", error);
-      
-      // Extract error message if available
-      let errorMessage = "An error occurred while distributing the individual reward.";
-      if (error instanceof Error) {
-        errorMessage = error.message || errorMessage;
-      } else if (typeof error === 'object' && error !== null && 'message' in error) {
-        errorMessage = String((error as any).message) || errorMessage;
-      }
-      
-      toast({
-        variant: "destructive",
-        title: "Reward Distribution Failed",
-        description: errorMessage
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="container px-4 py-6 max-w-6xl mx-auto">
@@ -430,8 +270,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="rewards">Reward Users</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="points">Points Fix</TabsTrigger>
           <TabsTrigger value="recalculate">Recalculation</TabsTrigger>
           <TabsTrigger value="reset">Database Reset</TabsTrigger>
@@ -531,177 +370,6 @@ const Admin = () => {
               </Button>
             </CardFooter>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="rewards" className="mt-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Global Rewards Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-purple-600">
-                  <HiGift className="mr-2" />
-                  Global Community Rewards
-                </CardTitle>
-                <CardDescription>
-                  Award bonus points to all users who have made at least a specified number of swaps.
-                  Use this to reward engaged community members.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="globalRewardPoints">Points per User</Label>
-                    <Input
-                      id="globalRewardPoints"
-                      type="number"
-                      min="0.5"
-                      step="0.5" 
-                      value={globalRewardPoints}
-                      onChange={(e) => setGlobalRewardPoints(parseFloat(e.target.value))}
-                      className="w-full"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Number of points to award to each eligible user
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="globalMinSwaps">Minimum Swaps Required</Label>
-                    <Input
-                      id="globalMinSwaps"
-                      type="number"
-                      min="1"
-                      value={globalMinSwaps}
-                      onChange={(e) => setGlobalMinSwaps(parseInt(e.target.value))}
-                      className="w-full"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Users must have made at least this many swaps to receive the reward
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="globalRewardReason">Reward Reason</Label>
-                    <Input
-                      id="globalRewardReason"
-                      value={globalRewardReason}
-                      onChange={(e) => setGlobalRewardReason(e.target.value)}
-                      className="w-full"
-                      placeholder="Community bonus"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Will be shown in transaction history as the reason for bonus points
-                    </p>
-                  </div>
-                  
-                  {rewardResult && (
-                    <div className="p-4 bg-muted rounded-lg mb-4 border-purple-500 border">
-                      <h3 className="font-medium mb-2 text-purple-600">Reward Results:</h3>
-                      <ul className="list-disc list-inside text-sm">
-                        <li>Users rewarded: {rewardResult.summary.usersRewarded}</li>
-                        <li>Points per user: {globalRewardPoints}</li>
-                        <li>Total points added: {rewardResult.summary.totalPointsAdded}</li>
-                        <li>Total points before: {rewardResult.summary.totalPointsBefore}</li>
-                        <li>Total points after: {rewardResult.summary.totalPointsAfter}</li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  onClick={handleGlobalReward}
-                  disabled={loading}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                >
-                  {loading ? 'Processing...' : 'Award Bonus to All Eligible Users'}
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            {/* Individual Rewards Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-blue-600">
-                  <HiUser className="mr-2" />
-                  Individual User Rewards
-                </CardTitle>
-                <CardDescription>
-                  Award bonus points to a specific user by their wallet address.
-                  Use this for contests, support issues, or special recognition.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="individualAddress">User Wallet Address</Label>
-                    <Input
-                      id="individualAddress"
-                      value={individualAddress}
-                      onChange={(e) => setIndividualAddress(e.target.value)}
-                      className="w-full font-mono text-xs"
-                      placeholder="0x..."
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      The wallet address of the user to receive the bonus points
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="individualPoints">Points to Award</Label>
-                    <Input
-                      id="individualPoints"
-                      type="number"
-                      min="0.5"
-                      step="0.5"
-                      value={individualPoints}
-                      onChange={(e) => setIndividualPoints(parseFloat(e.target.value))}
-                      className="w-full"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Number of bonus points to award to this user
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="individualReason">Reward Reason</Label>
-                    <Input
-                      id="individualReason"
-                      value={individualReason}
-                      onChange={(e) => setIndividualReason(e.target.value)}
-                      className="w-full"
-                      placeholder="Contest winner"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Will be shown in transaction history as the reason for bonus points
-                    </p>
-                  </div>
-                  
-                  {individualRewardResult && (
-                    <div className="p-4 bg-muted rounded-lg mb-4 border-blue-500 border">
-                      <h3 className="font-medium mb-2 text-blue-600">Reward Results:</h3>
-                      <ul className="list-disc list-inside text-sm">
-                        <li>User: {individualAddress.substring(0, 6)}...{individualAddress.substring(individualAddress.length - 4)}</li>
-                        <li>Points awarded: {individualPoints}</li>
-                        <li>Points before: {individualRewardResult.pointsBefore}</li>
-                        <li>Points after: {individualRewardResult.pointsAfter}</li>
-                        <li>Status: {individualRewardResult.success ? 'Success' : 'Failed'}</li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  onClick={handleIndividualReward}
-                  disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                >
-                  {loading ? 'Processing...' : 'Award Bonus to Individual User'}
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
         </TabsContent>
         
         <TabsContent value="points" className="mt-4">
