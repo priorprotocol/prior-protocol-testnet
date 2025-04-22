@@ -1576,14 +1576,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   wss = new WebSocketServer({ 
     server: httpServer,
     path: '/ws',
-    // Add permissive CORS settings for Replit environment
+    // Add CORS settings that match our Express CORS configuration
     verifyClient: (info, callback) => {
-      // Allow all origins in Replit environment
       const origin = info.origin;
       console.log(`[WebSocket] Connection attempt from origin: ${origin}`);
       
-      // Always allow connections regardless of origin (needed for Replit)
-      callback(true);
+      // List of allowed WebSocket origins - should mirror our Express CORS config
+      const allowedWsOrigins = [
+        // Custom domains
+        'https://testnetpriorprotocol.xyz',
+        'http://testnetpriorprotocol.xyz',
+        'https://www.testnetpriorprotocol.xyz',
+        'http://www.testnetpriorprotocol.xyz',
+        // Netlify domains
+        'https://priortestnetv2.netlify.app',
+        'http://priortestnetv2.netlify.app',
+        'https://prior-protocol-testnet.netlify.app',
+        'http://prior-protocol-testnet.netlify.app',
+        'https://testnetpriorprotocol.netlify.app',
+        'http://testnetpriorprotocol.netlify.app',
+        'https://prior-testnet.netlify.app',
+        'http://prior-testnet.netlify.app',
+        'https://prior-test.netlify.app',
+        'http://prior-test.netlify.app',
+        'https://prior-protocol.netlify.app',
+        'http://prior-protocol.netlify.app',
+        // Replit domains
+        'https://prior-protocol-testnet-priorprotocol.replit.app',
+        'http://prior-protocol-testnet-priorprotocol.replit.app'
+      ];
+      
+      // Allow connections from recognized origins or in development
+      if (
+        !origin || // Allow connections without origin (some clients don't send it)
+        allowedWsOrigins.includes(origin) ||
+        origin.includes('localhost') ||
+        origin.includes('replit.dev') ||
+        origin.includes('replit.app') ||
+        origin.includes('janeway.replit') || 
+        origin.includes('netlify.app') ||
+        origin.includes('netlify.com')
+      ) {
+        console.log(`[WebSocket] Accepting connection from origin: ${origin}`);
+        callback(true);
+      } else {
+        console.log(`[WebSocket] Rejecting connection from unauthorized origin: ${origin}`);
+        callback(false, 403, 'Unauthorized origin');
+      }
     },
     // Increase ping timeout for Replit environment which can have higher latency
     clientTracking: true,

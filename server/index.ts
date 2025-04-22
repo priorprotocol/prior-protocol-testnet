@@ -17,6 +17,11 @@ app.use((req, res, next) => {
   
   // IMPORTANT: Ensure all Netlify and Replit domains are explicitly listed here
   const allowedOrigins = [
+    // Custom domains
+    'https://testnetpriorprotocol.xyz',
+    'http://testnetpriorprotocol.xyz',
+    'https://www.testnetpriorprotocol.xyz',
+    'http://www.testnetpriorprotocol.xyz',
     // Netlify domains
     'https://priortestnetv2.netlify.app',
     'http://priortestnetv2.netlify.app',
@@ -62,8 +67,18 @@ app.use((req, res, next) => {
   } else {
     // Fallback for development, but use more restrictive settings
     log(`Using fallback CORS for origin: ${origin}`);
-    // Use * only if we really need to (better security would use specific origins)
-    res.header('Access-Control-Allow-Origin', '*');
+    
+    // IMPORTANT: With credentials mode 'include', we can't use '*' for Allow-Origin
+    // So we need to explicitly set the origin if it exists, or default to a known domain
+    if (origin) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Access-Control-Allow-Credentials', 'true');
+    } else {
+      // If no origin, use primary domain as fallback
+      res.header('Access-Control-Allow-Origin', 'https://prior-protocol-testnet-priorprotocol.replit.app');
+      res.header('Access-Control-Allow-Credentials', 'true');
+    }
+    
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, cache-control, no-cache, If-Modified-Since, Range');
   }
