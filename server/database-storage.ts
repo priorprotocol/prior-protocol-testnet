@@ -767,8 +767,8 @@ export class DatabaseStorage implements IStorage {
         const result = await pool.query(
           `INSERT INTO transactions (
             user_id, type, from_token, to_token, from_amount, to_amount, 
-            tx_hash, status, block_number, points, timestamp
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+            tx_hash, status, block_number, points, timestamp, metadata
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
           [
             transaction.userId,
             transaction.type,
@@ -780,7 +780,8 @@ export class DatabaseStorage implements IStorage {
             transaction.status || "completed",
             transaction.blockNumber || null,
             pointsValue,
-            timestamp
+            timestamp,
+            transaction.metadata || null
           ]
         );
         
