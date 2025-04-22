@@ -2045,7 +2045,7 @@ export class MemStorage implements IStorage {
     pointsBefore?: number;
     pointsAfter?: number;
   }> {
-    console.log(`[PointsSystem] Starting individual reward. Add ${points} points to user ${address} for reason: ${reason}`);
+    console.log(`[PointsSystem] Starting bonus reward. Add ${points} BONUS points to user ${address} for reason: ${reason}`);
     
     // Find the user by address
     const user = this.usersByAddress.get(address);
@@ -2058,14 +2058,25 @@ export class MemStorage implements IStorage {
       };
     }
     
-    // Calculate points before and after
-    const pointsBefore = parseFloat(user.points);
-    const pointsAfter = pointsBefore + points;
+    // Calculate bonus points before and after
+    const bonusPointsBefore = user.bonusPoints ? parseFloat(user.bonusPoints.toString()) : 0;
+    const bonusPointsAfter = bonusPointsBefore + points;
     
-    // Update user record
+    // Set user role based on reason (if not already set)
+    let userRole = user.userRole || 'user';
+    if (reason.toLowerCase().includes('ambassador')) {
+      userRole = 'ambassador';
+    } else if (reason.toLowerCase().includes('tester')) {
+      userRole = 'tester';
+    } else if (reason.toLowerCase().includes('helper')) {
+      userRole = 'helper';
+    }
+    
+    // Update user record with new bonus points
     const updatedUser: User = {
       ...user,
-      points: pointsAfter.toString()
+      bonusPoints: bonusPointsAfter.toString(),
+      userRole: userRole
     };
     
     this.users.set(user.id, updatedUser);
@@ -2074,7 +2085,7 @@ export class MemStorage implements IStorage {
     // Record this bonus transaction
     this.createTransaction({
       userId: user.id,
-      type: 'individual_bonus',
+      type: 'bonus_points',
       fromToken: null,
       toToken: null,
       fromAmount: null,
@@ -2085,14 +2096,14 @@ export class MemStorage implements IStorage {
       details: reason
     });
     
-    console.log(`[PointsSystem] Successfully rewarded user ${user.id} (${address.substring(0, 8)}...): +${points} points (${pointsBefore} → ${pointsAfter})`);
+    console.log(`[PointsSystem] Successfully rewarded user ${user.id} (${address.substring(0, 8)}...): +${points} BONUS points (${bonusPointsBefore} → ${bonusPointsAfter})`);
     
     return {
       success: true,
-      message: `Successfully added ${points} points to user ${address}`,
+      message: `Successfully added ${points} bonus points to user ${address}`,
       userId: user.id,
-      pointsBefore,
-      pointsAfter
+      pointsBefore: bonusPointsBefore,
+      pointsAfter: bonusPointsAfter
     };
   }
 }
