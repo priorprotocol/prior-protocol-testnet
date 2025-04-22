@@ -437,7 +437,7 @@ const TotalPointsSummary = ({
               </div>
               <div className="flex justify-between items-center px-2">
                 <span className="text-gray-400">Bonus Points:</span>
-                <span className="text-amber-400 font-medium">{bonusPoints.toFixed(1)}</span>
+                <span className="text-amber-400 font-medium">{bonusPointsValue.toFixed(1)}</span>
               </div>
             </div>
             
