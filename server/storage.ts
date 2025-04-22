@@ -29,6 +29,10 @@ export interface IStorage {
     users: User[],
     totalGlobalPoints: number
   }>;
+  getBonusPointsLeaderboard(limit?: number, page?: number): Promise<{
+    users: User[],
+    totalGlobalBonusPoints: number
+  }>;
   getUserRank(address: string): Promise<number | null>;
   getUserStats(userId: number): Promise<{
     totalFaucetClaims: number;
@@ -738,6 +742,49 @@ export class MemStorage implements IStorage {
     return {
       users: paginatedUsers,
       totalGlobalPoints
+    };
+  }
+  
+  /**
+   * Get the bonus points leaderboard
+   * Shows users sorted by their bonus points (for community contributions, etc.)
+   * @param limit Number of users to include per page
+   * @param page Page number (1-indexed)
+   * @returns Leaderboard data with users and total global bonus points
+   */
+  async getBonusPointsLeaderboard(limit: number = 15, page: number = 1): Promise<{
+    users: User[],
+    totalGlobalBonusPoints: number
+  }> {
+    // Get all users and sort by bonus points (highest first)
+    const allSortedUsers = Array.from(this.users.values())
+      .sort((a, b) => {
+        const bonusA = a.bonusPoints ? (typeof a.bonusPoints === 'string' ? parseFloat(a.bonusPoints) : a.bonusPoints) : 0;
+        const bonusB = b.bonusPoints ? (typeof b.bonusPoints === 'string' ? parseFloat(b.bonusPoints) : b.bonusPoints) : 0;
+        return bonusB - bonusA;
+      });
+    
+    const total = allSortedUsers.length;
+    const totalPages = Math.ceil(total / limit) || 1;
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    
+    // Calculate start and end indices for pagination
+    const startIdx = (safePage - 1) * limit;
+    const endIdx = Math.min(startIdx + limit, total);
+    
+    // Get users for the current page
+    const paginatedUsers = allSortedUsers.slice(startIdx, endIdx);
+    
+    // Calculate total global bonus points across all users
+    const totalGlobalBonusPoints = allSortedUsers.reduce((sum, user) => {
+      const bonusPoints = user.bonusPoints ? 
+        (typeof user.bonusPoints === 'string' ? parseFloat(user.bonusPoints) : user.bonusPoints) : 0;
+      return sum + bonusPoints;
+    }, 0);
+    
+    return {
+      users: paginatedUsers,
+      totalGlobalBonusPoints
     };
   }
   
