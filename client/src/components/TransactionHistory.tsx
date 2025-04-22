@@ -21,7 +21,7 @@ interface Transaction {
   timestamp: string;
   status: string;
   blockNumber: number | null;
-  points?: number; // Points allocated for this transaction
+  points?: number | string; // Points allocated for this transaction
 }
 
 interface TransactionResponse {
@@ -252,8 +252,8 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address:
               To: {formatAmount(tx.toAmount, tx.toToken)}
             </div>
             <div className="mt-1 flex flex-wrap gap-1">
-              {tx.points && tx.points > 0 ? (
-                <Badge className="bg-blue-600">+{tx.points.toFixed(1)} points</Badge>
+              {tx.points && parseFloat(String(tx.points)) > 0 ? (
+                <Badge className="bg-blue-600">+{typeof tx.points === 'string' ? parseFloat(tx.points).toFixed(1) : tx.points.toFixed(1)} points</Badge>
               ) : (
                 <Badge variant="outline" className="text-gray-400">No points (Daily limit reached)</Badge>
               )}
