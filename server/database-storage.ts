@@ -1786,18 +1786,22 @@ export class DatabaseStorage implements IStorage {
           ))
           .orderBy(sql`${transactions.timestamp} ASC`);
         
+        console.log(`[DEBUG] User ${userId} (${user.address.substring(0, 6)}...) has ${bonusTransactions.length} bonus transactions`);
+        
         // Calculate total bonus points (these will be preserved)
         let bonusPoints = 0;
         for (const tx of bonusTransactions) {
           if (tx.points) {
-            bonusPoints += parseFloat(tx.points.toString());
+            const txPoints = parseFloat(tx.points.toString());
+            bonusPoints += txPoints;
+            console.log(`[DEBUG] Bonus tx found: ${tx.id}, points: ${txPoints}, metadata: ${JSON.stringify(tx.metadata || {})}, timestamp: ${tx.timestamp}`);
           }
         }
         
         // Round to 1 decimal place for consistency
         bonusPoints = Math.round(bonusPoints * 10) / 10;
         
-        console.log(`[PointsCalc] User ${userId} has ${bonusPoints} bonus points to preserve`);
+        console.log(`[PointsCalc] User ${userId} (${user.address}) has ${bonusPoints} bonus points to preserve from ${bonusTransactions.length} bonus transactions`);
         
         // Group transactions by day for swap points calculation
         const transactionsByDay: Record<string, Transaction[]> = {};
