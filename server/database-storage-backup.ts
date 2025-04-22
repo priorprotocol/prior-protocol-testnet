@@ -1232,8 +1232,66 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`[PointsSystem] Starting individual reward. Add ${points} points to user ${address} for reason: ${reason}`);
       
-      // Special case for admin wallet (ID 3042)
+      // First try to get the user with our more reliable getUser function
+      const user = await this.getUser(address);
+      
+      if (user) {
+        const userId = user.id;
+        const pointsBefore = user.points || 0;
+        console.log(`[PointsSystem] Found user ID: ${userId}, current points: ${pointsBefore}`);
+        
+        // Add points to the user
+        console.log(`[PointsSystem] Adding ${points} points to user ${userId}`);
+        const pointsAfter = await this.addUserPoints(userId, points, reason);
+        console.log(`[PointsSystem] User ${userId} points updated: ${pointsBefore} → ${pointsAfter}`);
+        
+        return {
+          success: true,
+          message: `Successfully added ${points} points to user ${userId} (${user.address})`,
+          userId,
+          pointsBefore,
+          pointsAfter
+        };
+      }
+      
+      // If user still not found, try a more comprehensive search with various methods
+      console.log(`[PointsSystem] User not found with standard lookup, trying alternative search methods`);
+      
+      // Try a LIKE query as a last resort
+      const likeResult = await pool.query(`
+        SELECT * FROM users WHERE address LIKE $1
+      `, [`%${address.toLowerCase().substring(2)}%`]); // Try matching just the address without 0x prefix
+      
+      if (likeResult.rows && likeResult.rows.length > 0) {
+        const userId = likeResult.rows[0].id;
+        console.log(`[PointsSystem] Found user with ID ${userId} using LIKE pattern match`);
+        
+        // Get the full user record through drizzle
+        const [fullUser] = await db.select().from(users).where(eq(users.id, userId));
+        
+        if (fullUser) {
+          const pointsBefore = fullUser.points || 0;
+          console.log(`[PointsSystem] Found user ID: ${userId}, current points: ${pointsBefore}`);
+          
+          // Add points to the user
+          console.log(`[PointsSystem] Adding ${points} points to user ${userId}`);
+          const pointsAfter = await this.addUserPoints(userId, points, reason);
+          console.log(`[PointsSystem] User ${userId} points updated: ${pointsBefore} → ${pointsAfter}`);
+          
+          return {
+            success: true,
+            message: `Successfully added ${points} points to user ${userId} (${fullUser.address})`,
+            userId,
+            pointsBefore,
+            pointsAfter
+          };
+        }
+      }
+      
+      // If we got here, try directly creating the user as a last resort
+      // But first check for ID 3042 specifically (our admin account that's having issues)
       if (address.toLowerCase() === '0x4cfc531df94339def7dcd603aac1a2deaf6888b7'.toLowerCase()) {
+        // This is a hardcoded fix for our admin wallet that we know exists
         console.log(`[PointsSystem] Special case: Using known admin user ID 3042`);
         
         // Update user points directly with ID 3042
@@ -1241,67 +1299,31 @@ export class DatabaseStorage implements IStorage {
         
         if (adminUser) {
           const pointsBefore = adminUser.points || 0;
-          const newPoints = Number(pointsBefore) + points;
-          
-          // Update admin user points directly
-          await db
-            .update(users)
-            .set({ points: newPoints.toString() })
-            .where(eq(users.id, 3042));
-            
-          // Create transaction record
-          const bonusTxHash = `bonus_3042_${Date.now()}`;
-          await this.createTransaction({
-            userId: 3042,
-            type: 'bonus',
-            points: points.toString(),
-            txHash: bonusTxHash,
-            status: 'completed',
-            metadata: { reason }
-          });
-          
-          console.log(`[PointsSystem] Updated admin user points: ${pointsBefore} → ${newPoints}`);
+          const pointsAfter = await this.addUserPoints(3042, points, reason);
           
           return {
             success: true,
             message: `Successfully added ${points} points to admin user (${adminUser.address})`,
             userId: 3042,
-            pointsBefore: Number(pointsBefore),
-            pointsAfter: newPoints
+            pointsBefore,
+            pointsAfter
           };
         }
       }
       
-      // For all other users, try to find them with a simple direct query
-      console.log(`[PointsSystem] Looking up user with address: ${address}`);
-      const normalizedAddress = address.toLowerCase();
-      
-      // Try a direct SQL query with case insensitivity
-      const userResult = await pool.query(`
-        SELECT * FROM users WHERE LOWER(address) = LOWER($1)
-      `, [normalizedAddress]);
-      
-      // Check if we found a user
-      if (userResult.rows && userResult.rows.length > 0) {
-        const userRecord = userResult.rows[0];
-        const userId = userRecord.id;
-        const pointsBefore = userRecord.points || 0;
+      // As a very last resort, try to create a new user
+      console.log(`[PointsSystem] User not found with any method, creating new user for address: ${address}`);
+      try {
+        const newUser = await this.createUser({
+          address: address,
+          points: points.toString(), // Initialize with the points being added
+          badges: []
+        });
         
-        console.log(`[PointsSystem] Found user with ID ${userId}, current points: ${pointsBefore}`);
-        
-        // Calculate new points
-        const newPoints = Number(pointsBefore) + points;
-        
-        // Update user points directly
-        await db
-          .update(users)
-          .set({ points: newPoints.toString() })
-          .where(eq(users.id, userId));
-          
-        // Create transaction record
-        const bonusTxHash = `bonus_${userId}_${Date.now()}`;
+        // Record the transaction
+        const bonusTxHash = `bonus_${newUser.id}_${Date.now()}`;
         await this.createTransaction({
-          userId,
+          userId: newUser.id,
           type: 'bonus',
           points: points.toString(),
           txHash: bonusTxHash,
@@ -1309,49 +1331,26 @@ export class DatabaseStorage implements IStorage {
           metadata: { reason }
         });
         
-        console.log(`[PointsSystem] Updated user ${userId} points: ${pointsBefore} → ${newPoints}`);
-        
         return {
           success: true,
-          message: `Successfully added ${points} points to user ${userId} (${userRecord.address})`,
-          userId,
-          pointsBefore: Number(pointsBefore),
-          pointsAfter: newPoints
+          message: `Created new user and added ${points} points to wallet address ${address}`,
+          userId: newUser.id,
+          pointsBefore: 0,
+          pointsAfter: points
+        };
+      } catch (error) {
+        console.error(`[PointsSystem] Failed to create new user:`, error);
+        return {
+          success: false,
+          message: `Failed to find or create user with address ${address}: ${error}`
         };
       }
       
-      // If no user found, create a new one
-      console.log(`[PointsSystem] User not found, creating new user for address: ${address}`);
-      
-      const newUser = await this.createUser({
-        address: address
-      });
-      
-      // Set initial points for the new user
-      await db
-        .update(users)
-        .set({ points: points.toString() })
-        .where(eq(users.id, newUser.id));
-        
-      // Create transaction record
-      const bonusTxHash = `bonus_${newUser.id}_${Date.now()}`;
-      await this.createTransaction({
-        userId: newUser.id,
-        type: 'bonus',
-        points: points.toString(),
-        txHash: bonusTxHash,
-        status: 'completed',
-        metadata: { reason }
-      });
-      
-      console.log(`[PointsSystem] Created new user with ID ${newUser.id} and added ${points} points`);
-      
+      // This code should never be reached due to the returns above
+      // But adding as a fallback for TypeScript
       return {
-        success: true,
-        message: `Created new user and added ${points} points to wallet address ${address}`,
-        userId: newUser.id,
-        pointsBefore: 0,
-        pointsAfter: points
+        success: false,
+        message: `Failed to find user with address ${address} after exhausting all lookup methods`
       };
     } catch (error) {
       console.error(`[PointsSystem] Error adding points to wallet address:`, error);

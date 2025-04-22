@@ -324,6 +324,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rewardReason = reason || `Admin individual bonus: ${points} points`;
       console.log(`[AdminReward] Using reward reason: "${rewardReason}"`);
       
+      // Check if this is the admin wallet with special handling
+      const ADMIN_WALLET_LOWERCASE = "0x4cfc531df94339def7dcd603aac1a2deaf6888b7";
+      
+      // Normalize the address to lowercase for comparison
+      const normalizedAddress = address.toLowerCase();
+      
+      if (normalizedAddress === ADMIN_WALLET_LOWERCASE) {
+        console.log(`[AdminReward] Special case: This is the admin wallet, using special handling for ID 3042`);
+        
+        // Use direct database update for the admin wallet to ensure it works
+        try {
+          // First verify the admin user exists with ID 3042
+          const adminUser = await db.select().from(users).where(eq(users.id, 3042)).limit(1);
+          
+          if (adminUser && adminUser.length > 0) {
+            // Get current points
+            const pointsBefore = adminUser[0].points || 0;
+            const numericPointsBefore = Number(pointsBefore);
+            const newPoints = numericPointsBefore + Number(points);
+            
+            // Update admin user points directly
+            await db
+              .update(users)
+              .set({ points: newPoints.toString() })
+              .where(eq(users.id, 3042));
+              
+            // Create transaction record
+            const bonusTxHash = `bonus_3042_${Date.now()}`;
+            await storage.createTransaction({
+              userId: 3042,
+              type: 'bonus',
+              points: points.toString(),
+              txHash: bonusTxHash,
+              status: 'completed',
+              metadata: { reason: rewardReason }
+            });
+            
+            console.log(`[AdminReward] Successfully added ${points} points to admin user (ID 3042): ${numericPointsBefore} → ${newPoints}`);
+            
+            // Return success result
+            return res.status(200).json({
+              success: true,
+              message: `Successfully added ${points} points to admin user (${adminUser[0].address})`,
+              userId: 3042,
+              pointsBefore: numericPointsBefore,
+              pointsAfter: newPoints
+            });
+          }
+        } catch (error) {
+          console.error(`[AdminReward] Error in admin special case:`, error);
+          // Fall through to regular method if special case fails
+        }
+      }
+      
       // Call the storage method to add bonus points to the specific user
       console.log(`[AdminReward] Calling addPointsByWalletAddress for ${address} with ${points} points`);
       const result = await storage.addPointsByWalletAddress(address, Number(points), rewardReason);
