@@ -176,7 +176,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
   return (
     <Card className="bg-[#111827] border-[#2D3748]">
       <CardHeader>
-        <div className="flex items-center">
+        <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <FaTrophy className="text-amber-500" /> Prior Protocol Leaderboard
           </CardTitle>
