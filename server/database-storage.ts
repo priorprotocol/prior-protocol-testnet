@@ -1120,17 +1120,25 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) return 0;
     
-    const currentPoints = user.points || 0;
-    const newPoints = currentPoints + points;
+    // Parse current points to a number to handle string representation
+    const currentPoints = parseFloat(user.points as string) || 0;
+    const pointsToAdd = parseFloat(points.toString());
     
-    // Update the user with the new points total
-    const [updatedUser] = await db
-      .update(users)
-      .set({ points: newPoints })
-      .where(eq(users.id, userId))
-      .returning();
+    // Create new points value using direct SQL for reliable numeric handling
+    const newPoints = currentPoints + pointsToAdd;
+    console.log(`Adding ${pointsToAdd} points to user ${userId}. Current: ${currentPoints}, New: ${newPoints}`);
     
-    return updatedUser.points || 0;
+    // Use direct SQL for numeric precision to avoid formatting issues
+    const result = await pool.query(
+      `UPDATE users SET points = $1 WHERE id = $2 RETURNING points`,
+      [newPoints.toFixed(1), userId]
+    );
+    
+    if (result.rows && result.rows.length > 0) {
+      return parseFloat(result.rows[0].points);
+    }
+    
+    return newPoints;
   }
   
   async removePointsForFaucetClaims(): Promise<number> {

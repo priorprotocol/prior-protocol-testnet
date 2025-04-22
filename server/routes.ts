@@ -351,8 +351,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         and(
           eq(transactions.type, 'swap'),
           // Use explicit date comparison instead of DATE() function
-          gte(transactions.timestamp, currentDate),
-          sql`LOWER(metadata::text) LIKE LOWER('%${SWAP_CONTRACT_ADDRESS}%')` // Check metadata for the swap contract address
+          gte(transactions.timestamp, currentDate)
+          // Metadata check temporarily removed until all transactions have metadata
+          // This will be added back in once we've fully migrated to using metadata
         )
       );
       
