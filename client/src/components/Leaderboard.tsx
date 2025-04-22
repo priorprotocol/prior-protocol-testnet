@@ -94,8 +94,11 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
       
       // Fetch global stats to ensure latest data
       // Make a request to recalculate points - this ensures we have the most accurate data
-      await apiRequest('/api/maintenance/recalculate-points', {
-        method: 'POST'
+      await fetch('/api/maintenance/recalculate-points', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       // Refresh all user data
@@ -188,23 +191,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
           <CardTitle className="flex items-center gap-2">
             <FaTrophy className="text-amber-500" /> Prior Protocol Leaderboard
           </CardTitle>
-          <div className="flex gap-2">
-            {/* WebSocket connection indicator */}
-            <div 
-              className={`text-xs flex items-center gap-1 ${
-                wsConnected 
-                ? "bg-green-900/30 text-green-300" 
-                : "bg-red-900/30 text-red-300"
-              } px-2 py-1 rounded-md`}
-              title={wsConnected ? "Real-time updates active" : "Reconnecting..."}
-            >
-              {wsConnected 
-                ? <FaWifi size={10} className="mr-1" /> 
-                : <FaWifi size={10} className="mr-1 animate-pulse" />
-              }
-              {wsConnected ? "Live" : "Connecting..."}
-            </div>
-            
+          <div className="flex">
             <button 
               className="text-xs flex items-center gap-1 bg-blue-900/30 hover:bg-blue-800/40 text-blue-300 px-2 py-1 rounded-md"
               onClick={() => refreshLeaderboard()}
