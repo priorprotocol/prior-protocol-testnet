@@ -1876,6 +1876,164 @@ export class MemStorage implements IStorage {
       userDetails
     };
   }
+  
+  /**
+   * Add bonus points to all users who have made at least one swap transaction
+   * @param bonusPoints The number of points to add to each user
+   * @param reason The reason for the bonus (for transaction recording)
+   * @param minSwaps Minimum number of swaps a user must have to qualify for the bonus
+   */
+  async addBonusPointsToAllSwapUsers(bonusPoints: number, reason: string, minSwaps: number = 1): Promise<{
+    usersRewarded: number;
+    totalPointsAdded: number;
+    totalPointsBefore: number;
+    totalPointsAfter: number;
+    userDetails: Array<{
+      userId: number;
+      address: string;
+      pointsBefore: number;
+      pointsAfter: number;
+      pointsAdded: number;
+    }>;
+  }> {
+    console.log(`[PointsSystem] Starting global reward distribution. Award ${bonusPoints} points to all users with at least ${minSwaps} swaps.`);
+    
+    let usersRewarded = 0;
+    let totalPointsAdded = 0;
+    let totalPointsBefore = 0;
+    let totalPointsAfter = 0;
+    const userDetails: Array<{
+      userId: number;
+      address: string;
+      pointsBefore: number;
+      pointsAfter: number;
+      pointsAdded: number;
+    }> = [];
+    
+    // Find all users with at least the minimum required swaps
+    for (const [id, user] of this.users.entries()) {
+      if (user.totalSwaps >= minSwaps) {
+        // Calculate points before and after
+        const pointsBefore = parseFloat(user.points);
+        totalPointsBefore += pointsBefore;
+        
+        // Add bonus points to the user
+        const pointsAfter = pointsBefore + bonusPoints;
+        const updatedUser: User = {
+          ...user,
+          points: pointsAfter.toString()
+        };
+        
+        // Update user record
+        this.users.set(id, updatedUser);
+        this.usersByAddress.set(user.address, updatedUser);
+        
+        // Record this bonus transaction
+        this.createTransaction({
+          userId: id,
+          type: 'bonus_points',
+          fromToken: null,
+          toToken: null,
+          fromAmount: null,
+          toAmount: null,
+          points: bonusPoints.toString(),
+          txHash: `bonus-${Date.now()}-${id}`,
+          status: 'completed',
+          details: reason
+        });
+        
+        // Track statistics
+        usersRewarded++;
+        totalPointsAdded += bonusPoints;
+        totalPointsAfter += pointsAfter;
+        
+        // Add to user details
+        userDetails.push({
+          userId: id,
+          address: user.address,
+          pointsBefore,
+          pointsAfter,
+          pointsAdded: bonusPoints
+        });
+        
+        console.log(`[PointsSystem] Rewarded user ${id} (${user.address.substring(0, 8)}...): +${bonusPoints} points (${pointsBefore} → ${pointsAfter})`);
+      }
+    }
+    
+    console.log(`[PointsSystem] Global reward complete. Rewarded ${usersRewarded} users with ${bonusPoints} points each (total: ${totalPointsAdded})`);
+    
+    return {
+      usersRewarded,
+      totalPointsAdded,
+      totalPointsBefore,
+      totalPointsAfter,
+      userDetails
+    };
+  }
+  
+  /**
+   * Add bonus points to a specific user by wallet address
+   * @param address The wallet address of the user
+   * @param points The number of points to add
+   * @param reason The reason for awarding the points
+   */
+  async addPointsByWalletAddress(address: string, points: number, reason: string): Promise<{
+    success: boolean;
+    message: string;
+    userId?: number;
+    pointsBefore?: number;
+    pointsAfter?: number;
+  }> {
+    console.log(`[PointsSystem] Starting individual reward. Add ${points} points to user ${address} for reason: ${reason}`);
+    
+    // Find the user by address
+    const user = this.usersByAddress.get(address);
+    
+    if (!user) {
+      console.log(`[PointsSystem] Failed to reward user: Address ${address} not found`);
+      return {
+        success: false,
+        message: `User with address ${address} not found`
+      };
+    }
+    
+    // Calculate points before and after
+    const pointsBefore = parseFloat(user.points);
+    const pointsAfter = pointsBefore + points;
+    
+    // Update user record
+    const updatedUser: User = {
+      ...user,
+      points: pointsAfter.toString()
+    };
+    
+    this.users.set(user.id, updatedUser);
+    this.usersByAddress.set(address, updatedUser);
+    
+    // Record this bonus transaction
+    this.createTransaction({
+      userId: user.id,
+      type: 'individual_bonus',
+      fromToken: null,
+      toToken: null,
+      fromAmount: null,
+      toAmount: null,
+      points: points.toString(),
+      txHash: `bonus-${Date.now()}-${user.id}`,
+      status: 'completed',
+      details: reason
+    });
+    
+    console.log(`[PointsSystem] Successfully rewarded user ${user.id} (${address.substring(0, 8)}...): +${points} points (${pointsBefore} → ${pointsAfter})`);
+    
+    return {
+      success: true,
+      message: `Successfully added ${points} points to user ${address}`,
+      userId: user.id,
+      pointsBefore,
+      pointsAfter
+    };
+  }
 }
 
 // Export the MemStorage implementation
