@@ -123,11 +123,8 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
   };
   
   // Rank badge rendering helper
-  const getRankBadge = (globalIndex: number) => {
-    // Calculate actual global rank based on pagination
-    const actualRank = ((currentPage - 1) * limit) + globalIndex + 1;
-    
-    switch (actualRank) {
+  const getRankBadge = (rank: number) => {
+    switch (rank) {
       case 1: // 1st place
         return (
           <Badge className="bg-amber-500 text-black hover:bg-amber-400">
@@ -295,10 +292,15 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
           <div className="space-y-3">
             {leaderboardData?.users && leaderboardData.users.length > 0 ? (
               leaderboardData.users.map((user, index) => {
-                // Calculate actual rank including pagination offset
-                const globalRank = ((currentPage - 1) * limit) + index + 1;
+                // Calculate rank to display
+                // In earlier versions we used pagination index, but now we should query for each user's rank
+                // For backend efficiency, we'll use position in the array for now and add a rank field later if needed
+                const displayRank = index + 1;
+                
+                // This is a frontend-based approach for when server doesn't return rank directly
+                // Server-side ranked based on points and then swap counts
                 const isCurrentUser = address?.toLowerCase() === user.address.toLowerCase();
-                const rankBadge = getRankBadge(index);
+                const rankBadge = getRankBadge(displayRank);
                 
                 return (
                   <div 
@@ -310,7 +312,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         <div className="flex-shrink-0 w-8 h-8 bg-[#2D3748] rounded-full flex items-center justify-center">
-                          <span className="text-sm font-semibold">{globalRank}</span>
+                          <span className="text-sm font-semibold">{displayRank}</span>
                         </div>
                         <div>
                           <div className="font-medium">
