@@ -7,6 +7,8 @@ export interface UserStats {
   proposalsVoted: number;
   proposalsCreated: number;
   points: number;
+  bonusPoints?: number;
+  userRole?: string;
 }
 
 export interface User {
@@ -15,7 +17,10 @@ export interface User {
   totalSwaps: number;
   totalClaims: number;
   points: number;
+  bonusPoints?: number;
+  userRole?: string;
   lastClaim: string | null;
+  badges?: string[];
 }
 
 export interface TokenInfo {

@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Leaderboard } from "@/components/Leaderboard";
+import { BonusLeaderboard } from "@/components/BonusLeaderboard";
 import SwapPointsSystem from "@/components/SwapPointsSystem";
 import { formatAddress } from "@/lib/formatAddress";
 import { 
@@ -16,7 +17,8 @@ import {
   FaDatabase, 
   FaChartLine,
   FaTrophy,
-  FaChartBar
+  FaChartBar,
+  FaGift
 } from "react-icons/fa";
 import { FaGlobe } from "react-icons/fa";
 import { FiRefreshCw } from "react-icons/fi";
