@@ -1,0 +1,670 @@
+ Removing unpermitted intrinsics
+ Token cache cleared
+ App started, immediately loading global data
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard
+ Environment detection: Not running on Netlify
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens
+ Environment detection: Not running on Netlify
+ App started, immediately loading global data
+ App started, immediately loading global data
+ Wallet context updated, syncing local state. Address: null
+ App started, immediately loading global data
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ App mounted - prefetching global leaderboard data
+ Standard environment detected - using WebSockets for real-time updates
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+WebSocket connection to '<URL>' failed: WebSocket is closed before the connection is established.
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ Standard environment detected - using WebSockets for real-time updates
+ Connecting to WebSocket at /ws
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ Connection closed abnormally (1006) - common in Replit environment
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ Connection closed abnormally (1006) - common in Replit environment
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ Connection closed abnormally (1006) - common in Replit environment
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ Connection closed abnormally (1006) - common in Replit environment
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 5 times. Switching to polling fallback.
+ Starting polling fallback mechanism
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 6 times. Switching to polling fallback.
+ Polling fallback already active
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 7 times. Switching to polling fallback.
+ Polling fallback already active
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 8 times. Switching to polling fallback.
+ Polling fallback already active
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 9 times. Switching to polling fallback.
+ Polling fallback already active
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 10 times. Switching to polling fallback.
+ Polling fallback already active
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 11 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 12 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 13 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 14 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 15 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 16 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 17 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 18 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 19 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 20 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 21 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 22 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 23 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 24 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 25 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 26 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 27 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 28 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 29 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ Standard environment detected - using WebSockets for real-time updates
+ In polling mode, skipping WebSocket connection attempt
+ Wallet auto-connection disabled. User must manually connect.
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?_cb=1745326479560' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?_cb=1745326479560:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+ge @ index-BTPx-PVv.js:48
+ Global leaderboard data prefetched successfully
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens?_cb=1745326479560' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/tokens?_cb=1745326479560:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+ge @ index-BTPx-PVv.js:48
+ ✅ Global data pre-loaded in 456ms
+ ✅ Global data pre-loaded in 454ms
+ ✅ Global data pre-loaded in 454ms
+ ✅ Global data pre-loaded in 455ms
+ Requesting accounts from wallet...
+ Attempting to reconnect after Replit-specific error...
+ In polling mode, skipping WebSocket connection attempt
+ Attempting to reconnect after Replit-specific error...
+ In polling mode, skipping WebSocket connection attempt
+ Attempting to reconnect after Replit-specific error...
+ In polling mode, skipping WebSocket connection attempt
+ Attempting to reconnect after Replit-specific error...
+ In polling mode, skipping WebSocket connection attempt
+ WebSocket connection to 'wss://testnetpriorprotocol.xyz/ws' failed: 
+(anonymous) @ index-BTPx-PVv.js:155
+ WebSocket error: Event
+S.onerror @ index-BTPx-PVv.js:155
+ WebSocket connection closed 1006 
+ WebSocket connection failed 30 times. Switching to polling fallback.
+ Polling fallback already active
+ Too many connection failures, pausing reconnection attempts
+ Wallet sync event received: Object
+ Wallet context updated, syncing local state. Address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Query operation for key: ["/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7"]
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Environment detection: Not running on Netlify
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users
+ Environment detection: Not running on Netlify
+ Wallet connected: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Saving wallet state: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Notifying 6 listeners of wallet change to: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet address changed: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet address changed: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet listener triggered with address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet address changed: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet listener triggered with address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Connected to wallet: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet listener triggered with address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet sync event received: Object
+ Refreshing database transactions for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+ Environment detection: Not running on Netlify
+ Refreshing database transactions for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+ Environment detection: Not running on Netlify
+ Refreshing database transactions for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+ Environment detection: Not running on Netlify
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank
+ Environment detection: Not running on Netlify
+ Fetching stats for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats
+ Environment detection: Not running on Netlify
+ Fetching transactions for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30
+ Environment detection: Not running on Netlify
+ Wallet connected, immediately loading user data for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats
+ Environment detection: Not running on Netlify
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+ Environment detection: Not running on Netlify
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions/swap (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions/swap
+ Environment detection: Not running on Netlify
+ Wallet connected, immediately loading user data for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet connected, immediately loading user data for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Response: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7 - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions/swap - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+ Local database transactions: Object
+ Local data refresh completed successfully.
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+ Local database transactions: Object
+ Local data refresh completed successfully.
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30 - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+ Local database transactions: Object
+ Local data refresh completed successfully.
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats?_cb=1745326484379' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats?_cb=1745326484379:1  Failed to load resource: net::ERR_FAILED
+ API Request failed: 
+ge @ index-BTPx-PVv.js:48
+ ✅ User data pre-loaded in 1509ms
+index-BTPx-PVv.js:55 ✅ User data pre-loaded in 1508ms
+index-BTPx-PVv.js:55 ✅ User data pre-loaded in 1508ms
+index-BTPx-PVv.js:55 Error checking Pioneer NFT: Error: call revert exception [ See: https://links.ethers.org/v5-errors-CALL_EXCEPTION ] (method="balanceOf(address)", data="0x", errorArgs=null, errorName=null, errorSignature=null, reason=null, code=CALL_EXCEPTION, version=abi/5.8.0)
+    at V.makeError (index-BTPx-PVv.js:48:92115)
+    at V.throwError (index-BTPx-PVv.js:48:92233)
+    at z1.decodeFunctionResult (index-BTPx-PVv.js:55:54716)
+    at ni.<anonymous> (index-BTPx-PVv.js:55:125287)
+    at Generator.next (<anonymous>)
+    at l (index-BTPx-PVv.js:55:120982)
+cM @ index-BTPx-PVv.js:55
+index-BTPx-PVv.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/9/check-nft-badge (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BTPx-PVv.js:48 API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users/9/check-nft-badge
+index-BTPx-PVv.js:48 Environment detection: Not running on Netlify
+index-BTPx-PVv.js:48 API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats - Status: 200
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/9/check-nft-badge' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/9/check-nft-badge:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BTPx-PVv.js:48 API Request failed: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:45408)
+    at index-BTPx-PVv.js:55:212683
+ge @ index-BTPx-PVv.js:48
+index-BTPx-PVv.js:55 Error with NFT badge API: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:45408)
+    at index-BTPx-PVv.js:55:212683
+(anonymous) @ index-BTPx-PVv.js:55
+index-BTPx-PVv.js:155 Polling for leaderboard data...
+index-BTPx-PVv.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BTPx-PVv.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank
+index-BTPx-PVv.js:48 Environment detection: Not running on Netlify
+index-BTPx-PVv.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BTPx-PVv.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1
+index-BTPx-PVv.js:48 Environment detection: Not running on Netlify
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank?_cb=1745326496863' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank?_cb=1745326496863:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BTPx-PVv.js:48 API Request failed: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:44818)
+    at queryFn (index-BTPx-PVv.js:155:49579)
+    at Object.i [as fn] (index-BTPx-PVv.js:48:14483)
+    at g (index-BTPx-PVv.js:48:10076)
+    at Object.start (index-BTPx-PVv.js:48:10535)
+    at p2.fetch (index-BTPx-PVv.js:48:15819)
+    at y2.lc (index-BTPx-PVv.js:48:36215)
+    at y2.onSubscribe (index-BTPx-PVv.js:48:30749)
+    at y2.subscribe (index-BTPx-PVv.js:48:4435)
+    at index-BTPx-PVv.js:48:41739
+ge @ index-BTPx-PVv.js:48
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326496863' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326496863:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BTPx-PVv.js:48 API Request failed: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:44818)
+    at queryFn (index-BTPx-PVv.js:155:49744)
+    at Object.i [as fn] (index-BTPx-PVv.js:48:14483)
+    at g (index-BTPx-PVv.js:48:10076)
+    at Object.start (index-BTPx-PVv.js:48:10535)
+    at p2.fetch (index-BTPx-PVv.js:48:15819)
+    at y2.lc (index-BTPx-PVv.js:48:36215)
+    at y2.onSubscribe (index-BTPx-PVv.js:48:30749)
+    at y2.subscribe (index-BTPx-PVv.js:48:4435)
+    at index-BTPx-PVv.js:48:41739
+ge @ index-BTPx-PVv.js:48
+index-BTPx-PVv.js:155 Polling for leaderboard data...
+index-BTPx-PVv.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BTPx-PVv.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1
+index-BTPx-PVv.js:48 Environment detection: Not running on Netlify
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326499659' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326499659:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BTPx-PVv.js:48 API Request failed: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:44818)
+    at queryFn (index-BTPx-PVv.js:155:49744)
+    at Object.i [as fn] (index-BTPx-PVv.js:48:14483)
+    at g (index-BTPx-PVv.js:48:10076)
+    at Object.start (index-BTPx-PVv.js:48:10535)
+    at p2.fetch (index-BTPx-PVv.js:48:15819)
+    at index-BTPx-PVv.js:48:27942
+    at Array.map (<anonymous>)
+    at index-BTPx-PVv.js:48:27926
+    at Object.batch (index-BTPx-PVv.js:48:10769)
+ge @ index-BTPx-PVv.js:48
+index-BTPx-PVv.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BTPx-PVv.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1
+index-BTPx-PVv.js:48 Environment detection: Not running on Netlify
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326500017' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326500017:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BTPx-PVv.js:48 API Request failed: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:44818)
+    at queryFn (index-BTPx-PVv.js:155:49744)
+    at Object.i [as fn] (index-BTPx-PVv.js:48:14483)
+    at g (index-BTPx-PVv.js:48:10076)
+    at Object.start (index-BTPx-PVv.js:48:10535)
+    at p2.fetch (index-BTPx-PVv.js:48:15819)
+    at index-BTPx-PVv.js:48:27942
+    at Array.map (<anonymous>)
+    at index-BTPx-PVv.js:48:27926
+    at Object.batch (index-BTPx-PVv.js:48:10769)
+ge @ index-BTPx-PVv.js:48
+index-BTPx-PVv.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BTPx-PVv.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1
+index-BTPx-PVv.js:48 Environment detection: Not running on Netlify
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326505017' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326505017:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BTPx-PVv.js:48 API Request failed: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:44818)
+    at queryFn (index-BTPx-PVv.js:155:49744)
+    at Object.i [as fn] (index-BTPx-PVv.js:48:14483)
+    at g (index-BTPx-PVv.js:48:10076)
+    at Object.start (index-BTPx-PVv.js:48:10535)
+    at p2.fetch (index-BTPx-PVv.js:48:15819)
+    at index-BTPx-PVv.js:48:27942
+    at Array.map (<anonymous>)
+    at index-BTPx-PVv.js:48:27926
+    at Object.batch (index-BTPx-PVv.js:48:10769)
+ge @ index-BTPx-PVv.js:48
+index-BTPx-PVv.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/maintenance/recalculate-points (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BTPx-PVv.js:48 API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/maintenance/recalculate-points
+index-BTPx-PVv.js:48 Environment detection: Not running on Netlify
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/maintenance/recalculate-points' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/maintenance/recalculate-points:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BTPx-PVv.js:48 API Request failed: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:45408)
+    at w (index-BTPx-PVv.js:161:9316)
+    at Object.S6 (index-BTPx-PVv.js:37:9855)
+    at P6 (index-BTPx-PVv.js:37:10009)
+    at T6 (index-BTPx-PVv.js:37:10066)
+    at yy (index-BTPx-PVv.js:37:31446)
+    at TA (index-BTPx-PVv.js:37:31863)
+    at index-BTPx-PVv.js:37:36776
+    at lx (index-BTPx-PVv.js:40:36935)
+    at Z2 (index-BTPx-PVv.js:37:8991)
+ge @ index-BTPx-PVv.js:48
+index-BTPx-PVv.js:161 Error recalculating points: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:45408)
+    at w (index-BTPx-PVv.js:161:9316)
+    at Object.S6 (index-BTPx-PVv.js:37:9855)
+    at P6 (index-BTPx-PVv.js:37:10009)
+    at T6 (index-BTPx-PVv.js:37:10066)
+    at yy (index-BTPx-PVv.js:37:31446)
+    at TA (index-BTPx-PVv.js:37:31863)
+    at index-BTPx-PVv.js:37:36776
+    at lx (index-BTPx-PVv.js:40:36935)
+    at Z2 (index-BTPx-PVv.js:37:8991)
+w @ index-BTPx-PVv.js:161
+index-BTPx-PVv.js:155 Polling for leaderboard data...
+index-BTPx-PVv.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BTPx-PVv.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1
+index-BTPx-PVv.js:48 Environment detection: Not running on Netlify
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326509658' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326509658:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BTPx-PVv.js:48 API Request failed: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:44818)
+    at queryFn (index-BTPx-PVv.js:155:49744)
+    at Object.i [as fn] (index-BTPx-PVv.js:48:14483)
+    at g (index-BTPx-PVv.js:48:10076)
+    at Object.start (index-BTPx-PVv.js:48:10535)
+    at p2.fetch (index-BTPx-PVv.js:48:15819)
+    at index-BTPx-PVv.js:48:27942
+    at Array.map (<anonymous>)
+    at index-BTPx-PVv.js:48:27926
+    at Object.batch (index-BTPx-PVv.js:48:10769)
+ge @ index-BTPx-PVv.js:48
+index-BTPx-PVv.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BTPx-PVv.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1
+index-BTPx-PVv.js:48 Environment detection: Not running on Netlify
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326515017' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326515017:1 
+            
+            
+           Failed to load resource: net::ERR_FAILED
+index-BTPx-PVv.js:48 API Request failed: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:44818)
+    at queryFn (index-BTPx-PVv.js:155:49744)
+    at Object.i [as fn] (index-BTPx-PVv.js:48:14483)
+    at g (index-BTPx-PVv.js:48:10076)
+    at Object.start (index-BTPx-PVv.js:48:10535)
+    at p2.fetch (index-BTPx-PVv.js:48:15819)
+    at index-BTPx-PVv.js:48:27942
+    at Array.map (<anonymous>)
+    at index-BTPx-PVv.js:48:27926
+    at Object.batch (index-BTPx-PVv.js:48:10769)
+ge @ index-BTPx-PVv.js:48
+index-BTPx-PVv.js:155 Polling for leaderboard data...
+index-BTPx-PVv.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BTPx-PVv.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1
+index-BTPx-PVv.js:48 Environment detection: Not running on Netlify
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326519665' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+index-BTPx-PVv.js:48 
+            
+            
+           GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326519665 net::ERR_FAILED
+ge @ index-BTPx-PVv.js:48
+queryFn @ index-BTPx-PVv.js:155
+i @ index-BTPx-PVv.js:48
+g @ index-BTPx-PVv.js:48
+start @ index-BTPx-PVv.js:48
+fetch @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+batch @ index-BTPx-PVv.js:48
+refetchQueries @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+batch @ index-BTPx-PVv.js:48
+invalidateQueries @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:155
+index-BTPx-PVv.js:48 API Request failed: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:44818)
+    at queryFn (index-BTPx-PVv.js:155:49744)
+    at Object.i [as fn] (index-BTPx-PVv.js:48:14483)
+    at g (index-BTPx-PVv.js:48:10076)
+    at Object.start (index-BTPx-PVv.js:48:10535)
+    at p2.fetch (index-BTPx-PVv.js:48:15819)
+    at index-BTPx-PVv.js:48:27942
+    at Array.map (<anonymous>)
+    at index-BTPx-PVv.js:48:27926
+    at Object.batch (index-BTPx-PVv.js:48:10769)
+ge @ index-BTPx-PVv.js:48
+await in ge
+queryFn @ index-BTPx-PVv.js:155
+i @ index-BTPx-PVv.js:48
+g @ index-BTPx-PVv.js:48
+start @ index-BTPx-PVv.js:48
+fetch @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+batch @ index-BTPx-PVv.js:48
+refetchQueries @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+batch @ index-BTPx-PVv.js:48
+invalidateQueries @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:155
+index-BTPx-PVv.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1 (base: https://prior-protocol-testnet-priorprotocol.replit.app/)
+index-BTPx-PVv.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1
+index-BTPx-PVv.js:48 Environment detection: Not running on Netlify
+dashboard:1 Access to fetch at 'https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326520049' from origin 'https://testnetpriorprotocol.xyz' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+index-BTPx-PVv.js:48 
+            
+            
+           GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard?limit=20&page=1&_cb=1745326520049 net::ERR_FAILED
+ge @ index-BTPx-PVv.js:48
+queryFn @ index-BTPx-PVv.js:155
+i @ index-BTPx-PVv.js:48
+g @ index-BTPx-PVv.js:48
+start @ index-BTPx-PVv.js:48
+fetch @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+batch @ index-BTPx-PVv.js:48
+refetchQueries @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+batch @ index-BTPx-PVv.js:48
+invalidateQueries @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:163
+index-BTPx-PVv.js:48 API Request failed: TypeError: Failed to fetch
+    at ge (index-BTPx-PVv.js:48:44818)
+    at queryFn (index-BTPx-PVv.js:155:49744)
+    at Object.i [as fn] (index-BTPx-PVv.js:48:14483)
+    at g (index-BTPx-PVv.js:48:10076)
+    at Object.start (index-BTPx-PVv.js:48:10535)
+    at p2.fetch (index-BTPx-PVv.js:48:15819)
+    at index-BTPx-PVv.js:48:27942
+    at Array.map (<anonymous>)
+    at index-BTPx-PVv.js:48:27926
+    at Object.batch (index-BTPx-PVv.js:48:10769)
+ge @ index-BTPx-PVv.js:48
+await in ge
+queryFn @ index-BTPx-PVv.js:155
+i @ index-BTPx-PVv.js:48
+g @ index-BTPx-PVv.js:48
+start @ index-BTPx-PVv.js:48
+fetch @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+batch @ index-BTPx-PVv.js:48
+refetchQueries @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:48
+batch @ index-BTPx-PVv.js:48
+invalidateQueries @ index-BTPx-PVv.js:48
+(anonymous) @ index-BTPx-PVv.js:163
