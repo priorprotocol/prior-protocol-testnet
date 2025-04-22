@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface SwapPointsSystemProps {
-  points: number | string;
+  points: number;
   totalSwaps: number;
   isLoading: boolean;
   swapTransactions: any[];

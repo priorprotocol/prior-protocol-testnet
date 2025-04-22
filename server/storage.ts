@@ -25,11 +25,6 @@ export interface IStorage {
   addUserPoints(userId: number, points: number): Promise<number>;
   removePointsForFaucetClaims(): Promise<number>; // Method to remove all faucet claim points
   getTotalUsersCount(): Promise<{ count: number }>;
-  getGlobalSwapStats(): Promise<{
-    totalSwaps: number;
-    eligibleSwaps: number;
-    ineligibleSwaps: number;
-  }>;
   getLeaderboard(limit?: number, page?: number): Promise<{
     users: User[],
     totalGlobalPoints: number
@@ -693,57 +688,6 @@ export class MemStorage implements IStorage {
     return { count: this.users.size };
   }
   
-  async getGlobalSwapStats(): Promise<{
-    totalSwaps: number;
-    eligibleSwaps: number;
-    ineligibleSwaps: number;
-  }> {
-    // Count all swap transactions
-    let totalSwaps = 0;
-    let eligibleSwaps = 0;
-    
-    // Get all swap transactions and count total swaps
-    const swaps = Array.from(this.transactions.values()).filter(tx => tx.type === 'swap');
-    totalSwaps = swaps.length;
-    
-    // Group swaps by user and day to calculate eligible swaps (max 5 per user per day)
-    interface UserDailySwaps {
-      [key: string]: { [day: string]: number };
-    }
-    
-    const userDailySwaps: UserDailySwaps = {};
-    
-    swaps.forEach(swap => {
-      const userId = swap.userId.toString();
-      const swapDate = new Date(swap.timestamp || Date.now()).toISOString().split('T')[0]; // Get YYYY-MM-DD
-      
-      if (!userDailySwaps[userId]) {
-        userDailySwaps[userId] = {};
-      }
-      
-      if (!userDailySwaps[userId][swapDate]) {
-        userDailySwaps[userId][swapDate] = 0;
-      }
-      
-      userDailySwaps[userId][swapDate]++;
-    });
-    
-    // For each user's daily swaps, count those eligible for points (max 5 per day)
-    Object.values(userDailySwaps).forEach(userDays => {
-      Object.values(userDays).forEach(dailySwaps => {
-        eligibleSwaps += Math.min(dailySwaps, 5); // Maximum of 5 eligible swaps per day
-      });
-    });
-    
-    const ineligibleSwaps = totalSwaps - eligibleSwaps;
-    
-    return {
-      totalSwaps,
-      eligibleSwaps,
-      ineligibleSwaps
-    };
-  }
-  
   async getLeaderboard(limit: number = 15, page: number = 1): Promise<{
     users: User[],
     totalGlobalPoints: number
@@ -778,54 +722,17 @@ export class MemStorage implements IStorage {
     // Normalize address
     const normalizedAddress = address.toLowerCase();
     
-    // Get all users sorted by points (primary) and swap count (secondary)
+    // Get all users sorted by points 
     const allSortedUsers = Array.from(this.users.values())
-      .sort((a, b) => {
-        // First compare by points (descending)
-        const pointsDiff = (b.points || 0) - (a.points || 0);
-        if (pointsDiff !== 0) return pointsDiff;
-        
-        // If points are equal, compare by swap count (descending)
-        return (b.totalSwaps || 0) - (a.totalSwaps || 0);
-      });
+      .sort((a, b) => (b.points || 0) - (a.points || 0));
     
-    // Find the user's entry
-    const targetUser = allSortedUsers.find(
+    // Find the index of the user
+    const userIndex = allSortedUsers.findIndex(
       user => user.address.toLowerCase() === normalizedAddress
     );
     
-    // If user not found, return null
-    if (!targetUser) return null;
-    
-    // Calculate rank using equal rank for users with identical points and swaps
-    let rank = 1;
-    let usersWithSameRank = 0;
-    
-    for (let i = 0; i < allSortedUsers.length; i++) {
-      const user = allSortedUsers[i];
-      
-      // If we found our user, we've reached the right position
-      if (user.address.toLowerCase() === normalizedAddress) {
-        return rank;
-      }
-      
-      // Check next user if one exists
-      if (i + 1 < allSortedUsers.length) {
-        const nextUser = allSortedUsers[i + 1];
-        
-        // If points and swaps are different, increase rank
-        if (user.points !== nextUser.points || user.totalSwaps !== nextUser.totalSwaps) {
-          rank += 1 + usersWithSameRank;
-          usersWithSameRank = 0;
-        } else {
-          // If points and swaps are the same, count as same rank
-          usersWithSameRank++;
-        }
-      }
-    }
-    
-    // Fallback
-    return rank;
+    // Return the rank (index + 1) or null if not found
+    return userIndex !== -1 ? userIndex + 1 : null;
   }
   
   async getUserStats(userId: number): Promise<{
@@ -1948,8 +1855,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Import DatabaseStorage implementation
-import { DatabaseStorage } from './database-storage';
-
-// Export the DatabaseStorage implementation instead of MemStorage
-export const storage = new DatabaseStorage();
+// Export the MemStorage implementation
+export const storage = new MemStorage();

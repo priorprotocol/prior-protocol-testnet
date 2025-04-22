@@ -143,62 +143,6 @@ export class DatabaseStorage implements IStorage {
     return updatedUser.totalSwaps || 0;
   }
   
-  // Get user's rank on the leaderboard based on points (primary) and swap count (secondary)
-  async getUserRank(address: string): Promise<number | null> {
-    if (!address) return null;
-    
-    try {
-      // Normalize address
-      const normalizedAddress = address.toLowerCase();
-      
-      // Get user's data
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(sql`LOWER(${users.address}) = ${normalizedAddress}`);
-      
-      if (!user) return null;
-      
-      // Get points and swap count for ranking
-      const userPoints = user.points || 0;
-      const userSwaps = user.totalSwaps || 0;
-      
-      // First, count users with strictly more points
-      const { higherPointsCount } = await db
-        .select({
-          higherPointsCount: sql<number>`COUNT(*)`
-        })
-        .from(users)
-        .where(sql`${users.points} > ${userPoints}`)
-        .then(rows => rows[0]);
-        
-      // Next, count users with equal points but more swaps
-      const { equalPointsMoreSwapsCount } = await db
-        .select({
-          equalPointsMoreSwapsCount: sql<number>`COUNT(*)`
-        })
-        .from(users)
-        .where(sql`${users.points} = ${userPoints} AND ${users.totalSwaps} > ${userSwaps}`)
-        .then(rows => rows[0]);
-        
-      // Count users with the exact same rank (same points and same swaps)
-      const { sameRankCount } = await db
-        .select({
-          sameRankCount: sql<number>`COUNT(*)`
-        })
-        .from(users)
-        .where(sql`${users.points} = ${userPoints} AND ${users.totalSwaps} = ${userSwaps} AND LOWER(${users.address}) != ${normalizedAddress}`)
-        .then(rows => rows[0]);
-        
-      // Add 1 to get the user's rank (1-indexed)
-      // Users with equal points and swaps share the same rank
-      return higherPointsCount + equalPointsMoreSwapsCount + 1;
-    } catch (error) {
-      console.error("Error in getUserRank:", error);
-      return null;
-    }
-  }
-
   async getUserStats(userId: number): Promise<{
     totalFaucetClaims: number;
     totalSwaps: number;
@@ -767,8 +711,8 @@ export class DatabaseStorage implements IStorage {
         const result = await pool.query(
           `INSERT INTO transactions (
             user_id, type, from_token, to_token, from_amount, to_amount, 
-            tx_hash, status, block_number, points, timestamp, metadata
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+            tx_hash, status, block_number, points, timestamp
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
           [
             transaction.userId,
             transaction.type,
@@ -780,8 +724,7 @@ export class DatabaseStorage implements IStorage {
             transaction.status || "completed",
             transaction.blockNumber || null,
             pointsValue,
-            timestamp,
-            transaction.metadata || null
+            timestamp
           ]
         );
         
@@ -1120,25 +1063,17 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) return 0;
     
-    // Parse current points to a number to handle string representation
-    const currentPoints = parseFloat(user.points as string) || 0;
-    const pointsToAdd = parseFloat(points.toString());
+    const currentPoints = user.points || 0;
+    const newPoints = currentPoints + points;
     
-    // Create new points value using direct SQL for reliable numeric handling
-    const newPoints = currentPoints + pointsToAdd;
-    console.log(`Adding ${pointsToAdd} points to user ${userId}. Current: ${currentPoints}, New: ${newPoints}`);
+    // Update the user with the new points total
+    const [updatedUser] = await db
+      .update(users)
+      .set({ points: newPoints })
+      .where(eq(users.id, userId))
+      .returning();
     
-    // Use direct SQL for numeric precision to avoid formatting issues
-    const result = await pool.query(
-      `UPDATE users SET points = $1 WHERE id = $2 RETURNING points`,
-      [newPoints.toFixed(1), userId]
-    );
-    
-    if (result.rows && result.rows.length > 0) {
-      return parseFloat(result.rows[0].points);
-    }
-    
-    return newPoints;
+    return updatedUser.points || 0;
   }
   
   async removePointsForFaucetClaims(): Promise<number> {
@@ -1207,60 +1142,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  /**
-   * Get global swap statistics
-   * This includes total swaps, eligible swaps (those that earn points), and ineligible swaps
-   */
-  async getGlobalSwapStats(): Promise<{
-    totalSwaps: number;
-    eligibleSwaps: number;
-    ineligibleSwaps: number;
-  }> {
-    try {
-      // Get total swaps from transactions table
-      const [totalSwapsResult] = await db
-        .select({
-          count: sql<number>`COUNT(*)`
-        })
-        .from(transactions)
-        .where(eq(transactions.type, 'swap'));
-      
-      // Calculate total transactions that were eligible for points (max 5 per day per user)
-      // First, we need to group transactions by user and day
-      const swapsByUserAndDay = await db
-        .select({
-          userId: transactions.userId,
-          day: sql<string>`DATE(${transactions.timestamp})`,
-          count: sql<number>`COUNT(*)`
-        })
-        .from(transactions)
-        .where(eq(transactions.type, 'swap'))
-        .groupBy(transactions.userId, sql`DATE(${transactions.timestamp})`);
-      
-      // Now calculate eligible swaps (max 5 per user per day)
-      let eligibleSwaps = 0;
-      for (const entry of swapsByUserAndDay) {
-        eligibleSwaps += Math.min(entry.count, 5);
-      }
-      
-      const totalSwaps = totalSwapsResult?.count || 0;
-      const ineligibleSwaps = totalSwaps - eligibleSwaps;
-      
-      return {
-        totalSwaps,
-        eligibleSwaps,
-        ineligibleSwaps
-      };
-    } catch (error) {
-      console.error("Error getting global swap stats:", error);
-      return {
-        totalSwaps: 0,
-        eligibleSwaps: 0,
-        ineligibleSwaps: 0
-      };
-    }
-  }
-
   async getLeaderboard(limit: number = 20, page: number = 1): Promise<{
     users: User[],
     totalGlobalPoints: number
@@ -1269,8 +1150,7 @@ export class DatabaseStorage implements IStorage {
       // Calculate offset based on page and limit for pagination
       const offset = (page - 1) * limit;
       
-      // Get top users by points as primary criteria, then by swaps as secondary
-      // This ensures users with the same points but more swaps rank higher
+      // Get top users by points, ensuring we get the top users highlighted by points and swaps
       const result = await db
         .select()
         .from(users)

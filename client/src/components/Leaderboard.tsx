@@ -18,12 +18,7 @@ interface LeaderboardData {
   total: number;
   page: number;
   totalPages: number;
-  totalGlobalPoints: number; // Total global points
-  globalSwaps?: {
-    total: number;
-    eligible: number;
-    ineligible: number;
-  }
+  totalGlobalPoints: number; // Add total global points
 }
 
 interface LeaderboardProps {
@@ -66,66 +61,48 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
     refetchOnReconnect: true,
   });
   
-  // State to track refresh operation
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  // Function to refresh leaderboard data - only triggered manually by button click
+  // Function to refresh leaderboard data with cache busting
   const refreshLeaderboard = useCallback(async () => {
-    try {
-      // Set refreshing state to show loading indicator
-      setIsRefreshing(true);
-      
-      // Create a timestamp to force a cache miss
-      const cacheBuster = new Date().getTime();
-      
-      console.log("Starting refresh - first recalculating all user points...");
-      
-      // STEP 1: First recalculate all points to ensure swap stats and points are consistent
-      // This ensures community swap statistics align properly with points
-      await fetch('/api/maintenance/recalculate-points', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      console.log("Points recalculated, now refreshing leaderboard data...");
-      
-      // STEP 2: After recalculation is complete, fetch the freshest data
-      // First remove all cached leaderboard data
-      queryClient.removeQueries({ queryKey: ["/api/leaderboard"] });
-      
-      // Force refetch with fresh data (bypass cache)
-      const freshData = await apiRequest<LeaderboardData>(`/api/leaderboard?limit=${limit}&page=${currentPage}&_cb=${cacheBuster}`);
-      
-      // Update query cache with fresh data
-      queryClient.setQueryData(["/api/leaderboard", limit, currentPage], freshData);
-      
-      // Also refresh user rank if available
-      if (address) {
-        const rankData = await apiRequest(`/api/users/${address}/rank`);
-        queryClient.setQueryData(["/api/users/rank", address], rankData);
-      }
-      
-      console.log("Leaderboard refresh completed with fresh data");
-    } catch (err) {
-      console.error("Error refreshing global stats:", err);
-    } finally {
-      // Always reset the refreshing state when done
-      setIsRefreshing(false);
+    // Create a timestamp to force a cache miss
+    const cacheBuster = new Date().getTime();
+    
+    // First remove all cached leaderboard data
+    queryClient.removeQueries({ queryKey: ["/api/leaderboard"] });
+    
+    // Force refetch with fresh data (bypass cache)
+    const freshData = await apiRequest<LeaderboardData>(`/api/leaderboard?limit=${limit}&page=${currentPage}&_cb=${cacheBuster}`);
+    
+    // Update query cache with fresh data
+    queryClient.setQueryData(["/api/leaderboard", limit, currentPage], freshData);
+    
+    // Also refresh user rank if available
+    if (address) {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/rank", address] });
     }
+    
+    console.log("Leaderboard refresh completed with fresh data");
   }, [limit, currentPage, address, queryClient]);
   
-  // Initialize data loading as soon as component mounts
+  // Initialize real-time updates as soon as component mounts 
   useEffect(() => {
-    // Immediately load leaderboard data on app start - only once
+    // Immediately load leaderboard data on app start
     queryClient.prefetchQuery({
       queryKey: ["/api/leaderboard", limit, currentPage],
       queryFn: () => apiRequest<LeaderboardData>(`/api/leaderboard?limit=${limit}&page=${currentPage}`)
     });
     
-    // No automatic refresh interval - refresh only happens on button click
-  }, [limit, currentPage, queryClient]);
+    // Set up interval for real-time updates
+    refreshIntervalRef.current = setInterval(() => {
+      refreshLeaderboard();
+    }, 10000); // Refresh every 10 seconds
+    
+    // Clean up interval on unmount
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [limit, currentPage, queryClient, refreshLeaderboard]);
   
   // Pagination controls
   const goToNextPage = () => {
@@ -141,8 +118,11 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
   };
   
   // Rank badge rendering helper
-  const getRankBadge = (rank: number) => {
-    switch (rank) {
+  const getRankBadge = (globalIndex: number) => {
+    // Calculate actual global rank based on pagination
+    const actualRank = ((currentPage - 1) * limit) + globalIndex + 1;
+    
+    switch (actualRank) {
       case 1: // 1st place
         return (
           <Badge className="bg-amber-500 text-black hover:bg-amber-400">
@@ -176,76 +156,62 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
   return (
     <Card className="bg-[#111827] border-[#2D3748]">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex justify-between items-center">
           <CardTitle className="flex items-center gap-2">
             <FaTrophy className="text-amber-500" /> Prior Protocol Leaderboard
           </CardTitle>
+          <div className="flex gap-2">
+            {/* WebSocket connection indicator */}
+            <div 
+              className={`text-xs flex items-center gap-1 ${
+                wsConnected 
+                ? "bg-green-900/30 text-green-300" 
+                : "bg-red-900/30 text-red-300"
+              } px-2 py-1 rounded-md`}
+              title={wsConnected ? "Real-time updates active" : "Reconnecting..."}
+            >
+              {wsConnected 
+                ? <FaWifi size={10} className="mr-1" /> 
+                : <FaWifi size={10} className="mr-1 animate-pulse" />
+              }
+              {wsConnected ? "Live" : "Connecting..."}
+            </div>
+            
+            <button 
+              className="text-xs flex items-center gap-1 bg-blue-900/30 hover:bg-blue-800/40 text-blue-300 px-2 py-1 rounded-md"
+              onClick={() => refreshLeaderboard()}
+              title="Refresh Leaderboard"
+            >
+              <FaSync size={10} className="mr-1" />
+              Refresh
+            </button>
+          </div>
         </div>
         <CardDescription>
           Top users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
         </CardDescription>
         
-        {/* Total global points and swap statistics summary - Enhanced visibility as requested */}
+        {/* Total global points summary - Enhanced visibility as requested */}
         <div className="mt-2 p-3 bg-gradient-to-r from-[#1A2A40] to-[#162138] rounded-md border border-[#2D3748] shadow-lg">
-          <div className="grid gap-3 sm:grid-cols-2">
-            {/* Points Stats */}
-            <div className="text-center">
-              <span className="text-[#A0AEC0] text-sm uppercase tracking-wider">Points Achievement:</span> 
-              <div className="flex flex-col items-center justify-center mt-1">
-                <div className="text-[#A0AEC0] mb-1 text-xs uppercase tracking-wider">Total Global Points</div>
-                <span className={`text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-300 ${(lastMessage?.type === 'leaderboard_update' || isRefreshing) ? 'animate-pulse' : ''}`}>
-                  {/* Use WebSocket value if available, otherwise fallback to API data */}
-                  {(typeof wsTotalGlobalPoints === 'number' && wsTotalGlobalPoints > 0 
-                    ? Number(wsTotalGlobalPoints) 
-                    : typeof leaderboardData?.totalGlobalPoints === 'string' 
-                      ? parseFloat(leaderboardData?.totalGlobalPoints) 
-                      : Number(leaderboardData?.totalGlobalPoints) || 0
-                  ).toFixed(1)}
+          <div className="text-center">
+            <span className="text-[#A0AEC0] text-sm uppercase tracking-wider">Community Achievement:</span> 
+            <div className="flex items-center justify-center mt-1">
+              <span className="text-[#A0AEC0] mr-2 text-sm">Total Global Points:</span>
+              <span className={`text-xl font-bold text-amber-400 ${lastMessage?.type === 'leaderboard_update' ? 'animate-pulse' : ''}`}>
+                {/* Use WebSocket value if available, otherwise fallback to API data */}
+                {(wsTotalGlobalPoints > 0 
+                  ? wsTotalGlobalPoints 
+                  : leaderboardData?.totalGlobalPoints || 0
+                ).toFixed(1)}
+              </span>
+              {wsConnected && lastMessage?.type === 'leaderboard_update' && (
+                <span className="ml-2 text-xs bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded-full">
+                  Updated live
                 </span>
-                <div className="flex items-center justify-center mt-1">
-                  {isRefreshing && (
-                    <span className="mx-1 text-xs bg-blue-900/40 text-blue-300 px-1.5 py-0.5 rounded-full animate-pulse">
-                      Refreshing...
-                    </span>
-                  )}
-                  {wsConnected && lastMessage?.type === 'leaderboard_update' && !isRefreshing && (
-                    <span className="mx-1 text-xs bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded-full">
-                      Updated live
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="text-xs text-gray-400 mt-1">
-                0.5 points per swap (max 5 swaps daily = 2.5 points)
-              </div>
+              )}
             </div>
-            
-            {/* Swap Stats */}
-            <div className="text-center border-t sm:border-t-0 sm:border-l border-[#2D3748] pt-3 sm:pt-0 sm:pl-3">
-              <span className="text-[#A0AEC0] text-sm uppercase tracking-wider">Community Swaps:</span>
-              <div className="mt-1 grid grid-cols-3 gap-2">
-                <div>
-                  <div className={`text-lg font-semibold text-blue-400 ${isRefreshing ? 'animate-pulse' : ''}`}>
-                    {leaderboardData?.globalSwaps?.total || 0}
-                  </div>
-                  <div className="text-xs text-gray-400">Total</div>
-                </div>
-                <div>
-                  <div className={`text-lg font-semibold text-green-400 ${isRefreshing ? 'animate-pulse' : ''}`}>
-                    {leaderboardData?.globalSwaps?.eligible || 0}
-                  </div>
-                  <div className="text-xs text-gray-400">Eligible</div>
-                </div>
-                <div>
-                  <div className={`text-lg font-semibold text-gray-400 ${isRefreshing ? 'animate-pulse' : ''}`}>
-                    {leaderboardData?.globalSwaps?.ineligible || 0}
-                  </div>
-                  <div className="text-xs text-gray-400">Ineligible</div>
-                </div>
-              </div>
-              <div className="text-xs text-gray-400 mt-1">
-                Max 5 eligible swaps per user per day
-              </div>
+            <div className="text-xs text-gray-400 mt-1">
+              Accumulated through community participation (0.5 points per swap, max 5 swaps daily)
             </div>
           </div>
         </div>
@@ -293,15 +259,10 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
           <div className="space-y-3">
             {leaderboardData?.users && leaderboardData.users.length > 0 ? (
               leaderboardData.users.map((user, index) => {
-                // Calculate rank to display
-                // In earlier versions we used pagination index, but now we should query for each user's rank
-                // For backend efficiency, we'll use position in the array for now and add a rank field later if needed
-                const displayRank = index + 1;
-                
-                // This is a frontend-based approach for when server doesn't return rank directly
-                // Server-side ranked based on points and then swap counts
+                // Calculate actual rank including pagination offset
+                const globalRank = ((currentPage - 1) * limit) + index + 1;
                 const isCurrentUser = address?.toLowerCase() === user.address.toLowerCase();
-                const rankBadge = getRankBadge(displayRank);
+                const rankBadge = getRankBadge(index);
                 
                 return (
                   <div 
@@ -313,7 +274,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         <div className="flex-shrink-0 w-8 h-8 bg-[#2D3748] rounded-full flex items-center justify-center">
-                          <span className="text-sm font-semibold">{displayRank}</span>
+                          <span className="text-sm font-semibold">{globalRank}</span>
                         </div>
                         <div>
                           <div className="font-medium">
@@ -326,9 +287,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-lg">
-                          {(typeof user.points === 'string' ? parseFloat(user.points) : user.points).toFixed(1)}
-                        </div>
+                        <div className="font-bold text-lg">{user.points}</div>
                         <div className="text-xs text-[#A0AEC0]">Prior points</div>
                       </div>
                     </div>

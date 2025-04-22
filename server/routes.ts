@@ -9,11 +9,8 @@ import healthRoutes from "./routes/health";
 import quizRoutes from "./routes/quizzes";
 import { log } from "./vite";
 import { db, pool } from "./db";
-import { eq, and, count, sql, gte } from "drizzle-orm";
+import { eq, and, count, sql } from "drizzle-orm";
 import { userTrackerMiddleware } from "./middleware/userTracker";
-
-// Admin wallet address - only this wallet can perform admin actions
-const ADMIN_WALLET = '0x4cfc531df94339def7dcd603aac1a2deaf6888b7';
 
 // Global WebSocket server instance
 export let wss: WebSocketServer;
@@ -318,190 +315,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stack: errorStack,
         timestamp: new Date().toISOString()
       });
-    }
-  });
-  
-  // Endpoint to allocate points to all wallets that swapped today
-  app.post(`${apiPrefix}/maintenance/allocate-points-all-swaps`, async (req, res) => {
-    try {
-      const { adminAddress, pointsPerWallet } = req.body;
-      
-      if (!adminAddress || adminAddress.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
-        return res.status(403).json({ success: false, message: 'Not authorized' });
-      }
-      
-      console.log(`[Admin] Point allocation requested by ${adminAddress} for all wallets that swapped today (${pointsPerWallet} points each)`);
-      
-      // Get all unique wallets with swap transactions from today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      // Find all swap transactions from today from our official swap contract
-      const SWAP_CONTRACT_ADDRESS = '0x8957e1988905311EE249e679a29fc9deCEd4D910';
-      
-      // Get the current date
-      const currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0);
-      
-      const todaysSwapTxs = await db.select({
-        userId: transactions.userId
-      })
-      .from(transactions)
-      .where(
-        and(
-          eq(transactions.type, 'swap'),
-          // Use explicit date comparison instead of DATE() function
-          gte(transactions.timestamp, currentDate)
-          // Metadata check temporarily removed until all transactions have metadata
-          // This will be added back in once we've fully migrated to using metadata
-        )
-      );
-      
-      // Get unique user IDs
-      const uniqueUserIds = [...new Set(todaysSwapTxs.map(tx => tx.userId))];
-      console.log(`Found ${uniqueUserIds.length} unique users who swapped today`);
-      
-      // Allocate points to each user
-      let updatedUsers = 0;
-      let totalPointsAllocated = 0;
-      
-      for (const userId of uniqueUserIds) {
-        const newPoints = await storage.addUserPoints(userId, Number(pointsPerWallet));
-        updatedUsers++;
-        totalPointsAllocated += Number(pointsPerWallet);
-        
-        // Create a transaction record for this point allocation
-        await storage.createTransaction({
-          userId,
-          type: 'admin_points',
-          fromToken: 'SYSTEM',
-          toToken: 'POINTS',
-          fromAmount: '0',
-          toAmount: pointsPerWallet.toString(),
-          txHash: `admin-points-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
-          status: 'completed',
-          blockNumber: 0,
-          metadata: JSON.stringify({
-            reason: 'Admin allocated points to wallets that swapped today',
-            adminAddress,
-            timestamp: new Date().toISOString()
-          })
-        });
-      }
-      
-      // Broadcast leaderboard update notification
-      const latestStats = await storage.getLeaderboard(10, 1);
-      broadcastNotification({
-        type: 'leaderboard_update',
-        totalGlobalPoints: latestStats.totalGlobalPoints,
-        userCount: (await storage.getTotalUsersCount()).count,
-        timestamp: new Date().toISOString()
-      });
-      
-      res.json({ 
-        success: true, 
-        summary: {
-          usersUpdated: updatedUsers,
-          totalPointsAllocated,
-          pointsPerUser: pointsPerWallet,
-          timestamp: new Date().toISOString()
-        }
-      });
-      
-    } catch (error) {
-      console.error('[Error] Failed to allocate points to wallets:', error);
-      res.status(500).json({ success: false, message: 'Failed to allocate points' });
-    }
-  });
-
-  // Endpoint to allocate points to specific wallet addresses
-  app.post(`${apiPrefix}/maintenance/allocate-points-specific`, async (req, res) => {
-    try {
-      const { adminAddress, walletAddresses, pointsPerWallet } = req.body;
-      
-      if (!adminAddress || adminAddress.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
-        return res.status(403).json({ success: false, message: 'Not authorized' });
-      }
-      
-      if (!Array.isArray(walletAddresses) || walletAddresses.length === 0) {
-        return res.status(400).json({ success: false, message: 'No wallet addresses provided' });
-      }
-      
-      console.log(`[Admin] Point allocation requested by ${adminAddress} for ${walletAddresses.length} specific wallets (${pointsPerWallet} points each)`);
-      
-      let updatedUsers = 0;
-      let totalPointsAllocated = 0;
-      let skippedWallets = 0;
-      const processedWallets = [];
-      
-      for (const address of walletAddresses) {
-        // Normalize the address
-        const normalizedAddress = address.toLowerCase();
-        
-        // Find the user by address
-        const user = await storage.getUser(normalizedAddress);
-        
-        if (!user) {
-          skippedWallets++;
-          console.log(`User with address ${normalizedAddress} not found, skipping`);
-          continue;
-        }
-        
-        // Add points to the user
-        const newPoints = await storage.addUserPoints(user.id, Number(pointsPerWallet));
-        updatedUsers++;
-        totalPointsAllocated += Number(pointsPerWallet);
-        
-        // Create a transaction record for this point allocation
-        await storage.createTransaction({
-          userId: user.id,
-          type: 'admin_points',
-          fromToken: 'SYSTEM',
-          toToken: 'POINTS',
-          fromAmount: '0',
-          toAmount: pointsPerWallet.toString(),
-          txHash: `admin-points-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
-          status: 'completed',
-          blockNumber: 0,
-          metadata: JSON.stringify({
-            reason: 'Admin allocated points to specific wallet',
-            adminAddress,
-            timestamp: new Date().toISOString()
-          })
-        });
-        
-        processedWallets.push({
-          address: normalizedAddress,
-          userId: user.id,
-          pointsAdded: pointsPerWallet,
-          newTotalPoints: newPoints
-        });
-      }
-      
-      // Broadcast leaderboard update notification
-      const latestStats = await storage.getLeaderboard(10, 1);
-      broadcastNotification({
-        type: 'leaderboard_update',
-        totalGlobalPoints: latestStats.totalGlobalPoints,
-        userCount: (await storage.getTotalUsersCount()).count,
-        timestamp: new Date().toISOString()
-      });
-      
-      res.json({ 
-        success: true, 
-        summary: {
-          usersUpdated: updatedUsers,
-          totalPointsAllocated,
-          pointsPerUser: pointsPerWallet,
-          skippedWallets,
-          processedWallets,
-          timestamp: new Date().toISOString()
-        }
-      });
-      
-    } catch (error) {
-      console.error('[Error] Failed to allocate points to specific wallets:', error);
-      res.status(500).json({ success: false, message: 'Failed to allocate points' });
     }
   });
   
@@ -916,57 +729,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get global statistics (points, swaps, users)
-  app.get(`${apiPrefix}/global-stats`, async (req, res) => {
-    try {
-      // Add cache control headers to prevent browser/CDN caching
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      
-      // Fetch all required statistics
-      const swapStats = await storage.getGlobalSwapStats();
-      const totalUsersResult = await storage.getTotalUsersCount();
-      const totalUsers = totalUsersResult?.count || 0;
-      
-      // Get global points data
-      const leaderboardResult = await storage.getLeaderboard(1, 1);
-      const totalGlobalPoints = leaderboardResult.totalGlobalPoints || 0;
-      
-      // Calculate additional stats
-      const pointsPerEligibleSwap = 0.5; // This is the key formula: 0.5 points per eligible swap
-      const calculatedPoints = swapStats.eligibleSwaps * pointsPerEligibleSwap;
-      
-      // Send comprehensive global stats
-      const globalStats = {
-        swaps: {
-          total: swapStats.totalSwaps,
-          eligible: swapStats.eligibleSwaps,
-          ineligible: swapStats.ineligibleSwaps,
-          formula: "Max 5 swaps per user per day count as eligible"
-        },
-        users: {
-          total: totalUsers
-        },
-        points: {
-          total: totalGlobalPoints,
-          formula: "0.5 points per eligible swap",
-          calculated: calculatedPoints.toFixed(1)
-        },
-        timestamp: new Date().toISOString()
-      };
-      
-      console.log("Global stats computed:", JSON.stringify(globalStats).substring(0, 100) + "...");
-      res.json(globalStats);
-    } catch (error) {
-      console.error("Error fetching global stats:", error);
-      res.status(500).json({
-        error: "Failed to fetch global statistics",
-        timestamp: new Date().toISOString()
-      });
-    }
-  });
-
   // Get leaderboard (top users by points)
   app.get(`${apiPrefix}/leaderboard`, async (req, res) => {
     const limitParam = req.query.limit ? parseInt(req.query.limit as string) : 15;
@@ -996,9 +758,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const users = leaderboardResult.users || [];
       const totalGlobalPoints = leaderboardResult.totalGlobalPoints || 0;
       
-      // Get global swap statistics
-      const swapStats = await storage.getGlobalSwapStats();
-      
       console.log(`Leaderboard data fetched, users count: ${users.length}, total in DB: ${totalUsers}`);
       
       // Format the response to match the expected frontend structure
@@ -1006,11 +765,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         users: users,
         total: totalUsers,
         totalGlobalPoints: totalGlobalPoints, // Add the total global points
-        globalSwaps: {
-          total: swapStats.totalSwaps,
-          eligible: swapStats.eligibleSwaps,
-          ineligible: swapStats.ineligibleSwaps
-        },
         page: page,
         totalPages: Math.ceil(totalUsers / limit) || 1,
         timestamp: new Date().toISOString(), // Add timestamp for cache invalidation

@@ -6,14 +6,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { useQueryClient } from "@tanstack/react-query";
-import { HiShieldExclamation, HiRefresh, HiTrash, HiLockClosed, HiDatabase, HiCash, HiPlus } from "react-icons/hi";
+import { HiShieldExclamation, HiRefresh, HiTrash, HiLockClosed, HiDatabase } from "react-icons/hi";
 import { useStandaloneWallet } from "@/hooks/useStandaloneWallet";
 import { useLocation } from "wouter";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 
 const ADMIN_WALLET = "0x4cfc531df94339def7dcd603aac1a2deaf6888b7";
 
@@ -26,12 +21,8 @@ const Admin = () => {
   const [resetResult, setResetResult] = useState<any>(null);
   const [recalcResult, setRecalcResult] = useState<any>(null);
   const [fixPointsResult, setFixPointsResult] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("allocate");
+  const [activeTab, setActiveTab] = useState("points");
   const [, setLocation] = useLocation();
-  const [pointsPerWallet, setPointsPerWallet] = useState<number>(2.5);
-  const [walletAddresses, setWalletAddresses] = useState<string>("");
-  const [pointsAllocationResult, setPointsAllocationResult] = useState<any>(null);
-  const [specificWalletsResult, setSpecificWalletsResult] = useState<any>(null);
   
   const isAdmin = address?.toLowerCase() === ADMIN_WALLET.toLowerCase();
 
@@ -228,113 +219,6 @@ const Admin = () => {
     );
   }
 
-  // Handler for allocating points to all wallets that swapped today
-  const handleAllocatePointsAllSwaps = async () => {
-    try {
-      setLoading(true);
-      console.log(`Allocating ${pointsPerWallet} points to all wallets that swapped today...`);
-      
-      const result = await apiRequest('POST', '/api/maintenance/allocate-points-all-swaps', {
-        adminAddress: address,
-        pointsPerWallet: pointsPerWallet,
-        timestamp: Date.now()
-      });
-      
-      console.log("Points allocation response:", result);
-      
-      setPointsAllocationResult(result);
-      toast({
-        title: "Points Allocation Complete",
-        description: `Allocated ${pointsPerWallet} points to ${result.summary.usersUpdated} users. Total points allocated: ${result.summary.totalPointsAllocated}.`
-      });
-      
-      // Refresh all application data
-      await forceRefreshAllData();
-      
-      toast({
-        title: "Cache Refreshed",
-        description: "All data has been refreshed from the server. The leaderboard should now reflect updated points."
-      });
-      
-    } catch (error) {
-      console.error("Points allocation failed:", error);
-      toast({
-        variant: "destructive",
-        title: "Points Allocation Failed",
-        description: "An error occurred while allocating points to wallets."
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Handler for allocating points to specific wallet addresses
-  const handleAllocatePointsSpecific = async () => {
-    if (!walletAddresses.trim()) {
-      toast({
-        variant: "destructive",
-        title: "No Wallet Addresses",
-        description: "Please enter at least one wallet address."
-      });
-      return;
-    }
-    
-    try {
-      setLoading(true);
-      
-      // Parse the wallet addresses
-      const addresses = walletAddresses
-        .split(/[\n,]/)
-        .map(addr => addr.trim())
-        .filter(addr => addr.length >= 42 && addr.startsWith('0x'));
-      
-      if (addresses.length === 0) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Wallet Addresses",
-          description: "No valid wallet addresses found. Make sure addresses start with 0x and are 42 characters long."
-        });
-        setLoading(false);
-        return;
-      }
-      
-      console.log(`Allocating ${pointsPerWallet} points to ${addresses.length} specific wallets...`);
-      
-      const result = await apiRequest('POST', '/api/maintenance/allocate-points-specific', {
-        adminAddress: address,
-        walletAddresses: addresses,
-        pointsPerWallet: pointsPerWallet,
-        timestamp: Date.now()
-      });
-      
-      console.log("Specific wallet points allocation response:", result);
-      
-      setSpecificWalletsResult(result);
-      toast({
-        title: "Points Allocation Complete",
-        description: `Allocated ${pointsPerWallet} points to ${result.summary.usersUpdated} users. Skipped ${result.summary.skippedWallets} wallets that weren't found.`
-      });
-      
-      // Refresh all application data
-      await forceRefreshAllData();
-      
-      toast({
-        title: "Cache Refreshed",
-        description: "All data has been refreshed from the server. The leaderboard should now reflect updated points."
-      });
-      
-    } catch (error) {
-      console.error("Specific wallet points allocation failed:", error);
-      toast({
-        variant: "destructive",
-        title: "Points Allocation Failed",
-        description: "An error occurred while allocating points to specific wallets."
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
   // Handler for manual cache refresh
   const handleManualCacheRefresh = async () => {
     try {
@@ -386,8 +270,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="allocate">Points Allocation</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="points">Points Fix</TabsTrigger>
           <TabsTrigger value="recalculate">Recalculation</TabsTrigger>
           <TabsTrigger value="reset">Database Reset</TabsTrigger>
@@ -438,156 +321,6 @@ const Admin = () => {
               </Button>
             </CardFooter>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="allocate" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left Column: Allocate points to all wallets that swapped today */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-blue-600">
-                  <HiCash className="mr-2" />
-                  Allocate Points to All Swap Wallets
-                </CardTitle>
-                <CardDescription>
-                  Allocate points to all wallets that have made swaps today using our official swap contract
-                  (0x8957e1988905311EE249e679a29fc9deCEd4D910). This is useful for restoring points to users 
-                  after a system update or points policy change.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Alert variant="default" className="mb-4 border-blue-400 bg-blue-50 dark:bg-blue-950 dark:border-blue-900">
-                  <AlertTitle className="text-blue-600">Bulk Point Allocation</AlertTitle>
-                  <AlertDescription>
-                    <p className="mb-2">This will add the specified number of points to ALL wallets that have performed swaps today through the official swap contract <code className="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded text-xs font-mono">0x8957e1988905311EE249e679a29fc9deCEd4D910</code>:</p>
-                    <ul className="list-disc list-inside mt-2 text-sm">
-                      <li>Only swaps made through our official swap contract are eligible</li>
-                      <li>Points will be added on top of the users' existing points</li>
-                      <li>Allocations are tracked as admin_points transactions in the database</li>
-                      <li>This process can be run multiple times if needed</li>
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="points-per-wallet">Points to allocate per wallet:</Label>
-                    <Input
-                      id="points-per-wallet"
-                      type="number"
-                      value={pointsPerWallet}
-                      onChange={(e) => setPointsPerWallet(Number(e.target.value))}
-                      min="0.1"
-                      step="0.1"
-                      max="100"
-                      className="w-full"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Default of 2.5 points (1 day's maximum) is recommended
-                    </p>
-                  </div>
-                </div>
-                
-                {pointsAllocationResult && (
-                  <div className="p-4 mt-4 bg-muted rounded-lg mb-4 border-blue-500 border">
-                    <h3 className="font-medium mb-2 text-blue-600">Points Allocation Results:</h3>
-                    <ul className="list-disc list-inside text-sm">
-                      <li>Users updated: {pointsAllocationResult.summary.usersUpdated}</li>
-                      <li>Points per user: {pointsAllocationResult.summary.pointsPerUser}</li>
-                      <li>Total points allocated: {pointsAllocationResult.summary.totalPointsAllocated}</li>
-                      <li>Timestamp: {new Date(pointsAllocationResult.summary.timestamp).toLocaleString()}</li>
-                    </ul>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  onClick={handleAllocatePointsAllSwaps}
-                  disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                >
-                  {loading ? 'Processing...' : 'Allocate Points to All Swap Wallets'}
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            {/* Right Column: Allocate points to specific wallets */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-purple-600">
-                  <HiPlus className="mr-2" />
-                  Allocate Points to Specific Wallets
-                </CardTitle>
-                <CardDescription>
-                  Allocate points to specific wallet addresses. Enter multiple addresses separated by commas or newlines.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Alert variant="default" className="mb-4 border-purple-400 bg-purple-50 dark:bg-purple-950 dark:border-purple-900">
-                  <AlertTitle className="text-purple-600">Targeted Point Allocation</AlertTitle>
-                  <AlertDescription>
-                    <p className="mb-2">Distribute points to specific wallet addresses:</p>
-                    <ul className="list-disc list-inside mt-2 text-sm">
-                      <li>Each wallet must exist in the database</li>
-                      <li>Points will be added to existing balances</li>
-                      <li>Enter addresses separated by commas or newlines</li>
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="points-per-specific-wallet">Points to allocate per wallet:</Label>
-                    <Input
-                      id="points-per-specific-wallet"
-                      type="number"
-                      value={pointsPerWallet}
-                      onChange={(e) => setPointsPerWallet(Number(e.target.value))}
-                      min="0.1"
-                      step="0.1"
-                      max="100"
-                      className="w-full"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="wallet-addresses">Wallet Addresses (one per line or comma-separated):</Label>
-                    <Textarea
-                      id="wallet-addresses"
-                      placeholder="0x123...&#10;0x456...&#10;0x789..."
-                      value={walletAddresses}
-                      onChange={(e) => setWalletAddresses(e.target.value)}
-                      className="min-h-[120px]"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Wallet addresses must start with 0x and be in the database
-                    </p>
-                  </div>
-                </div>
-                
-                {specificWalletsResult && (
-                  <div className="p-4 mt-4 bg-muted rounded-lg mb-4 border-purple-500 border">
-                    <h3 className="font-medium mb-2 text-purple-600">Specific Wallet Allocation Results:</h3>
-                    <ul className="list-disc list-inside text-sm">
-                      <li>Successfully updated: {specificWalletsResult.summary.usersUpdated} wallets</li>
-                      <li>Skipped (not found): {specificWalletsResult.summary.skippedWallets} wallets</li>
-                      <li>Points per wallet: {specificWalletsResult.summary.pointsPerUser}</li>
-                      <li>Total points allocated: {specificWalletsResult.summary.totalPointsAllocated}</li>
-                    </ul>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  onClick={handleAllocatePointsSpecific}
-                  disabled={loading}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                >
-                  {loading ? 'Processing...' : 'Allocate Points to Specific Wallets'}
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
         </TabsContent>
         
         <TabsContent value="recalculate" className="mt-4">
