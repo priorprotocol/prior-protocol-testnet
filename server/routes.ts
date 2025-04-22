@@ -68,6 +68,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register quiz routes for blockchain education feature
   app.use(apiPrefix, quizRoutes);
   
+  // Register NFT staking routes
+  app.use(apiPrefix, stakingRoutes);
+  
   // Maintenance endpoint to remove all faucet claim points
   app.post(`${apiPrefix}/maintenance/remove-faucet-points`, async (req, res) => {
     try {
