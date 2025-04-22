@@ -139,6 +139,8 @@ export interface IStorage {
       pointsAfter: number;
       totalSwaps: number;
       pointEarningSwaps: number;
+      nftStaked?: boolean;
+      bonusPointsPreserved?: number;
     }>;
   }>;
   

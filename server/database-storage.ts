@@ -1734,6 +1734,7 @@ export class DatabaseStorage implements IStorage {
       totalSwaps: number;
       pointEarningSwaps: number;
       nftStaked: boolean;
+      bonusPointsPreserved: number;
     }>;
   }> {
     console.log("[PointsSystem] Starting points recalculation for all users");
@@ -1746,6 +1747,7 @@ export class DatabaseStorage implements IStorage {
       totalSwaps: number;
       pointEarningSwaps: number;
       nftStaked: boolean;
+      bonusPointsPreserved: number;
     }> = [];
     
     let totalPointsBefore = 0;
@@ -1773,6 +1775,30 @@ export class DatabaseStorage implements IStorage {
           ))
           .orderBy(sql`${transactions.timestamp} ASC`); // Ensure chronological order
         
+        // Get all bonus point transactions for this user
+        const bonusTransactions = await db
+          .select()
+          .from(transactions)
+          .where(and(
+            eq(transactions.userId, userId),
+            eq(transactions.type, 'bonus'),
+            eq(transactions.status, 'completed')
+          ))
+          .orderBy(sql`${transactions.timestamp} ASC`);
+        
+        // Calculate total bonus points (these will be preserved)
+        let bonusPoints = 0;
+        for (const tx of bonusTransactions) {
+          if (tx.points) {
+            bonusPoints += parseFloat(tx.points.toString());
+          }
+        }
+        
+        // Round to 1 decimal place for consistency
+        bonusPoints = Math.round(bonusPoints * 10) / 10;
+        
+        console.log(`[PointsCalc] User ${userId} has ${bonusPoints} bonus points to preserve`);
+        
         // Group transactions by day for swap points calculation
         const transactionsByDay: Record<string, Transaction[]> = {};
         let pointEarningSwaps = 0;
@@ -1789,7 +1815,7 @@ export class DatabaseStorage implements IStorage {
         }
         
         // Calculate swap points: 0.5 per swap, max 5 swaps per day
-        let newPoints = 0;
+        let swapPoints = 0;
         
         for (const day in transactionsByDay) {
           const daySwaps = transactionsByDay[day];
@@ -1800,7 +1826,7 @@ export class DatabaseStorage implements IStorage {
           const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
           
           console.log(`[PointsCalc] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
-          newPoints += pointsForDay;
+          swapPoints += pointsForDay;
         }
         
         // Check for NFT staking transactions for logging/tracking only
@@ -1820,8 +1846,11 @@ export class DatabaseStorage implements IStorage {
           console.log(`[PointsCalc] NFT staking detected for user ${userId} but no points awarded - handled on separate site`);
         }
         
-        // Round to 1 decimal place for clean display
-        newPoints = Math.round(newPoints * 10) / 10;
+        // Round swap points to 1 decimal place for clean display
+        swapPoints = Math.round(swapPoints * 10) / 10;
+        
+        // Combine swap points with preserved bonus points for total points
+        const newPoints = swapPoints + bonusPoints;
         
         // Update user with new points
         await db
@@ -1843,10 +1872,11 @@ export class DatabaseStorage implements IStorage {
           pointsAfter: newPoints,
           totalSwaps: swapTransactions.length,
           pointEarningSwaps,
-          nftStaked
+          nftStaked,
+          bonusPointsPreserved: bonusPoints
         });
         
-        console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | ${swapTransactions.length} total swaps, ${pointEarningSwaps} earning points | NFT staked: ${nftStaked ? 'Yes' : 'No'}`);
+        console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points (${swapPoints} swap + ${bonusPoints} bonus) | ${swapTransactions.length} total swaps, ${pointEarningSwaps} earning points | NFT staked: ${nftStaked ? 'Yes' : 'No'}`);
       }
       
       console.log(`[PointsSystem] Recalculation complete. Updated ${usersUpdated} users.`);
