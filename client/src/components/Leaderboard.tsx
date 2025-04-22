@@ -176,21 +176,10 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
   return (
     <Card className="bg-[#111827] border-[#2D3748]">
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex items-center">
           <CardTitle className="flex items-center gap-2">
             <FaTrophy className="text-amber-500" /> Prior Protocol Leaderboard
           </CardTitle>
-          <div className="flex">
-            <button 
-              className="text-xs flex items-center gap-1 bg-blue-900/30 hover:bg-blue-800/40 text-blue-300 px-2 py-1 rounded-md"
-              onClick={() => refreshLeaderboard()}
-              title="Refresh Leaderboard"
-              disabled={isRefreshing}
-            >
-              <FaSync size={10} className={`mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Refreshing...' : 'Refresh'}
-            </button>
-          </div>
         </div>
         <CardDescription>
           Top users ranked by Prior points - 0.5 points per swap, max 5 swaps daily (2.5 pts)
