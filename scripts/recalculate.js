@@ -10,8 +10,8 @@ async function recalculatePoints() {
     console.log('Starting points recalculation for all users...');
     
     // Use local URL for development
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-    const url = `${baseUrl}/api/maintenance/recalculate-points`;
+    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    const url = `${baseUrl}/api/admin/recalculate-all-user-points`;
     
     console.log(`Using API endpoint: ${url}`);
     
@@ -19,7 +19,10 @@ async function recalculatePoints() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        adminAddress: '0x4CfC531df94339DEF7dcd603AAC1a2dEaF6888b7'
+      })
     });
     
     if (!response.ok) {
