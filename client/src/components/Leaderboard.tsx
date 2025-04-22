@@ -199,10 +199,11 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
               <span className="text-[#A0AEC0] mr-2 text-sm">Total Global Points:</span>
               <span className={`text-xl font-bold text-amber-400 ${lastMessage?.type === 'leaderboard_update' ? 'animate-pulse' : ''}`}>
                 {/* Use WebSocket value if available, otherwise fallback to API data */}
-                {(wsTotalGlobalPoints > 0 
+                {parseFloat(String(
+                  wsTotalGlobalPoints > 0 
                   ? wsTotalGlobalPoints 
                   : leaderboardData?.totalGlobalPoints || 0
-                ).toFixed(1)}
+                )).toFixed(1)}
               </span>
               {wsConnected && lastMessage?.type === 'leaderboard_update' && (
                 <span className="ml-2 text-xs bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded-full">
@@ -308,7 +309,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                           <div className="flex justify-between px-2">
                             <span className="text-blue-400">Points Earned:</span>
                             <span className="text-emerald-400 font-bold">
-                              {Math.min(user.totalSwaps * 0.5, 2.5).toFixed(1)}
+                              {(typeof user.totalSwaps === 'number' ? Math.min(user.totalSwaps * 0.5, 2.5) : 0).toFixed(1)}
                             </span>
                           </div>
                           <div className="text-gray-400 text-[9px] mt-1">
@@ -316,7 +317,7 @@ export const Leaderboard = ({ limit = 15 }: LeaderboardProps) => {
                           </div>
                         </div>
                         
-                        {user.totalSwaps >= 5 && (
+                        {parseInt(String(user.totalSwaps)) >= 5 && (
                           <div className="text-xs mt-1.5 text-emerald-300 bg-emerald-900/20 rounded py-0.5 px-2">
                             <FaExchangeAlt className="inline mr-1" size={10} />
                             Max Daily Points Achieved
