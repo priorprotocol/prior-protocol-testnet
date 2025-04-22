@@ -1090,7 +1090,7 @@ export class DatabaseStorage implements IStorage {
     return user.points || 0;
   }
   
-  async addUserPoints(userId: number, points: number, reason: string = ''): Promise<number> {
+  async addUserPoints(userId: number, points: number, reason: string = 'Bonus points'): Promise<number> {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) return 0;
     
@@ -1104,39 +1104,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
       
-    // Create a transaction record for this points addition if it's a bonus
-    if (reason) {
-      // Generate a unique transaction hash for the bonus
-      const bonusTxHash = `bonus_${userId}_${Date.now()}`;
-      
-      await this.createTransaction({
-        userId,
-        type: 'bonus',
-        points: points.toString(),
-        txHash: bonusTxHash,
-        status: 'completed',
-        metadata: { reason } // Store the reason in the metadata JSON field
-      });
-      
-      // Broadcast the points update
-      try {
-        const { broadcastNotification } = require('./routes');
-        if (typeof broadcastNotification === 'function') {
-          broadcastNotification({
-            type: 'points_update',
-            userId,
-            address: user.address,
-            pointsBefore: currentPoints,
-            pointsAfter: newPoints,
-            timestamp: new Date().toISOString()
-          });
-        }
-      } catch (error) {
-        console.error(`[WebSocket] Error broadcasting points update:`, error);
+    // Always create a transaction record for points additions as a 'bonus' type
+    // Generate a unique transaction hash for the bonus
+    const bonusTxHash = `bonus_${userId}_${Date.now()}`;
+    
+    await this.createTransaction({
+      userId,
+      type: 'bonus', // This is critical - must be 'bonus' type to be preserved during recalculation
+      points: points.toString(),
+      txHash: bonusTxHash,
+      status: 'completed',
+      metadata: { reason } // Store the reason in the metadata JSON field
+    });
+    
+    // Log the creation of the bonus transaction
+    console.log(`[PointsSystem] Created bonus transaction: ${bonusTxHash} for ${points} points`);
+    
+    // Broadcast the points update
+    try {
+      const { broadcastNotification } = require('./routes');
+      if (typeof broadcastNotification === 'function') {
+        broadcastNotification({
+          type: 'points_update',
+          userId,
+          address: user.address,
+          pointsBefore: currentPoints,
+          pointsAfter: newPoints,
+          timestamp: new Date().toISOString()
+        });
       }
-      
-      console.log(`[PointsSystem] Admin added ${points} bonus points to user ${userId} (${user.address}). Reason: ${reason}`);
+    } catch (error) {
+      console.error(`[WebSocket] Error broadcasting points update:`, error);
     }
+    
+    console.log(`[PointsSystem] Admin added ${points} bonus points to user ${userId} (${user.address}). Reason: ${reason}`);
     
     return updatedUser.points || 0;
   }

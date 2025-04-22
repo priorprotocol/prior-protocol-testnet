@@ -1694,8 +1694,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Add points to the user
-      const newPointsTotal = await storage.addUserPoints(userId, points);
+      // Add points to the user - always include a reason to ensure bonus transactions are created
+      const reason = req.body.reason || "Admin bonus award";
+      const newPointsTotal = await storage.addUserPoints(userId, points, reason);
       
       // Badge functionality has been removed
       
