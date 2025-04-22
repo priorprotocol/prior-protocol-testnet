@@ -54,7 +54,7 @@ export const PointsSummary: React.FC<PointsSummaryProps> = ({
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 blur-xl"></div>
                 <div className="relative bg-[#1A2234] rounded-2xl p-4 border border-blue-900/50">
                   <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-                    {points.toFixed(1)}
+                    {numericPoints.toFixed(1)}
                   </div>
                   <div className="text-xs text-blue-400 mt-1">Prior Points</div>
                 </div>
@@ -106,7 +106,7 @@ export const PointsSummary: React.FC<PointsSummaryProps> = ({
             </div>
             
             {/* Bonus Points Section - Only show if user has bonus points or special role */}
-            {(parseFloat(bonusPoints.toString()) > 0 || userRole !== 'user') && (
+            {(numericBonusPoints > 0 || userRole !== 'user') && (
               <div className="mt-4 space-y-2 bg-[#1A2234] p-4 rounded-md border border-indigo-900/40">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center text-sm text-gray-400">
@@ -126,14 +126,14 @@ export const PointsSummary: React.FC<PointsSummaryProps> = ({
                     </TooltipProvider>
                   </div>
                   <span className="font-medium text-indigo-400">
-                    {bonusPoints.toFixed(1)}
+                    {numericBonusPoints.toFixed(1)}
                   </span>
                 </div>
                 
                 <div className="text-center mt-2">
                   <p className="text-xs text-indigo-300/70">
                     {userRole !== 'user' ? 
-                      `You have ${bonusPoints.toFixed(1)} bonus points as a ${userRole}` : 
+                      `You have ${numericBonusPoints.toFixed(1)} bonus points as a ${userRole}` : 
                       'Bonus points for community contributions'}
                   </p>
                 </div>
