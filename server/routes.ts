@@ -7,7 +7,6 @@ import { z } from "zod";
 import transactionRoutes from "./routes/transactions";
 import healthRoutes from "./routes/health";
 import quizRoutes from "./routes/quizzes";
-import stakingRoutes from "./routes/staking";
 import { log } from "./vite";
 import { db, pool } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
@@ -67,9 +66,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register quiz routes for blockchain education feature
   app.use(apiPrefix, quizRoutes);
-  
-  // Register NFT staking routes
-  app.use(apiPrefix, stakingRoutes);
   
   // Maintenance endpoint to remove all faucet claim points
   app.post(`${apiPrefix}/maintenance/remove-faucet-points`, async (req, res) => {

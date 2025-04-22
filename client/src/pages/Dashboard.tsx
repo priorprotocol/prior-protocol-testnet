@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Leaderboard } from "@/components/Leaderboard";
 import SwapPointsSystem from "@/components/SwapPointsSystem";
-import StakingJourney from "@/components/StakingJourney";
 import { formatAddress } from "@/lib/formatAddress";
 import { 
   FaExchangeAlt, 
@@ -253,9 +252,6 @@ const Dashboard = () => {
                 isLoading={statsLoading || transactionsLoading}
                 swapTransactions={swapTransactions}
               />
-              
-              {/* NFT Staking Journey */}
-              <StakingJourney address={address} />
               
               {/* Network Info Card */}
               <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">

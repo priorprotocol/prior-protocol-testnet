@@ -201,27 +201,3 @@ export type QuizQuestion = typeof quizQuestions.$inferSelect;
 
 export type InsertUserQuiz = z.infer<typeof insertUserQuizSchema>;
 export type UserQuiz = typeof userQuizzes.$inferSelect;
-
-// NFT Staking table
-export const nftStakingRecords = pgTable("nft_staking_records", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  address: text("address").notNull(),
-  nftContractAddress: text("nft_contract_address").notNull(),
-  tokenId: text("token_id").notNull(),
-  stakedAt: timestamp("staked_at").notNull().defaultNow(), 
-  unstakeAt: timestamp("unstake_at"),
-  status: text("status").notNull().default("active"), // 'active', 'unstaked'
-  bonusReceived: boolean("bonus_received").default(false).notNull(), // indicates if the first time bonus was received
-  bonusAmount: integer("bonus_amount").default(0).notNull(), // amount of bonus points received (usually 200)
-  bonusTxId: integer("bonus_tx_id"), // reference to the transaction ID for the bonus
-  activations: integer("activations").default(1).notNull(), // number of times the NFT was staked
-});
-
-export const insertNftStakingRecordSchema = createInsertSchema(nftStakingRecords).omit({
-  id: true,
-  stakedAt: true,
-});
-
-export type InsertNftStakingRecord = z.infer<typeof insertNftStakingRecordSchema>;
-export type NftStakingRecord = typeof nftStakingRecords.$inferSelect;
