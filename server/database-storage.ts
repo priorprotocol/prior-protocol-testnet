@@ -259,9 +259,9 @@ export class DatabaseStorage implements IStorage {
     // For now, we're not tracking who created proposals, so it's 0
     const proposalsCreated = 0;
     
-    // Get total points and bonus points from user record
-    const points = user.points || 0;
-    const bonusPoints = user.bonusPoints || 0;
+    // Get total points and bonus points from user record, ensuring they're converted to numbers
+    const points = typeof user.points === 'string' ? parseFloat(user.points) : user.points || 0;
+    const bonusPoints = typeof user.bonusPoints === 'string' ? parseFloat(user.bonusPoints) : user.bonusPoints || 0;
     const userRole = user.userRole || 'user';
     
     return {
@@ -309,7 +309,7 @@ export class DatabaseStorage implements IStorage {
     
     // Get the updated user record with recalculated points
     const [updatedUser] = await db.select().from(users).where(eq(users.id, userId));
-    const currentPoints = updatedUser?.points || 0;
+    const currentPoints = typeof updatedUser?.points === 'string' ? parseFloat(updatedUser.points) : (updatedUser?.points || 0);
     
     // Set time range based on period
     const now = new Date();

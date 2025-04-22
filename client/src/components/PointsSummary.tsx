@@ -20,6 +20,10 @@ export const PointsSummary: React.FC<PointsSummaryProps> = ({
   isLoading,
   userRole = 'user'
 }) => {
+  // Ensure points and bonusPoints are numbers by converting from strings if needed
+  const numericPoints = typeof points === 'string' ? parseFloat(points) : points || 0;
+  const numericBonusPoints = typeof bonusPoints === 'string' ? parseFloat(bonusPoints as string) : (bonusPoints || 0);
+  
   // Calculate daily swap points (0.5 points per swap, max 5 swaps = 2.5 points)
   const dailySwapPoints = Math.min(Math.min(totalSwaps, 5) * 0.5, 2.5);
   const dailySwapPointsPercentage = (dailySwapPoints / 2.5) * 100;
