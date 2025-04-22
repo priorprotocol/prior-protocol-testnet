@@ -49,6 +49,29 @@ export interface IStorage {
   }>;
   getDailySwapCount(userId: number): Promise<number>; // New method to track daily swap count
   
+  // Reward management functions
+  addBonusPointsToAllSwapUsers(bonusPoints: number, reason: string, minSwaps?: number): Promise<{
+    usersRewarded: number;
+    totalPointsAdded: number;
+    totalPointsBefore: number;
+    totalPointsAfter: number;
+    userDetails: Array<{
+      userId: number;
+      address: string;
+      pointsBefore: number;
+      pointsAfter: number;
+      pointsAdded: number;
+    }>;
+  }>;
+  
+  addPointsByWalletAddress(address: string, points: number, reason: string): Promise<{
+    success: boolean;
+    message: string;
+    userId?: number;
+    pointsBefore?: number;
+    pointsAfter?: number;
+  }>;
+  
   // Quest operations
   getAllQuests(): Promise<Quest[]>;
   getQuest(id: number): Promise<Quest | undefined>;
