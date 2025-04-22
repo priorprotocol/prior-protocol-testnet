@@ -1185,12 +1185,40 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`[PointsSystem] Adding ${points} points to wallet address: ${address}`);
       
-      // Normalize the address
+      // Normalize the address - Ethereum addresses should be case-insensitive
       const normalizedAddress = address.toLowerCase();
       console.log(`[PointsSystem] Normalized address: ${normalizedAddress}`);
       
-      // Find the user by wallet address - use direct SQL first to debug
-      console.log(`[PointsSystem] Running SQL query to find user with address: ${normalizedAddress}`);
+      // First, check if there are any users with checksum or upper/lowercase variations
+      const potentialUsers = await db
+        .select()
+        .from(users)
+        .where(sql`LOWER(${users.address}) = LOWER(${normalizedAddress})`);
+      
+      if (potentialUsers.length > 0) {
+        console.log(`[PointsSystem] Found ${potentialUsers.length} users with case-insensitive address match`);
+        const user = potentialUsers[0]; // Use the first match if multiple exist
+        
+        const userId = user.id;
+        const pointsBefore = user.points || 0;
+        console.log(`[PointsSystem] Found user ID: ${userId}, current points: ${pointsBefore}`);
+        
+        // Add points to the user
+        console.log(`[PointsSystem] Adding ${points} points to user ${userId}`);
+        const pointsAfter = await this.addUserPoints(userId, points, reason);
+        console.log(`[PointsSystem] User ${userId} points updated: ${pointsBefore} → ${pointsAfter}`);
+        
+        return {
+          success: true,
+          message: `Successfully added ${points} points to user ${userId} (${user.address})`,
+          userId,
+          pointsBefore,
+          pointsAfter
+        };
+      }
+      
+      // If case-insensitive match failed, try direct SQL with exact match as a last resort
+      console.log(`[PointsSystem] No case-insensitive matches found, trying direct SQL`);
       const directSqlResult = await pool.query(`
         SELECT id, address, points, total_swaps 
         FROM users 
@@ -1211,17 +1239,35 @@ export class DatabaseStorage implements IStorage {
         // Get the full user object from the ORM now that we know the ID
         [user] = await db.select().from(users).where(eq(users.id, directUser.id));
       } else {
-        // Fall back to regular ORM lookup if direct SQL fails
-        console.log(`[PointsSystem] Direct SQL found no users, trying ORM lookup for: ${normalizedAddress}`);
+        // Fall back to regular ORM lookup if direct SQL fails - try with exact address match
+        console.log(`[PointsSystem] Direct SQL found no users, trying ORM lookup with exact match: ${normalizedAddress}`);
         [user] = await db.select().from(users).where(eq(users.address, normalizedAddress));
+        
+        // If that fails, try with the original non-normalized address as a last resort
+        if (!user) {
+          console.log(`[PointsSystem] Trying with original address format: ${address}`);
+          [user] = await db.select().from(users).where(eq(users.address, address));
+        }
       }
       
-      // If user doesn't exist, return an error
+      // If user doesn't exist at this point, we've tried all options
       if (!user) {
-        console.log(`[PointsSystem] No user found with address: ${normalizedAddress}`);
+        // Print all users to help debug
+        const allUsers = await db.select().from(users);
+        console.log(`[PointsSystem] Could not find user with address: ${address}`);
+        console.log(`[PointsSystem] Available users in DB: ${allUsers.length}`);
+        
+        // Print a few sample users to help debug
+        if (allUsers.length > 0) {
+          console.log(`[PointsSystem] Sample user addresses:`);
+          allUsers.slice(0, 5).forEach(u => {
+            console.log(`- ID: ${u.id}, Address: ${u.address}`);
+          });
+        }
+        
         return {
           success: false,
-          message: `User with wallet address ${normalizedAddress} not found`
+          message: `User with wallet address ${address} not found`
         };
       }
       
@@ -1236,7 +1282,7 @@ export class DatabaseStorage implements IStorage {
       
       return {
         success: true,
-        message: `Successfully added ${points} points to user ${userId} (${normalizedAddress})`,
+        message: `Successfully added ${points} points to user ${userId} (${user.address})`,
         userId,
         pointsBefore,
         pointsAfter
