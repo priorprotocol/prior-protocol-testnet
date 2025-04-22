@@ -7,6 +7,7 @@ import { z } from "zod";
 import transactionRoutes from "./routes/transactions";
 import healthRoutes from "./routes/health";
 import quizRoutes from "./routes/quizzes";
+import stakingRoutes from "./routes/staking";
 import { log } from "./vite";
 import { db, pool } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
