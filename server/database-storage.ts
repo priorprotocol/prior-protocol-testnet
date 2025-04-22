@@ -15,10 +15,29 @@ import { IStorage } from "./storage";
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(address: string): Promise<User | undefined> {
-    // Use direct SQL query first to ensure we get accurate results
+    // Normalize the address for consistent lookup
+    const normalizedAddress = address.toLowerCase();
+    console.log(`[UserLookup] Looking up user with normalized address: ${normalizedAddress}`);
+    
     try {
+      // Try case-insensitive search first (most reliable)
+      const caseInsensitiveResult = await pool.query(`
+        SELECT * FROM users WHERE LOWER(address) = LOWER($1)
+      `, [normalizedAddress]);
+      
+      if (caseInsensitiveResult.rows && caseInsensitiveResult.rows.length > 0) {
+        const userId = caseInsensitiveResult.rows[0].id;
+        console.log(`[UserLookup] Found user with ID ${userId} using case-insensitive SQL`);
+        
+        // Now fetch the full user object through drizzle
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        return user;
+      }
+      
+      // If case-insensitive search failed, try direct SQL with exact match
+      console.log(`[UserLookup] No user found with case-insensitive lookup, trying direct SQL`);
       const directQuery = await db.execute(
-        sql`SELECT * FROM users WHERE address = ${address}`
+        sql`SELECT * FROM users WHERE address = ${normalizedAddress}`
       );
       
       if (directQuery.length > 0) {
@@ -31,15 +50,43 @@ export class DatabaseStorage implements IStorage {
         return user;
       }
       
-      // Fallback to the ORM approach if direct SQL yields no results
-      console.log(`[UserLookup] No user found with direct SQL for ${address}, falling back to ORM`);
+      // Try with LIKE as a last resort
+      console.log(`[UserLookup] No exact matches found, trying LIKE pattern match`);
+      const likeResult = await pool.query(`
+        SELECT * FROM users WHERE address LIKE $1
+      `, [`%${normalizedAddress}%`]);
+      
+      if (likeResult.rows && likeResult.rows.length > 0) {
+        const userId = likeResult.rows[0].id;
+        console.log(`[UserLookup] Found user with ID ${userId} using LIKE pattern match`);
+        
+        // Now fetch the full user object through drizzle
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        return user;
+      }
+      
+      // As a last resort, try ORM with non-normalized address
+      console.log(`[UserLookup] No user found with any SQL method, falling back to ORM with original address: ${address}`);
       const [user] = await db.select().from(users).where(eq(users.address, address));
-      return user;
+      
+      if (user) {
+        console.log(`[UserLookup] Found user with ID ${user.id} using original address`);
+        return user;
+      }
+      
+      console.log(`[UserLookup] User not found with address: ${normalizedAddress}`);
+      return undefined;
     } catch (error) {
-      console.error("Error in getUser:", error);
-      // Fallback to the original approach if there's an error
-      const [user] = await db.select().from(users).where(eq(users.address, address));
-      return user;
+      console.error(`[UserLookup] Error looking up user with address ${normalizedAddress}:`, error);
+      
+      // Last ditch effort - try the raw address with ORM
+      try {
+        const [user] = await db.select().from(users).where(eq(users.address, address));
+        return user;
+      } catch (e) {
+        console.error(`[UserLookup] Final fallback lookup failed:`, e);
+        return undefined;
+      }
     }
   }
   
