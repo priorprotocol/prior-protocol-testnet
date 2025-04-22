@@ -143,63 +143,6 @@ export class DatabaseStorage implements IStorage {
     return updatedUser.totalSwaps || 0;
   }
   
-  /**
-   * Get a user's rank in the leaderboard based on their address
-   * Ranks are determined by points first, and then by total swaps as a tiebreaker when points are equal
-   */
-  async getUserRank(address: string): Promise<number | null> {
-    if (!address) return null;
-    
-    // Normalize address for case-insensitive comparison
-    const normalizedAddress = address.toLowerCase();
-    
-    try {
-      // First get the user to verify they exist
-      const user = await this.getUser(normalizedAddress);
-      if (!user) {
-        console.log(`[getUserRank] No user found with address ${normalizedAddress}`);
-        return null;
-      }
-      
-      // Count how many users have more points than this user
-      // Or have the same points but more swaps (tiebreaker)
-      const rankResult = await db.execute(sql`
-        SELECT COUNT(*) as rank
-        FROM users
-        WHERE (points > ${user.points})
-        OR (points = ${user.points} AND total_swaps > ${user.totalSwaps || 0})
-      `);
-      
-      // The rank is the position (1-indexed) in the sorted list
-      // So it's the count of users ahead of this user, plus 1
-      if (rankResult && rankResult.length > 0) {
-        const rank = Number(rankResult[0].rank) + 1;
-        console.log(`[getUserRank] User ${normalizedAddress} has rank ${rank}`);
-        return rank;
-      }
-      
-      // Fallback to direct count query if the first approach fails
-      console.log(`[getUserRank] Falling back to direct count query for ${normalizedAddress}`);
-      
-      // Get all users, ordered by points (desc) and then by totalSwaps (desc)
-      const allUsers = await db
-        .select()
-        .from(users)
-        .orderBy(sql`${users.points} DESC, ${users.totalSwaps} DESC`);
-      
-      // Find the index of the user with the matching address (case-insensitive)
-      const userIndex = allUsers.findIndex(
-        u => u.address.toLowerCase() === normalizedAddress
-      );
-      
-      // Return the rank (index + 1) or null if not found
-      return userIndex !== -1 ? userIndex + 1 : null;
-    } catch (error) {
-      console.error(`[getUserRank] Error getting rank for user ${normalizedAddress}:`, error);
-      return null;
-    }
-  }
-  
   async getUserStats(userId: number): Promise<{
     totalFaucetClaims: number;
     totalSwaps: number;

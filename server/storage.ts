@@ -25,12 +25,6 @@ export interface IStorage {
   addUserPoints(userId: number, points: number): Promise<number>;
   removePointsForFaucetClaims(): Promise<number>; // Method to remove all faucet claim points
   getTotalUsersCount(): Promise<{ count: number }>;
-  getCommunitySwapStats(): Promise<{
-    totalSwaps: number;
-    eligibleSwaps: number;
-    ineligibleSwaps: number;
-    totalPoints: number;
-  }>;
   getLeaderboard(limit?: number, page?: number): Promise<{
     users: User[],
     totalGlobalPoints: number
@@ -692,43 +686,6 @@ export class MemStorage implements IStorage {
   
   async getTotalUsersCount(): Promise<{ count: number }> {
     return { count: this.users.size };
-  }
-  
-  /**
-   * Get community swap statistics including total, eligible, and ineligible swaps
-   */
-  async getCommunitySwapStats(): Promise<{
-    totalSwaps: number;
-    eligibleSwaps: number;
-    ineligibleSwaps: number;
-    totalPoints: number;
-  }> {
-    let totalSwaps = 0;
-    let eligibleSwaps = 0;
-    let totalPoints = 0;
-    
-    // Count all swap transactions
-    for (const transaction of this.transactions.values()) {
-      if (transaction.type === 'swap') {
-        totalSwaps++;
-        
-        // Count eligible swaps (those with points > 0)
-        if (typeof transaction.points === 'number' && transaction.points > 0) {
-          eligibleSwaps++;
-          totalPoints += transaction.points;
-        }
-      }
-    }
-    
-    // Calculate ineligible swaps (those that didn't earn points)
-    const ineligibleSwaps = totalSwaps - eligibleSwaps;
-    
-    return {
-      totalSwaps,
-      eligibleSwaps,
-      ineligibleSwaps,
-      totalPoints
-    };
   }
   
   async getLeaderboard(limit: number = 15, page: number = 1): Promise<{
