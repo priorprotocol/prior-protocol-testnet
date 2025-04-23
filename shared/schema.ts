@@ -11,6 +11,8 @@ export const users = pgTable("users", {
   totalSwaps: integer("total_swaps").default(0).notNull(),
   totalClaims: integer("total_claims").default(0).notNull(),
   points: numeric("points", { precision: 5, scale: 1 }).default("0").notNull(),  // Tracks total points for leaderboard (DECIMAL supporting 0.5)
+  persistentPoints: numeric("persistent_points", { precision: 5, scale: 1 }).default("0").notNull(),  // Permanently tracks verified swap points (never resets)
+  lastPointsSync: timestamp("last_points_sync"),  // When the persistent points were last synced with transactions
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -19,6 +21,8 @@ export const insertUserSchema = createInsertSchema(users).omit({
   totalSwaps: true,
   totalClaims: true,
   points: true,
+  persistentPoints: true,
+  lastPointsSync: true
 });
 
 // Quests table
