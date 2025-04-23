@@ -131,6 +131,18 @@ export interface IStorage {
   // Add required method for user points recalculation
   recalculatePointsForUser(userId: number): Promise<number>;
   
+  // Persistent points methods
+  syncPersistentPoints(userId: number): Promise<{
+    persistentPoints: number;
+    regularPoints: number;
+    updatedAt: Date;
+  }>;
+  
+  getPersistentPoints(userId: number): Promise<{
+    persistentPoints: number;
+    lastSync: Date | null;
+  }>;
+  
   // Quiz operations
   getAllQuizzes(): Promise<Quiz[]>;
   getQuiz(id: number): Promise<Quiz | undefined>;
@@ -647,7 +659,121 @@ export class MemStorage implements IStorage {
     this.usersByAddress.set(user.address, updatedUser);
     
     console.log(`[MemStorage] Recalculated points for user ${userId}: ${newPoints} points`);
+    
+    // Sync persistent points when regular points are recalculated
+    this.syncPersistentPoints(userId);
+    
     return newPoints;
+  }
+  
+  /**
+   * Syncs the persistent points by directly calculating from swap transactions
+   * This provides a reliable source of points that never gets wiped during resets
+   */
+  async syncPersistentPoints(userId: number): Promise<{
+    persistentPoints: number;
+    regularPoints: number;
+    updatedAt: Date;
+  }> {
+    console.log(`[MemStorage] Syncing persistent points for user ${userId}`);
+    const user = this.users.get(userId);
+    if (!user) {
+      console.log(`[MemStorage] User ${userId} not found for persistent points sync`);
+      return {
+        persistentPoints: 0,
+        regularPoints: 0,
+        updatedAt: new Date()
+      };
+    }
+    
+    // Get all swap transactions for this user
+    const swapTransactions = Array.from(this.transactions.values())
+      .filter(tx => 
+        tx.userId === userId && 
+        tx.type === 'swap' && 
+        tx.status === 'completed'
+      )
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    
+    // Group transactions by day for points calculation
+    const transactionsByDay: Record<string, Transaction[]> = {};
+    
+    for (const tx of swapTransactions) {
+      const txDate = new Date(tx.timestamp);
+      const day = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+      
+      if (!transactionsByDay[day]) {
+        transactionsByDay[day] = [];
+      }
+      
+      transactionsByDay[day].push(tx);
+    }
+    
+    // Calculate points: 0.5 per swap, max 5 swaps per day
+    let persistentPoints = 0;
+    
+    for (const day in transactionsByDay) {
+      const daySwaps = transactionsByDay[day];
+      // Only count the first 5 swaps each day toward points
+      const pointSwapsForDay = Math.min(daySwaps.length, 5);
+      const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
+      
+      persistentPoints += pointsForDay;
+    }
+    
+    // Round to 1 decimal place
+    persistentPoints = Math.round(persistentPoints * 10) / 10;
+    
+    // Get current date for last sync timestamp
+    const now = new Date();
+    
+    // Update user with persistent points and sync timestamp
+    const updatedUser: User = {
+      ...user,
+      persistentPoints: persistentPoints,
+      lastPointsSync: now
+    };
+    
+    this.users.set(userId, updatedUser);
+    this.usersByAddress.set(user.address, updatedUser);
+    
+    console.log(`[MemStorage] Persistent points synced for user ${userId}: ${persistentPoints} points`);
+    
+    return {
+      persistentPoints: persistentPoints,
+      regularPoints: user.points,
+      updatedAt: now
+    };
+  }
+  
+  /**
+   * Gets the persistent points for a user
+   */
+  async getPersistentPoints(userId: number): Promise<{
+    persistentPoints: number;
+    lastSync: Date | null;
+  }> {
+    const user = this.users.get(userId);
+    if (!user) {
+      return {
+        persistentPoints: 0,
+        lastSync: null
+      };
+    }
+    
+    // If never synced before, sync now
+    if (user.persistentPoints === undefined || user.persistentPoints === 0) {
+      const syncResult = await this.syncPersistentPoints(userId);
+      return {
+        persistentPoints: syncResult.persistentPoints,
+        lastSync: syncResult.updatedAt
+      };
+    }
+    
+    return {
+      persistentPoints: user.persistentPoints,
+      lastSync: user.lastPointsSync
+    };
   }
   
   async removePointsForFaucetClaims(): Promise<number> {
