@@ -1550,8 +1550,8 @@ export class DatabaseStorage implements IStorage {
       const [updatedUser] = await db
         .update(users)
         .set({
-          persistentPoints: persistentPoints,
-          lastPointsSync: now
+          persistent_points: persistentPoints,
+          last_points_sync: now
         })
         .where(eq(users.id, userId))
         .returning();
@@ -1591,7 +1591,7 @@ export class DatabaseStorage implements IStorage {
       }
       
       // If never synced before, sync now
-      if (user.persistentPoints === 0 || !user.lastPointsSync) {
+      if (user.persistent_points === 0 || !user.last_points_sync) {
         const syncResult = await this.syncPersistentPoints(userId);
         return {
           persistentPoints: syncResult.persistentPoints,
@@ -1600,8 +1600,8 @@ export class DatabaseStorage implements IStorage {
       }
       
       return {
-        persistentPoints: user.persistentPoints || 0,
-        lastSync: user.lastPointsSync
+        persistentPoints: user.persistent_points || 0,
+        lastSync: user.last_points_sync
       };
     } catch (error) {
       console.error(`[PersistentPoints] Error getting persistent points for user ${userId}:`, error);
