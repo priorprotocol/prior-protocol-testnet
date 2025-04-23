@@ -11,11 +11,33 @@ import { db, pool } from "./db";
 import { eq, and, count, sql, asc } from "drizzle-orm";
 import { IStorage } from "./storage";
 
+// Internal cache to store frequently accessed data
+interface CacheState {
+  users: Map<string, User>;         // address -> user
+  usersById: Map<number, User>;     // id -> user
+  lastUpdated: Date;
+  initialized: boolean;
+}
+
 // Database implementation of storage
 export class DatabaseStorage implements IStorage {
+  // In-memory cache for frequently accessed data to reduce database load
+  private cache: CacheState = {
+    users: new Map<string, User>(),
+    usersById: new Map<number, User>(),
+    lastUpdated: new Date(),
+    initialized: false
+  };
+
   // User operations
   async getUser(address: string): Promise<User | undefined> {
-    // Use direct SQL query first to ensure we get accurate results
+    // First try to get from cache if it's initialized
+    if (this.cache.initialized && this.cache.users.has(address)) {
+      console.log(`[CacheHit] Found user ${address.slice(0, 8)}... in cache`);
+      return this.cache.users.get(address);
+    }
+    
+    // Use direct SQL query to ensure we get accurate results
     try {
       const directQuery = await db.execute(
         sql`SELECT * FROM users WHERE address = ${address}`
@@ -28,6 +50,13 @@ export class DatabaseStorage implements IStorage {
         
         // Now fetch the full user object through drizzle
         const [user] = await db.select().from(users).where(eq(users.id, userId));
+        
+        // Add to cache for future requests
+        if (user) {
+          this.cache.users.set(address, user);
+          this.cache.usersById.set(user.id, user);
+        }
+        
         return user;
       }
       
@@ -885,11 +914,70 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Helper method to refresh leaderboard cache
-  private async refreshLeaderboardCache(): Promise<void> {
+  /**
+   * Get current cache statistics for monitoring
+   */
+  async getCacheStats(): Promise<{
+    userCount: number;
+    cacheInitialized: boolean;
+    lastUpdated: string;
+  }> {
+    return {
+      userCount: this.cache.users.size,
+      cacheInitialized: this.cache.initialized,
+      lastUpdated: this.cache.lastUpdated.toISOString()
+    };
+  }
+  
+  /**
+   * Complete rebuild of the in-memory cache from database
+   * This ensures cache consistency with the database
+   */
+  async rebuildCache(): Promise<void> {
+    console.log(`[CacheManager] 🔄 Starting complete cache rebuild from database`);
+    try {
+      // Clear existing cache
+      this.cache.users.clear();
+      this.cache.usersById.clear();
+      
+      // Load all users from database
+      const allUsers = await db.select().from(users);
+      console.log(`[CacheManager] Loading ${allUsers.length} users into cache`);
+      
+      // Populate cache
+      for (const user of allUsers) {
+        this.cache.users.set(user.address, user);
+        this.cache.usersById.set(user.id, user);
+      }
+      
+      // Update cache metadata
+      this.cache.lastUpdated = new Date();
+      this.cache.initialized = true;
+      
+      console.log(`[CacheManager] ✅ Cache rebuild complete - ${this.cache.users.size} users loaded`);
+    } catch (error) {
+      console.error(`[CacheManager] 🔴 Error during cache rebuild:`, error);
+      // Mark cache as uninitialized to force database lookups
+      this.cache.initialized = false;
+    }
+  }
+  
+  /**
+   * Refreshes the leaderboard cache and broadcasts updates to connected clients
+   * Made public to allow manual refresh from server initialization
+   */
+  async refreshLeaderboardCache(): Promise<void> {
     console.log(`[PointsSystem] 🔄 Force refreshing leaderboard cache after points recalculation`);
     try {
-      // Clear all user data from cache
-      console.log(`[CacheManager] Clearing user cache to force update on next access`);
+      // Clear all user data from cache to force reload from database
+      this.cache.users.clear();
+      this.cache.usersById.clear();
+      this.cache.initialized = false;
+      
+      // Rebuild the cache with fresh data
+      await this.rebuildCache();
+      
+      console.log(`[CacheManager] Cache refresh completed successfully`);
       
       // We don't have direct access to queryClient from here, so we're setting a flag
       // that will trigger a full cache refresh in other parts of the application

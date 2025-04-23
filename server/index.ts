@@ -130,27 +130,83 @@ export let server: http.Server;
 
 // Setup function that can be called in development or production
 export const setupServer = async () => {
-  // Initialize database if using DatabaseStorage
+  // Enhanced database initialization and recovery procedure
   if (storage instanceof DatabaseStorage) {
     try {
-      log("Initializing database...");
+      log("🔄 Initializing database connection...");
+      
+      // Import the database health check function
+      const { isDatabaseHealthy } = await import("./db");
+      
+      // Wait for database to be healthy before proceeding
+      let attempts = 0;
+      const maxAttempts = 10;
+      while (!isDatabaseHealthy() && attempts < maxAttempts) {
+        log(`⏳ Waiting for database connection to be established (attempt ${attempts + 1}/${maxAttempts})...`);
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds between attempts
+        attempts++;
+      }
+      
+      if (!isDatabaseHealthy()) {
+        log("⚠️ WARNING: Database connection could not be established after multiple attempts");
+        log("⚠️ The application will start but data persistence might be affected");
+      } else {
+        log("✅ Database connection established successfully");
+      }
+      
+      // Perform database seed/initialization
+      log("🔄 Running database initialization and verification...");
       await (storage as DatabaseStorage).seedDatabase();
-      log("Database initialized successfully");
+      
+      // Force a leaderboard cache refresh on startup to ensure latest data is loaded
+      log("🔄 Pre-loading leaderboard cache to ensure data consistency...");
+      await (storage as DatabaseStorage).refreshLeaderboardCache();
+      
+      // Verify cached user count matches database count
+      const cacheStats = await (storage as DatabaseStorage).getCacheStats();
+      const dbUserCount = await (storage as DatabaseStorage).getTotalUsersCount();
+      
+      log(`📊 Cache stats - Users in cache: ${cacheStats.userCount}, Users in DB: ${dbUserCount.count}`);
+      
+      if (cacheStats.userCount !== dbUserCount.count) {
+        log("⚠️ WARNING: User count mismatch between cache and database");
+        log("🔄 Performing automatic cache rebuild to ensure consistency...");
+        
+        // Force a complete cache rebuild
+        await (storage as DatabaseStorage).rebuildCache();
+        
+        const updatedCacheStats = await (storage as DatabaseStorage).getCacheStats();
+        log(`✅ Cache rebuild complete - Users in cache: ${updatedCacheStats.userCount}`);
+      } else {
+        log("✅ Cache verification successful - cache is consistent with database");
+      }
+      
+      log("✅ Database initialization completed successfully");
     } catch (error) {
-      log(`Error initializing database: ${error}`);
+      log(`🔴 Error initializing database: ${error}`);
+      log("⚠️ The application will start but data persistence might be affected");
     }
   }
   
   // Register API routes
   server = await registerRoutes(app);
 
-  // Add error handling middleware
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  // Enhanced error handling middleware with more detailed logging
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
+    
+    // Log detailed error information
+    log(`🔴 Error handling request to ${req.method} ${req.path}: ${err.stack || err.message || err}`);
 
-    res.status(status).json({ message });
-    throw err;
+    // Send appropriate error response without exposing internal details
+    res.status(status).json({ 
+      message,
+      error: app.get("env") === "development" ? err.message : "An error occurred"
+    });
+    
+    // Don't throw the error after handling it - this causes unhandled rejections
+    // and can crash the server in production
   });
 
   // Setup Vite in development or serve static files in production

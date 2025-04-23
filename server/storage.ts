@@ -30,6 +30,15 @@ export interface IStorage {
     totalGlobalPoints: number
   }>;
   getUserRank(address: string): Promise<number | null>;
+  
+  // Cache management methods
+  refreshLeaderboardCache(): Promise<void>;
+  getCacheStats(): Promise<{
+    userCount: number;
+    cacheInitialized: boolean;
+    lastUpdated: string;
+  }>;
+  rebuildCache(): Promise<void>;
   getUserStats(userId: number): Promise<{
     totalFaucetClaims: number;
     totalSwaps: number;

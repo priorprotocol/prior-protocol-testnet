@@ -11,12 +11,53 @@ if (typeof WebSocket === 'undefined') {
 
 // Check for DATABASE_URL environment variable
 if (!process.env.DATABASE_URL) {
-  console.warn("DATABASE_URL is not set. Using memory storage as fallback.");
+  console.error("⚠️ DATABASE_URL is not set. Database functionality will be limited.");
+  throw new Error("DATABASE_URL environment variable is required");
 }
 
-// Create a PostgreSQL connection pool
-const connectionString = process.env.DATABASE_URL || '';
-export const pool = new Pool({ connectionString });
+// Enhanced PostgreSQL connection pool configuration with retry logic
+const connectionString = process.env.DATABASE_URL;
+
+// Create a more resilient connection pool with specific settings for production use
+export const pool = new Pool({
+  connectionString,
+  max: 20,               // Maximum number of clients in the pool
+  idleTimeoutMillis: 30000,  // How long a client is allowed to remain idle before being closed
+  connectionTimeoutMillis: 10000, // How long to wait for a connection to become available
+  // Improved error handling with explicit event handlers
+});
+
+// Set up connection monitoring for improved reliability
+pool.on('error', (err) => {
+  console.error('⚠️ Unexpected error on idle PostgreSQL client:', err);
+  // Don't crash on connection errors, attempt recovery
+});
+
+// Check that the pool is working correctly
+let isPoolHealthy = false;
+const checkPoolHealth = async () => {
+  try {
+    const client = await pool.connect();
+    try {
+      await client.query('SELECT 1');
+      isPoolHealthy = true;
+      console.log('✅ Database connection pool initialized successfully');
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('🔴 Failed to initialize database connection pool:', error);
+    isPoolHealthy = false;
+    // Schedule a retry
+    setTimeout(checkPoolHealth, 5000);
+  }
+};
+
+// Initial health check
+checkPoolHealth().catch(console.error);
 
 // Create a drizzle instance using the pool and schema
 export const db = drizzle(pool, { schema });
+
+// Export a function to check if the database connection is healthy
+export const isDatabaseHealthy = () => isPoolHealthy;
