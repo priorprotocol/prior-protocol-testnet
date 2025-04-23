@@ -14,6 +14,7 @@ export interface PersistentPointsData {
  */
 interface PersistentPointsResponse {
   success: boolean;
+  message?: string;
   data: PersistentPointsData;
 }
 
@@ -73,15 +74,38 @@ export function usePersistentPoints(address: string | null) {
             }
           }
         );
-        console.log("Sync response:", response);
+        
+        console.log("Sync response:", JSON.stringify(response, null, 2));
+        
+        // More detailed validation
+        if (!response) {
+          throw new Error("Empty response from server");
+        }
+        
+        if (!response.success) {
+          throw new Error(response.message || "Sync failed with unknown error");
+        }
+        
+        if (!response.data) {
+          throw new Error("Response missing data field");
+        }
+        
         return response;
       } catch (error) {
         console.error("Error syncing persistent points:", error);
+        if (error instanceof Error) {
+          console.error("Error details:", error.message);
+          if (error.stack) console.error("Stack trace:", error.stack);
+        }
         throw error;
       }
     },
     onSuccess: (data) => {
       console.log("Sync successful, data:", data);
+      if (data?.data?.persistentPoints !== undefined) {
+        console.log(`Successfully synced points: ${data.data.persistentPoints}`);
+      }
+      
       // Invalidate and refetch the persistent points
       queryClient.invalidateQueries({ queryKey: ['/api/users', address, 'persistent-points'] });
       // Also invalidate normal stats since they might have changed

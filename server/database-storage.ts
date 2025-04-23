@@ -1548,11 +1548,13 @@ export class DatabaseStorage implements IStorage {
       
       // Update user with persistent points and sync timestamp
       // Only give persistent points if the user actually has swap transactions
+      // Note: We use snake_case here because that's what the DB column is named
+      // but Drizzle will map it to camelCase in the returned user object
       const [updatedUser] = await db
         .update(users)
         .set({
-          persistent_points: swapTransactions.length > 0 ? persistentPoints : 0,
-          last_points_sync: now
+          persistentPoints: swapTransactions.length > 0 ? persistentPoints : 0,
+          lastPointsSync: now
         })
         .where(eq(users.id, userId))
         .returning();
@@ -1593,7 +1595,10 @@ export class DatabaseStorage implements IStorage {
       }
       
       // If never synced before, sync now
-      if (user.persistent_points === 0 || !user.last_points_sync) {
+      // Note: Drizzle will map persistent_points column to persistentPoints in TypeScript
+      // but we need to ensure consistent field access
+      if (!user.persistentPoints || user.persistentPoints === 0 || !user.lastPointsSync) {
+        console.log(`[PersistentPoints] User ${userId} has no persistent points or sync date, syncing now`);
         const syncResult = await this.syncPersistentPoints(userId);
         return {
           persistentPoints: syncResult.persistentPoints,
@@ -1601,9 +1606,10 @@ export class DatabaseStorage implements IStorage {
         };
       }
       
+      // Convert to number since it might be a string from the DB (numeric type)
       return {
-        persistentPoints: Number(user.persistent_points) || 0,
-        lastSync: user.last_points_sync
+        persistentPoints: Number(user.persistentPoints) || 0,
+        lastSync: user.lastPointsSync
       };
     } catch (error) {
       console.error(`[PersistentPoints] Error getting persistent points for user ${userId}:`, error);
