@@ -19,6 +19,19 @@ interface PersistentPointsResponse {
 }
 
 /**
+ * Response from the sync persistent points API
+ */
+interface SyncPersistentPointsResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    persistentPoints: number;
+    regularPoints: number;
+    updatedAt: string;
+  };
+}
+
+/**
  * Custom hook to fetch and manage user's persistent points
  * These are points that are directly calculated from swap transactions
  * and don't get wiped during server resets
@@ -38,12 +51,21 @@ export function usePersistentPoints(address: string | null) {
       if (!address) return null;
       
       try {
+        console.log("Fetching persistent points for:", address);
         const response = await apiRequest<PersistentPointsResponse>(`/api/users/${address}/persistent-points`);
         console.log("Fetched persistent points:", response);
         
         if (response && response.success && response.data) {
-          return response.data;
+          // Make sure we explicitly convert to number to avoid any type issues
+          const pointsValue = Number(response.data.persistentPoints) || 0;
+          console.log(`Parsed persistent points value: ${pointsValue} (original: ${response.data.persistentPoints})`);
+          
+          return {
+            persistentPoints: pointsValue,
+            lastSync: response.data.lastSync
+          };
         } else {
+          console.error("Invalid response format:", response);
           throw new Error("Invalid response format");
         }
       } catch (error) {
@@ -55,7 +77,9 @@ export function usePersistentPoints(address: string | null) {
         } as PersistentPointsData;
       }
     },
-    enabled: Boolean(address)
+    enabled: Boolean(address),
+    // Poll every minute to keep the data fresh
+    refetchInterval: 60000
   });
   
   // Mutation to sync persistent points (manual refresh)
@@ -65,7 +89,7 @@ export function usePersistentPoints(address: string | null) {
       
       try {
         console.log("Syncing persistent points for address:", address);
-        const response = await apiRequest<PersistentPointsResponse>(
+        const response = await apiRequest<SyncPersistentPointsResponse>(
           `/api/users/${address}/sync-persistent-points`, 
           { 
             method: 'POST',
@@ -90,7 +114,18 @@ export function usePersistentPoints(address: string | null) {
           throw new Error("Response missing data field");
         }
         
-        return response;
+        // Make sure we have a numeric value for points
+        const pointsValue = Number(response.data.persistentPoints) || 0;
+        console.log(`Sync complete, parsed points value: ${pointsValue} (original: ${response.data.persistentPoints})`);
+        
+        // Return normalized data
+        return {
+          ...response,
+          data: {
+            ...response.data,
+            persistentPoints: pointsValue
+          }
+        };
       } catch (error) {
         console.error("Error syncing persistent points:", error);
         if (error instanceof Error) {

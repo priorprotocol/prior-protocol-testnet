@@ -90,7 +90,7 @@ const PersistentPointsDisplay = ({ address }: PersistentPointsDisplayProps) => {
         ) : (
           <div className="space-y-4">
             <div className="text-3xl font-bold">
-              {persistentPoints.toFixed(1)}
+              {Number(persistentPoints).toFixed(1)}
             </div>
             <div className="text-xs text-muted-foreground flex justify-between items-center">
               <span>Last synced: {formattedLastSync}</span>

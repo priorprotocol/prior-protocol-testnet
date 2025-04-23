@@ -1503,6 +1503,7 @@ export class DatabaseStorage implements IStorage {
       }
       
       // Get all swap transactions for this user
+      console.log(`[PersistentPoints] Fetching swap transactions for user ${userId}`);
       const swapTransactions = await db
         .select()
         .from(transactions)
@@ -1512,6 +1513,8 @@ export class DatabaseStorage implements IStorage {
           eq(transactions.status, 'completed')
         ))
         .orderBy(sql`${transactions.timestamp} ASC`);
+      
+      console.log(`[PersistentPoints] Found ${swapTransactions.length} swap transactions for user ${userId}`);
       
       // Group transactions by day for points calculation
       const transactionsByDay: Record<string, Transaction[]> = {};
@@ -1546,24 +1549,32 @@ export class DatabaseStorage implements IStorage {
       // Get current date for last sync timestamp
       const now = new Date();
       
+      console.log(`[PersistentPoints] Final calculated persistent points for user ${userId}: ${persistentPoints}`);
+      
       // Update user with persistent points and sync timestamp
-      // Only give persistent points if the user actually has swap transactions
-      // Note: We use snake_case here because that's what the DB column is named
-      // but Drizzle will map it to camelCase in the returned user object
+      // We will update even if persistentPoints is 0, as long as we have swap transactions
+      // Note: persistent_points is the DB column name, but Drizzle maps it to camelCase in TS
+      const updateData: any = {
+        lastPointsSync: now
+      };
+      
+      // Only update persistent_points if we have transactions or if it needs to be changed
+      if (swapTransactions.length > 0 || user.persistentPoints !== persistentPoints) {
+        updateData.persistentPoints = persistentPoints;
+        console.log(`[PersistentPoints] Updating user ${userId} persistent points from ${user.persistentPoints} to ${persistentPoints}`);
+      }
+      
+      // Perform the update
       const [updatedUser] = await db
         .update(users)
-        .set({
-          persistentPoints: swapTransactions.length > 0 ? persistentPoints : 0,
-          lastPointsSync: now
-        })
+        .set(updateData)
         .where(eq(users.id, userId))
         .returning();
       
-      console.log(`[PersistentPoints] User ${userId} persistent points synced: ${persistentPoints}`);
+      console.log(`[PersistentPoints] User ${userId} persistent points synced: ${updatedUser.persistentPoints}`);
       
-      // Only return actual persistentPoints if user has swap transactions
       return {
-        persistentPoints: swapTransactions.length > 0 ? persistentPoints : 0,
+        persistentPoints: updatedUser.persistentPoints || 0,
         regularPoints: updatedUser.points || 0,
         updatedAt: now
       };
@@ -1588,27 +1599,43 @@ export class DatabaseStorage implements IStorage {
       // Get user
       const [user] = await db.select().from(users).where(eq(users.id, userId));
       if (!user) {
+        console.log(`[PersistentPoints] User ${userId} not found in database`);
         return {
           persistentPoints: 0,
           lastSync: null
         };
       }
       
-      // If never synced before, sync now
-      // Note: Drizzle will map persistent_points column to persistentPoints in TypeScript
-      // but we need to ensure consistent field access
-      if (!user.persistentPoints || user.persistentPoints === 0 || !user.lastPointsSync) {
+      console.log(`[PersistentPoints] Retrieved user with id ${userId}, persistentPoints=${user.persistentPoints}, lastPointsSync=${user.lastPointsSync}`);
+      
+      // Force a sync if there are no points or sync date
+      if (user.persistentPoints === null || user.persistentPoints === 0 || !user.lastPointsSync) {
         console.log(`[PersistentPoints] User ${userId} has no persistent points or sync date, syncing now`);
-        const syncResult = await this.syncPersistentPoints(userId);
-        return {
-          persistentPoints: syncResult.persistentPoints,
-          lastSync: syncResult.updatedAt
-        };
+        
+        try {
+          const syncResult = await this.syncPersistentPoints(userId);
+          console.log(`[PersistentPoints] Sync completed for user ${userId}, points=${syncResult.persistentPoints}`);
+          
+          return {
+            persistentPoints: syncResult.persistentPoints,
+            lastSync: syncResult.updatedAt
+          };
+        } catch (syncError) {
+          console.error(`[PersistentPoints] Error during sync for user ${userId}:`, syncError);
+          // If sync fails, still return whatever we have in the DB (which might be 0)
+          return {
+            persistentPoints: Number(user.persistentPoints) || 0,
+            lastSync: user.lastPointsSync
+          };
+        }
       }
       
       // Convert to number since it might be a string from the DB (numeric type)
+      const points = Number(user.persistentPoints) || 0;
+      console.log(`[PersistentPoints] Returning ${points} points for user ${userId}`);
+      
       return {
-        persistentPoints: Number(user.persistentPoints) || 0,
+        persistentPoints: points,
         lastSync: user.lastPointsSync
       };
     } catch (error) {
