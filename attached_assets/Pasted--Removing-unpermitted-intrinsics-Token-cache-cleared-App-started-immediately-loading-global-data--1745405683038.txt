@@ -1,0 +1,354 @@
+ Removing unpermitted intrinsics
+ Token cache cleared
+ App started, immediately loading global data
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard
+ Environment detection: Not running on Netlify
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens
+ Environment detection: Not running on Netlify
+ App started, immediately loading global data
+ App started, immediately loading global data
+ Wallet context updated, syncing local state. Address: null
+ App started, immediately loading global data
+ Replit environment detected - using polling as primary update mechanism
+ Starting polling fallback mechanism
+ App mounted - prefetching global leaderboard data
+ Wallet auto-connection disabled. User must manually connect.
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/tokens - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/leaderboard - Status: 200
+ Global leaderboard data prefetched successfully
+ ✅ Global data pre-loaded in 351ms
+ ✅ Global data pre-loaded in 350ms
+ ✅ Global data pre-loaded in 350ms
+ ✅ Global data pre-loaded in 349ms
+ In polling mode, skipping WebSocket connection attempt
+ Requesting accounts from wallet...
+ Wallet connected: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Saving wallet state: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Notifying 6 listeners of wallet change to: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet address changed: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet address changed: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet listener triggered with address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet address changed: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet listener triggered with address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Connected to wallet: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet listener triggered with address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet sync event received: Object
+ Refreshing database transactions for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+ Environment detection: Not running on Netlify
+ Refreshing database transactions for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+ Environment detection: Not running on Netlify
+ Refreshing database transactions for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+ Environment detection: Not running on Netlify
+ Found saved wallet state in localStorage, attempting to reconnect...
+ Attempting direct MetaMask connection...
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank
+ Environment detection: Not running on Netlify
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points
+ Environment detection: Not running on Netlify
+ Fetching stats for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats
+ Environment detection: Not running on Netlify
+ Fetching transactions for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30 (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30
+ Environment detection: Not running on Netlify
+dashboard:1 [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: chrome-extension://mcohilncbfahbmgdjkbpemcciiolgcge/static/fonts/HarmonyOS_Sans_Web/HarmonyOS_Sans_Regular.woff2
+ Wallet connected, immediately loading user data for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats
+ Environment detection: Not running on Netlify
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions
+ Environment detection: Not running on Netlify
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions/swap (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions/swap
+ Environment detection: Not running on Netlify
+ Wallet connected, immediately loading user data for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet connected, immediately loading user data for: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Account connected: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Wallet sync event received: Object
+ Wallet context updated, syncing local state. Address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Query operation for key: ["/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7"]
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7 (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Environment detection: Not running on Netlify
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users
+ Environment detection: Not running on Netlify
+ Fetching token balances for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Fetching token balance for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7 and token: 0xBc8697476a56679534b15994C0f1122556bBF9F4
+ Token symbol: Unknown
+ Raw balance result for Unknown: 759999992890035000000200000
+ Using decimals: 18 for Unknown
+ Error fetching balance for PRIOR: 
+W @ index-7309YC5A.js:55
+ Fetching token balance for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7 and token: 0xc6d67115Cf17A55F9F22D29b955654A7c96781C5
+ Token symbol: Unknown
+ Raw balance result for Unknown: 350000000999649999998000001
+ Using decimals: 18 for Unknown
+ Error fetching balance for USDC: 
+W @ index-7309YC5A.js:55
+ Fetching token balance for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7 and token: 0x2B744c80C4895fDC2003108E186aBD7613c0ec7E
+ Token symbol: Unknown
+ Raw balance result for Unknown: 350000000099999999999999990
+ Using decimals: 18 for Unknown
+ Error fetching balance for USDT: 
+W @ index-7309YC5A.js:55
+ Fetching token balances for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ Fetching token balance for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7 and token: 0xBc8697476a56679534b15994C0f1122556bBF9F4
+ Token symbol: Unknown
+ Raw balance result for Unknown: 759999992890035000000200000
+ Using decimals: 18 for Unknown
+ Error fetching balance for PRIOR: 
+W @ index-7309YC5A.js:55
+ Fetching token balance for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7 and token: 0xc6d67115Cf17A55F9F22D29b955654A7c96781C5
+ Token symbol: Unknown
+ Raw balance result for Unknown: 350000000999649999998000001
+ Using decimals: 18 for Unknown
+ Error fetching balance for USDC: 
+W @ index-7309YC5A.js:55
+ Fetching token balance for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7 and token: 0x2B744c80C4895fDC2003108E186aBD7613c0ec7E
+ Token symbol: Unknown
+ Raw balance result for Unknown: 350000000099999999999999990
+ Using decimals: 18 for Unknown
+ Error fetching balance for USDT: 
+W @ index-7309YC5A.js:55
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/rank - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points - Status: 200
+ Fetched persistent points: Object
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions?limit=30 - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+ Local database transactions: Object
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points
+ Environment detection: Not running on Netlify
+ Local data refresh completed successfully.
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+ Local database transactions: Object
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points
+ Environment detection: Not running on Netlify
+ Local data refresh completed successfully.
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+ Local database transactions: Object
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points
+ Environment detection: Not running on Netlify
+ Local data refresh completed successfully.
+ API Response: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/stats - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7 - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions/swap - Status: 200
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/transactions - Status: 200
+ ✅ User data pre-loaded in 367ms
+ ✅ User data pre-loaded in 365ms
+ ✅ User data pre-loaded in 365ms
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points - Status: 200
+ Fetched persistent points: Object
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points - Status: 200
+ Fetched persistent points: Object
+ API Response: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/persistent-points - Status: 200
+ Fetched persistent points: Object
+ Error checking Pioneer NFT: 
+hM @ index-7309YC5A.js:55
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/59/check-nft-badge (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: POST https://prior-protocol-testnet-priorprotocol.replit.app/api/users/59/check-nft-badge
+ Environment detection: Not running on Netlify
+ API Request failed: 
+xe @ index-7309YC5A.js:48
+ Error with NFT badge API: 
+(anonymous) @ index-7309YC5A.js:55
+ Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+ Environment detection: Not running on Netlify
+ API Request failed: 
+xe @ index-7309YC5A.js:48
+ Error syncing persistent points: 
+mutationFn @ index-7309YC5A.js:161
+ Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+ Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+ Polling for leaderboard data...
+ Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+ Environment detection: Not running on Netlify
+ API Request failed: 
+xe @ index-7309YC5A.js:48
+ Error syncing persistent points: 
+mutationFn @ index-7309YC5A.js:161
+ Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+ Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+ Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+ Environment detection: Not running on Netlify
+ API Request failed: 
+xe @ index-7309YC5A.js:48
+ Error syncing persistent points: 
+mutationFn @ index-7309YC5A.js:161
+ Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+ Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+ Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+ Environment detection: Not running on Netlify
+ API Request failed: 
+xe @ index-7309YC5A.js:48
+ Error syncing persistent points: 
+mutationFn @ index-7309YC5A.js:161
+ Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+ Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+ Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+ Environment detection: Not running on Netlify
+ API Request failed: 
+xe @ index-7309YC5A.js:48
+ Error syncing persistent points: 
+mutationFn @ index-7309YC5A.js:161
+ Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+ Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+ Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+ API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+ API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+ Environment detection: Not running on Netlify
+index-7309YC5A.js:48 API Request failed: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+xe @ index-7309YC5A.js:48
+index-7309YC5A.js:161 Error syncing persistent points: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+index-7309YC5A.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+index-7309YC5A.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+index-7309YC5A.js:48 Environment detection: Not running on Netlify
+index-7309YC5A.js:48 API Request failed: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+xe @ index-7309YC5A.js:48
+index-7309YC5A.js:161 Error syncing persistent points: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+index-7309YC5A.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+index-7309YC5A.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+index-7309YC5A.js:48 Environment detection: Not running on Netlify
+index-7309YC5A.js:48 API Request failed: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+xe @ index-7309YC5A.js:48
+index-7309YC5A.js:161 Error syncing persistent points: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+index-7309YC5A.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+index-7309YC5A.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+index-7309YC5A.js:48 Environment detection: Not running on Netlify
+index-7309YC5A.js:48 API Request failed: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+xe @ index-7309YC5A.js:48
+index-7309YC5A.js:161 Error syncing persistent points: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+index-7309YC5A.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+index-7309YC5A.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+index-7309YC5A.js:48 Environment detection: Not running on Netlify
+index-7309YC5A.js:155 Polling for leaderboard data...
+index-7309YC5A.js:48 API Request failed: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+xe @ index-7309YC5A.js:48
+index-7309YC5A.js:161 Error syncing persistent points: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+index-7309YC5A.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+index-7309YC5A.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+index-7309YC5A.js:48 Environment detection: Not running on Netlify
+index-7309YC5A.js:48 API Request failed: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+xe @ index-7309YC5A.js:48
+index-7309YC5A.js:161 Error syncing persistent points: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+index-7309YC5A.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+index-7309YC5A.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+index-7309YC5A.js:48 Environment detection: Not running on Netlify
+index-7309YC5A.js:48 API Request failed: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+xe @ index-7309YC5A.js:48
+index-7309YC5A.js:161 Error syncing persistent points: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Syncing persistent points for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+index-7309YC5A.js:48 API Request: Using full API URL: https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points (base: https://prior-protocol-testnet-priorprotocol.replit.app)
+index-7309YC5A.js:48 API Request: GET https://prior-protocol-testnet-priorprotocol.replit.app/api/users/0x4cfc531df94339def7dcd603aac1a2deaf6888b7/sync-persistent-points
+index-7309YC5A.js:48 Environment detection: Not running on Netlify
+index-7309YC5A.js:48 API Request failed: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+xe @ index-7309YC5A.js:48
+index-7309YC5A.js:161 Error syncing persistent points: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Error details: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:161 Stack trace: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+mutationFn @ index-7309YC5A.js:161
+index-7309YC5A.js:155 Polling for leaderboard data...
+index-7309YC5A.js:55 Fetching token balances for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7
+index-7309YC5A.js:55 Fetching token balance for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7 and token: 0xBc8697476a56679534b15994C0f1122556bBF9F4
+index-7309YC5A.js:55 Token symbol: Unknown
+index-7309YC5A.js:55 Raw balance result for Unknown: 759999992890035000000200000
+index-7309YC5A.js:55 Using decimals: 18 for Unknown
+index-7309YC5A.js:55 Error fetching balance for PRIOR: TypeError: Cannot read properties of undefined (reading 'toString')
+    at W (index-7309YC5A.js:55:212136)
+W @ index-7309YC5A.js:55
+index-7309YC5A.js:55 Fetching token balance for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7 and token: 0xc6d67115Cf17A55F9F22D29b955654A7c96781C5
+index-7309YC5A.js:55 Token symbol: Unknown
+index-7309YC5A.js:55 Raw balance result for Unknown: 350000000999649999998000001
+index-7309YC5A.js:55 Using decimals: 18 for Unknown
+index-7309YC5A.js:55 Error fetching balance for USDC: TypeError: Cannot read properties of undefined (reading 'toString')
+    at W (index-7309YC5A.js:55:212136)
+W @ index-7309YC5A.js:55
+index-7309YC5A.js:55 Fetching token balance for address: 0x4cfc531df94339def7dcd603aac1a2deaf6888b7 and token: 0x2B744c80C4895fDC2003108E186aBD7613c0ec7E
+index-7309YC5A.js:55 Token symbol: Unknown
+index-7309YC5A.js:55 Raw balance result for Unknown: 350000000099999999999999990
+index-7309YC5A.js:55 Using decimals: 18 for Unknown
+index-7309YC5A.js:55 Error fetching balance for USDT: TypeError: Cannot read properties of undefined (reading 'toString')
+    at W (index-7309YC5A.js:55:212136)
+W @ index-7309YC5A.js:55
+ Polling for leaderboard data...
