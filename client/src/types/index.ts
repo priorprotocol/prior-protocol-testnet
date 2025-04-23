@@ -62,4 +62,10 @@ export interface UserStats {
   totalQuests: number;
   proposalsVoted: number;
   proposalsCreated: number;
+  points: number;
+}
+
+export interface PersistentPointsData {
+  persistentPoints: number;
+  lastSync: string | null;
 }

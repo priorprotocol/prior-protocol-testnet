@@ -1,141 +1,76 @@
 import express from 'express';
 import { storage } from '../storage';
-import { z } from 'zod';
 
-const router = express.Router();
+const persistentPointsRouter = express.Router();
 
-// Get persistent points for a user
-router.get('/users/:address/persistent-points', async (req, res) => {
+/**
+ * GET /api/users/:address/persistent-points
+ * Get persistent points for a user
+ */
+persistentPointsRouter.get('/users/:address/persistent-points', async (req, res) => {
   try {
     const { address } = req.params;
     
-    if (!address) {
-      return res.status(400).json({
-        success: false,
-        message: 'User address is required'
-      });
-    }
+    // Normalize address
+    const normalizedAddress = address.toLowerCase();
+    console.log(`[API] Getting persistent points for address: ${normalizedAddress}`);
     
-    // First, get the user
-    const user = await storage.getUser(address);
+    // Get user by address
+    const user = await storage.getUser(normalizedAddress);
+    
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
     
-    // Get the persistent points
-    const persistentPointsInfo = await storage.getPersistentPoints(user.id);
+    // Get persistent points data
+    const persistentPointsData = await storage.getPersistentPoints(user.id);
     
-    return res.status(200).json({
+    return res.json({
       success: true,
-      data: persistentPointsInfo
+      data: persistentPointsData
     });
   } catch (error) {
-    console.error(`Error getting persistent points:`, error);
-    return res.status(500).json({
-      success: false,
-      message: 'An error occurred while getting persistent points',
-      error: String(error)
+    console.error("[API Error] Failed to get persistent points:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Failed to get persistent points" 
     });
   }
 });
 
-// Force sync persistent points for a user
-router.post('/users/:address/sync-persistent-points', async (req, res) => {
+/**
+ * POST /api/users/:address/sync-persistent-points
+ * Manually sync persistent points for a user
+ */
+persistentPointsRouter.post('/users/:address/sync-persistent-points', async (req, res) => {
   try {
     const { address } = req.params;
     
-    if (!address) {
-      return res.status(400).json({
-        success: false,
-        message: 'User address is required'
-      });
-    }
+    // Normalize address
+    const normalizedAddress = address.toLowerCase();
+    console.log(`[API] Syncing persistent points for address: ${normalizedAddress}`);
     
-    // First, get the user
-    const user = await storage.getUser(address);
+    // Get user by address
+    const user = await storage.getUser(normalizedAddress);
+    
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
     
     // Sync persistent points
-    const result = await storage.syncPersistentPoints(user.id);
+    const syncResult = await storage.syncPersistentPoints(user.id);
     
-    return res.status(200).json({
+    return res.json({
       success: true,
-      message: 'Persistent points synced successfully',
-      data: result
+      data: syncResult
     });
   } catch (error) {
-    console.error(`Error syncing persistent points:`, error);
-    return res.status(500).json({
-      success: false,
-      message: 'An error occurred while syncing persistent points',
-      error: String(error)
+    console.error("[API Error] Failed to sync persistent points:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Failed to sync persistent points" 
     });
   }
 });
 
-// Admin endpoint to rebuild persistent points for all users
-router.post('/admin/rebuild-persistent-points', async (req, res) => {
-  try {
-    // Check for admin authorization (using the same admin address as other endpoints)
-    const adminAddress = "0x4CfC531df94339DEF7dcd603AAC1a2dEaF6888b7";
-    const { address } = req.body;
-    
-    if (address?.toLowerCase() !== adminAddress.toLowerCase()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Unauthorized. Admin privileges required.'
-      });
-    }
-    
-    console.log(`[PersistentPoints] Admin rebuilding persistent points for all users`);
-    
-    // Get all users
-    const allUsers = await storage.getLeaderboard(1000); // Get a large number of users
-    const userResults = [];
-    
-    // Process each user
-    for (const user of allUsers.users) {
-      try {
-        // Sync persistent points
-        const syncResult = await storage.syncPersistentPoints(user.id);
-        
-        userResults.push({
-          userId: user.id,
-          address: user.address,
-          persistentPoints: syncResult.persistentPoints,
-          regularPoints: syncResult.regularPoints,
-          updatedAt: syncResult.updatedAt
-        });
-      } catch (error) {
-        console.error(`Error syncing persistent points for user ${user.id}:`, error);
-        // Continue with other users even if one fails
-      }
-    }
-    
-    return res.status(200).json({
-      success: true,
-      message: `Persistent points rebuilt for ${userResults.length} users`,
-      data: {
-        totalUsers: userResults.length,
-        results: userResults
-      }
-    });
-  } catch (error) {
-    console.error(`Error rebuilding persistent points:`, error);
-    return res.status(500).json({
-      success: false,
-      message: 'An error occurred while rebuilding persistent points',
-      error: String(error)
-    });
-  }
-});
-
-export default router;
+export default persistentPointsRouter;

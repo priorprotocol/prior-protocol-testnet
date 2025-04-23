@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Leaderboard } from "@/components/Leaderboard";
 import SwapPointsSystem from "@/components/SwapPointsSystem";
+import PersistentPointsDisplay from "@/components/PersistentPointsDisplay";
 import { formatAddress } from "@/lib/formatAddress";
 import { 
   FaExchangeAlt, 
@@ -245,13 +246,19 @@ const Dashboard = () => {
 
             {/* Activity Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
-              {/* Swap Points System */}
-              <SwapPointsSystem
-                points={userStats?.points || 0}
-                totalSwaps={userStats?.totalSwaps || 0}
-                isLoading={statsLoading || transactionsLoading}
-                swapTransactions={swapTransactions}
-              />
+              {/* Points Cards Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Swap Points System */}
+                <SwapPointsSystem
+                  points={userStats?.points || 0}
+                  totalSwaps={userStats?.totalSwaps || 0}
+                  isLoading={statsLoading || transactionsLoading}
+                  swapTransactions={swapTransactions}
+                />
+                
+                {/* Persistent Points Display */}
+                <PersistentPointsDisplay address={address} />
+              </div>
               
               {/* Network Info Card */}
               <Card className="bg-[#0F172A] border-[#1E293B] overflow-hidden">
