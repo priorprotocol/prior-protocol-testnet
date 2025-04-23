@@ -15,16 +15,29 @@ persistentPointsRouter.get('/users/:address/persistent-points', async (req, res)
     const normalizedAddress = address.toLowerCase();
     console.log(`[API] Getting persistent points for address: ${normalizedAddress}`);
     
-    // Get user by address
-    const user = await storage.getUser(normalizedAddress);
+    // Get user by address, auto-create if needed
+    let user = await storage.getUser(normalizedAddress);
     
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      console.log(`Auto-creating user for address: ${normalizedAddress}`);
+      try {
+        user = await storage.createUser({
+          address: normalizedAddress
+        });
+        console.log(`User created with ID: ${user.id}`);
+      } catch (createError) {
+        console.error(`Failed to create user for ${normalizedAddress}:`, createError);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Failed to create user"
+        });
+      }
     }
     
     // Get persistent points data
     const persistentPointsData = await storage.getPersistentPoints(user.id);
     
+    console.log(`[API] Retrieved persistent points for ${normalizedAddress}:`, persistentPointsData);
     return res.json({
       success: true,
       data: persistentPointsData
@@ -50,11 +63,23 @@ persistentPointsRouter.post('/users/:address/sync-persistent-points', async (req
     const normalizedAddress = address.toLowerCase();
     console.log(`[API] Syncing persistent points for address: ${normalizedAddress}`);
     
-    // Get user by address
-    const user = await storage.getUser(normalizedAddress);
+    // Get user by address, auto-create if needed
+    let user = await storage.getUser(normalizedAddress);
     
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      console.log(`Auto-creating user for address: ${normalizedAddress}`);
+      try {
+        user = await storage.createUser({
+          address: normalizedAddress
+        });
+        console.log(`User created with ID: ${user.id}`);
+      } catch (createError) {
+        console.error(`Failed to create user for ${normalizedAddress}:`, createError);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Failed to create user"
+        });
+      }
     }
     
     // Sync persistent points
