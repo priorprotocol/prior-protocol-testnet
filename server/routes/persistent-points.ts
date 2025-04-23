@@ -58,12 +58,23 @@ persistentPointsRouter.post('/users/:address/sync-persistent-points', async (req
     }
     
     // Sync persistent points
-    const syncResult = await storage.syncPersistentPoints(user.id);
-    
-    return res.json({
-      success: true,
-      data: syncResult
-    });
+    try {
+      console.log(`[API] Starting to sync persistent points for user ${user.id} (${normalizedAddress})`);
+      const syncResult = await storage.syncPersistentPoints(user.id);
+      console.log(`[API] Sync completed successfully for ${normalizedAddress}. Result:`, syncResult);
+      
+      return res.json({
+        success: true,
+        data: syncResult
+      });
+    } catch (syncError) {
+      console.error(`[API] Failed to sync persistent points for ${normalizedAddress}:`, syncError);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Failed to sync persistent points",
+        error: syncError instanceof Error ? syncError.message : String(syncError)
+      });
+    }
   } catch (error) {
     console.error("[API Error] Failed to sync persistent points:", error);
     return res.status(500).json({ 
