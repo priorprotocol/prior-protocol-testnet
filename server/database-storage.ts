@@ -5,11 +5,19 @@ import {
   proposals, Proposal, InsertProposal,
   votes, Vote, InsertVote,
   tokens, Token, InsertToken,
-  transactions, Transaction, InsertTransaction
+  transactions, Transaction, InsertTransaction,
+  quizzes, Quiz, InsertQuiz,
+  quizQuestions, QuizQuestion, InsertQuizQuestion,
+  userQuizzes, UserQuiz, InsertUserQuiz
 } from "@shared/schema";
 import { db, pool } from "./db";
 import { eq, and, count, sql, asc } from "drizzle-orm";
 import { IStorage } from "./storage";
+
+// Add type definition for global FORCE_CACHE_REFRESH flag
+declare global {
+  var FORCE_CACHE_REFRESH: boolean;
+}
 
 // Internal cache to store frequently accessed data
 interface CacheState {

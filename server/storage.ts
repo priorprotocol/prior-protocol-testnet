@@ -177,6 +177,10 @@ export class MemStorage implements IStorage {
   private quizQuestionId: number;
   private userQuizId: number;
   
+  // Cache management metadata
+  private cacheLastUpdated: Date = new Date();
+  private cacheInitialized: boolean = true;
+  
   constructor() {
     this.users = new Map();
     this.usersByAddress = new Map();
@@ -1861,6 +1865,41 @@ export class MemStorage implements IStorage {
       totalPointsAfter,
       userDetails
     };
+  }
+  
+  /**
+   * Get current cache statistics for monitoring
+   */
+  async getCacheStats(): Promise<{
+    userCount: number;
+    cacheInitialized: boolean;
+    lastUpdated: string;
+  }> {
+    return {
+      userCount: this.users.size,
+      cacheInitialized: this.cacheInitialized,
+      lastUpdated: this.cacheLastUpdated.toISOString()
+    };
+  }
+  
+  /**
+   * Complete rebuild of the in-memory cache from database
+   * This is a no-op for MemStorage since we don't have a database
+   */
+  async rebuildCache(): Promise<void> {
+    console.log(`[MemStorage] Cache rebuild requested - this is a no-op for in-memory storage`);
+    // Nothing to do here since we're already in memory
+    this.cacheLastUpdated = new Date();
+    this.cacheInitialized = true;
+  }
+  
+  /**
+   * Refreshes the leaderboard cache - for MemStorage this just triggers a global update
+   */
+  async refreshLeaderboardCache(): Promise<void> {
+    console.log(`[MemStorage] 🔄 Force refreshing leaderboard cache`);
+    // Just update the timestamp to indicate refresh
+    this.cacheLastUpdated = new Date();
   }
 }
 
