@@ -47,13 +47,17 @@ export class DatabaseStorage implements IStorage {
     
     // Use direct SQL query to ensure we get accurate results
     try {
-      const directQuery = await db.execute(
+      // Execute a parameterized query with proper error handling
+      const result = await db.execute(
         sql`SELECT * FROM users WHERE address = ${address}`
       );
       
-      if (directQuery.length > 0) {
-        // Found a user with direct SQL
-        const userId = directQuery[0].id;
+      // Use type-safe way to get results without direct array access
+      const rows = result.rows;
+      if (rows && rows.length > 0) {
+        // Get the first row as an object with specific properties
+        const row = rows[0] as { id: number };
+        const userId = row.id;
         console.log(`[UserLookup] Found user with ID ${userId} using direct SQL`);
         
         // Now fetch the full user object through drizzle
