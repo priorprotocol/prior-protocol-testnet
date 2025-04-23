@@ -1,6 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PersistentPointsData } from '@/types';
 import { apiRequest } from '@/lib/queryClient';
+
+/**
+ * Interface for persistent points data
+ */
+export interface PersistentPointsData {
+  persistentPoints: number;
+  lastSync: string | null;
+}
+
+/**
+ * Response from the persistent points API
+ */
+interface PersistentPointsResponse {
+  success: boolean;
+  data: PersistentPointsData;
+}
 
 /**
  * Custom hook to fetch and manage user's persistent points
@@ -22,9 +37,14 @@ export function usePersistentPoints(address: string | null) {
       if (!address) return null;
       
       try {
-        const data = await apiRequest(`/api/users/${address}/persistent-points`);
-        console.log("Fetched persistent points:", data);
-        return data as PersistentPointsData;
+        const response = await apiRequest<PersistentPointsResponse>(`/api/users/${address}/persistent-points`);
+        console.log("Fetched persistent points:", response);
+        
+        if (response && response.success && response.data) {
+          return response.data;
+        } else {
+          throw new Error("Invalid response format");
+        }
       } catch (error) {
         console.error("Error fetching persistent points:", error);
         // Return default values if user not found or error
