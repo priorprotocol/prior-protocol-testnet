@@ -1547,19 +1547,21 @@ export class DatabaseStorage implements IStorage {
       const now = new Date();
       
       // Update user with persistent points and sync timestamp
+      // Only give persistent points if the user actually has swap transactions
       const [updatedUser] = await db
         .update(users)
         .set({
-          persistent_points: persistentPoints,
-          last_points_sync: now
+          persistentPoints: swapTransactions.length > 0 ? persistentPoints : 0,
+          lastPointsSync: now
         })
         .where(eq(users.id, userId))
         .returning();
       
       console.log(`[PersistentPoints] User ${userId} persistent points synced: ${persistentPoints}`);
       
+      // Only return actual persistentPoints if user has swap transactions
       return {
-        persistentPoints: persistentPoints,
+        persistentPoints: swapTransactions.length > 0 ? persistentPoints : 0,
         regularPoints: updatedUser.points || 0,
         updatedAt: now
       };

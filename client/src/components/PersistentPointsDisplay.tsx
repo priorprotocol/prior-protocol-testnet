@@ -41,7 +41,7 @@ const PersistentPointsDisplay = ({ address }: PersistentPointsDisplayProps) => {
       toast({
         title: "Points Synced!",
         description: "Your persistent points have been updated from on-chain data.",
-        variant: "success"
+        variant: "default"
       });
     } catch (error) {
       console.error("Error syncing points:", error);
