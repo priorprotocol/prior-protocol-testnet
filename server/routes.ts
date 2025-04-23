@@ -7,6 +7,7 @@ import { z } from "zod";
 import transactionRoutes from "./routes/transactions";
 import healthRoutes from "./routes/health";
 import quizRoutes from "./routes/quizzes";
+import persistentPointsRoutes from "./routes/persistent-points";
 import { log } from "./vite";
 import { db, pool } from "./db";
 import { eq, and, count, sql } from "drizzle-orm";
@@ -66,6 +67,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register quiz routes for blockchain education feature
   app.use(apiPrefix, quizRoutes);
+  
+  // Register persistent points routes
+  app.use(apiPrefix, persistentPointsRoutes);
   
   // Maintenance endpoint to remove all faucet claim points
   app.post(`${apiPrefix}/maintenance/remove-faucet-points`, async (req, res) => {
