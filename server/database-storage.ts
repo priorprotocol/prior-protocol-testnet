@@ -1097,6 +1097,9 @@ export class DatabaseStorage implements IStorage {
       
     console.log(`[PointsSystem] User ${userId} (${user.address.substring(0, 8)}...): ${pointsBefore} points → ${newPoints} points | ${swapTransactions.length} total swaps`);
     
+    // After recalculating points, also sync persistent points
+    await this.syncPersistentPoints(userId);
+    
     // Broadcast individual user points update via WebSocket if points changed
     if (pointsBefore !== newPoints) {
       try {
@@ -1473,6 +1476,139 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("[PointsSystem] Error during full reset:", error);
       throw error;
+    }
+  }
+  
+  /**
+   * Syncs the persistent points by directly calculating from swap transactions
+   * This provides a reliable source of points that never gets wiped during resets
+   */
+  async syncPersistentPoints(userId: number): Promise<{
+    persistentPoints: number;
+    regularPoints: number;
+    updatedAt: Date;
+  }> {
+    console.log(`[PersistentPoints] Syncing persistent points for user ${userId}`);
+    
+    try {
+      // Get user
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      if (!user) {
+        console.log(`[PersistentPoints] User ${userId} not found`);
+        return {
+          persistentPoints: 0,
+          regularPoints: 0,
+          updatedAt: new Date()
+        };
+      }
+      
+      // Get all swap transactions for this user
+      const swapTransactions = await db
+        .select()
+        .from(transactions)
+        .where(and(
+          eq(transactions.userId, userId),
+          eq(transactions.type, 'swap'),
+          eq(transactions.status, 'completed')
+        ))
+        .orderBy(sql`${transactions.timestamp} ASC`);
+      
+      // Group transactions by day for points calculation
+      const transactionsByDay: Record<string, Transaction[]> = {};
+      
+      for (const tx of swapTransactions) {
+        const txDate = new Date(tx.timestamp);
+        const day = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+        
+        if (!transactionsByDay[day]) {
+          transactionsByDay[day] = [];
+        }
+        
+        transactionsByDay[day].push(tx);
+      }
+      
+      // Calculate points using the rule: 0.5 points per swap, max 5 swaps per day (2.5 points)
+      let persistentPoints = 0;
+      
+      for (const day in transactionsByDay) {
+        const daySwaps = transactionsByDay[day];
+        // Only count the first 5 swaps each day toward points
+        const pointSwapsForDay = Math.min(daySwaps.length, 5);
+        const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
+        
+        console.log(`[PersistentPoints] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
+        persistentPoints += pointsForDay;
+      }
+      
+      // Round to 1 decimal place for clean display
+      persistentPoints = Math.round(persistentPoints * 10) / 10;
+      
+      // Get current date for last sync timestamp
+      const now = new Date();
+      
+      // Update user with persistent points and sync timestamp
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          persistentPoints: persistentPoints,
+          lastPointsSync: now
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      
+      console.log(`[PersistentPoints] User ${userId} persistent points synced: ${persistentPoints}`);
+      
+      return {
+        persistentPoints: persistentPoints,
+        regularPoints: updatedUser.points || 0,
+        updatedAt: now
+      };
+    } catch (error) {
+      console.error(`[PersistentPoints] Error syncing persistent points for user ${userId}:`, error);
+      return {
+        persistentPoints: 0,
+        regularPoints: 0,
+        updatedAt: new Date()
+      };
+    }
+  }
+  
+  /**
+   * Gets the persistent points for a user
+   */
+  async getPersistentPoints(userId: number): Promise<{
+    persistentPoints: number;
+    lastSync: Date | null;
+  }> {
+    try {
+      // Get user
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      if (!user) {
+        return {
+          persistentPoints: 0,
+          lastSync: null
+        };
+      }
+      
+      // If never synced before, sync now
+      if (user.persistentPoints === 0 || !user.lastPointsSync) {
+        const syncResult = await this.syncPersistentPoints(userId);
+        return {
+          persistentPoints: syncResult.persistentPoints,
+          lastSync: syncResult.updatedAt
+        };
+      }
+      
+      return {
+        persistentPoints: user.persistentPoints || 0,
+        lastSync: user.lastPointsSync
+      };
+    } catch (error) {
+      console.error(`[PersistentPoints] Error getting persistent points for user ${userId}:`, error);
+      return {
+        persistentPoints: 0,
+        lastSync: null
+      };
     }
   }
   

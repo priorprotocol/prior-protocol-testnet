@@ -455,7 +455,9 @@ export class MemStorage implements IStorage {
       badges: [],
       totalSwaps: 0,
       totalClaims: 0,
-      points: 0
+      points: 0,
+      persistentPoints: 0, // Initialize persistent points
+      lastPointsSync: null // Initialize last sync timestamp
     };
     
     this.users.set(id, newUser);
