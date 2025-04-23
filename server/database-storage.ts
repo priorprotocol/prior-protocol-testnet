@@ -1593,7 +1593,7 @@ export class DatabaseStorage implements IStorage {
       }
       
       // If never synced before, sync now
-      if (user.persistent_points === 0 || !user.last_points_sync) {
+      if (user.persistentPoints === 0 || !user.lastPointsSync) {
         const syncResult = await this.syncPersistentPoints(userId);
         return {
           persistentPoints: syncResult.persistentPoints,
@@ -1602,8 +1602,8 @@ export class DatabaseStorage implements IStorage {
       }
       
       return {
-        persistentPoints: user.persistent_points || 0,
-        lastSync: user.last_points_sync
+        persistentPoints: user.persistentPoints || 0,
+        lastSync: user.lastPointsSync
       };
     } catch (error) {
       console.error(`[PersistentPoints] Error getting persistent points for user ${userId}:`, error);
