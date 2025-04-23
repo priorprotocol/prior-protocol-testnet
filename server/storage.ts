@@ -2029,6 +2029,105 @@ export class MemStorage implements IStorage {
     // Just update the timestamp to indicate refresh
     this.cacheLastUpdated = new Date();
   }
+  
+  /**
+   * Syncs the persistent points by directly calculating from swap transactions
+   * This provides a reliable source of points that never gets wiped during resets
+   */
+  async syncPersistentPoints(userId: number): Promise<{
+    persistentPoints: number;
+    regularPoints: number;
+    updatedAt: Date;
+  }> {
+    console.log(`[PersistentPoints] Starting sync for user ${userId}`);
+    const user = this.users.get(userId);
+    if (!user) {
+      console.log(`Cannot sync persistent points - user ${userId} not found`);
+      return {
+        persistentPoints: 0,
+        regularPoints: 0,
+        updatedAt: new Date()
+      };
+    }
+
+    // Get all swap transactions for this user
+    const swapTransactions = Array.from(this.transactions.values())
+      .filter(tx => tx.userId === userId && tx.type === 'swap')
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    
+    // Group transactions by day
+    const transactionsByDay: Record<string, Array<Transaction>> = {};
+    let pointEarningSwaps = 0;
+    
+    for (const tx of swapTransactions) {
+      const txDate = new Date(tx.timestamp);
+      const day = txDate.toISOString().substring(0, 10); // YYYY-MM-DD
+      
+      if (!transactionsByDay[day]) {
+        transactionsByDay[day] = [];
+      }
+      
+      transactionsByDay[day].push(tx);
+    }
+    
+    // Calculate points: 0.5 per swap, max 5 swaps per day
+    let persistentPoints = 0;
+    
+    for (const day in transactionsByDay) {
+      const daySwaps = transactionsByDay[day];
+      // Only count the first 5 swaps each day toward points
+      const pointSwapsForDay = Math.min(daySwaps.length, 5);
+      
+      pointEarningSwaps += pointSwapsForDay;
+      const pointsForDay = pointSwapsForDay * 0.5; // 0.5 points per swap
+      
+      console.log(`[PersistentPoints] User ${userId} earned ${pointsForDay.toFixed(1)} points from ${pointSwapsForDay} swaps on ${day}`);
+      persistentPoints += pointsForDay;
+    }
+    
+    // Round to 1 decimal place for clean display
+    persistentPoints = Math.round(persistentPoints * 10) / 10;
+    
+    // Update user with persistent points
+    const updatedUser: User = {
+      ...user,
+      persistentPoints: persistentPoints.toString(),
+      lastPointsSync: new Date()
+    };
+    
+    // Update in both maps
+    this.users.set(userId, updatedUser);
+    this.usersByAddress.set(user.address, updatedUser);
+    
+    console.log(`[PersistentPoints] User ${userId} (${user.address.substring(0, 8)}...): synced ${persistentPoints} persistent points from ${swapTransactions.length} total swaps`);
+    
+    return {
+      persistentPoints,
+      regularPoints: updatedUser.points || 0,
+      updatedAt: updatedUser.lastPointsSync
+    };
+  }
+
+  /**
+   * Gets the persistent points for a user
+   */
+  async getPersistentPoints(userId: number): Promise<{
+    persistentPoints: number;
+    lastSync: Date | null;
+  }> {
+    const user = this.users.get(userId);
+    if (!user) {
+      return {
+        persistentPoints: 0,
+        lastSync: null
+      };
+    }
+
+    return {
+      persistentPoints: parseFloat(user.persistentPoints || "0"),
+      lastSync: user.lastPointsSync
+    };
+  }
 }
 
 // Export the MemStorage implementation

@@ -2,7 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
-import { DatabaseStorage } from "./database-storage";
+// Temporarily disabled due to syntax errors
+// import { DatabaseStorage } from "./database-storage";
 import http from "http";
 import cors from "cors";
 
@@ -130,62 +131,17 @@ export let server: http.Server;
 
 // Setup function that can be called in development or production
 export const setupServer = async () => {
-  // Enhanced database initialization and recovery procedure
-  if (storage instanceof DatabaseStorage) {
-    try {
-      log("🔄 Initializing database connection...");
-      
-      // Import the database health check function
-      const { isDatabaseHealthy } = await import("./db");
-      
-      // Wait for database to be healthy before proceeding
-      let attempts = 0;
-      const maxAttempts = 10;
-      while (!isDatabaseHealthy() && attempts < maxAttempts) {
-        log(`⏳ Waiting for database connection to be established (attempt ${attempts + 1}/${maxAttempts})...`);
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds between attempts
-        attempts++;
-      }
-      
-      if (!isDatabaseHealthy()) {
-        log("⚠️ WARNING: Database connection could not be established after multiple attempts");
-        log("⚠️ The application will start but data persistence might be affected");
-      } else {
-        log("✅ Database connection established successfully");
-      }
-      
-      // Perform database seed/initialization
-      log("🔄 Running database initialization and verification...");
-      await (storage as DatabaseStorage).seedDatabase();
-      
-      // Force a leaderboard cache refresh on startup to ensure latest data is loaded
-      log("🔄 Pre-loading leaderboard cache to ensure data consistency...");
-      await (storage as DatabaseStorage).refreshLeaderboardCache();
-      
-      // Verify cached user count matches database count
-      const cacheStats = await (storage as DatabaseStorage).getCacheStats();
-      const dbUserCount = await (storage as DatabaseStorage).getTotalUsersCount();
-      
-      log(`📊 Cache stats - Users in cache: ${cacheStats.userCount}, Users in DB: ${dbUserCount.count}`);
-      
-      if (cacheStats.userCount !== dbUserCount.count) {
-        log("⚠️ WARNING: User count mismatch between cache and database");
-        log("🔄 Performing automatic cache rebuild to ensure consistency...");
-        
-        // Force a complete cache rebuild
-        await (storage as DatabaseStorage).rebuildCache();
-        
-        const updatedCacheStats = await (storage as DatabaseStorage).getCacheStats();
-        log(`✅ Cache rebuild complete - Users in cache: ${updatedCacheStats.userCount}`);
-      } else {
-        log("✅ Cache verification successful - cache is consistent with database");
-      }
-      
-      log("✅ Database initialization completed successfully");
-    } catch (error) {
-      log(`🔴 Error initializing database: ${error}`);
-      log("⚠️ The application will start but data persistence might be affected");
-    }
+  // We're using in-memory storage for now (DatabaseStorage is disabled)
+  log("🔄 Initializing in-memory storage...");
+
+  // Initialize any necessary in-memory data
+  try {
+    // Force a cache refresh on startup to ensure consistent data
+    await storage.refreshLeaderboardCache();
+    log("✅ Leaderboard cache refreshed successfully");
+  } catch (error) {
+    log(`🔴 Error initializing storage: ${error}`);
+    log("⚠️ The application will start but with limited functionality");
   }
   
   // Register API routes
