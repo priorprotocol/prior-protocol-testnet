@@ -7,6 +7,7 @@ import { usePersistentPoints } from "@/hooks/usePersistentPoints";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDistanceToNow } from 'date-fns';
+import { useToast } from "@/hooks/use-toast";
 
 interface PersistentPointsDisplayProps {
   address: string | null;
@@ -17,18 +18,40 @@ interface PersistentPointsDisplayProps {
  * These are points calculated directly from swap transactions and never get wiped
  */
 const PersistentPointsDisplay = ({ address }: PersistentPointsDisplayProps) => {
+  const { toast } = useToast();
   const {
     persistentPoints,
     lastSync,
     isLoading,
     syncPersistentPoints,
-    isSyncing
+    isSyncing,
+    error,
+    refetch
   } = usePersistentPoints(address);
 
   // Format the last sync time
   const formattedLastSync = lastSync 
     ? formatDistanceToNow(lastSync, { addSuffix: true }) 
     : 'Never';
+
+  // Handle sync button click
+  const handleSync = async () => {
+    try {
+      await syncPersistentPoints();
+      toast({
+        title: "Points Synced!",
+        description: "Your persistent points have been updated from on-chain data.",
+        variant: "success"
+      });
+    } catch (error) {
+      console.error("Error syncing points:", error);
+      toast({
+        title: "Sync Failed",
+        description: "There was an error syncing your points. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <Card className="shadow-md h-full">
@@ -74,7 +97,7 @@ const PersistentPointsDisplay = ({ address }: PersistentPointsDisplayProps) => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => syncPersistentPoints()}
+                onClick={handleSync}
                 disabled={isSyncing || !address}
                 className="flex items-center gap-1"
               >

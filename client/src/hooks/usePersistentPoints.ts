@@ -61,9 +61,27 @@ export function usePersistentPoints(address: string | null) {
   const syncPersistentPoints = useMutation({
     mutationFn: async () => {
       if (!address) throw new Error("No wallet address");
-      return await apiRequest(`/api/users/${address}/sync-persistent-points`, { method: 'POST' });
+      
+      try {
+        console.log("Syncing persistent points for address:", address);
+        const response = await apiRequest<PersistentPointsResponse>(
+          `/api/users/${address}/sync-persistent-points`, 
+          { 
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        console.log("Sync response:", response);
+        return response;
+      } catch (error) {
+        console.error("Error syncing persistent points:", error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Sync successful, data:", data);
       // Invalidate and refetch the persistent points
       queryClient.invalidateQueries({ queryKey: ['/api/users', address, 'persistent-points'] });
       // Also invalidate normal stats since they might have changed
