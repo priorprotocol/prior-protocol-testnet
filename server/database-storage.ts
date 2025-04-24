@@ -1009,14 +1009,13 @@ export class DatabaseStorage implements IStorage {
         const userCount = totalPointsResult?.count || 0;
         
         // Import the broadcast function from routes.ts
-        try {
-          const { broadcastNotification } = await import('./routes');
+        const { broadcastNotification } = require('./routes');
+        
+        // Send a notification to all connected clients
+        if (typeof broadcastNotification === 'function') {
+          console.log(`[WebSocket] Broadcasting leaderboard update with total points: ${totalGlobalPoints}`);
           
-          // Send a notification to all connected clients
-          if (typeof broadcastNotification === 'function') {
-            console.log(`[WebSocket] Broadcasting leaderboard update with total points: ${totalGlobalPoints}`);
-            
-            broadcastNotification({
+          broadcastNotification({
             type: 'leaderboard_update',
             totalGlobalPoints,
             userCount,
@@ -1032,7 +1031,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Helper function to recalculate points for a single user
-  recalculatePointsForUser = async (userId: number): Promise<number> => {
+  async recalculatePointsForUser(userId: number): Promise<number> {
     // Get user
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) {
@@ -1105,7 +1104,7 @@ export class DatabaseStorage implements IStorage {
     if (pointsBefore !== newPoints) {
       try {
         // Import the broadcast function from routes.ts
-        const { broadcastNotification } = await import('./routes');
+        const { broadcastNotification } = require('./routes');
         
         if (typeof broadcastNotification === 'function') {
           console.log(`[WebSocket] Broadcasting points update for user ${userId}: ${pointsBefore} → ${newPoints}`);
