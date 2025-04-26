@@ -129,7 +129,23 @@ app.use((req, res, next) => {
 export let server: http.Server;
 
 // Setup function that can be called in development or production
+import express from 'express';
+import cors from 'cors';
+import { setupRoutes } from './routes';
+import { env } from './env';
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
 export const setupServer = async () => {
+  const port = env.PORT || 5000;
+  
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${port}`);
+  });
+
+  setupRoutes(app);
   // Enhanced database initialization and recovery procedure
   if (storage instanceof DatabaseStorage) {
     try {

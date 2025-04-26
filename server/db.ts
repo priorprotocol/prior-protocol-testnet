@@ -10,10 +10,8 @@ if (typeof WebSocket === 'undefined') {
 } 
 
 // Check for DATABASE_URL environment variable
-if (!process.env.DATABASE_URL) {
-  console.error("⚠️ DATABASE_URL is not set. Database functionality will be limited.");
-  throw new Error("DATABASE_URL environment variable is required");
-}
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/prior';
+console.log("🔄 Initializing database connection...");
 
 // Enhanced PostgreSQL connection pool configuration with retry logic
 const connectionString = process.env.DATABASE_URL;
