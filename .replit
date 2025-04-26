@@ -15,7 +15,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Production"
+runButton = "Start Dev"
 
 [[workflows.workflow]]
 name = "Project"
@@ -57,3 +57,16 @@ args = "npm run build"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node dist/index.js"
+
+[[workflows.workflow]]
+name = "Start Dev"
+author = 41196373
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
