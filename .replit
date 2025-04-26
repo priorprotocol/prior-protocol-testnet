@@ -15,7 +15,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Start Server"
+runButton = "Dev Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -73,6 +73,23 @@ args = "npx tsx server/index.ts"
 
 [[workflows.workflow]]
 name = "Start Server"
+author = 41196373
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node dist/server/index.js"
+
+[[workflows.workflow]]
+name = "Dev Server"
 author = 41196373
 mode = "sequential"
 

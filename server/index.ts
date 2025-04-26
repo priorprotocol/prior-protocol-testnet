@@ -142,6 +142,8 @@ export const setupServer = async () => {
   const port = process.env.PORT || 5000;
   
   try {
+    setupRoutes(app);
+    
     const server = app.listen(port, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${port}`);
     });
