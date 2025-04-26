@@ -86,4 +86,4 @@ args = "npm run build"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node dist/index.js"
+args = "node dist/server/index.js"
