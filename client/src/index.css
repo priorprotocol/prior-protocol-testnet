@@ -8,7 +8,8 @@
   }
 
   body {
-    @apply font-inter antialiased text-white;
+    @apply antialiased text-white;
+    font-family: Inter, sans-serif;
     background-color: #0B1118;
     background-image: 
       radial-gradient(circle at 20% 35%, rgba(26, 92, 255, 0.15) 0%, transparent 50%),
@@ -17,7 +18,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-space;
+    font-family: 'Space Grotesk', sans-serif;
   }
 }
 
