@@ -67,7 +67,17 @@ export const setupServer = async () => {
     if (process.env.NODE_ENV === "development") {
       await setupVite(app, server);
     } else {
-      serveStatic(app);
+      // Serve static files from the client build directory
+      app.use(express.static('client/dist'));
+      
+      // Handle client-side routing by serving index.html for all routes
+      app.get('*', (req, res) => {
+        if (req.path.startsWith('/api')) {
+          // Skip API routes
+          return res.status(404).send('API endpoint not found');
+        }
+        res.sendFile('client/dist/index.html', { root: '.' });
+      });
     }
 
     // Start server
