@@ -95,11 +95,15 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
+args = "pkill -f \"node\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
 args = "npm install"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run build"
+args = "npm run build "
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

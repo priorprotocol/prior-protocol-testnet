@@ -81,10 +81,22 @@ export const setupServer = async () => {
       });
     }
 
-    // Start server
-    server.listen(port, '0.0.0.0', () => {
-      log(`🚀 Server running on port ${port}`);
-    });
+    // Start server with port fallback
+    const startServer = (portToUse: number) => {
+      server.listen(portToUse, '0.0.0.0', () => {
+        log(`🚀 Server running on port ${portToUse}`);
+      }).on('error', (err: any) => {
+        if (err.code === 'EADDRINUSE') {
+          log(`Port ${portToUse} is in use, trying port ${portToUse + 1}`);
+          startServer(portToUse + 1);
+        } else {
+          log(`Error starting server: ${err}`);
+          throw err;
+        }
+      });
+    };
+
+    startServer(port);
 
     return server;
   } catch (error) {
