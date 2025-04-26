@@ -9,87 +9,11 @@ import cors from "cors";
 // Export the Express app for production use
 export const app = express();
 
-// Add CORS headers manually to handle preflight requests
-app.use((req, res, next) => {
-  // Debug information
-  const origin = req.headers.origin;
-  log(`CORS request from origin: ${origin}`);
-
-  // IMPORTANT: Ensure all Netlify and Replit domains are explicitly listed here
-  const allowedOrigins = [
-    // Custom domains
-    'https://testnetpriorprotocol.xyz',
-    'http://testnetpriorprotocol.xyz',
-    'https://www.testnetpriorprotocol.xyz',
-    'http://www.testnetpriorprotocol.xyz',
-    // Netlify domains
-    'https://priortestnetv2.netlify.app',
-    'http://priortestnetv2.netlify.app',
-    'https://prior-protocol-testnet.netlify.app',
-    'http://prior-protocol-testnet.netlify.app',
-    'https://testnetpriorprotocol.netlify.app',
-    'http://testnetpriorprotocol.netlify.app',
-    'https://prior-testnet.netlify.app',
-    'http://prior-testnet.netlify.app',
-    'https://prior-test.netlify.app',
-    'http://prior-test.netlify.app',
-    'https://prior-protocol.netlify.app',
-    'http://prior-protocol.netlify.app',
-    // Don't forget the actual deploy previews on Netlify which use different domains
-    'https://deploy-preview-*.netlify.app',
-    // Replit domains
-    'https://prior-protocol-testnet-priorprotocol.replit.app',
-    'http://prior-protocol-testnet-priorprotocol.replit.app'
-  ];
-
-  // Check if origin is in allowed list or matches our development domains
-  // For Netlify deploy previews which have dynamic URLs
-  const isNetlifyPreview = origin && (
-    origin.includes('netlify.app') || 
-    origin.includes('netlify.com')
-  );
-
-  if (origin && (
-    allowedOrigins.includes(origin) || 
-    origin.includes('localhost') ||
-    origin.includes('replit.dev') ||
-    origin.includes('replit.app') ||
-    origin.includes('janeway.replit') ||
-    isNetlifyPreview
-  )) {
-    log(`Allowing CORS for origin: ${origin}`);
-    // Set the exact origin rather than * for security
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, cache-control, no-cache, If-Modified-Since, Range');
-    // Important for cookies/sessions
-    res.header('Access-Control-Allow-Credentials', 'true');
-  } else {
-    // Fallback for development, but use more restrictive settings
-    log(`Using fallback CORS for origin: ${origin}`);
-
-    // IMPORTANT: With credentials mode 'include', we can't use '*' for Allow-Origin
-    // So we need to explicitly set the origin if it exists, or default to a known domain
-    if (origin) {
-      res.header('Access-Control-Allow-Origin', origin);
-      res.header('Access-Control-Allow-Credentials', 'true');
-    } else {
-      // If no origin, use primary domain as fallback
-      res.header('Access-Control-Allow-Origin', 'https://prior-protocol-testnet-priorprotocol.replit.app');
-      res.header('Access-Control-Allow-Credentials', 'true');
-    }
-
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, cache-control, no-cache, If-Modified-Since, Range');
-  }
-
-  // Handle preflight OPTIONS requests
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  next();
-});
+// Add CORS headers
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -113,11 +37,6 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
       log(logLine);
     }
   });
@@ -125,96 +44,46 @@ app.use((req, res, next) => {
   next();
 });
 
-// Export the server for production use
-export let server: http.Server;
 
 // Setup function that can be called in development or production
-// Using the app instance already declared above
-// Routes will be set up during server initialization
-import { registerRoutes } from './routes';
 export const setupServer = async () => {
   const port = process.env.PORT || 5000;
 
   try {
-    // Set up routes once
+    // Initialize database if using DatabaseStorage
+    if (storage instanceof DatabaseStorage) {
+      log("🔄 Initializing database connection...");
+      await (storage as DatabaseStorage).seedDatabase();
+      log("✅ Database initialization completed");
+    }
+
+    // Create HTTP server
+    const server = http.createServer(app);
+
+    // Register routes
     await registerRoutes(app);
 
-    const server = app.listen(port, '0.0.0.0', () => {
-      console.log(`🚀 Server running on port ${port}`);
-    });
+    // Setup Vite in development or serve static files in production
+    if (process.env.NODE_ENV === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
 
-    server.on('error', (error) => {
-      console.error('Server error:', error);
+    // Start server
+    server.listen(port, '0.0.0.0', () => {
+      log(`🚀 Server running on port ${port}`);
     });
 
     return server;
   } catch (error) {
-    console.error('Failed to start server:', error);
+    log(`Error starting server: ${error}`);
     throw error;
   }
-  // Enhanced database initialization and recovery procedure
-  if (storage instanceof DatabaseStorage) {
-    try {
-      log("🔄 Initializing database connection...");
+};
 
-      // Import the database health check function
-      const { isDatabaseHealthy } = await import("./db");
-
-      // Wait for database to be healthy before proceeding
-      let attempts = 0;
-      const maxAttempts = 10;
-      while (!isDatabaseHealthy() && attempts < maxAttempts) {
-        log(`⏳ Waiting for database connection to be established (attempt ${attempts + 1}/${maxAttempts})...`);
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds between attempts
-        attempts++;
-      }
-
-      if (!isDatabaseHealthy()) {
-        log("⚠️ WARNING: Database connection could not be established after multiple attempts");
-        log("⚠️ The application will start but data persistence might be affected");
-      } else {
-        log("✅ Database connection established successfully");
-      }
-
-      // Perform database seed/initialization
-      log("🔄 Running database initialization and verification...");
-      await (storage as DatabaseStorage).seedDatabase();
-
-      // Force a leaderboard cache refresh on startup to ensure latest data is loaded
-      log("🔄 Pre-loading leaderboard cache to ensure data consistency...");
-      await (storage as DatabaseStorage).refreshLeaderboardCache();
-
-      // Verify cached user count matches database count
-      const cacheStats = await (storage as DatabaseStorage).getCacheStats();
-      const dbUserCount = await (storage as DatabaseStorage).getTotalUsersCount();
-
-      log(`📊 Cache stats - Users in cache: ${cacheStats.userCount}, Users in DB: ${dbUserCount.count}`);
-
-      if (cacheStats.userCount !== dbUserCount.count) {
-        log("⚠️ WARNING: User count mismatch between cache and database");
-        log("🔄 Performing automatic cache rebuild to ensure consistency...");
-
-        // Force a complete cache rebuild
-        await (storage as DatabaseStorage).rebuildCache();
-
-        const updatedCacheStats = await (storage as DatabaseStorage).getCacheStats();
-        log(`✅ Cache rebuild complete - Users in cache: ${updatedCacheStats.userCount}`);
-      } else {
-        log("✅ Cache verification successful - cache is consistent with database");
-      }
-
-      log("✅ Database initialization completed successfully");
-    } catch (error) {
-      log(`🔴 Error initializing database: ${error}`);
-      log("⚠️ The application will start but data persistence might be affected");
-    }
-  }
-
-  // Register API routes
-  server = await registerRoutes(app);
-
-  // Enhanced error handling middleware with more detailed logging
-  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+// Enhanced error handling middleware with more detailed logging
+app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
@@ -231,15 +100,6 @@ export const setupServer = async () => {
     // and can crash the server in production
   });
 
-  // Setup Vite in development or serve static files in production
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  return server;
-};
 
 // Start the server in development mode
 // This code will run when the file is executed directly

@@ -6,18 +6,20 @@ import { app, setupServer } from './dist/index.js';
   try {
     const server = await setupServer();
     
-    // Start the server
-    const PORT = process.env.PORT || 5000;
-    server.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-
     // Handle graceful shutdown
     process.on('SIGTERM', () => {
       console.log('SIGTERM signal received: closing HTTP server');
       server.close(() => {
         console.log('HTTP server closed');
       });
+    });
+
+    process.on('uncaughtException', (error) => {
+      console.error('Uncaught Exception:', error);
+    });
+
+    process.on('unhandledRejection', (error) => {
+      console.error('Unhandled Rejection:', error);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
