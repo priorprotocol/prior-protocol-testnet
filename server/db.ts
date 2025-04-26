@@ -18,11 +18,11 @@ const connectionString = process.env.DATABASE_URL;
 
 // Create a more resilient connection pool with specific settings for production use
 export const pool = new Pool({
-  connectionString,
-  max: 20,               // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000,  // How long a client is allowed to remain idle before being closed
-  connectionTimeoutMillis: 10000, // How long to wait for a connection to become available
-  // Improved error handling with explicit event handlers
+  connectionString: DATABASE_URL,
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 // Set up connection monitoring for improved reliability

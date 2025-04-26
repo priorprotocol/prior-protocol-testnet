@@ -139,11 +139,22 @@ app.use(cors());
 app.use(express.json());
 
 export const setupServer = async () => {
-  const port = env.PORT || 5000;
+  const port = process.env.PORT || 5000;
+  
+  try {
+    const server = app.listen(port, '0.0.0.0', () => {
+      console.log(`🚀 Server running on port ${port}`);
+    });
 
-  app.listen(port, '0.0.0.0', () => {
-    console.log(`🚀 Server running on port ${port}`);
-  });
+    server.on('error', (error) => {
+      console.error('Server error:', error);
+    });
+
+    return server;
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    throw error;
+  }
 
   setupRoutes(app);
   // Enhanced database initialization and recovery procedure
