@@ -131,13 +131,14 @@ export let server: http.Server;
 // Setup function that can be called in development or production
 // Using the app instance already declared above
 // Routes will be set up during server initialization
+import { registerRoutes } from './routes';
 export const setupServer = async () => {
   const port = process.env.PORT || 5000;
-  
+
   try {
     // Set up routes once
-    setupRoutes(app);
-    
+    await registerRoutes(app);
+
     const server = app.listen(port, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${port}`);
     });

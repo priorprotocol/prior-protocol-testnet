@@ -1,10 +1,11 @@
+
 import { app, setupServer } from './dist/index.js';
 
 // Initialize the server
 (async () => {
   try {
     const server = await setupServer();
-
+    
     // Start the server
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, '0.0.0.0', () => {
