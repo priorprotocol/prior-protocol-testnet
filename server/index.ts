@@ -130,12 +130,12 @@ export let server: http.Server;
 
 // Setup function that can be called in development or production
 // Using the app instance already declared above
-setupRoutes(app);
-
+// Routes will be set up during server initialization
 export const setupServer = async () => {
   const port = process.env.PORT || 5000;
   
   try {
+    // Set up routes once
     setupRoutes(app);
     
     const server = app.listen(port, '0.0.0.0', () => {
@@ -151,8 +151,6 @@ export const setupServer = async () => {
     console.error('Failed to start server:', error);
     throw error;
   }
-
-  setupRoutes(app);
   // Enhanced database initialization and recovery procedure
   if (storage instanceof DatabaseStorage) {
     try {

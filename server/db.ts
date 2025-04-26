@@ -21,8 +21,10 @@ export const pool = new Pool({
   connectionString: DATABASE_URL,
   max: 5,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  connectionTimeoutMillis: 5000,
+  ssl: { rejectUnauthorized: false }, // Enable SSL for all environments
+  maxRetries: 3,
+  retryDelay: 1000
 });
 
 // Set up connection monitoring for improved reliability
