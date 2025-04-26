@@ -8,7 +8,7 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "cloudrun"
 run = ["sh", "-c", "NODE_ENV=production node server.js"]
-build = ["sh", "-c", "npm install && npm run build"]
+build = ["sh", "-c", "bash netlify-build.sh"]
 
 [[ports]]
 localPort = 5000
