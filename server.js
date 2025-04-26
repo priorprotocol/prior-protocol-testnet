@@ -1,21 +1,16 @@
-// This is a simple entry point file for running the built application
-// It's used by Vercel and other Node.js hosting platforms
-
-// Import the built application from the dist directory
-import { app, setupServer, server } from './dist/index.js';
+import { app, setupServer } from './dist/index.js';
 
 // Initialize the server
 (async () => {
   try {
-    // Setup the server (registers routes, etc.)
-    await setupServer();
-    
+    const server = await setupServer();
+
     // Start the server
     const PORT = process.env.PORT || 5000;
-    server.listen(PORT, () => {
-      console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running on port ${PORT}`);
     });
-    
+
     // Handle graceful shutdown
     process.on('SIGTERM', () => {
       console.log('SIGTERM signal received: closing HTTP server');
