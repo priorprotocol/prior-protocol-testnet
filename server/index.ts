@@ -81,12 +81,39 @@ export const setupServer = async () => {
       });
     }
 
-    // Start server
-    server.listen(port, '0.0.0.0', () => {
-      log(`🚀 Server running on port ${port}`);
-    });
+    // Check if port is in use and handle graceful shutdown
+    try {
+      // Attempt to close any existing connections
+      server.close();
+      
+      // Start server with improved error handling
+      server.listen(port, '0.0.0.0', () => {
+        log(`🚀 Server running on port ${port}`);
+      });
 
-    return server;
+      // Handle server errors
+      server.on('error', (error: any) => {
+        if (error.code === 'EADDRINUSE') {
+          log(`❌ Port ${port} is already in use. Trying to close existing connection...`);
+          require('child_process').exec(`npx kill-port ${port}`, (err: any) => {
+            if (err) {
+              log(`Failed to free port ${port}: ${err}`);
+              process.exit(1);
+            }
+            // Retry starting server after port is freed
+            server.listen(port, '0.0.0.0');
+          });
+        } else {
+          log(`Server error: ${error}`);
+          process.exit(1);
+        }
+      });
+
+      return server;
+    } catch (error) {
+      log(`Failed to start server: ${error}`);
+      throw error;
+    }
   } catch (error) {
     log(`Error starting server: ${error}`);
     throw error;
