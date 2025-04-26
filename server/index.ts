@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { DatabaseStorage } from "./database-storage";
 import http from "http";
 import cors from "cors";
+import path from "path";
 
 // Export the Express app for production use
 export const app = express();
@@ -68,7 +69,7 @@ export const setupServer = async () => {
       await setupVite(app, server);
     } else {
       // Serve static files from the client build directory
-      app.use(express.static('client/dist'));
+      app.use(express.static(path.join(process.cwd(), 'client/dist')));
       
       // Handle client-side routing by serving index.html for all routes
       app.get('*', (req, res) => {
@@ -76,7 +77,7 @@ export const setupServer = async () => {
           // Skip API routes
           return res.status(404).send('API endpoint not found');
         }
-        res.sendFile('client/dist/index.html', { root: '.' });
+        res.sendFile(path.join(process.cwd(), 'client/dist/index.html'));
       });
     }
 
