@@ -1,20 +1,16 @@
+
 #!/bin/bash
-
-# This is a simple bash script for Netlify to build the frontend
-
-# Print commands for debugging
-set -ex
+set -e
 
 # Install dependencies
 npm install
 
-# Build the frontend only using Vite
-npm run build 
+# Build the client
+cd client
+npm install
+npm run build
 
-# Make sure client/dist exists
-mkdir -p client/dist
+# Ensure dist directory exists
+mkdir -p dist
 
-# Copy the built files to client/dist (where Netlify expects them)
-cp -r dist/public/* client/dist/
-
-echo "Build complete! Files copied to client/dist for Netlify deployment."
+echo "Build complete! Files ready for Netlify deployment."
